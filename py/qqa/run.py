@@ -4,6 +4,8 @@ import subprocess
 
 import fitsio
 
+import desiutil.log
+
 def find_latest_expdir(basedir):
     '''
     finds the latest basedir/YEARMMDD/EXPID without traversing the whole tree
@@ -67,12 +69,18 @@ def run_qproc(rawfile, outdir, ncpu=None):
     
     returns header of HDU 0 of the input rawfile
     '''
+    log = desiutil.log.get_logger()
+
     hdr = fitsio.read_header(rawfile, 0)
     flavor = hdr['FLAVOR'].rstrip().upper()
     night = hdr['NIGHT']
     expid = hdr['EXPID']
     
     indir = os.path.abspath(os.path.dirname(rawfile))
+
+    fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid)
+    if flavor == 'SCIENCE' and not os.path.exists(fibermap):
+        log.error('{}/{} SCIENCE exposure without a fibermap'.format(night, expid))
     
     arglist = list()
     cameras = which_cameras(rawfile)
