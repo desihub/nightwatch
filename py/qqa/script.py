@@ -48,13 +48,16 @@ def main_run(options=None):
     parser.add_argument("-o", "--outdir", type=str,  help="write output to outdir/YEARMMDD/EXPID/")
     # parser.add_argument("--qprocdir", type=str,  help="qproc output directory")
     # parser.add_argument("--qadir", type=str,  help="QA output directory")
-    # parser.add_argument("--plotdir", type=str,  help="QA plot output directory")
+    parser.add_argument("--plotdir", type=str, help="QA plot output directory")
 
     if options is None:
         options = sys.argv[2:]
 
     args = parser.parse_args(options)
     
+    if args.plotdir is None :
+        args.plotdir = args.outdir
+
     log = get_logger()
     tmp = os.path.join(args.indir, 'YEARMMDD', 'EXPID')
     log.info('Monitoring {}/ for new raw data'.format(tmp))
@@ -86,8 +89,11 @@ def main_run(options=None):
             qadata = qarunner.run(indir=outdir, outdir=outdir)
 
             print('Generating plots for {}/{}'.format(night, expid))
-            run.make_plots(qadata, header, outdir)
-
+            plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+            if not os.path.isdir(plotdir) : 
+                os.makedirs(plotdir)
+            run.make_plots(qadata, header, plotdir)
+            
             processed.add(expdir)
 
         time.sleep(2)
