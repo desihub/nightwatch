@@ -14,7 +14,10 @@ def write_amp_qa_html(data, outfile, header):
     night = header['NIGHT']
     expid = header['EXPID']
     flavor = header['FLAVOR'].rstrip()
-    program = header['PROGRAM'].rstrip()
+    if "PROGRAM" not in header :
+        program = "no program in header!"
+    else :
+        program = header['PROGRAM'].rstrip()
     exptime = header['EXPTIME']
     
     html_template = '''
