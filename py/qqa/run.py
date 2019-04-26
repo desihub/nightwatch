@@ -147,11 +147,20 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return hdr
 
-def make_plots(qadata, header, outdir):
+
+def make_plots(infile, outdir):
     '''TODO: Document'''
     
     from . import plots
-    
+
+    qadata = dict()
+    with fitsio.FITS(infile) as fx:
+        header = fx[0].read_header()
+        for hdu in fx:
+            extname = hdu.get_extname()
+            if extname.startswith('PER_'):
+                qadata[extname] = hdu.read()
+
     night = header['NIGHT']
     expid = header['EXPID']
     
