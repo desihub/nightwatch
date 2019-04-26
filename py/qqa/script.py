@@ -22,7 +22,7 @@ Run "qqa <command> --help" for details options about each command
 """)
 
 def main():
-    if len(sys.argv) == 0 or sys.argv[1] in ('-h', '--help', '-help', 'help'):
+    if len(sys.argv) == 1 or sys.argv[1] in ('-h', '--help', '-help', 'help'):
         print_help()
         return 0
 
