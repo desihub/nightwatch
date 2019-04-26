@@ -4,6 +4,105 @@
 Real Time Analysis Runner
 """
 
-import sys, os
+import sys, os, re, time
+import multiprocessing as mp
+import fitsio
 
-print("hello")
+from rta.qa import QARunner
+from rta.plots.amp import write_amp_qa_html
+
+import desispec.scripts.preproc
+
+def find_latest_expdir(basedir):
+    '''
+    finds the latest basedir/YEARMMDD/EXPID without traversing the whole tree
+    
+    Returns directory, or None if no matching directories are found
+    '''
+    #- Search for most recent basedir/YEARMMDD
+    for dirname in sorted(os.listdir(basedir), reverse=True):
+        nightdir = os.path.join(basedir, dirname)
+        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
+            break
+    else:
+        return None  #- no basename/YEARMMDD directory was found
+    
+    for dirname in sorted(os.listdir(nightdir), reverse=True):
+        expdir = os.path.join(nightdir, dirname)
+        if re.match('\d{8}', dirname) and os.path.isdir(expdir):
+            break
+    else:
+        return None  #- no basename/YEARMMDD/EXPID directory was found
+    
+    return expdir    
+
+def run_preproc(datafile, outdir, ncpu=None):
+    '''TODO: document'''
+    if not os.path.exists(datafile):
+        raise ValueError("{} doesn't exist".format(datafile))
+        
+    cameras = list()
+    with fitsio.FITS(datafile) as fx:
+        header = fx[0].read_header()
+        for hdu in fx:
+            extname = hdu.get_extname().upper()
+            if re.match('[BRZ][0-9]', extname):
+                cameras.append(extname.lower())
+    
+    arglist = list()
+    for camera in cameras:
+        args = ['--infile', datafile, '--outdir', outdir, '--cameras', camera]
+        arglist.append(args)
+
+    if ncpu is None:
+        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+
+    pool = mp.Pool(ncpu)
+    pool.map(desispec.scripts.preproc.main, arglist)
+    
+    return header
+
+#-------------------------------------------------------------------------
+
+import argparse
+
+parser = argparse.ArgumentParser(usage = "{prog} [options]")
+parser.add_argument("--datadir", type=str,  help="look for new data in datadir/YEARMMDD/EXPID", required=True)
+parser.add_argument("-o", "--outdir", type=str,  help="output directory", required=True)
+# parser.add_argument("-v", "--verbose", action="store_true", help="some flag")
+
+args = parser.parse_args()
+
+qarunner = QARunner()
+
+processed = set()
+while True:
+    expdir = find_latest_expdir(args.datadir)
+    if expdir is None:
+        continue
+
+    night, expid = expdir.split('/')[-2:]
+    rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
+    if expdir not in processed and os.path.exists(rawfile):
+        outdir = '{}/{}/{}'.format(args.outdir, night, expid)
+        if os.path.exists(outdir):
+            print('Skipping previously processed {}/{}'.format(night, expid))
+            processed.add(expdir)
+            continue
+        else:
+            os.makedirs(outdir)
+        
+        print('Running preproc on {}'.format(rawfile))
+        header = run_preproc(rawfile, outdir)
+        
+        print('Running QA on {}/{}'.format(night, expid))
+        qadata = qarunner.run(indir=outdir, outdir=outdir)
+        print('Generating plots for {}/{}'.format(night, expid))
+        
+        html_amp = '{}/qaAmp-{}.html'.format(outdir, expid)
+        write_amp_qa_html(qadata['PER_AMP'], html_amp, header)
+        
+        print('Wrote {}'.format(html_amp))
+        
+        processed.add(expdir)
+    time.sleep(2)
