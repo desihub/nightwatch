@@ -17,18 +17,18 @@ def _fix_amp_names(hdr):
     if 'DATASECA' in hdr:
         return
 
-    log = desiutil.get_logger()
+    log = desiutil.log.get_logger()
     log.debug('Correcting AMP 1-4 to A-D for night {} expid {}'.format(
         hdr['NIGHT'], hdr['EXPID']))
 
     for prefix in [
         'GAIN', 'RDNOISE', 'PRESEC', 'PRRSEC', 'DATASEC', 'TRIMSEC', 'BIASSEC',
-        'ORSEC', 'CCDSEC', 'DETSEC', 'AMPSEC',
+        'ORSEC', 'CCDSEC', 'DETSEC', 'AMPSEC', 'OBSRDN', 'OVERSCN'
         ]:
         for ampnum, ampname in [('1','A'), ('2','B'), ('3','C'), ('4','D')]:
             if prefix+ampnum in hdr:
                 hdr[prefix+ampname] = hdr[prefix+ampnum]
-                del hdr[prefix+ampnum]
+                hdr.delete(prefix+ampnum)
 
 
 class QAAmp(QA):
