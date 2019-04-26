@@ -63,19 +63,27 @@ def run_preproc(rawfile, outdir, ncpu=None):
     
     return header
 
-def run_qproc(rawfile, outdir, ncpu=None):
+def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
+    
+    cameras can be a list
     
     returns header of HDU 0 of the input rawfile
     '''
     log = desiutil.log.get_logger()
 
     hdr = fitsio.read_header(rawfile, 0)
-    flavor = hdr['FLAVOR'].rstrip().upper()
-    night = hdr['NIGHT']
-    expid = hdr['EXPID']
-    
+    if 'FLAVOR' not in hdr :
+        log.warning("no flavor keyword in first hdu header, moving to the next one")
+        hdr = fitsio.read_header(rawfile, 1)
+    try :
+        flavor = hdr['FLAVOR'].rstrip().upper()
+        night = hdr['NIGHT']
+        expid = hdr['EXPID']
+    except KeyError as e :
+        log.error(str(e))
+        raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid)
@@ -83,7 +91,8 @@ def run_qproc(rawfile, outdir, ncpu=None):
         log.error('{}/{} SCIENCE exposure without a fibermap'.format(night, expid))
     
     arglist = list()
-    cameras = which_cameras(rawfile)
+    if cameras is None :
+        cameras = which_cameras(rawfile)
     for camera in cameras:
         outfiles = dict(
             rawfile = rawfile,
