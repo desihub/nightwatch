@@ -46,17 +46,19 @@ class QARunner():
         for qa in self.qalist:
             if qa.valid_flavor(flavor):
                 log.debug('Running {} {}'.format(qa, qa.output_type))
+                qa_results = None
                 try:
                     qa_results = qa.run(indir)
                 except Exception as err:
-                    log.warning('{} failed on {}; skipping'.format(qa, indir))
-                    ### raise(err)
+                    log.warning('{} failed on {} because {}; skipping'.format(qa, indir,str(err)))
+                    #raise(err)
                     #- TODO: print traceback somewhere useful
 
                 if qa.output_type not in results:
                     results[qa.output_type] = list()
-                
-                results[qa.output_type].append(qa_results)
+
+                if qa_results is not None :
+                    results[qa.output_type].append(qa_results)
 
         #- Combine results for different types of QA
         join_keys = dict(
