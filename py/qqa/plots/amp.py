@@ -8,8 +8,6 @@ from bokeh.embed import components
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 
-
-
 def write_amp_qa_html(data, outfile, header):
     '''TODO: document'''
     
@@ -50,22 +48,36 @@ def write_amp_qa_html(data, outfile, header):
     </html>
     '''
     
+    #- Add a basic set of PER_AMP QA plots
     plot_components = dict()
     for qaname, qatitle in [
             ['READNOISE', 'CCD Amplifier Read Noise'],
             ['BIAS', 'CCD Amplifier Overscan Bias Level'],
-            ['COSMICS_RATE', 'CCD Amplifier Cosmics Rate (pixels/sec)'],
         ]:
         fig = plot_amp_qa(data, qaname, title=qatitle)
         script, div = components(fig)
         plot_components[qaname+'_script'] = script
         plot_components[qaname+'_div'] = div
+        
+    #- COSMICS_RATE could have been in the loop above, but demonstrating the
+    #- steps of adding a plot separately in case it needs any customization:
+    
+    #- Generate the bokeh figure
+    fig = plot_amp_qa(data, 'COSMICS_RATE', title='CCD Amplifier Cosmics Rate (pixels/sec')
+    
+    #- Get the components to embed in the HTML
+    script, div = components(fig)
+    
+    #- Add those to the dictionary that will be passed to the HTML template
+    plot_components[qaname+'_script'] = script
+    plot_components[qaname+'_div'] = div
                 
+    #- Combine template + components -> HTML
     html = jinja2.Template(html_template).render(**plot_components)
     
+    #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
-
 
 def plot_amp_qa(data, name, title=None):
     '''
@@ -73,7 +85,7 @@ def plot_amp_qa(data, name, title=None):
     '''
     if title is None:
         title = name
-    
+     
     #- Map data[name] into location on image to display
     img = np.zeros(shape=(4,30)) * np.nan
     for row in data:

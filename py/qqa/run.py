@@ -1,21 +1,8 @@
-#!/usr/bin/env python
-
-"""
-Real Time Analysis Runner
-
-TODO: most of this should move into a module file, not a script
-"""
-
-import sys, os, re, time
+import os, re
 import multiprocessing as mp
 import subprocess
+
 import fitsio
-
-from rta.qa import QARunner
-from rta.plots.amp import write_amp_qa_html
-
-import desispec.scripts.preproc
-import desiutil.log
 
 def find_latest_expdir(basedir):
     '''
@@ -51,7 +38,7 @@ def which_cameras(rawfile):
             if re.match('[BRZ][0-9]', extname):
                 cameras.append(extname.lower())
     
-    return cameras
+    return sorted(cameras)
 
 def run_preproc(rawfile, outdir, ncpu=None):
     '''TODO: document'''
@@ -143,48 +130,15 @@ def run_qproc(rawfile, outdir, ncpu=None):
 
     return hdr
 
-#-------------------------------------------------------------------------
+def make_plots(qadata, header, outdir):
+    '''TODO: Document'''
+    
+    from . import plots
+    
+    night = header['NIGHT']
+    expid = header['EXPID']
+    
+    htmlfile = '{}/qaAmp-{}.html'.format(outdir, expid)
+    plots.amp.write_amp_qa_html(qadata['PER_AMP'], htmlfile, header)
+    print('Wrote {}'.format(htmlfile))
 
-import argparse
-
-parser = argparse.ArgumentParser(usage = "{prog} [options]")
-parser.add_argument("--datadir", type=str,  help="look for new data in datadir/YEARMMDD/EXPID", required=True)
-parser.add_argument("-o", "--outdir", type=str,  help="output directory", required=True)
-# parser.add_argument("-v", "--verbose", action="store_true", help="some flag")
-
-args = parser.parse_args()
-
-qarunner = QARunner()
-
-processed = set()
-while True:
-    expdir = find_latest_expdir(args.datadir)
-    if expdir is None:
-        continue
-
-    night, expid = expdir.split('/')[-2:]
-    rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
-    if expdir not in processed and os.path.exists(rawfile):
-        outdir = '{}/{}/{}'.format(args.outdir, night, expid)
-        if os.path.exists(outdir):
-            print('Skipping previously processed {}/{}'.format(night, expid))
-            processed.add(expdir)
-            continue
-        else:
-            os.makedirs(outdir)
-        
-        print('Running qproc on {}'.format(rawfile))
-        # header = run_preproc(rawfile, outdir)
-        header = run_qproc(rawfile, outdir, ncpu=1)
-        
-        print('Running QA on {}/{}'.format(night, expid))
-        qadata = qarunner.run(indir=outdir, outdir=outdir)
-        print('Generating plots for {}/{}'.format(night, expid))
-        
-        html_amp = '{}/qaAmp-{}.html'.format(outdir, expid)
-        write_amp_qa_html(qadata['PER_AMP'], html_amp, header)
-        
-        print('Wrote {}'.format(html_amp))
-        
-        processed.add(expdir)
-    time.sleep(2)

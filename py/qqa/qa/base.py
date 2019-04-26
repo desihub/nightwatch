@@ -15,7 +15,17 @@ class QA(object):
     def run(self, indir):
         '''Run this QA on files in `indir`
         
-        TODO: document return values
+        This class should return an astropy Table with metadata columns
+        depending upon the QA type::
+        
+          * PER_AMP: NIGHT, EXPID, SPECTRO, CAM, AMP
+          * PER_CAMERA: NIGHT, EXPID, SPECTRO, CAM
+          * PER_FIBER: NIGHT, EXPID, SPECTRO, FIBER
+          * PER_CAMFIBER: NIGHT, EXPID, SPECTRO, CAM, FIBER
+          * PER_SPECTRO: NIGHT, EXPID, SPECTRO
+          * PER_EXP: NIGHT, EXPID
+        
+        Additional columns contain a scalar QA metrics.
         '''
         raise NotImplementedError
 

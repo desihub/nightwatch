@@ -9,9 +9,9 @@ import desiutil.log
 from .amp import QAAmp
 # from .fibersnr import QAFiberSNR
 
-def run(indir, qalist=None):
+def run(indir, outdir=None, qalist=None):
     qarunner = QARunner(qalist)
-    return qarunner.run(indir)
+    return qarunner.run(indir, outdir=outdir)
 
 class QARunner():
     def __init__(self, qalist=None):

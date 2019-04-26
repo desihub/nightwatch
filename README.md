@@ -1,2 +1,3 @@
-# rta
-Prototype code for DESI Real Time Analysis
+# Quick QA
+
+Prototype code for DESI Quick Quality Assurance (qqa) analysis
