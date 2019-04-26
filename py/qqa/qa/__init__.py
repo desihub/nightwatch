@@ -9,9 +9,9 @@ import desiutil.log
 from .amp import QAAmp
 # from .fibersnr import QAFiberSNR
 
-def run(indir, outdir=None, qalist=None):
+def run(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
-    return qarunner.run(indir, outdir=outdir)
+    return qarunner.run(indir, outfile=outfile)
 
 class QARunner():
     def __init__(self, qalist=None):
@@ -23,24 +23,19 @@ class QARunner():
         self.qalist = [X() for X in qalist]
 
 
-    def run(self, indir, outdir=None, flavor=None):
+    def run(self, indir, outfile=None):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         log.debug('Running QA in {}'.format(indir))
         
-        if flavor is None:
-            for prefix in ('preproc', 'desi', 'qframe', 'frame'):
-                datafiles = glob.glob('{}/{}*.fits'.format(indir, prefix))
-                if len(datafiles) > 0:
-                    break
-
-            else:  #- else of for loop, in case we didn't break out
-                log.error('No preproc, desi, or (q)frame files found to derive FLAVOR')
-                raise RuntimeError
+        preprocfiles = sorted(glob.glob('{}/preproc-*.fits'.format(indir)))
+        if len(preprocfiles) == 0:
+            log.error('No preproc files found in {}'.format(indir))
+            raise RuntimeError
             
-            hdr = fitsio.read_header(datafiles[0], 0)
-            flavor = hdr['FLAVOR'].strip()
-            log.debug('Found FLAVOR={} files'.format(flavor))
+        hdr = fitsio.read_header(preprocfiles[0], 0)
+        flavor = hdr['FLAVOR'].strip()
+        log.debug('Found FLAVOR={} files'.format(flavor))
 
         results = dict()
         for qa in self.qalist:
@@ -87,15 +82,13 @@ class QARunner():
             #- TODO: NIGHT/EXPID/SPECTRO/FIBER int64 -> int32 or int16
             #- TODO: metrics from float64 -> float32
 
-        if outdir is not None:
+        if outfile is not None:
             for tx in results.values():
                 night = tx['NIGHT'][0]
                 expid = tx['EXPID'][0]
                 break
 
             #- To do: consider propagating header from indir/desi*.fits.fz
-            outfile = '{}/qa-{:08d}.fits'.format(outdir, expid)
-            hdr = dict(NIGHT=night, EXPID=expid)
             with fitsio.FITS(outfile, 'rw', clobber=True) as fx:
                 fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
                 for qatype, qatable in results.items():
