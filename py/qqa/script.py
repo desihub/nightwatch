@@ -4,6 +4,7 @@ qqa command line script
 
 import os, sys, time
 import argparse
+import traceback
 from . import run, plots
 from .qa import QARunner
 from desiutil.log import get_logger
@@ -49,7 +50,8 @@ def main_run(options=None):
     # parser.add_argument("--qprocdir", type=str,  help="qproc output directory")
     # parser.add_argument("--qadir", type=str,  help="QA output directory")
     parser.add_argument("--plotdir", type=str, help="QA plot output directory")
-
+    parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+    
     if options is None:
         options = sys.argv[2:]
 
@@ -81,19 +83,31 @@ def main_run(options=None):
             else:
                 os.makedirs(outdir)
 
-            print('Running qproc on {}'.format(rawfile))
-            # header = run_preproc(rawfile, outdir)
-            header = run.run_qproc(rawfile, outdir)
+            try :
+                print('Running qproc on {}'.format(rawfile))
+                # header = run_preproc(rawfile, outdir)
+                header = run.run_qproc(rawfile, outdir, cameras=args.cameras.split(','))
 
-            print('Running QA on {}/{}'.format(night, expid))
-            qadata = qarunner.run(indir=outdir, outdir=outdir)
+                print('Running QA on {}/{}'.format(night, expid))
+                qafile = "{}/qa-{}.fits".format(outdir,expid)
+                #qadata = qarunner.run(indir=outdir, outfile=qafile)
+                qarunner.run(indir=outdir, outfile=qafile)
+                
+                print('Generating plots for {}/{}'.format(night, expid))
+                plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+                if not os.path.isdir(plotdir) : 
+                    os.makedirs(plotdir)
+                #run.make_plots(qadata, header, plotdir)
+                run.make_plots(infile=qafile, outdir=plotdir)
 
-            print('Generating plots for {}/{}'.format(night, expid))
-            plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-            if not os.path.isdir(plotdir) : 
-                os.makedirs(plotdir)
-            run.make_plots(qadata, header, plotdir)
-            
+            except Exception as e :
+                print("Failed to process or QA or plot exposure {}".format(expid))
+                print("Error message: {}".format(str(e)))
+                exc_info = sys.exc_info()
+                traceback.print_exception(*exc_info)
+                del exc_info
+                print("Now moving on ...")
+
             processed.add(expdir)
 
         time.sleep(2)
@@ -129,7 +143,7 @@ def main_qproc(options=None):
 def main_qa(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} qa [options]")
     parser.add_argument("-i", "--indir", type=str, required=True, help="input directory with qproc outputs")
-    parser.add_argument("-o", "--outdir", type=str, required=True, help="output directory (without appending YEARMMDD/EXPID/)")
+    parser.add_argument("-o", "--outfile", type=str, required=True, help="output qa fits file name")
 
     if options is None:
         options = sys.argv[2:]
@@ -137,11 +151,12 @@ def main_qa(options=None):
     args = parser.parse_args(options)
     
     from . import qa
-    qa.run(args.indir, outdir=args.outdir)
+    qa.run(args.indir, outfile=args.outfile)
+    print("done qa from {} to {}".format(args.indir, args.outfile))
 
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
-    parser.add_argument("-i", "--indir", type=str,  help="input directory with qa outputs")
+    parser.add_argument("-i", "--infile", type=str,  help="input fits file name with qa outputs")
     parser.add_argument("-o", "--outdir", type=str,  help="output directory (without appending YEARMMDD/EXPID/)")
 
     if options is None:
@@ -149,9 +164,7 @@ def main_plot(options=None):
     
     args = parser.parse_args(options)
 
-    print('qqa plot: Not yet implemented')
+    run.make_plots(args.infile, args.outdir)
     
-    # header = run.make_plots(args.infile, args.outdir)
-
     
     
