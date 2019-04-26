@@ -69,8 +69,8 @@ def write_amp_qa_html(data, outfile, header):
     script, div = components(fig)
     
     #- Add those to the dictionary that will be passed to the HTML template
-    plot_components[qaname+'_script'] = script
-    plot_components[qaname+'_div'] = div
+    plot_components['COSMICS_RATE_script'] = script
+    plot_components['COSMICS_RATE_div'] = div
                 
     #- Combine template + components -> HTML
     html = jinja2.Template(html_template).render(**plot_components)
