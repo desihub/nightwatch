@@ -7,6 +7,8 @@ from astropy.table import join, Table
 import desiutil.log
 
 from .amp import QAAmp
+from .specscore import QASpecscore
+
 # from .fibersnr import QAFiberSNR
 
 def run(indir, outfile=None, qalist=None):
@@ -17,7 +19,7 @@ class QARunner():
     def __init__(self, qalist=None):
         '''TODO: document'''
         if qalist is None:
-            qalist = [QAAmp,]
+            qalist = [QAAmp,QASpecscore,]
 
         #- Runner keeps instances, not just their classes
         self.qalist = [X() for X in qalist]
@@ -54,7 +56,8 @@ class QARunner():
 
                 if qa_results is not None :
                     results[qa.output_type].append(qa_results)
-
+            else :
+                log.debug('Skip {} {} for {}'.format(qa, qa.output_type, flavor))
         #- Combine results for different types of QA
         join_keys = dict(
             PER_AMP = ['NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'AMP'],
