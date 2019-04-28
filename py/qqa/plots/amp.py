@@ -97,7 +97,7 @@ def plot_amp_qa(data, name, title=None):
             i = 2
         else:
             i = 0
-        if row['AMP'] in ['C', 'D']:
+        if row['AMP'] in ['C', 'D', b'C', b'D']:
             i += 1
 
         j = 6*(row['SPECTRO'] % 5)
@@ -106,7 +106,7 @@ def plot_amp_qa(data, name, title=None):
         elif row['CAM'].upper() == 'Z':
             j += 4
         
-        if row['AMP'] in ['D', 'B']:
+        if row['AMP'] in ['D', 'B', b'D', b'B']:
             j += 1
         
         img[i,j] = row[name]
