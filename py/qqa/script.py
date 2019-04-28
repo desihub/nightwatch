@@ -56,6 +56,11 @@ def main_run(options=None):
         options = sys.argv[2:]
 
     args = parser.parse_args(options)
+
+    if args.cameras is not None:
+        cameras = args.cameras.split(',')
+    else:
+        cameras = None
     
     if args.plotdir is None :
         args.plotdir = args.outdir
@@ -76,17 +81,17 @@ def main_run(options=None):
         rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if expdir not in processed and os.path.exists(rawfile):
             outdir = '{}/{}/{}'.format(args.outdir, night, expid)
-            if os.path.exists(outdir):
+            if os.path.exists(outdir) and len(os.listdir(outdir))>0:
                 print('Skipping previously processed {}/{}'.format(night, expid))
                 processed.add(expdir)
                 continue
             else:
-                os.makedirs(outdir)
+                os.makedirs(outdir, exist_ok=True)
 
             try :
                 print('Running qproc on {}'.format(rawfile))
                 # header = run_preproc(rawfile, outdir)
-                header = run.run_qproc(rawfile, outdir, cameras=args.cameras.split(','))
+                header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
