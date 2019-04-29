@@ -8,7 +8,7 @@ from bokeh.embed import components
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 
-def write_amp_qa_html(data, outfile, header):
+def write_amp_html(data, outfile, header):
     '''TODO: document'''
     
     night = header['NIGHT']

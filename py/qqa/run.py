@@ -164,7 +164,12 @@ def make_plots(infile, outdir):
     night = header['NIGHT']
     expid = header['EXPID']
     
-    htmlfile = '{}/qaAmp-{}.html'.format(outdir, expid)
-    plots.amp.write_amp_qa_html(qadata['PER_AMP'], htmlfile, header)
-    print('Wrote {}'.format(htmlfile))
+    if 'PER_AMP' in qadata:
+        htmlfile = '{}/qaAmp-{}.html'.format(outdir, expid)
+        plots.amp.write_amp_html(qadata['PER_AMP'], htmlfile, header)
+        print('Wrote {}'.format(htmlfile))
 
+    if 'PER_CAMFIBER' in qadata:
+        htmlfile = '{}/qaCamFiber-{}.html'.format(outdir, expid)
+        plots.camfiber.write_camfiber_html(qadata['PER_CAMFIBER'], htmlfile, header)
+        print('Wrote {}'.format(htmlfile))
