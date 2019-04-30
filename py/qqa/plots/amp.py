@@ -8,6 +8,8 @@ from bokeh.embed import components
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 
+from .core import default_css
+
 def write_amp_html(data, outfile, header):
     '''TODO: document'''
     
@@ -35,13 +37,20 @@ def write_amp_html(data, outfile, header):
     <script src="https://cdn.pydata.org/bokeh/release/bokeh-{version}.min.js"></script>
     <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-{version}.min.js"></script>
 
+    <head>
+    <style>
+    {default_css}
+    </style>
+    </head>
+
     <body>
     <h1>Night {night} exposure {expid}</h1>
     {exptime:.0f} second {flavor} ({program}) exposure
     <h2>Per-amplifier QA metrics</h2>
 
     '''.format(version=bokeh.__version__, night=night, expid=expid,
-        exptime=exptime, flavor=flavor, program=program)
+        exptime=exptime, flavor=flavor, program=program,
+        default_css=default_css)
     
     html_template += '''
     <div>{{ READNOISE_script }} {{ READNOISE_div }}</div>
@@ -101,9 +110,9 @@ def plot_amp_qa(data, name, title=None):
             i += 1
 
         j = 6*(row['SPECTRO'] % 5)
-        if row['CAM'].upper() == 'R':
+        if row['CAM'].upper() in ('R', b'R'):
             j += 2
-        elif row['CAM'].upper() == 'Z':
+        elif row['CAM'].upper() in ('Z', b'Z'):
             j += 4
         
         if row['AMP'] in ['D', 'B', b'D', b'B']:

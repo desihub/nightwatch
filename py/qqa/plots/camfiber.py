@@ -9,6 +9,7 @@ from bokeh.embed import components
 # from bokeh.models.ranges import FactorRange
 
 from .fiber import plot_fibers
+from .core import default_css
 
 def write_camfiber_html(data, outfile, header):
     '''TODO: document'''
@@ -37,13 +38,20 @@ def write_camfiber_html(data, outfile, header):
     <script src="https://cdn.pydata.org/bokeh/release/bokeh-{version}.min.js"></script>
     <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-{version}.min.js"></script>
 
+    <head>
+    <style>
+    {default_css}
+    </style>
+    </head>
+
     <body>
     <h1>Night {night} exposure {expid}</h1>
-    {exptime:.0f} second {flavor} ({program}) exposure
+    <p>{exptime:.0f} second {flavor} ({program}) exposure</p>
     <h2>Per-camera-fiber QA metrics</h2>
 
     '''.format(version=bokeh.__version__, night=night, expid=expid,
-        exptime=exptime, flavor=flavor, program=program)
+        exptime=exptime, flavor=flavor, program=program,
+        default_css=default_css)
     
     html_template += '''
     <p>Integrated Raw Counts</p>
