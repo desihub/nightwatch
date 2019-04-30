@@ -5,6 +5,7 @@ import jinja2
 
 import bokeh
 import bokeh.plotting as bk
+import bokeh.models
 from bokeh.embed import components
 # from bokeh.models.tickers import FixedTicker
 # from bokeh.models.ranges import FactorRange
@@ -35,8 +36,11 @@ def get_colors(x, xmin=None, xmax=None):
     return palette[ii]
 
 def plot_fibers(qadata, name, cam=None, width=250, height=230,
-    zmin=None, zmax=None):
-    '''TODO: document'''
+    zmin=None, zmax=None, percentile=None):
+    '''TODO: document
+
+    percentile : (min,max) percentiles to clip data
+    '''
 
     #- bytes vs. str, what a pain
     qadata = Table(qadata)
@@ -53,7 +57,11 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
     fiberpos.remove_column('SPECTRO')
     qadata = join(qadata, fiberpos, keys='FIBER')
 
-    metric = qadata[name]
+    metric = np.array(qadata[name], copy=True)
+    if percentile is not None:
+        pmin, pmax = np.percentile(metric, percentile)
+        metric = np.clip(metric, pmin, pmax)
+
     if zmin is not None or zmax is not None:
         metric = np.clip(metric, zmin, zmax)
 
@@ -76,8 +84,9 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
                     line_color=color, line_alpha=0.5, line_width=2)
     
     if cam is not None:
-        fig.text([-350,], [350,], [cam.upper(),], text_color=camcolors[cam.upper()],
-                 text_align='center', text_baseline='middle')
+        fig.text([-350,], [350,], [cam.upper(),],
+            text_color=camcolors[cam.upper()],
+            text_align='center', text_baseline='middle')
     
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None

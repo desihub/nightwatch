@@ -69,12 +69,11 @@ def write_camfiber_html(data, outfile, header):
     #- Add a basic set of PER_AMP QA plots
     plot_components = dict()
     for qaname in ['INTEG_RAW_FLUX', 'MEDIAN_CALIB_SNR']:
-        figB, hfigB = plot_fibers(data, qaname, 'B')
-        figR, hfigR = plot_fibers(data, qaname, 'R')
-        figZ, hfigZ = plot_fibers(data, qaname, 'Z')
+        figB, hfigB = plot_fibers(data, qaname, 'B', percentile=(0,95))
+        figR, hfigR = plot_fibers(data, qaname, 'R', percentile=(0,95))
+        figZ, hfigZ = plot_fibers(data, qaname, 'Z', percentile=(0,98))
         figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
                     toolbar_location='right')
-        # script, div = components(bk.Row(*figs))
         
         # script, div = components(bk.Row(figs[0].children[0]))
         script, div = components(figs)

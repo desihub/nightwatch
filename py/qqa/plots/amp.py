@@ -7,6 +7,7 @@ import bokeh.plotting as bk
 from bokeh.embed import components
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
+from bokeh.models import LinearColorMapper, ColorBar
 
 from .core import default_css
 
@@ -45,7 +46,7 @@ def write_amp_html(data, outfile, header):
 
     <body>
     <h1>Night {night} exposure {expid}</h1>
-    {exptime:.0f} second {flavor} ({program}) exposure
+    <p>{exptime:.0f} second {flavor} ({program}) exposure</p>
     <h2>Per-amplifier QA metrics</h2>
 
     '''.format(version=bokeh.__version__, night=night, expid=expid,
@@ -134,6 +135,12 @@ def plot_amp_qa(data, name, title=None):
                     toolbar_location=None, title=title)
 
     fig.image(image=[img,], x=0, y=0, dw=15, dh=4, palette="YlGn9")
+    # color_mapper = LinearColorMapper(palette="YlGn9", low=1, high=5)
+    # fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
+    #
+    # color_bar = ColorBar(color_mapper=color_mapper)
+    # fig.add_layout(color_bar, 'right')
+    #     # label_standoff=12, border_line_color=None, location=(0,0))
 
     for x in [0, 3, 6, 9, 12, 15]:
         fig.line([x,x], [0,4], line_color='black', line_width=4, alpha=0.6)
@@ -152,7 +159,7 @@ def plot_amp_qa(data, name, title=None):
             else:
                 text.append('{:.1f}'.format(value))
 
-        fig.text(x/2+0.25, y+0.45, text, text_font_size='8pt', text_alpha=0.5, text_align='center', text_baseline='middle')
+        fig.text(x/2+0.25, y+0.45, text, text_font_size='7pt', text_alpha=0.5, text_align='center', text_baseline='middle')
 
     # fig.x_range.start, fig.x_range.end = (-0.05, 30.05)
     fig.y_range.start, fig.y_range.end = (-0.05, 4.05)
