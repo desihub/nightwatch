@@ -6,6 +6,8 @@ import collections
 import numpy as np
 import fitsio
 
+import scipy.ndimage
+
 from astropy.table import Table
 
 import desiutil.log
@@ -40,6 +42,19 @@ class QAAmp(QA):
     def valid_flavor(self, flavor):
         '''PER_AMP QA metrics work for all flavors of exposures'''
         return True
+
+    def count_cosmics(self, mask):
+        '''
+        Count number of cosmics in this mask; doesn't try to deblend
+        overlapping cosmics
+        '''
+        cosmics_mask = mask & ccdmask.COSMIC
+
+        #- Any nonzero adjacent pixels count as connected, even if diagonal
+        structure=np.ones((3,3))
+        num_cosmics = scipy.ndimage.label(cosmics_mask, structure=structure)[1]
+
+        return num_cosmics
 
     def run(self, indir):
         '''TODO: document'''
@@ -78,9 +93,9 @@ class QAAmp(QA):
                 else:
                     submask = mask[ny//2:, nx//2:]
         
-                #- Pixels hit by cosmics per second of exposure time
-                npix_cosmics = np.count_nonzero(submask & ccdmask.COSMIC)
-                cosmics_rate = (npix_cosmics / npix_amp) / exptime
+                #- Number of cosmics per minute on this amplifier
+                num_cosmics = self.count_cosmics(submask)
+                cosmics_rate = (num_cosmics / (exptime/60) )
 
                 results.append(collections.OrderedDict(
                     NIGHT=night, EXPID=expid, SPECTRO=spectro, CAM=cam, AMP=amp,

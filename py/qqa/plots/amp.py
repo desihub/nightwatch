@@ -8,6 +8,7 @@ from bokeh.embed import components
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 from bokeh.models import LinearColorMapper, ColorBar
+import bokeh.palettes
 
 from .core import default_css
 
@@ -76,25 +77,30 @@ def write_amp_html(data, outfile, header):
     #- steps of adding a plot separately in case it needs any customization:
     
     #- Generate the bokeh figure
-    fig = plot_amp_qa(data, 'COSMICS_RATE', title='CCD Amplifier Cosmics Rate (pixels/sec)')
-    
+    fig = plot_amp_qa(data, 'COSMICS_RATE',
+        title='CCD Amplifier cosmics per minute',
+        palette=bokeh.palettes.all_palettes['RdYlGn'][11][1:-1],
+        qamin=0, qamax=50)
+
     #- Get the components to embed in the HTML
     script, div = components(fig)
-    
+
     #- Add those to the dictionary that will be passed to the HTML template
     plot_components['COSMICS_RATE_script'] = script
     plot_components['COSMICS_RATE_div'] = div
-                
+
     #- Combine template + components -> HTML
     html = jinja2.Template(html_template).render(**plot_components)
-    
+
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
 
-def plot_amp_qa(data, name, title=None):
+def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None):
     '''
     Plot a per-amp visualization of data[name]
+
+    qamin/qamax: min/max ranges for the color scale
     '''
     if title is None:
         title = name
@@ -134,9 +140,16 @@ def plot_amp_qa(data, name, title=None):
     fig = bk.figure(height=180, width=850, x_range=FactorRange(*splabels_bottom),
                     toolbar_location=None, title=title)
 
-    fig.image(image=[img,], x=0, y=0, dw=15, dh=4, palette="YlGn9")
-    # color_mapper = LinearColorMapper(palette="YlGn9", low=1, high=5)
-    # fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
+    if (qamin is not None) or (qamax is not None):
+        if qamin is None:
+            qamin = np.min(img)
+        if qamax is None:
+            qamax = np.max(img)
+        color_mapper = LinearColorMapper(palette=palette, low=qamin, high=qamax)
+        fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
+    else:
+        fig.image(image=[img,], x=0, y=0, dw=15, dh=4, palette=palette)
+
     #
     # color_bar = ColorBar(color_mapper=color_mapper)
     # fig.add_layout(color_bar, 'right')
