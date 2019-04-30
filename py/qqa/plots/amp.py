@@ -76,7 +76,7 @@ def write_amp_html(data, outfile, header):
     #- steps of adding a plot separately in case it needs any customization:
     
     #- Generate the bokeh figure
-    fig = plot_amp_qa(data, 'COSMICS_RATE', title='CCD Amplifier Cosmics Rate (pixels/sec')
+    fig = plot_amp_qa(data, 'COSMICS_RATE', title='CCD Amplifier Cosmics Rate (pixels/sec)')
     
     #- Get the components to embed in the HTML
     script, div = components(fig)
@@ -159,7 +159,7 @@ def plot_amp_qa(data, name, title=None):
             else:
                 text.append('{:.1f}'.format(value))
 
-        fig.text(x/2+0.25, y+0.45, text, text_font_size='7pt', text_alpha=0.5, text_align='center', text_baseline='middle')
+        fig.text(x/2+0.25, y+0.45, text, text_font_size='8pt', text_alpha=0.5, text_align='center', text_baseline='middle')
 
     # fig.x_range.start, fig.x_range.end = (-0.05, 30.05)
     fig.y_range.start, fig.y_range.end = (-0.05, 4.05)

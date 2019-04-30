@@ -51,11 +51,11 @@ class QARunner():
                     #raise(err)
                     #- TODO: print traceback somewhere useful
 
-                if qa.output_type not in results:
-                    results[qa.output_type] = list()
-
                 if qa_results is not None :
+                    if qa.output_type not in results:
+                        results[qa.output_type] = list()
                     results[qa.output_type].append(qa_results)
+
             else :
                 log.debug('Skip {} {} for {}'.format(qa, qa.output_type, flavor))
         #- Combine results for different types of QA

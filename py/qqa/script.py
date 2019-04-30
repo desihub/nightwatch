@@ -2,7 +2,7 @@
 qqa command line script
 """
 
-import os, sys, time
+import os, sys, time, glob
 import argparse
 import traceback
 from . import run, plots
@@ -81,13 +81,14 @@ def main_run(options=None):
         rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if expdir not in processed and os.path.exists(rawfile):
             outdir = '{}/{}/{}'.format(args.outdir, night, expid)
-            if os.path.exists(outdir) and len(os.listdir(outdir))>0:
+            if os.path.exists(outdir) and len(glob.glob(outdir+'/*.fits'))>0:
                 print('Skipping previously processed {}/{}'.format(night, expid))
                 processed.add(expdir)
                 continue
             else:
                 os.makedirs(outdir, exist_ok=True)
 
+            print('Found new exposure {}/{}'.format(night, expid))
             try :
                 print('Running qproc on {}'.format(rawfile))
                 # header = run_preproc(rawfile, outdir)

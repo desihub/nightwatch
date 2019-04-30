@@ -1,4 +1,4 @@
-import os, re
+import os, re, time
 import multiprocessing as mp
 import subprocess
 
@@ -63,6 +63,23 @@ def run_preproc(rawfile, outdir, ncpu=None):
     
     return header
 
+def runcmd(command, logfile, msg):
+    args = command.split()
+    print('Logging {} to {}'.format(msg, logfile))
+    with open(logfile, 'w') as logfx:
+        t0 = time.time()
+        print('Starting at {}'.format(time.asctime()), file=logfx)
+        print('RUNNING {}'.format(command), file=logfx)
+        err = subprocess.call(args, stdout=logfx, stderr=logfx)
+        dt = time.time() - t0
+        print('Done at {} ({:0f} sec)'.format(time.asctime(), dt), file=logfx)
+
+    if err == 0:
+        print('SUCCESS {}'.format(msg))
+    if err != 0:
+        print('ERROR {} while running {}'.format(err, msg))
+        print('See {}'.format(logfile))
+
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
@@ -88,11 +105,15 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid)
     if flavor == 'SCIENCE' and not os.path.exists(fibermap):
-        log.error('{}/{} SCIENCE exposure without a fibermap'.format(night, expid))
+        print('ERROR: SCIENCE exposure {}/{} without a fibermap; only preprocessing'.format(night, expid))
+        flavor = "PREPROC"
     
-    arglist = list()
+    cmdlist = list()
+    loglist = list()
+    msglist = list()
     if cameras is None :
         cameras = which_cameras(rawfile)
+
     for camera in cameras:
         outfiles = dict(
             rawfile = rawfile,
@@ -102,6 +123,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             qframe = '{}/qframe-{}-{:08d}.fits'.format(outdir, camera, expid),
             qcframe = '{}/qcframe-{}-{:08d}.fits'.format(outdir, camera, expid),
             qsky = '{}/qsky-{}-{:08d}.fits'.format(outdir, camera, expid),
+            logfile = '{}/qproc-{}-{:08d}.log'.format(outdir, camera, expid),
         )
 
         if flavor == "SCIENCE":
@@ -122,7 +144,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             cmd += " --shift-psf --output-psf {psf}"
             cmd += " --output-rawframe {qframe}"
             cmd += " --compute-fiberflat --output-flatframe {qflatframe}"
-        elif flavor in ("ZERO", "DARK"):
+        elif flavor in ("ZERO", "DARK", "PREPROC"):
             cmd = "desi_qproc -i {rawfile} --cam {camera}"
             cmd += " --output-preproc {preproc}"
         else:
@@ -132,18 +154,19 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             cmd += " --output-preproc {preproc}"
 
         fullcmd = cmd.format(camera=camera, **outfiles)
-        arglist.append(fullcmd.split())    
+        cmdlist.append(fullcmd)
+        loglist.append(outfiles['logfile'])
+        msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     if ncpu is None:
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
 
     if ncpu > 1:
         pool = mp.Pool(ncpu)
-        pool.map(subprocess.call, arglist)
+        pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
     else:
-        for args in arglist:
-            print('\n-- RUNNING: ' + ' '.join(args) + '\n')
-            subprocess.call(args)
+        for cmd, logfile in zip(cmdlist, loglist, msglist):
+            runcmd(cmd, logfile)
 
     return hdr
 
