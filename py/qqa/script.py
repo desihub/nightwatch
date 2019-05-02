@@ -51,6 +51,8 @@ def main_run(options=None):
     # parser.add_argument("--qadir", type=str,  help="QA output directory")
     parser.add_argument("--plotdir", type=str, help="QA plot output directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+    parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
+    parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
     
     if options is None:
         options = sys.argv[2:]
@@ -71,10 +73,16 @@ def main_run(options=None):
     
     qarunner = QARunner()
 
+
     processed = set()
     while True:
-        expdir = run.find_latest_expdir(args.indir)
+        if args.catchup:
+            expdir = run.find_unprocessed_expdir(args.indir, args.outdir)
+        else:
+            expdir = run.find_latest_expdir(args.indir)
+
         if expdir is None:
+            time.sleep(args.waittime)
             continue
 
         night, expid = expdir.split('/')[-2:]
@@ -88,7 +96,9 @@ def main_run(options=None):
             else:
                 os.makedirs(outdir, exist_ok=True)
 
-            print('Found new exposure {}/{}'.format(night, expid))
+            time_start = time.time()
+            print('### {} Found new exposure {}/{} ###'.format(
+                time.strftime('%H:%M'), night, expid))
             try :
                 print('Running qproc on {}'.format(rawfile))
                 # header = run_preproc(rawfile, outdir)
@@ -106,6 +116,13 @@ def main_run(options=None):
                 #run.make_plots(qadata, header, plotdir)
                 run.make_plots(infile=qafile, outdir=plotdir)
 
+                run.write_summary_tables(args.plotdir)
+
+                time_end = time.time()
+                dt = (time_end - time_start) / 60
+                print('{} Finished exposure {}/{} ({:.1f} min)'.format(
+                    time.strftime('%H:%M'), night, expid, dt))
+
             except Exception as e :
                 print("Failed to process or QA or plot exposure {}".format(expid))
                 print("Error message: {}".format(str(e)))
@@ -116,7 +133,7 @@ def main_run(options=None):
 
             processed.add(expdir)
 
-        time.sleep(2)
+        time.sleep(args.waittime)
 
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")

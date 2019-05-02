@@ -11,7 +11,7 @@ from bokeh.embed import components
 from .fiber import plot_fibers
 from .core import default_css
 
-def write_camfiber_html(data, outfile, header):
+def write_camfiber_html(outfile, data, header):
     '''TODO: document'''
     
     night = header['NIGHT']
@@ -68,18 +68,32 @@ def write_camfiber_html(data, outfile, header):
     
     #- Add a basic set of PER_AMP QA plots
     plot_components = dict()
-    for qaname in ['INTEG_RAW_FLUX', 'MEDIAN_CALIB_SNR']:
-        figB, hfigB = plot_fibers(data, qaname, 'B', percentile=(0,95))
-        figR, hfigR = plot_fibers(data, qaname, 'R', percentile=(0,95))
-        figZ, hfigZ = plot_fibers(data, qaname, 'Z', percentile=(0,98))
-        figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-                    toolbar_location='right')
-        
-        # script, div = components(bk.Row(figs[0].children[0]))
-        script, div = components(figs)
-                
-        plot_components[qaname+'_script'] = script
-        plot_components[qaname+'_div'] = div
+
+
+    #- TODO: refactor these to reduce replicated code, while still supporting
+    #- customizations like percentile vs. zmin/zmax
+
+    #- Integrated Raw Flux
+    figB, hfigB = plot_fibers(data, 'INTEG_RAW_FLUX', 'B', percentile=(0,95))
+    figR, hfigR = plot_fibers(data, 'INTEG_RAW_FLUX', 'R', percentile=(0,95))
+    figZ, hfigZ = plot_fibers(data, 'INTEG_RAW_FLUX', 'Z', percentile=(0,98))
+    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
+                toolbar_location='right')
+
+    script, div = components(figs)
+    plot_components['INTEG_RAW_FLUX_script'] = script
+    plot_components['INTEG_RAW_FLUX_div'] = div
+
+    #- Median S/N
+    figB, hfigB = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'B', zmin=0, zmax=10)
+    figR, hfigR = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'R', zmin=0, zmax=10)
+    figZ, hfigZ = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'Z', zmin=0, zmax=10)
+    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
+                toolbar_location='right')
+
+    script, div = components(figs)
+    plot_components['MEDIAN_CALIB_SNR_script'] = script
+    plot_components['MEDIAN_CALIB_SNR_div'] = div
             
     #- Combine template + components -> HTML
     html = jinja2.Template(html_template).render(**plot_components)
@@ -87,4 +101,6 @@ def write_camfiber_html(data, outfile, header):
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
+
+    return plot_components
     

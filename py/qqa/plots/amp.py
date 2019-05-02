@@ -12,7 +12,7 @@ import bokeh.palettes
 
 from .core import default_css
 
-def write_amp_html(data, outfile, header):
+def write_amp_html(outfile, data, header):
     '''TODO: document'''
     
     night = header['NIGHT']
@@ -95,6 +95,8 @@ def write_amp_html(data, outfile, header):
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
+
+    return plot_components
 
 def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None):
     '''

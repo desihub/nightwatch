@@ -4,7 +4,32 @@ import subprocess
 
 import fitsio
 
+from astropy.table import Table
+
 import desiutil.log
+
+def find_unprocessed_expdir(datadir, outdir):
+    '''
+    Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
+    in outdir/YEARMMDD/EXPID.
+
+    Returns directory, of None if no unprocessed directories were found
+    (either because no inputs exist, or because all inputs have been processed)
+
+    Warning: traverses the whole tree every time.
+    TODO: cache previously identified already-processed data and don't rescan.
+    '''
+    for night in sorted(os.listdir(datadir)):
+        nightdir = os.path.join(datadir, night)
+        if re.match('20\d{6}', night) and os.path.isdir(nightdir):
+            for expid in sorted(os.listdir(nightdir)):
+                expdir = os.path.join(nightdir, expid)
+                if re.match('\d{8}', expid) and os.path.isdir(expdir):
+                    qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
+                    if not os.path.exists(qafile):
+                        return expdir
+
+    return None
 
 def find_latest_expdir(basedir):
     '''
@@ -170,10 +195,12 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return hdr
 
-
 def make_plots(infile, outdir):
-    '''TODO: Document'''
-    
+    '''Make plots for a single exposure
+
+    TODO: document
+    '''
+
     from . import plots
 
     qadata = dict()
@@ -187,12 +214,42 @@ def make_plots(infile, outdir):
     night = header['NIGHT']
     expid = header['EXPID']
     
+    plot_components = dict()
     if 'PER_AMP' in qadata:
-        htmlfile = '{}/qaAmp-{}.html'.format(outdir, expid)
-        plots.amp.write_amp_html(qadata['PER_AMP'], htmlfile, header)
+        htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
+        pc = plots.amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
+        plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMFIBER' in qadata:
-        htmlfile = '{}/qaCamFiber-{}.html'.format(outdir, expid)
-        plots.camfiber.write_camfiber_html(qadata['PER_CAMFIBER'], htmlfile, header)
+        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(outdir, expid)
+        pc = plots.camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
+        plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+
+    htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
+    plots.summary.write_exp_summary(htmlfile, qadata, plot_components, header)
+    print('Wrote {}'.format(htmlfile))
+
+def write_summary_tables(basedir):
+    '''TODO: document'''
+
+    #- Hack: parse the directory structure to learn nights
+    rows = list()
+    for dirname in sorted(os.listdir(basedir)):
+        nightdir = os.path.join(basedir, dirname)
+        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
+            night = int(dirname)
+            for dirname in sorted(os.listdir(nightdir), reverse=True):
+                expdir = os.path.join(nightdir, dirname)
+                if re.match('\d{8}', dirname) and os.path.isdir(expdir):
+                    expid = int(dirname)
+                    rows.append(dict(NIGHT=night, EXPID=expid))
+
+    exposures = Table(rows)
+
+    from . import plots
+    plots.summary.write_night_expid(basedir, exposures)
+
+
+
