@@ -51,30 +51,33 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
         ii = (qadata['CAM'] == cam.lower()) | (qadata['CAM'] == cam.upper())
         qadata = qadata[ii]
 
-    #- Join with fiberpos to know where fibers are on focal plane
-    #- TODO: use input fibermap instead
-    fiberpos = Table(desimodel.io.load_fiberpos())
-    fiberpos.remove_column('SPECTRO')
-    qadata = join(qadata, fiberpos, keys='FIBER')
-
-    metric = np.array(qadata[name], copy=True)
-    if percentile is not None:
-        pmin, pmax = np.percentile(metric, percentile)
-        metric = np.clip(metric, pmin, pmax)
-
-    if zmin is not None or zmax is not None:
-        metric = np.clip(metric, zmin, zmax)
-
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=width, toolbar_location=None)
     
-    colors = get_colors(metric)
-    fig.scatter(qadata['X'], qadata['Y'], color=colors, radius=5, alpha=0.7)
-    fig.x_range = bokeh.models.Range1d(-420, 420)
-    fig.y_range = bokeh.models.Range1d(-420, 420)
-    
+    fiberpos = Table(desimodel.io.load_fiberpos())
+    fiberpos.remove_column('SPECTRO')
+
+    if len(qadata) > 0:
+        #- Join with fiberpos to know where fibers are on focal plane
+        #- TODO: use input fibermap instead
+        qadata = join(qadata, fiberpos, keys='FIBER')
+
+        metric = np.array(qadata[name], copy=True)
+        if percentile is not None:
+            pmin, pmax = np.percentile(metric, percentile)
+            metric = np.clip(metric, pmin, pmax)
+
+        if zmin is not None or zmax is not None:
+            metric = np.clip(metric, zmin, zmax)
+
+        colors = get_colors(metric)
+        fig.scatter(qadata['X'], qadata['Y'], color=colors, radius=5, alpha=0.7)
+
     ii = ~np.in1d(fiberpos['FIBER'], qadata['FIBER'])
     fig.scatter(fiberpos['X'][ii], fiberpos['Y'][ii], color='#DDDDDD', radius=2)
+    
+    fig.x_range = bokeh.models.Range1d(-420, 420)
+    fig.y_range = bokeh.models.Range1d(-420, 420)
     
     camcolors = dict(B='steelblue', R='firebrick', Z='gray')
     
@@ -102,17 +105,16 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
 
     #- Histogram of values
     #- TODO: move basic histogram code into plots.core or similar
-    hist, edges = np.histogram(metric, density=True, bins=50)
-        
-    centers = 0.5*(edges[1:] + edges[:-1])
 
     hfig = bk.figure(width=width, height=80)
 
-    colors = get_colors(centers)
-    hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], color=colors, alpha=0.5)
+    if len(qadata) > 0:
+        hist, edges = np.histogram(metric, density=True, bins=50)
+        centers = 0.5*(edges[1:] + edges[:-1])
+        colors = get_colors(centers)
+        hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], color=colors, alpha=0.5)
     
     hfig.xaxis.axis_label = name
-    
     hfig.toolbar_location = None
     hfig.title.text_color = '#ffffff'
     hfig.yaxis.major_label_text_font_size = '0pt'

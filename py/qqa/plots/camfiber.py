@@ -58,9 +58,9 @@ def write_camfiber_html(outfile, data, header):
     <div>
         {{ INTEG_RAW_FLUX_script }} {{ INTEG_RAW_FLUX_div }}
     </div>
-    <p>Median calibrated signal-to-noise</p>
+    <p>Median raw signal-to-noise</p>
     <div>
-        {{ MEDIAN_CALIB_SNR_script }} {{ MEDIAN_CALIB_SNR_div }}
+        {{ MEDIAN_RAW_SNR_script }} {{ MEDIAN_RAW_SNR_div }}
     </div>
     </body>
     </html>
@@ -85,15 +85,15 @@ def write_camfiber_html(outfile, data, header):
     plot_components['INTEG_RAW_FLUX_div'] = div
 
     #- Median S/N
-    figB, hfigB = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'B', zmin=0, zmax=10)
-    figR, hfigR = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'R', zmin=0, zmax=10)
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'Z', zmin=0, zmax=10)
+    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_SNR', 'B', zmin=0, zmax=10)
+    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_SNR', 'R', zmin=0, zmax=10)
+    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_SNR', 'Z', zmin=0, zmax=10)
     figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
                 toolbar_location='right')
 
     script, div = components(figs)
-    plot_components['MEDIAN_CALIB_SNR_script'] = script
-    plot_components['MEDIAN_CALIB_SNR_div'] = div
+    plot_components['MEDIAN_RAW_SNR_script'] = script
+    plot_components['MEDIAN_RAW_SNR_div'] = div
             
     #- Combine template + components -> HTML
     html = jinja2.Template(html_template).render(**plot_components)

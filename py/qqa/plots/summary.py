@@ -7,12 +7,18 @@ from collections import OrderedDict
 import numpy as np
 import jinja2
 
+from .. import io
+from ..qa.status import get_status, Status
+
 def write_exp_summary(outfile, qadata, plot_components, header):
     """TODO: document"""
     from .core import bokeh_html_preamble
     template = bokeh_html_preamble
     
     header = dict(header)
+    if 'PROGRAM' not in header:
+        header['PROGRAM'] = 'Unknown'
+    
     template += '''
     <body>
     <h1>QA Summary of {NIGHT} exposure {EXPID}</h1>
@@ -131,12 +137,13 @@ def write_exposures_table(outdir, exposures, nights=None):
         html += """
         <table>
         <tr>
-          <th colspan="2">Metadata</th>
+          <th colspan="3">Metadata</th>
           <th colspan="6">QA Status</th>
         <tr>
           <th>NIGHT</th>
           <th>EXPID</th>
-          <th>CCD</th>
+          <th>FLAVOR</th>
+          <th>Amp</th>
           <th>Camera</th>
           <th>Fiber</th>
           <th>CamFib</th>
@@ -147,14 +154,31 @@ def write_exposures_table(outdir, exposures, nights=None):
         
         ii = (exposures['NIGHT'] == night)
         for expid in sorted(exposures['EXPID'][ii]):
-            link = '{expid:08d}/qa-summary-{expid:08d}.html'.format(
+            
+            qafile = io.findfile('qa', night, expid, basedir=outdir)
+            qadata = io.read_qa(qafile)
+            status = get_status(qadata)
+            
+            explink = '{expid:08d}/qa-summary-{expid:08d}.html'.format(
                 night=night, expid=expid)
-            html += '<tr>\n<td>{night}</td><td><a href="{link}">{expid}</a></td>\n'.format(
-                night=night, expid=expid, link=link)
+            flavor = qadata['HEADER']['FLAVOR'].rstrip()
+            html += '''
+                <tr>
+                    <td>{night}</td>
+                    <td><a href="{explink}">{expid}</a></td>
+                    <td>{flavor}</td>
+                '''.format(
+                night=night, expid=expid, explink=explink, flavor=flavor)
             
             #- TODO: have actual thresholds
-            for i in range(6):
-                html += "<td>ok</td>\n"
+            for i, qatype in enumerate(['PER_AMP', 'PER_CAMERA', 'PER_FIBER',
+                                        'PER_CAMFIBER', 'PER_SPECTRO', 'PER_EXP']):
+                if qatype not in status:
+                    html += "<td>-</td>\n"
+                else:
+                    qastatus = Status(np.max(status[qatype]['QASTATUS']))
+                    html += "<td>{}</td>\n".format(qastatus.name)
+                
             html += "</tr>\n"
     
         html += """

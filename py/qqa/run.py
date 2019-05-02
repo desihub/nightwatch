@@ -31,9 +31,12 @@ def find_unprocessed_expdir(datadir, outdir):
 
     return None
 
-def find_latest_expdir(basedir):
+def find_latest_expdir(basedir, processed):
     '''
-    finds the latest basedir/YEARMMDD/EXPID without traversing the whole tree
+    finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
+    YEARMMDD without traversing the whole tree
+    
+    processed: set of exposure directories already processed
     
     Returns directory, or None if no matching directories are found
     '''
@@ -45,8 +48,10 @@ def find_latest_expdir(basedir):
     else:
         return None  #- no basename/YEARMMDD directory was found
     
-    for dirname in sorted(os.listdir(nightdir), reverse=True):
+    for dirname in sorted(os.listdir(nightdir)):
         expdir = os.path.join(nightdir, dirname)
+        if expdir in processed:
+            continue
         if re.match('\d{8}', dirname) and os.path.isdir(expdir):
             break
     else:
@@ -148,6 +153,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             qframe = '{}/qframe-{}-{:08d}.fits'.format(outdir, camera, expid),
             qcframe = '{}/qcframe-{}-{:08d}.fits'.format(outdir, camera, expid),
             qsky = '{}/qsky-{}-{:08d}.fits'.format(outdir, camera, expid),
+            qfiberflat = '{}/qfiberflat-{}-{:08d}.fits'.format(outdir, camera, expid),
             logfile = '{}/qproc-{}-{:08d}.log'.format(outdir, camera, expid),
         )
 
@@ -168,7 +174,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             cmd += " --output-preproc {preproc}"
             cmd += " --shift-psf --output-psf {psf}"
             cmd += " --output-rawframe {qframe}"
-            cmd += " --compute-fiberflat --output-flatframe {qflatframe}"
+            cmd += " --compute-fiberflat {qfiberflat}"
         elif flavor in ("ZERO", "DARK", "PREPROC"):
             cmd = "desi_qproc -i {rawfile} --cam {camera}"
             cmd += " --output-preproc {preproc}"
@@ -202,14 +208,10 @@ def make_plots(infile, outdir):
     '''
 
     from . import plots
+    from . import io
 
-    qadata = dict()
-    with fitsio.FITS(infile) as fx:
-        header = fx[0].read_header()
-        for hdu in fx:
-            extname = hdu.get_extname()
-            if extname.startswith('PER_'):
-                qadata[extname] = hdu.read()
+    qadata = io.read_qa(infile)
+    header = qadata['HEADER']
 
     night = header['NIGHT']
     expid = header['EXPID']

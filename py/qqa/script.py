@@ -79,7 +79,7 @@ def main_run(options=None):
         if args.catchup:
             expdir = run.find_unprocessed_expdir(args.indir, args.outdir)
         else:
-            expdir = run.find_latest_expdir(args.indir)
+            expdir = run.find_latest_expdir(args.indir, processed)
 
         if expdir is None:
             time.sleep(args.waittime)
@@ -97,7 +97,7 @@ def main_run(options=None):
                 os.makedirs(outdir, exist_ok=True)
 
             time_start = time.time()
-            print('### {} Found new exposure {}/{} ###'.format(
+            print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
                 print('Running qproc on {}'.format(rawfile))
