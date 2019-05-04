@@ -64,28 +64,38 @@ def write_amp_html(outfile, data, header):
     
     #- Add a basic set of PER_AMP QA plots
     plot_components = dict()
-    for qaname, qatitle in [
-            ['READNOISE', 'CCD Amplifier Read Noise'],
-            ['BIAS', 'CCD Amplifier Overscan Bias Level'],
-        ]:
-        fig = plot_amp_qa(data, qaname, title=qatitle)
-        script, div = components(fig)
-        plot_components[qaname+'_script'] = script
-        plot_components[qaname+'_div'] = div
+
+    # for qaname, qatitle in [
+    #         ['READNOISE', 'CCD Amplifier Read Noise'],
+    #         ['BIAS', 'CCD Amplifier Overscan Bias Level'],
+    #     ]:
+    #     fig = plot_amp_qa(data, qaname, title=qatitle)
+    #     script, div = components(fig)
+    #     plot_components[qaname+'_script'] = script
+    #     plot_components[qaname+'_div'] = div
         
-    #- COSMICS_RATE could have been in the loop above, but demonstrating the
-    #- steps of adding a plot separately in case it needs any customization:
-    
     #- Generate the bokeh figure
+    fig = plot_amp_qa(data, 'READNOISE', title='CCD Amplifier Read Noise',
+        qamin=1.5, qamax=4.0)
+    #- Convert that into the components to embed in the HTML
+    script, div = components(fig)
+    #- Save those in a dictionary to use later
+    plot_components['READNOISE_script'] = script
+    plot_components['READNOISE_div'] = div
+
+    #- Amplifier offset
+    fig = plot_amp_qa(data, 'BIAS', title='CCD Amplifier Overscan Bias Level',
+        palette=bokeh.palettes.all_palettes['GnBu'][6])
+    script, div = components(fig)
+    plot_components['BIAS_script'] = script
+    plot_components['BIAS_div'] = div
+
+    #- Cosmics rate
     fig = plot_amp_qa(data, 'COSMICS_RATE',
         title='CCD Amplifier cosmics per minute',
         palette=bokeh.palettes.all_palettes['RdYlGn'][11][1:-1],
         qamin=0, qamax=50)
-
-    #- Get the components to embed in the HTML
     script, div = components(fig)
-
-    #- Add those to the dictionary that will be passed to the HTML template
     plot_components['COSMICS_RATE_script'] = script
     plot_components['COSMICS_RATE_div'] = div
 
@@ -142,15 +152,14 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
     fig = bk.figure(height=180, width=850, x_range=FactorRange(*splabels_bottom),
                     toolbar_location=None, title=title)
 
-    if (qamin is not None) or (qamax is not None):
-        if qamin is None:
-            qamin = np.min(img)
-        if qamax is None:
-            qamax = np.max(img)
-        color_mapper = LinearColorMapper(palette=palette, low=qamin, high=qamax)
-        fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
-    else:
-        fig.image(image=[img,], x=0, y=0, dw=15, dh=4, palette=palette)
+    if qamin is None:
+        qamin = np.nanmin(img)
+    if qamax is None:
+        qamax = np.nanmax(img)
+
+    color_mapper = LinearColorMapper(palette=palette, low=qamin, high=qamax,
+                                     low_color='#CC1111', high_color='#CC1111')
+    fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
 
     #
     # color_bar = ColorBar(color_mapper=color_mapper)
