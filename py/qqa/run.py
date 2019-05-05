@@ -105,6 +105,12 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
     if not os.path.exists(datafile):
         raise ValueError("{} doesn't exist".format(datafile))
 
+    log = desiutil.log.get_logger()
+
+    if not os.path.isdir(outdir):
+        log.info('Creating {}'.format(outdir))
+        os.makedirs(outdir, exist_ok=True)
+
     if cameras is None:
         cameras = which_cameras(rawfile)
 
@@ -117,8 +123,6 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     if ncpu is None:
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
-
-    log = get_logger()
 
     if ncpu > 1:
         log.info('Running preproc in parallel on {} cores for {} cameras'.format(
@@ -141,6 +145,10 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     returns header of HDU 0 of the input rawfile
     '''
     log = desiutil.log.get_logger()
+
+    if not os.path.isdir(outdir):
+        log.info('Creating {}'.format(outdir))
+        os.makedirs(outdir, exist_ok=True)
 
     hdr = fitsio.read_header(rawfile, 0)
     if 'FLAVOR' not in hdr :
@@ -253,6 +261,11 @@ def make_plots(infile, outdir):
 
     from . import plots
     from . import io
+
+    log = desiutil.log.get_logger()
+    if not os.path.isdir(outdir):
+        log.info('Creating {}'.format(outdir))
+        os.makedirs(outdir, exist_ok=True)
 
     qadata = io.read_qa(infile)
     header = qadata['HEADER']

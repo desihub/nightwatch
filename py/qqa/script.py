@@ -13,7 +13,8 @@ def print_help():
     print("""USAGE: qqa <command> [options]
     
 Supported commands are:
-    run      Monitor input directory and run qproc, qa, and generate plots
+    monitor  Monitor input directory and run qproc, qa, and generate plots
+    run      Run qproc, qa, and generate plots for a single exposure
     preproc  Run only preprocessing on an input raw data file
     qproc    Run qproc (includes preproc) on an input raw data file
     qa       Run QA analysis on qproc outputs
@@ -28,6 +29,8 @@ def main():
         return 0
 
     command = sys.argv[1]
+    if command == 'monitor':
+        main_monitor()
     if command == 'run':
         main_run()
     elif command == 'preproc':
@@ -43,7 +46,7 @@ def main():
         print_help()
         return 1
 
-def main_run(options=None):
+def main_monitor(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
     parser.add_argument("-i", "--indir", type=str,  help="watch indir/YEARMMDD/EXPID/ for new raw data")
     parser.add_argument("-o", "--outdir", type=str,  help="write output to outdir/YEARMMDD/EXPID/")
@@ -134,6 +137,39 @@ def main_run(options=None):
 
         time.sleep(args.waittime)
 
+def main_run(options=None):
+    parser = argparse.ArgumentParser(usage = "{prog} run [options]")
+    parser.add_argument("-i", "--infile", type=str, required=True,
+        help="input raw data file")
+    parser.add_argument("-o", "--outdir", type=str, required=True,
+        help="output directory (without appending YEARMMDD/EXPID/)")
+    parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+
+    if options is None:
+        options = sys.argv[2:]
+
+    args = parser.parse_args(options)
+
+    if args.cameras is not None:
+        cameras = args.cameras.split(',')
+    else:
+        cameras = None
+
+    time_start = time.time()
+    print('{} Running qproc'.format(time.strftime('%H:%M')))
+    header = run.run_qproc(args.infile, args.outdir, cameras=cameras)
+
+    print('{} Running QA analysis'.format(time.strftime('%H:%M')))
+    expid = header['EXPID']
+    qafile = os.path.join(args.outdir, 'qa-{:08d}.fits'.format(expid))
+    qaresults = run.run_qa(args.outdir, outfile=qafile)
+
+    print('{} Making plots'.format(time.strftime('%H:%M')))
+    run.make_plots(qafile, args.outdir)
+
+    dt = (time.time() - time_start) / 60.0
+    print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
+
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
@@ -151,7 +187,7 @@ def main_preproc(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
-    
+
     header = run.run_preproc(args.infile, args.outdir, cameras=cameras)
     print("Done running preproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
@@ -172,7 +208,7 @@ def main_qproc(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
-    
+
     header = run.run_qproc(args.infile, args.outdir, cameras=cameras)
     print("Done running qproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
