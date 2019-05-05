@@ -8,12 +8,7 @@ import desiutil.log
 
 from .amp import QAAmp
 from .specscore import QASpecscore
-
 # from .fibersnr import QAFiberSNR
-
-def run(indir, outfile=None, qalist=None):
-    qarunner = QARunner(qalist)
-    return qarunner.run(indir, outfile=outfile)
 
 class QARunner():
     def __init__(self, qalist=None):

@@ -73,7 +73,6 @@ def main_run(options=None):
     
     qarunner = QARunner()
 
-
     processed = set()
     while True:
         if args.catchup:
@@ -141,13 +140,20 @@ def main_preproc(options=None):
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
         help="output directory (without appending YEARMMDD/EXPID/)")
+    parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
         options = sys.argv[2:]
 
     args = parser.parse_args(options)
+
+    if args.cameras is not None:
+        cameras = args.cameras.split(',')
+    else:
+        cameras = None
     
-    header = run.run_preproc(args.infile, args.outdir)
+    header = run.run_preproc(args.infile, args.outdir, cameras=cameras)
+    print("Done running preproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_qproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} qproc [options]")
@@ -155,13 +161,20 @@ def main_qproc(options=None):
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
         help="output directory (without appending YEARMMDD/EXPID/)")
+    parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
         options = sys.argv[2:]
 
     args = parser.parse_args(options)
+
+    if args.cameras is not None:
+        cameras = args.cameras.split(',')
+    else:
+        cameras = None
     
-    header = run.run_qproc(args.infile, args.outdir)
+    header = run.run_qproc(args.infile, args.outdir, cameras=cameras)
+    print("Done running qproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_qa(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} qa [options]")
@@ -173,9 +186,8 @@ def main_qa(options=None):
 
     args = parser.parse_args(options)
     
-    from . import qa
-    qa.run(args.indir, outfile=args.outfile)
-    print("done qa from {} to {}".format(args.indir, args.outfile))
+    qaresults = run.run_qa(args.indir, outfile=args.outfile)
+    print("Done running QA on {}; wrote outputs to {}".format(args.indir, args.outfile))
 
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
@@ -188,6 +200,7 @@ def main_plot(options=None):
     args = parser.parse_args(options)
 
     run.make_plots(args.infile, args.outdir)
+    print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
     
     
     

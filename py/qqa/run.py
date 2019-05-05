@@ -72,27 +72,6 @@ def which_cameras(rawfile):
     
     return sorted(cameras)
 
-def run_preproc(rawfile, outdir, ncpu=None):
-    '''TODO: document'''
-    if not os.path.exists(datafile):
-        raise ValueError("{} doesn't exist".format(datafile))
-        
-    cameras = which_cameras(rawfile)
-    header = fitsio.read_header(rawfile, 0)
-    
-    arglist = list()
-    for camera in cameras:
-        args = ['--infile', datafile, '--outdir', outdir, '--cameras', camera]
-        arglist.append(args)
-
-    if ncpu is None:
-        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
-
-    pool = mp.Pool(ncpu)
-    pool.map(desispec.scripts.preproc.main, arglist)
-    
-    return header
-
 def runcmd(command, logfile, msg):
     args = command.split()
     print('Logging {} to {}'.format(msg, logfile))
@@ -109,6 +88,49 @@ def runcmd(command, logfile, msg):
     if err != 0:
         print('ERROR {} while running {}'.format(err, msg))
         print('See {}'.format(logfile))
+
+def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
+    '''Runs preproc on the input raw data file, outputting to outdir
+
+    Args:
+        rawfile: input desi-EXPID.fits.fz raw data file
+        outdir: directory to write preproc-CAM-EXPID.fits files
+
+    Options:
+        ncpu: number of CPU cores to use for parallelism; serial if ncpu<=1
+        cameras: list of cameras to process; default all found in rawfile
+
+    Returns header of HDU 0 of the input raw data file
+    '''
+    if not os.path.exists(datafile):
+        raise ValueError("{} doesn't exist".format(datafile))
+
+    if cameras is None:
+        cameras = which_cameras(rawfile)
+
+    header = fitsio.read_header(rawfile, 0)
+
+    arglist = list()
+    for camera in cameras:
+        args = ['--infile', datafile, '--outdir', outdir, '--cameras', camera]
+        arglist.append(args)
+
+    if ncpu is None:
+        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+
+    log = get_logger()
+
+    if ncpu > 1:
+        log.info('Running preproc in parallel on {} cores for {} cameras'.format(
+            ncpu, len(cameras) ))
+        pool = mp.Pool(ncpu)
+        pool.map(desispec.scripts.preproc.main, arglist)
+    else:
+        log.info('Running preproc serially for {} cameras'.format(ncpu))
+        for args in arglist:
+            desispec.scripts.preproc.main(args)
+
+    return header
 
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
@@ -193,18 +215,40 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
 
     if ncpu > 1:
+        log.info('Running qproc in parallel on {} cores for {} cameras'.format(
+            ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
     else:
+        log.info('Running preproc serially for {} cameras'.format(ncpu))
         for cmd, logfile in zip(cmdlist, loglist, msglist):
             runcmd(cmd, logfile)
 
     return hdr
 
+def run_qa(indir, outfile=None, qalist=None):
+    """
+    Run QA analysis of qproc files in indir, writing output to outfile
+    
+    Args:
+        indir: directory containing qproc outputs (qframe, etc.)
+
+    Options:
+        outfile: write QA output to this FITS file
+        qalist: list of QA objects to include; default QARunner.qalist
+
+    Returns dictionary of QA results, keyed by PER_AMP, PER_CCD, PER_FIBER, ...
+    """
+    from .qa import QARunner
+    qarunner = QARunner(qalist)
+    return qarunner.run(indir, outfile=outfile)
+
 def make_plots(infile, outdir):
     '''Make plots for a single exposure
 
-    TODO: document
+    Args:
+        infile: input QA fits file with HDUs like PER_AMP, PER_FIBER, ...
+        outdir: write output HTML files to this directory
     '''
 
     from . import plots
@@ -234,7 +278,11 @@ def make_plots(infile, outdir):
     print('Wrote {}'.format(htmlfile))
 
 def write_summary_tables(basedir):
-    '''TODO: document'''
+    '''
+    Write summary tables of nights and exposures per night
+
+    TODO: This is a hack.  Make it better.
+    '''
 
     #- Hack: parse the directory structure to learn nights
     rows = list()
