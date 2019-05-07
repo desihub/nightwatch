@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>QA Summary</h1>
+<h2>Night {{ night }} exposure {{ expid }}:
+    {{ exptime }} second {{ flavor }} ({{ program }})</h2>
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+{% if READNOISE %}
+    <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
+{% endif %}
+
+{% if INTEG_RAW_FLUX %}
+    <p>Integrated Raw Counts</p>
+    <div>
+        {{ INTEG_RAW_FLUX.script }} {{ INTEG_RAW_FLUX.div }}
+    </div>
+{% endif %}
+
+{% endblock %}

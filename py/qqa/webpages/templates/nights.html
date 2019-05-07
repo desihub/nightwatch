@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>Nights with QA</h1>
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+{% for night in nights %}
+    <p><a href="{{ night }}/exposures.html">{{ night }}</a></p>
+{% endfor %}
+
+{% endblock %}

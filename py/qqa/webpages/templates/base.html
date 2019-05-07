@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<link
+    href="https://cdn.pydata.org/bokeh/release/bokeh-{{ bokeh_version }}.min.css"
+    rel="stylesheet" type="text/css"
+>
+<link
+    href="https://cdn.pydata.org/bokeh/release/bokeh-tables-{{ bokeh_version }}.min.css"
+    rel="stylesheet" type="text/css"
+>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-{{ bokeh_version }}.min.js"></script>
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-{{ bokeh_version }}.min.js"></script>
+
+<head>
+<style>
+    {# We include CSS in every header so that each file is standalone #}
+    h1, h2, h3, h4, h5, p {
+        font-family: Helvetica, Arial, sans-serif;
+    }
+
+    table {
+      font-family: arial, sans-serif;
+      border-collapse: collapse;
+    }
+
+    td, th {
+      border: 1px solid #eeee;
+      text-align: left;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #cccccc;
+    }
+
+    tr:nth-child(even) {
+      background-color: #eeeeee;
+    }
+</style>
+</head>
+
+<body>
+    {% block body %}
+    <p>Default body; update with a child template</p>
+    {% endblock %}
+</body>
+</html>

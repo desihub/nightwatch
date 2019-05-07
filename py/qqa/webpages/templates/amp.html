@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>Per-amplifier QA metrics</h1>
+<h2>Night {{ night }} exposure {{ expid }}:
+    {{ exptime }} second {{ flavor }} ({{ program }})</h2>
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+{% if READNOISE %}
+    <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
+{% endif %}
+
+{% if BIAS %}
+    <div>{{ BIAS.script }} {{ BIAS.div }}</div>
+{% endif %}
+
+{% if COSMICS_RATE %}
+    <div>{{ COSMICS_RATE.script }} {{ COSMICS_RATE.div }}</div>
+{% endif %}
+
+{% endblock %}

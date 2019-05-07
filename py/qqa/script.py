@@ -18,7 +18,8 @@ Supported commands are:
     preproc  Run only preprocessing on an input raw data file
     qproc    Run qproc (includes preproc) on an input raw data file
     qa       Run QA analysis on qproc outputs
-    plot     Generate plots of QA output
+    plot     Generate webpages with plots of QA output
+    tables   Generate webpages with tables of nights and exposures
 
 Run "qqa <command> --help" for details options about each command
 """)
@@ -39,8 +40,10 @@ def main():
         main_qproc()
     elif command == 'qa':
         main_qa()
-    elif command == 'plot':
+    elif command in ('plot', 'plots'):
         main_plot()
+    elif command == 'tables':
+        main_tables()
     else:
         print('ERROR: unrecognized command "{}"'.format(command))
         print_help()
@@ -103,22 +106,19 @@ def main_monitor(options=None):
                 time.strftime('%H:%M'), night, expid))
             try :
                 print('Running qproc on {}'.format(rawfile))
-                # header = run_preproc(rawfile, outdir)
                 header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
-                #qadata = qarunner.run(indir=outdir, outfile=qafile)
                 qarunner.run(indir=outdir, outfile=qafile)
                 
                 print('Generating plots for {}/{}'.format(night, expid))
                 plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
                 if not os.path.isdir(plotdir) : 
                     os.makedirs(plotdir)
-                #run.make_plots(qadata, header, plotdir)
                 run.make_plots(infile=qafile, outdir=plotdir)
 
-                run.write_summary_tables(args.plotdir)
+                run.write_tables(args.outdir, args.plotdir)
 
                 time_end = time.time()
                 dt = (time_end - time_start) / 60
@@ -237,6 +237,18 @@ def main_plot(options=None):
 
     run.make_plots(args.infile, args.outdir)
     print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
+
+def main_tables(options=None):
+    parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
+    parser.add_argument("-i", "--indir", type=str, required=True, help="QA in indir/YEARMMDD/EXPID")
+    parser.add_argument("-o", "--outdir", type=str, help="write summary tables to outdir/nights.html and outdir/YEARMMDD/exposures.html")
+
+    if options is None:
+        options = sys.argv[2:]
     
-    
-    
+    args = parser.parse_args(options)
+    if args.outdir is None:
+        args.outdir = args.indir
+
+    run.write_tables(args.indir, args.outdir)
+    print('Wrote summary tables to {}'.format(args.outdir))

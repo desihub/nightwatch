@@ -1,112 +1,11 @@
 import numpy as np
 
-import jinja2
-
 import bokeh
 import bokeh.plotting as bk
-from bokeh.embed import components
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 from bokeh.models import LinearColorMapper, ColorBar
 import bokeh.palettes
-
-from .core import default_css
-
-def write_amp_html(outfile, data, header):
-    '''TODO: document'''
-    
-    night = header['NIGHT']
-    expid = header['EXPID']
-    flavor = header['FLAVOR'].rstrip()
-    if "PROGRAM" not in header :
-        program = "no program in header!"
-    else :
-        program = header['PROGRAM'].rstrip()
-    exptime = header['EXPTIME']
-    
-    html_template = '''
-    <!DOCTYPE html>
-    <html lang="en-US">
-
-    <link
-        href="https://cdn.pydata.org/bokeh/release/bokeh-{version}.min.css"
-        rel="stylesheet" type="text/css"
-    >
-    <link
-        href="https://cdn.pydata.org/bokeh/release/bokeh-tables-{version}.min.css"
-        rel="stylesheet" type="text/css"
-    >
-    <script src="https://cdn.pydata.org/bokeh/release/bokeh-{version}.min.js"></script>
-    <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-{version}.min.js"></script>
-
-    <head>
-    <style>
-    {default_css}
-    </style>
-    </head>
-
-    <body>
-    <h1>Night {night} exposure {expid}</h1>
-    <p>{exptime:.0f} second {flavor} ({program}) exposure</p>
-    <h2>Per-amplifier QA metrics</h2>
-
-    '''.format(version=bokeh.__version__, night=night, expid=expid,
-        exptime=exptime, flavor=flavor, program=program,
-        default_css=default_css)
-    
-    html_template += '''
-    <div>{{ READNOISE_script }} {{ READNOISE_div }}</div>
-    <div>{{ BIAS_script }} {{ BIAS_div }}</div>
-    <div>{{ COSMICS_RATE_script }} {{ COSMICS_RATE_div }}</div>
-    </body>
-    </html>
-    '''
-    
-    #- Add a basic set of PER_AMP QA plots
-    plot_components = dict()
-
-    # for qaname, qatitle in [
-    #         ['READNOISE', 'CCD Amplifier Read Noise'],
-    #         ['BIAS', 'CCD Amplifier Overscan Bias Level'],
-    #     ]:
-    #     fig = plot_amp_qa(data, qaname, title=qatitle)
-    #     script, div = components(fig)
-    #     plot_components[qaname+'_script'] = script
-    #     plot_components[qaname+'_div'] = div
-        
-    #- Generate the bokeh figure
-    fig = plot_amp_qa(data, 'READNOISE', title='CCD Amplifier Read Noise',
-        qamin=1.5, qamax=4.0)
-    #- Convert that into the components to embed in the HTML
-    script, div = components(fig)
-    #- Save those in a dictionary to use later
-    plot_components['READNOISE_script'] = script
-    plot_components['READNOISE_div'] = div
-
-    #- Amplifier offset
-    fig = plot_amp_qa(data, 'BIAS', title='CCD Amplifier Overscan Bias Level',
-        palette=bokeh.palettes.all_palettes['GnBu'][6])
-    script, div = components(fig)
-    plot_components['BIAS_script'] = script
-    plot_components['BIAS_div'] = div
-
-    #- Cosmics rate
-    fig = plot_amp_qa(data, 'COSMICS_RATE',
-        title='CCD Amplifier cosmics per minute',
-        palette=bokeh.palettes.all_palettes['RdYlGn'][11][1:-1],
-        qamin=0, qamax=50)
-    script, div = components(fig)
-    plot_components['COSMICS_RATE_script'] = script
-    plot_components['COSMICS_RATE_div'] = div
-
-    #- Combine template + components -> HTML
-    html = jinja2.Template(html_template).render(**plot_components)
-
-    #- Write HTML text to the output file
-    with open(outfile, 'w') as fx:
-        fx.write(html)
-
-    return plot_components
 
 def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None):
     '''

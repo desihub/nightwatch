@@ -171,8 +171,14 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     cmdlist = list()
     loglist = list()
     msglist = list()
+    rawcameras = which_cameras(rawfile)
     if cameras is None :
-        cameras = which_cameras(rawfile)
+        cameras = rawcameras
+    elif len(set(cameras) - set(rawcameras)) > 0:
+        missing_cameras = set(cameras) - set(rawcameras)
+        for cam in sorted(missing_cameras):
+            log.error('{} missing camera {}'.format(os.path.basename(rawfile), cam))
+        cameras = sorted(set(cameras) & set(rawcameras))
 
     for camera in cameras:
         outfiles = dict(
@@ -259,7 +265,7 @@ def make_plots(infile, outdir):
         outdir: write output HTML files to this directory
     '''
 
-    from . import plots
+    from . import webpages
     from . import io
 
     log = desiutil.log.get_logger()
@@ -276,31 +282,29 @@ def make_plots(infile, outdir):
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
-        pc = plots.amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
+        pc = webpages.amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMFIBER' in qadata:
         htmlfile = '{}/qa-camfiber-{:08d}.html'.format(outdir, expid)
-        pc = plots.camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
+        pc = webpages.camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
-    plots.summary.write_exp_summary(htmlfile, qadata, plot_components, header)
+    webpages.summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
 
-def write_summary_tables(basedir):
-    '''
-    Write summary tables of nights and exposures per night
-
-    TODO: This is a hack.  Make it better.
-    '''
+def write_tables(indir, outdir):
+    import re
+    from astropy.table import Table
+    from . import webpages
 
     #- Hack: parse the directory structure to learn nights
     rows = list()
-    for dirname in sorted(os.listdir(basedir)):
-        nightdir = os.path.join(basedir, dirname)
+    for dirname in sorted(os.listdir(indir)):
+        nightdir = os.path.join(indir, dirname)
         if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
             night = int(dirname)
             for dirname in sorted(os.listdir(nightdir), reverse=True):
@@ -311,8 +315,7 @@ def write_summary_tables(basedir):
 
     exposures = Table(rows)
 
-    from . import plots
-    plots.summary.write_night_expid(basedir, exposures)
-
-
-
+    nightsfile = os.path.join(outdir, 'nights.html')
+    webpages.tables.write_nights_table(nightsfile, exposures)
+    webpages.tables.write_exposures_tables(outdir, exposures)
+    
