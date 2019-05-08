@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block navigation %}
+<ul class="navigationbar">
+  <li style="float:left"><a>QA {{ night }}/{{ expid }}</a></li>
+  <li><a id="spectro">spectro</a></li>
+  <li><a id="camfiber">camfiber</a></li>
+  <li><a id="fiber">fiber</a></li>
+  <li><a id="camera">camera</a></li>
+  <li><a id="amp" href="qa-amp-{{ zexpid }}.html">amp</a></li>
+  <li><a id="summary" href="qa-summary-{{ zexpid }}.html">summary</a></li>
+  <li><a id="exposures" href="../exposures.html">exposures</a></li>
+</ul>
+<p>{{ exptime }} second {{ flavor }} ({{ program }})</p>
+{% endblock %}
+
+{% block body %}
+{% endblock %}

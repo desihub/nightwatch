@@ -1,9 +1,6 @@
-{% extends "base.html" %}
+{% extends "qabase.html" %}
 
 {% block body %}
-<h1>Per-amplifier QA metrics</h1>
-<h2>Night {{ night }} exposure {{ expid }}:
-    {{ exptime }} second {{ flavor }} ({{ program }})</h2>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 

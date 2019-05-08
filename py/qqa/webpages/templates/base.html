@@ -14,35 +14,71 @@
 
 <head>
 <style>
-    {# We include CSS in every header so that each file is standalone #}
-    h1, h2, h3, h4, h5, p {
-        font-family: Helvetica, Arial, sans-serif;
-    }
+{# We include CSS in every header so that each file is standalone #}
+h1, h2, h3, h4, h5, p, ul {
+    font-family: Helvetica, Arial, sans-serif;
+}
 
-    table {
-      font-family: arial, sans-serif;
-      border-collapse: collapse;
-    }
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+}
 
-    td, th {
-      border: 1px solid #eeee;
-      text-align: left;
-      padding: 8px;
-    }
+td, th {
+  border: 1px solid #eeee;
+  text-align: left;
+  padding: 8px;
+}
 
-    th {
-      background-color: #cccccc;
-    }
+th {
+  background-color: #cccccc;
+}
 
-    tr:nth-child(even) {
-      background-color: #eeeeee;
-    }
+tr:nth-child(even) {
+  background-color: #eeeeee;
+}
+
+ul.navigationbar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+ul.navigationbar li {
+  color: white;
+  float: right;
+}
+
+
+ul.navigationbar li a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  padding: 12px;
+  text-align: center;
+}
+
+ul.navigationbar li a:hover {
+  background-color: #111;
+}
+
+ul.navigationbar li a.noHover{
+  pointer-events: none;
+}
+    
 </style>
 </head>
 
 <body>
-    {% block body %}
-    <p>Default body; update with a child template</p>
-    {% endblock %}
+
+{% block navigation %}
+{% endblock %}
+    
+{% block body %}
+<p>Default body; update with a child template</p>
+{% endblock %}
+
 </body>
 </html>

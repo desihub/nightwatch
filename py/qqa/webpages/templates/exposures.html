@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 
 {% block body %}
-<h1>Exposures on night {{ night }}</h1>
+<ul class="navigationbar">
+  <li style="float:left"><a>Exposures on night {{ night }}</a></li>
+  <li><a>[next]</a></li>
+  <li><a>[prev]</a></li>
+  <li><a href="../nights.html">nights</a></li>
+</ul>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<p><a href="../nights.html">Summary of nights</a></p>
 
 <table>
 <tr>
