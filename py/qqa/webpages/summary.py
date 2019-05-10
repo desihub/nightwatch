@@ -14,6 +14,8 @@ def write_summary_html(outfile, plot_components):
         outfile: output HTML file
         plot_components: dictionary with keys night, expid, flavor, program,
             and QA plots
+    
+    changes plot_components['qatype'] to 'summary'
     """
 
     env = jinja2.Environment(
@@ -23,6 +25,7 @@ def write_summary_html(outfile, plot_components):
         
     #- TODO: Add links to whatever detailed QA pages exist
     
+    plot_components['qatype'] = 'summary'
     html = template.render(**plot_components)
 
     #- Write HTML text to the output file

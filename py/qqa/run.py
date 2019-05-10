@@ -279,6 +279,14 @@ def make_plots(infile, outdir):
     night = header['NIGHT']
     expid = header['EXPID']
     
+    #- Early data have wrong NIGHT in header; check by hand
+    #- YEARMMDD/EXPID/infile
+    dirnight = os.path.basename(os.path.dirname(os.path.dirname(infile)))
+    if re.match('20\d{6}', dirnight) and dirnight != str(night):
+        log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
+        night = int(dirnight)
+        header['NIGHT'] = night
+    
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)

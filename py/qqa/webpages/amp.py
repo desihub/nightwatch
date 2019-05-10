@@ -26,7 +26,7 @@ def write_amp_html(outfile, data, header):
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program,
+        flavor=flavor, program=program, qatype='amp',
     )
     
     #- Add a basic set of PER_AMP QA plots

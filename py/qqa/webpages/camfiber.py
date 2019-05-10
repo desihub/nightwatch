@@ -28,6 +28,7 @@ def write_camfiber_html(outfile, data, header):
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, flavor=flavor, program=program,
+        qatype = 'camfiber',
     )
 
     #- TODO: refactor these to reduce replicated code, while still supporting
