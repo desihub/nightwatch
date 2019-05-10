@@ -227,18 +227,22 @@ def main_qa(options=None):
 
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
-    parser.add_argument("-i", "--infile", type=str, required=True, help="input fits file name with qa outputs")
+    parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input fits file name with qa outputs")
     parser.add_argument("-o", "--outdir", type=str, help="output directory (without appending YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]
     
     args = parser.parse_args(options)
-    if args.outdir is None:
-        args.outdir = os.path.dirname(args.infile)
 
-    run.make_plots(args.infile, args.outdir)
-    print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
+    for infile in args.infile:
+        if args.outdir is None:
+            outdir = os.path.dirname(infile)
+        else:
+            outdir = args.outdir
+
+        run.make_plots(infile, outdir)
+        print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
