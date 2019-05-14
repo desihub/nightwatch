@@ -180,48 +180,17 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             log.error('{} missing camera {}'.format(os.path.basename(rawfile), cam))
         cameras = sorted(set(cameras) & set(rawcameras))
 
+
     for camera in cameras:
         outfiles = dict(
             rawfile = rawfile,
             fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid),
-            preproc = '{}/preproc-{}-{:08d}.fits'.format(outdir, camera, expid),
-            psf = '{}/psf-{}-{:08d}.fits'.format(outdir, camera, expid),
-            qframe = '{}/qframe-{}-{:08d}.fits'.format(outdir, camera, expid),
-            qcframe = '{}/qcframe-{}-{:08d}.fits'.format(outdir, camera, expid),
-            qsky = '{}/qsky-{}-{:08d}.fits'.format(outdir, camera, expid),
-            qfiberflat = '{}/qfiberflat-{}-{:08d}.fits'.format(outdir, camera, expid),
             logfile = '{}/qproc-{}-{:08d}.log'.format(outdir, camera, expid),
+            outdir = outdir,
+            camera = camera
         )
-
-        if flavor == "SCIENCE":
-            cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --cam {camera}"
-            cmd += " --output-preproc {preproc}"
-            cmd += " --shift-psf --output-psf {psf}"
-            cmd += " --output-rawframe {qframe}"
-            cmd += " --apply-fiberflat --skysub --output-skyframe {qsky}"
-            cmd += " --fluxcalib --outframe {qcframe}"
-        elif flavor == "ARC":
-            cmd = "desi_qproc -i {rawfile} --cam {camera}"
-            cmd += " --output-preproc {preproc}"
-            cmd += " --shift-psf --compute-lsf-sigma --output-psf {psf}"
-            cmd += " --output-rawframe {qframe}"
-        elif flavor == "FLAT":
-            cmd = "desi_qproc -i {rawfile} --cam {camera}"
-            cmd += " --output-preproc {preproc}"
-            cmd += " --shift-psf --output-psf {psf}"
-            cmd += " --output-rawframe {qframe}"
-            cmd += " --compute-fiberflat {qfiberflat}"
-        elif flavor in ("ZERO", "DARK", "PREPROC"):
-            cmd = "desi_qproc -i {rawfile} --cam {camera}"
-            cmd += " --output-preproc {preproc}"
-        else:
-            log = desiutil.log.get_logger()
-            log.error('{}/{}: unrecognized flavor {}'.format(night, expid, flavor))
-            cmd = "desi_qproc -i {rawfile} --cam {camera}"
-            cmd += " --output-preproc {preproc}"
-
-        fullcmd = cmd.format(camera=camera, **outfiles)
-        cmdlist.append(fullcmd)
+        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+        cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
@@ -325,5 +294,5 @@ def write_tables(indir, outdir):
 
     nightsfile = os.path.join(outdir, 'nights.html')
     webpages.tables.write_nights_table(nightsfile, exposures)
-    webpages.tables.write_exposures_tables(outdir, exposures)
+    webpages.tables.write_exposures_tables(indir,outdir, exposures)
     

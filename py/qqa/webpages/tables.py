@@ -88,7 +88,7 @@ The first and last exposure have prev/next as [null, null]
 get_explinks({})
 """.format(json.dumps(links[night], indent=2)))
 
-def write_exposures_tables(outdir, exposures, nights=None):
+def write_exposures_tables(indir,outdir, exposures, nights=None):
     """
     outfile: output HTML files to outdir/YEARMMDD/exposures.html
     exposures: table with columns NIGHT, EXPID
@@ -108,7 +108,7 @@ def write_exposures_tables(outdir, exposures, nights=None):
         explist = list()
         for expid in sorted(exposures['EXPID'][ii]):
             
-            qafile = io.findfile('qa', night, expid, basedir=outdir)
+            qafile = io.findfile('qa', night, expid, basedir=indir)
             qadata = io.read_qa(qafile)
             status = get_status(qadata)
             flavor = qadata['HEADER']['FLAVOR'].rstrip()
