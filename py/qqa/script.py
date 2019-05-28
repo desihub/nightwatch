@@ -228,7 +228,7 @@ def main_qa(options=None):
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input fits file name with qa outputs")
-    parser.add_argument("-o", "--outdir", type=str, help="output directory (without appending YEARMMDD/EXPID/)")
+    parser.add_argument("-o", "--outdir", type=str, help="output directory (including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]

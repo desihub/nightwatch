@@ -290,6 +290,10 @@ def write_tables(indir, outdir):
                     expid = int(dirname)
                     rows.append(dict(NIGHT=night, EXPID=expid))
 
+    if len(rows) == 0:
+        msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
+        raise RuntimeError(msg)
+
     exposures = Table(rows)
 
     nightsfile = os.path.join(outdir, 'nights.html')
