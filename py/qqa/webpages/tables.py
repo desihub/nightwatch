@@ -8,7 +8,6 @@ from collections import OrderedDict
 import numpy as np
 import jinja2
 from astropy.table import Table
-from shutil import copyfile
 
 from .. import io
 from ..qa.status import get_status, Status
@@ -25,15 +24,7 @@ def write_nights_table(outfile, exposures):
     template = env.get_template('nights.html')
 
     nights_concat = np.unique(exposures['NIGHT'])
-    nights_sep = [[str(night), str(night)[0:4], str(int(str(night)[4:6])-1), str(night)[6:]] for night in nights_concat]
-    
-    try:
-        os.mkdir(os.path.join(os.path.dirname(outfile), 'cal_files'))
-    except OSError:
-        i = 0
-    files = ['bootstrap.js', 'bootstrap.css', 'bootstrap-year-calendar.css', 'bootstrap-year-calendar.js', 'jquery_min.js', 'popper_min.js']
-    for f in files:
-        copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'cal_files', f), os.path.join(os.path.dirname(outfile), 'cal_files', f))
+    nights_sep = [{"name" : str(night), "year" : str(night)[0:4], "month" : str(int(str(night)[4:6])-1), "day" : str(night)[6:]} for night in nights_concat]
 
 
     html = template.render(nights=nights_sep)

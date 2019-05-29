@@ -11,7 +11,7 @@ $(function() {
 
     var list = {};
     {% for night in nights %}
-        list[(new Date({{night[1]}}, {{night[2]}}, {{night[3]}}))] = 1;
+        list[(new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}))] = 1;
     {% endfor %}
 
     $('.calendar').calendar({
@@ -27,9 +27,9 @@ $(function() {
 	{% for night in nights %}
 	    {
 	    id : {{loop.index}},
-	    name : "{{night[0]}}/exposures.html",
-	    startDate : new Date({{night[1]}}, {{night[2]}}, {{night[3]}}),
-	    endDate : new Date({{night[1]}}, {{night[2]}}, {{night[3]}}),
+	    name : "{{night['name']}}/exposures.html",
+	    startDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
+	    endDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
 	    color : 'white'
 	    }
 	{% endfor %}
