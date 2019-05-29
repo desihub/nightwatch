@@ -277,6 +277,7 @@ def write_tables(indir, outdir):
     import re
     from astropy.table import Table
     from . import webpages
+    from shutil import copyfile
 
     #- Hack: parse the directory structure to learn nights
     rows = list()
@@ -293,6 +294,15 @@ def write_tables(indir, outdir):
     exposures = Table(rows)
 
     nightsfile = os.path.join(outdir, 'nights.html')
+
     webpages.tables.write_nights_table(nightsfile, exposures)
+    try:
+        os.mkdir(os.path.join(outdir, 'cal_files'))
+    except OSError:
+        i = 0
+    files = ['bootstrap.js', 'bootstrap.css', 'bootstrap-year-calendar.css', 'bootstrap-year-calendar.js', 'jquery_min.js', 'popper_min.js']
+    for f in files:
+        copyfile(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cal_files', f), os.path.join(outdir, 'cal_files', f))
+
     webpages.tables.write_exposures_tables(indir,outdir, exposures)
     
