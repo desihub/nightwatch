@@ -294,7 +294,6 @@ def write_tables(indir, outdir):
     exposures = Table(rows)
 
     nightsfile = os.path.join(outdir, 'nights.html')
-
     webpages.tables.write_nights_table(nightsfile, exposures)
     try:
         os.mkdir(os.path.join(outdir, 'cal_files'))
