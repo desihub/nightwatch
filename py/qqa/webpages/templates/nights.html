@@ -1,12 +1,46 @@
 {% extends "base.html" %}
-
 {% block body %}
-<h1>Nights with QA</h1>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
+<div class="container">
+    <div class="calendar"></div>
+</div>
 
-{% for night in nights %}
-    <p><a href="{{ night }}/exposures.html">{{ night }}</a></p>
-{% endfor %}
+<script>
+$(function() {
+
+    var list = {};
+    {% for night in nights %}
+        list[(new Date({{night[1]}}, {{night[2]}}, {{night[3]}}))] = 1;
+    {% endfor %}
+
+    $('.calendar').calendar({
+        customDayRenderer: function(element, date) {
+        if (date in list) {
+            $(element).css('background-color', 'green');
+            $(element).css('color', 'white');
+            $(element).css('border-radius', '10px');
+            $(element).css('opacity', '0.6');
+        }
+        },
+        dataSource: [
+	{% for night in nights %}
+	    {
+	    id : {{loop.index}},
+	    name : "{{night[0]}}/exposures.html",
+	    startDate : new Date({{night[1]}}, {{night[2]}}, {{night[3]}}),
+	    endDate : new Date({{night[1]}}, {{night[2]}}, {{night[3]}}),
+	    color : 'white'
+	    }
+	{% endfor %}
+        ],
+        clickDay: function(e) {
+        if(e.events.length > 0) {
+        window.open(e.events[0].name);
+        }
+        },
+    });
+});
+</script>
 
 {% endblock %}

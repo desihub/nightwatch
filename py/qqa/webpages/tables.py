@@ -23,7 +23,11 @@ def write_nights_table(outfile, exposures):
     )
     template = env.get_template('nights.html')
 
-    html = template.render(nights=np.unique(exposures['NIGHT']))
+    nights_concat = np.unique(exposures['NIGHT'])
+    nights_sep = [[str(night), str(night)[0:4], str(int(str(night)[4:6])-1), str(night)[6:]] for night in nights_concat]
+    
+
+    html = template.render(nights=nights_sep)
     with open(outfile, 'w') as fx:
         fx.write(html)
 
