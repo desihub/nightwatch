@@ -23,8 +23,19 @@ def write_nights_table(outfile, exposures):
     )
     template = env.get_template('nights.html')
 
-    nights_concat = np.unique(exposures['NIGHT'])
-    nights_sep = [{"name" : str(night), "year" : str(night)[0:4], "month" : str(int(str(night)[4:6])-1), "day" : str(night)[6:]} for night in nights_concat]
+
+    expo = Table(exposures)
+
+    def f(lst):
+        return lst
+
+    expo = expo["NIGHT", "EXPID"].group_by("NIGHT").groups.aggregate(f)
+
+    nights_sep = [{"name" : str(night["NIGHT"]),
+		   "year" : str(night["NIGHT"])[0:4],
+		   "month" : str(int(str(night["NIGHT"])[4:6])-1),
+		   "day" : str(night["NIGHT"])[6:],
+		   "numexp" : str(len(night["EXPID"]))} for night in expo]
 
 
     html = template.render(nights=nights_sep)
