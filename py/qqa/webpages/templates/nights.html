@@ -1,7 +1,22 @@
-{% extends "base.html" %}
-{% block body %}
 
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="cal_files/bootstrap.css">
+    <script src="cal_files/jquery_min.js"></script>
+    <script src="cal_files/popper_min.js"></script>
+    <script src="cal_files/bootstrap.js"></script>
+    <link rel="stylesheet" href="cal_files/bootstrap-year-calendar.css">
+    <script src="cal_files/bootstrap-year-calendar.js"></script>
+
+    </head>
+<body>
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+<div><center><font size="5" text_align="center">Nights with qa data avaliable</font></center><div>
+
 <div class="container">
     <div class="calendar"></div>
 </div>
@@ -15,9 +30,37 @@ $(function() {
     {% endfor %}
 
     $('.calendar').calendar({
+	mouseOnDay: function(e) {
+      	    if(e.events.length > 0) {
+            var content = '';
+		if(e.events[0].numexp == "1") {
+            	content += '<div class="event-tooltip-content">'
+                              + '<div class="event-name" >' + e.events[0].numexp +' exposure</div>'
+                          + '</div>';
+		} else {
+            	content += '<div class="event-tooltip-content">'
+                              + '<div class="event-name" >' + e.events[0].numexp +' exposures</div>'
+                          + '</div>';
+}
+
+          $(e.element).popover({
+              trigger: 'manual',
+              container: 'body',
+              html:true,
+              content: content
+          });
+
+          $(e.element).popover('show');
+      }
+  },
+  mouseOutDay: function(e) {
+      if(e.events.length > 0) {
+          $(e.element).popover('hide');
+      }
+  },
         customDayRenderer: function(element, date) {
         if (date in list) {
-            $(element).css('background-color', 'green');
+            $(element).css('background-color', 'blue');
             $(element).css('color', 'white');
             $(element).css('border-radius', '10px');
             $(element).css('opacity', '0.6');
@@ -28,6 +71,7 @@ $(function() {
 	    {
 	    id : {{loop.index}},
 	    name : "{{night['name']}}/exposures.html",
+	    numexp : "{{night['numexp']}}",
 	    startDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
 	    endDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
 	    color : 'white'
@@ -42,5 +86,5 @@ $(function() {
     });
 });
 </script>
-
-{% endblock %}
+</body>
+</html>
