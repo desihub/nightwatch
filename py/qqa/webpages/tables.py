@@ -26,16 +26,13 @@ def write_nights_table(outfile, exposures):
 
     expo = Table(exposures)
 
-    def f(lst):
-        return lst
-
-    expo = expo["NIGHT", "EXPID"].group_by("NIGHT").groups.aggregate(f)
+    expo = expo["NIGHT", "EXPID"].group_by("NIGHT").groups.aggregate(len)
 
     nights_sep = [{"name" : str(night["NIGHT"]),
 		   "year" : str(night["NIGHT"])[0:4],
 		   "month" : str(int(str(night["NIGHT"])[4:6])-1),
 		   "day" : str(night["NIGHT"])[6:],
-		   "numexp" : str(len(night["EXPID"]))} for night in expo]
+		   "numexp" : str(night["EXPID"])} for night in expo]
 
 
     html = template.render(nights=nights_sep)
