@@ -3,13 +3,30 @@
 {% block body %}
 <ul class="navigationbar">
   <li style="float:left"><a>Exposures on night {{ night }}</a></li>
-  <li><a>[next]</a></li>
-  <li><a>[prev]</a></li>
-  <li><a href="../nights.html">nights</a></li>
+  <li><a id="next">next</a></li>
+  <li><a id="prev">prev</a></li>
+  <li><a href="../nights.html">calendar</a></li>
 </ul>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
-
+<script>
+    function get_nightlinks(dict) {
+        var next_prev = dict["{{night}}"];
+        var next_item = next_prev.next_n;
+        if (next_item==null) {
+            document.getElementById("next").className = "noHover";
+        } else {
+            document.getElementById("next").href = next_item;
+        }
+        var prev_item = next_prev.prev_n;
+        if (prev_item==null) {
+            document.getElementById("prev").className = "noHover";
+        } else {
+            document.getElementById("prev").href = prev_item;
+        }
+    }    
+</script>
+<script src="../nightlinks.js"></script>
 
 <table>
 <tr>
@@ -32,12 +49,43 @@
   <td>{{ exp.night }}</td>
   <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
   <td>{{ exp.flavor }}</td>
+
+{% if exp.PER_AMP_link != "na" %}
+  <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>
+{% else %}
   <td>{{ exp.PER_AMP }}</td>
+{% endif %}
+
+{% if exp.PER_CAMERA_link != "na" %}
+  <td><a href="{{ exp.PER_CAMERA_link }}">{{ exp.PER_CAMERA }}</a></td>
+{% else %}
   <td>{{ exp.PER_CAMERA }}</td>
+{% endif %}
+
+{% if exp.PER_FIBER_link != "na" %}
+  <td><a href="{{ exp.PER_FIBER_link }}">{{ exp.PER_FIBER }}</a></td>
+{% else %}
   <td>{{ exp.PER_FIBER }}</td>
+{% endif %}
+
+{% if exp.PER_CAMFIBER_link != "na" %}
+  <td><a href="{{ exp.PER_CAMFIBER_link }}">{{ exp.PER_CAMFIBER }}</a></td>
+{% else %}
   <td>{{ exp.PER_CAMFIBER }}</td>
+{% endif %}
+
+{% if exp.PER_SPECTRO_link != "na" %}
+  <td><a href="{{ exp.PER_SPECTRO_link }}">{{ exp.PER_SPECTRO }}</a></td>
+{% else %}
   <td>{{ exp.PER_SPECTRO }}</td>
+{% endif %}
+
+{% if exp.PER_EXP_link != "na" %}
+  <td><a href="{{ exp.PER_EXP_link }}">{{ exp.PER_EXP }}</a></td>
+{% else %}
   <td>{{ exp.PER_EXP }}</td>
+{% endif %}
+
 </tr>
 {% endfor %}
 
