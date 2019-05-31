@@ -134,9 +134,13 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
                                         'PER_CAMFIBER', 'PER_SPECTRO', 'PER_EXP']):
                 if qatype not in status:
                     expinfo[qatype] = '-'
+                    expinfo[qatype + "_link"] = "na"
                 else:
                     qastatus = Status(np.max(status[qatype]['QASTATUS']))
+                    short_name = qatype.split("_")[1].lower()
+
                     expinfo[qatype] = qastatus.name
+                    expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(expid=expid, name=short_name)
 
             explist.append(expinfo)
                     
