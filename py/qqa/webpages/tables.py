@@ -2,7 +2,7 @@
 Pages summarizing QA results
 """
 
-import os, json
+import os, json, re
 from collections import OrderedDict, Counter
 
 import numpy as np
@@ -44,6 +44,43 @@ def write_nights_table(outfile, exposures):
     html = template.render(nights=nights_sep)
     with open(outfile, 'w') as fx:
         fx.write(html)
+
+def _write_night_links(outdir):
+    all_files = os.listdir(outdir)
+    regex = re.compile(r'[0-9]{8}')
+    list_nights = []
+    for fil in all_files:
+        if regex.match(fil):
+            list_nights += [fil]
+    list_nights.sort()
+
+    links = dict() 
+    for i in range(len(list_nights)):
+        night = list_nights[i]
+        prev_n = None
+        next_n = None
+        
+        if i != len(list_nights)-1:
+            next_n = os.path.join("..", list_nights[i+1], "exposures.html")
+
+        if i != 0:
+            prev_n = os.path.join("..", list_nights[i-1], "exposures.html")
+        
+        links[night] = dict(prev_n = prev_n, next_n = next_n)
+
+    outfile = os.path.join(outdir, 'nightlinks.js')
+    with open(outfile, 'w') as fx:
+        fx.write("""/*
+Returns night prev/next links as a string
+
+    nightlinks["prev_n"|"next_n"] = path-to-prev/next-night-exposure.html
+
+where zexpid is the 8-character zero-padded exposure ID.
+The first and last exposure have prev/next as [null, null]
+*/
+get_nightlinks({})
+""".format(json.dumps(links, indent=2)))
+
 
 def _write_expid_links(outdir, exposures, nights=None):
     """
@@ -156,4 +193,6 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
             fx.write(html)
 
         _write_expid_links(outdir, exposures, nights)
+    
+    _write_night_links(outdir)
 
