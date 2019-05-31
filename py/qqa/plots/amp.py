@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool
 import bokeh.palettes
 
 def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None):
@@ -15,9 +15,12 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
     '''
     if title is None:
         title = name
-     
+
     #- Map data[name] into location on image to display
     img = np.zeros(shape=(4,30)) * np.nan
+    x_data = []
+    y_data = []
+    name_data = []
     for row in data:
         #- TODO: check rows for amp, spectro, and img plotting orientation
         if row['SPECTRO'] < 5:
@@ -32,12 +35,15 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
             j += 2
         elif row['CAM'].upper() in ('Z', b'Z'):
             j += 4
-        
+
         if row['AMP'] in ['D', 'B', b'D', b'B']:
             j += 1
-        
+
+        x_data += [j/2+.25]
+        y_data += [i+.5]
+        name_data += [row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])]
         img[i,j] = row[name]
-    
+
     splabels_top = list()
     for sp in range(0,5):
         for cam in ['B', 'R', 'Z']:
@@ -47,9 +53,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
     for sp in range(5,10):
         for cam in ['B', 'R', 'Z']:
             splabels_bottom.append(cam+str(sp))
-    
+
     fig = bk.figure(height=180, width=850, x_range=FactorRange(*splabels_bottom),
-                    toolbar_location=None, title=title)
+                    toolbar_location=None, title=title, tools='tap')
 
     if qamin is None:
         qamin = np.nanmin(img)
@@ -60,7 +66,6 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
                                      low_color='#CC1111', high_color='#CC1111')
     fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
 
-    #
     # color_bar = ColorBar(color_mapper=color_mapper)
     # fig.add_layout(color_bar, 'right')
     #     # label_standoff=12, border_line_color=None, location=(0,0))
@@ -71,7 +76,7 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
         fig.line([0, 15], [y, y], line_color='black', line_width=4, alpha=0.6)
     for x in range(1, 15, 1):
         fig.line([x,x], [0,4], line_color='black', line_width=1, line_alpha=0.6)
-    
+
     #- overplot values
     for y in range(img.shape[0]):
         x = np.arange(img.shape[1])
@@ -98,6 +103,16 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
     #- No ticks; make camera labels close to plot
     fig.xaxis.major_tick_out = 0
     fig.xaxis.major_label_standoff = 5
-    
-    return fig
 
+    source = ColumnDataSource(data=dict(
+    x=x_data,
+    y=y_data,
+    name=name_data,
+    ))
+    fig.square('x', 'y', line_color='black', fill_alpha=0, size=29, source=source, name="squares")
+
+    taptool = fig.select(type=TapTool)
+    taptool.names = ["squares"]
+    taptool.callback = OpenURL(url="@name-4x.html")
+
+    return fig
