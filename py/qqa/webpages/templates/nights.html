@@ -30,15 +30,15 @@ $(function() {
     {% endfor %}
 
     $('.calendar').calendar({
-	mouseOnDay: function(e) {
-      	    if(e.events.length > 0) {
+        mouseOnDay: function(e) {
+            if(e.events.length > 0) {
             var content = '';
-		if(e.events[0].numexp == "1") {
-            	content += '<div class="event-tooltip-content">'
+                if(e.events[0].numexp == "1") {
+                content += '<div class="event-tooltip-content">'
                               + '<div class="event-name" >' + e.events[0].numexp +' exposure</div>'
                           + '</div>';
-		} else {
-            	content += '<div class="event-tooltip-content">'
+                } else {
+                content += '<div class="event-tooltip-content">'
                               + '<div class="event-name" >' + e.events[0].numexp +' exposures</div>'
                           + '</div>';
 }
@@ -67,16 +67,16 @@ $(function() {
         }
         },
         dataSource: [
-	{% for night in nights %}
-	    {
-	    id : {{loop.index}},
-	    name : "{{night['name']}}/exposures.html",
-	    numexp : "{{night['numexp']}}",
-	    startDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
-	    endDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
-	    color : 'white'
-	    },
-	{% endfor %}
+        {% for night in nights %}
+            {
+            id : {{loop.index}},
+            name : "{{night['name']}}/exposures.html",
+            numexp : "{{night['numexp']}}",
+            startDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
+            endDate : new Date({{night["year"]}}, {{night["month"]}}, {{night["day"]}}),
+            color : 'white'
+            },
+        {% endfor %}
         ],
         clickDay: function(e) {
         if(e.events.length > 0) {
