@@ -3,7 +3,7 @@ Pages summarizing QA results
 """
 
 import os, json
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 
 import numpy as np
 import jinja2
@@ -23,9 +23,23 @@ def write_nights_table(outfile, exposures):
     )
     template = env.get_template('nights.html')
 
-    nights_concat = np.unique(exposures['NIGHT'])
-    nights_sep = [{"name" : str(night), "year" : str(night)[0:4], "month" : str(int(str(night)[4:6])-1), "day" : str(night)[6:]} for night in nights_concat]
 
+    expo = Table(exposures)
+
+    # Count exposures per night
+    expcounter = Counter(expo["NIGHT"])
+
+    # Split night YEARMMDD into YEAR, MM-1, DD
+    nights_sep = list()
+    for night, numexp in sorted(expcounter.items()):
+        night = str(night)
+        nights_sep.append({
+            "name" : night,
+            "year" : night[0:4],
+            "month" : str(int(night[4:6])-1), # yes, JS months are 0-indexed
+            "day" : night[6:],                #      and days are 1-indexed...
+            "numexp" : numexp
+            })
 
     html = template.render(nights=nights_sep)
     with open(outfile, 'w') as fx:
