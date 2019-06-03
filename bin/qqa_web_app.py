@@ -55,5 +55,6 @@ def getfile(filepath):
         return send_from_directory(stat, filepath)
     print("could NOT find " + fitsfilepath, file=sys.stderr)
     return 'no data for ' + os.path.join(stat, filepath)
- __name__ == "__main__":
+
+if __name__ == "__main__":
     app.run(debug=True)
