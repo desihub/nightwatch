@@ -41,7 +41,8 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
 
         x_data += [j/2+.25]
         y_data += [i+.5]
-        name_data += [row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])]
+        cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+        name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         img[i,j] = row[name]
 
     splabels_top = list()
@@ -109,7 +110,7 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None)
     y=y_data,
     name=name_data,
     ))
-    fig.square('x', 'y', line_color='black', fill_alpha=0, size=29, source=source, name="squares")
+    fig.square('x', 'y', line_alpha=0.3, line_color='black', fill_alpha=0, size=29, source=source, name="squares")
 
     taptool = fig.select(type=TapTool)
     taptool.names = ["squares"]

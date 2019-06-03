@@ -14,6 +14,11 @@ args = parser.parse_args()
 stat = args.static
 data = args.data
 
+@app.route('/')
+def redict_to_cal():
+    print('redirecting to nights.html')
+    return redirect('nights.html', code=302)
+
 @app.route('/<path:filepath>')
 def getfile(filepath):
     global stat
@@ -28,31 +33,36 @@ def getfile(filepath):
         return send_from_directory(stat, filepath)
 
     print("could NOT find " + os.path.join(stat, filepath), file=sys.stderr)
-    while (len(filepath) != 0 and filepath[len(filepath)-1] == '/'):
-        filepath = filepath[:len(filepath)-1]
+
     # splits the url contents by '/'
-    filename_split = filepath.split('/')
-    if len(filename_split) < 3:
+    filedir, filename = os.path.split(filepath)
+
+    filebasename, fileext = os.path.splitext(filename)
+
+    splitname = filebasename.split('-')
+    down = splitname.pop()
+    if down[len(down)-1] != 'x':
         return 'no data for ' + os.path.join(stat, filepath)
 
-    cam = filename_split[2].split('-')[0]
-    down = filename_split[2].split('-')[1].split('.')[0]
-
-    fitsfilename = 'preproc' + '-' + cam + '-' + filename_split[1] + '.fits'
-    fitsfilepath = os.path.join(data, filename_split[0], filename_split[1], fitsfilename)
+    filebasename = '-'.join(splitname)
+    fitsfilename = '{filebasename}.fits'.format(filebasename=filebasename)
+    fitsfilepath = os.path.join(data, filedir, fitsfilename)
+    exists_fits = os.path.isfile(fitsfilepath)
 
     exists_fits = os.path.isfile(fitsfilepath)
     if exists_fits:
-        print("found " + (fitsfilepath), file=sys.stderr)
+        print("found " + fitsfilepath, file=sys.stderr)
         downsample = int(down[:len(down)-1])
         if downsample <= 0:
             return 'invalid downsample'
 
-        sys.path.append(os.path.abspath(os.path.join('..', 'py', 'qqa')))
-        import plots.plotimage
+        # assume qqa/py is in PYTHONPATH
+        # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'qqa')))
+        from qqa.plots import plotimage
 
-        plots.plotimage.main(fitsfilepath, os.path.join(stat, filepath), downsample)
+        plotimage.main(fitsfilepath, os.path.join(stat, filepath), downsample)
         return send_from_directory(stat, filepath)
+
     print("could NOT find " + fitsfilepath, file=sys.stderr)
     return 'no data for ' + os.path.join(stat, filepath)
 

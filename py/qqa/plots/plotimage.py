@@ -119,19 +119,23 @@ def main(input_in = None, output_in = None, downsample_in = None):
     <body>
     <div>{plot_script} {plot_div}</div>
     <div>Downsample: <input size="4" type="number" id = "down" value={downsample}></div>
+    <button onclick='
+        var url = "{basename}-" + document.getElementById("down").value + "x.html"
+        window.open(url, "_top")
+    '>Generate</button>
     </body>
     <script>
-    var input = document.getElementById("down");
-    input.addEventListener("keyup", function(event) {{
-      if (event.keyCode === 13) {{
-       event.preventDefault();
-       var url = "{cam}-" + document.getElementById("down").value + "x.html"
-       window.open(url, "_top")
-      }}
-    }});
+        var input = document.getElementById("down");
+            input.addEventListener("keyup", function(event) {{
+                if (event.keyCode === 13) {{
+                    event.preventDefault();
+            var url = "{cam}-" + document.getElementById("down").value + "x.html"
+            window.open(url, "_top")
+            }}
+        }});
     </script>
     </html>
-    """.format(plot_script = plot_script, plot_div = plot_div, version=bokeh.__version__, cam= basename.split("-")[1], downsample=n)
+    """.format(plot_script = plot_script, plot_div = plot_div, version=bokeh.__version__, basename=os.path.splitext(basename)[0], downsample=n)
 
     with open(output, 'w') as fx:
         fx.write(html)
