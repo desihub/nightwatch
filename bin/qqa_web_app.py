@@ -18,10 +18,16 @@ data = args.data
 def getfile(filepath):
     global stat
     global data
+    stat = os.path.abspath(stat)
+    data = os.path.abspath(data)
+    
     exists_html = os.path.isfile(os.path.join(stat, filepath))
     if exists_html:
+        print("found " + os.path.join(stat, filepath), file=sys.stderr)
+        print("retrieving " + os.path.join(stat, filepath), file=sys.stderr)
         return send_from_directory(stat, filepath)
 
+    print("could NOT find " + os.path.join(stat, filepath), file=sys.stderr)
     while (len(filepath) != 0 and filepath[len(filepath)-1] == '/'):
         filepath = filepath[:len(filepath)-1]
     # splits the url contents by '/'
@@ -37,6 +43,7 @@ def getfile(filepath):
 
     exists_fits = os.path.isfile(fitsfilepath)
     if exists_fits:
+        print("found " + (fitsfilepath), file=sys.stderr)
         downsample = int(down[:len(down)-1])
         if downsample <= 0:
             return 'invalid downsample'
@@ -46,7 +53,7 @@ def getfile(filepath):
 
         plots.plotimage.main(fitsfilepath, os.path.join(stat, filepath), downsample)
         return send_from_directory(stat, filepath)
+    print("could NOT find " + fitsfilepath, file=sys.stderr)
     return 'no data for ' + os.path.join(stat, filepath)
-
-if __name__ == "__main__":
+ __name__ == "__main__":
     app.run(debug=True)
