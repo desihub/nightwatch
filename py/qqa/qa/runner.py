@@ -15,12 +15,13 @@ import desiutil.log
 from .amp import QAAmp
 from .noisecorr import QANoiseCorr
 from .specscore import QASpecscore
+from .traceshift import QATraceShift
 # from .fibersnr import QAFiberSNR
 
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, )
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift)
 
     def __init__(self, qalist=None):
         '''TODO: document'''
