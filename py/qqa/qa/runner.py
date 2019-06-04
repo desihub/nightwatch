@@ -16,12 +16,13 @@ from .amp import QAAmp
 from .noisecorr import QANoiseCorr
 from .specscore import QASpecscore
 from .traceshift import QATraceShift
+from .psf import QAPSF
 # from .fibersnr import QAFiberSNR
 
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift)
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF)
 
     def __init__(self, qalist=None):
         '''TODO: document'''
@@ -41,8 +42,28 @@ class QARunner(object):
             log.error('No preproc files found in {}'.format(indir))
             raise RuntimeError
             
-        hdr = fitsio.read_header(preprocfiles[0], 0)
-        flavor = hdr['FLAVOR'].strip()
+        # because we can have different flavors if a calibration data
+        # with a calibration slit is used, we have to loop
+        # over all frames to check if there are science arc or flat 
+        # flavors (as guessed by qproc)
+        qframefiles = sorted(glob.glob('{}/qframe-*.fits'.format(indir)))
+        if len(qframefiles) == 0 : # no qframe so it's either zero or dark
+            hdr = fitsio.read_header(preprocfiles[0], 0)
+            flavor = hdr['FLAVOR'].strip()
+        else :
+            flavor = None
+            for qframefile in qframefiles : # look at all of them and prefer arc or flat over dark or zero
+                hdr = fitsio.read_header(qframefile, 0)
+                this_flavor = hdr['FLAVOR'].strip().upper()
+                if this_flavor == "SCIENCE" or this_flavor == "ARC" or this_flavor == "FLAT" :
+                    flavor = this_flavor
+                    # we use this so we exit the loop
+                    break
+                elif flavor == None :
+                    flavor = this_flavor
+                    # we stay in the loop in case another frame has another flavor
+                
+    
         log.debug('Found FLAVOR={} files'.format(flavor))
 
         results = dict()
