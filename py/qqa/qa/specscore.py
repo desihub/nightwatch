@@ -30,6 +30,10 @@ class QASpecscore(QA):
         results = list()
 
         infiles = glob.glob(os.path.join(indir, 'qframe-*.fits'))
+        if len(infiles) == 0 :
+            log.error("no qframe in {}".format(indir))
+            return None
+    
         for filename in infiles:
             qframe = read_qframe(filename)
             night = int(qframe.meta['NIGHT'])
@@ -68,4 +72,6 @@ class QASpecscore(QA):
                         INTEG_RAW_FLUX=scores['INTEG_RAW_FLUX_'+cam][f],
                         MEDIAN_RAW_FLUX=scores['MEDIAN_RAW_FLUX_'+cam][f],
                         MEDIAN_RAW_SNR=scores['MEDIAN_RAW_SNR_'+cam][f]))
+        if len(results)==0 :
+            return None
         return Table(results, names=results[0].keys())
