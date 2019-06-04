@@ -45,9 +45,9 @@ def write_camfiber_html(outfile, data, header):
     html_components['INTEG_RAW_FLUX'] = dict(script=script, div=div)
 
     #- Median S/N
-    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_SNR', 'B', zmin=0, zmax=10)
-    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_SNR', 'R', zmin=0, zmax=10)
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_SNR', 'Z', zmin=0, zmax=10)
+    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_SNR', 'B', percentile=(0, 95))#zmin=0, zmax=10)
+    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_SNR', 'R', percentile=(0, 95))#zmin=0, zmax=10)
+    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_SNR', 'Z', percentile=(0, 98))#zmin=0, zmax=10)
     figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
                 toolbar_location='right')
 
