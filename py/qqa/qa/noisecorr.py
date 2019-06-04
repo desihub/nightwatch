@@ -11,27 +11,19 @@ from astropy.table import Table
 
 import desiutil.log
 from desispec.preproc import _overscan
-
-def _fix_amp_names(hdr):
-    '''In-place fix of header `hdr` amp names 1-4 to A-D if needed.'''
-    #- Assume that if any are right, all are right
-    if 'DATASECA' in hdr:
-        return
-
-    log = desiutil.log.get_logger()
-    log.debug('Correcting AMP 1-4 to A-D for night {} expid {}'.format(
-        hdr['NIGHT'], hdr['EXPID']))
-
-    for prefix in [
-        'GAIN', 'RDNOISE', 'PRESEC', 'PRRSEC', 'DATASEC', 'TRIMSEC', 'BIASSEC',
-        'ORSEC', 'CCDSEC', 'DETSEC', 'AMPSEC', 'OBSRDN', 'OVERSCN'
-        ]:
-        for ampnum, ampname in [('1','A'), ('2','B'), ('3','C'), ('4','D')]:
-            if prefix+ampnum in hdr:
-                hdr[prefix+ampname] = hdr[prefix+ampnum]
-                hdr.delete(prefix+ampnum)
+from .amp import _fix_amp_names
 
 def corr(img,d0=4,d1=4) :
+    """
+    Computes the correlation function of an image.
+
+    Args:
+      img : 2D numpy array
+      d0  : size of output correlation along axis 0
+      d1  : size of output correlation along axis 1
+      
+    return correlation function as a 2D array of shape (d0,d1)
+    """
     log = desiutil.log.get_logger()
     mean,rms = _overscan(img, nsigma=5, niter=3)
     tmp = (img-mean)/rms
@@ -84,14 +76,14 @@ class QANoiseCorr(QA):
                 else:
                     subimg  = img[ny//2:, nx//2:].astype(float)
                 
-                n0=3
-                n1=10
+                n0=4
+                n1=4
                 corrimg = corr(subimg,n0,n1)
 
                 dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"CAM":cam,"AMP":amp}
                 for i0 in range(n0) :
                     for i1 in range(n1) :
-                        dico["CORR{}{}".format(i0,i1)]=corrimg[i0,i1]
+                        dico["CORR-{}-{}".format(i0,i1)]=corrimg[i0,i1]
                 
                 results.append(collections.OrderedDict(**dico))
 
