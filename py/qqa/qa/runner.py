@@ -42,10 +42,10 @@ class QARunner(object):
             log.error('No preproc files found in {}'.format(indir))
             raise RuntimeError
             
-        # because we can have different flavors if a calibration data
-        # with a calibration slit is used, we have to loop
-        # over all frames to check if there are science arc or flat 
-        # flavors (as guessed by qproc)
+        # We can have different flavors (signal+dark) with calibration data
+        # obtained with a calibration slit hooked to a single spectrograph.
+        # So we have to loop over all frames to check if there are science,
+        # arc, or flat flavors as guessed by qproc.
         qframefiles = sorted(glob.glob('{}/qframe-*.fits'.format(indir)))
         if len(qframefiles) == 0 : # no qframe so it's either zero or dark
             hdr = fitsio.read_header(preprocfiles[0], 0)
