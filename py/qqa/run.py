@@ -8,6 +8,9 @@ from astropy.table import Table
 
 import desiutil.log
 
+import desispec.scripts.preproc
+
+
 def find_unprocessed_expdir(datadir, outdir):
     '''
     Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
@@ -102,8 +105,8 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     Returns header of HDU 0 of the input raw data file
     '''
-    if not os.path.exists(datafile):
-        raise ValueError("{} doesn't exist".format(datafile))
+    if not os.path.exists(rawfile):
+        raise ValueError("{} doesn't exist".format(rawfile))
 
     log = desiutil.log.get_logger()
 
@@ -118,7 +121,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     arglist = list()
     for camera in cameras:
-        args = ['--infile', datafile, '--outdir', outdir, '--cameras', camera]
+        args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
         arglist.append(args)
 
     if ncpu is None:
@@ -163,11 +166,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
 
-    fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid)
-    if flavor == 'SCIENCE' and not os.path.exists(fibermap):
-        print('ERROR: SCIENCE exposure {}/{} without a fibermap; only preprocessing'.format(night, expid))
-        flavor = "PREPROC"
-    
     cmdlist = list()
     loglist = list()
     msglist = list()
