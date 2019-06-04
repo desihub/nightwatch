@@ -7,6 +7,7 @@ import bokeh.plotting as bk
 from bokeh.embed import components
 
 from ..plots.fiber import plot_fibers
+from ..plots.camfiber import plot_per_camfiber
 
 def write_camfiber_html(outfile, data, header):
     '''TODO: document'''
@@ -33,6 +34,9 @@ def write_camfiber_html(outfile, data, header):
 
     #- TODO: refactor these to reduce replicated code, while still supporting
     #- customizations like percentile vs. zmin/zmax
+
+    CAMERAS = ['B', 'R', 'Z']
+    PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
 
     #- Integrated Raw Flux
     figB, hfigB = plot_fibers(data, 'INTEG_RAW_FLUX', 'B', percentile=(0,95))

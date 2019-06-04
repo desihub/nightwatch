@@ -38,8 +38,9 @@ def get_colors(x, xmin=None, xmax=None):
 def plot_fibers(qadata, name, cam=None, width=250, height=230,
     zmin=None, zmax=None, percentile=None):
     '''TODO: document
-
     percentile : (min,max) percentiles to clip data
+    zmin : min value to clip data
+    zmax : max value to clip data
     '''
 
     #- bytes vs. str, what a pain
