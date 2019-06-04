@@ -13,7 +13,7 @@ import desiutil.log
 from desispec.preproc import _overscan
 from .amp import _fix_amp_names
 
-def corr(img,d0=4,d1=4) :
+def corr(img,d0=4,d1=4,nrand=50000) :
     """
     Computes the correlation function of an image.
 
@@ -31,12 +31,19 @@ def corr(img,d0=4,d1=4) :
     n0=tmp.shape[0]
     n1=tmp.shape[1]
     
+    if nrand>=n0*n1 :
+        ii0 = np.arange(n0-d0)
+        ii1 = np.arange(n1-d1)
+    else : # random subsampling to run faster
+        ii0=np.random.choice(n0-d0,size=nrand)
+        ii1=np.random.choice(n1-d1,size=nrand)
+        
     corrimg = np.zeros((d0,d1))
     
     for i0 in range(d0) :
         for i1 in range(d1) :
-            corrimg[i0,i1] = np.median(tmp[i0:n0,i1:n1]*tmp[0:n0-i0,0:n1-i1])
-            log.debug("corr[{},{}] = {:4.3f}".format(i0,i1,corrimg[i0,i1]))
+            corrimg[i0,i1] = np.median(tmp[ii0,ii1]*tmp[ii0+i0,ii1+i1])
+            #log.debug("corr[{},{}] = {:4.3f}".format(i0,i1,corrimg[i0,i1]))
     corrimg /= corrimg[0,0]
     return corrimg
 
