@@ -2,6 +2,8 @@
 QARunner class
 '''
 
+import sys
+import traceback
 import glob
 
 import numpy as np
@@ -50,6 +52,9 @@ class QARunner(object):
                     qa_results = qa.run(indir)
                 except Exception as err:
                     log.warning('{} failed on {} because {}; skipping'.format(qa, indir,str(err)))
+                    exc_info = sys.exc_info()
+                    traceback.print_exception(*exc_info)
+                    del exc_info
                     #raise(err)
                     #- TODO: print traceback somewhere useful
 
