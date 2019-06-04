@@ -19,7 +19,7 @@ class QATraceShift(QA):
         
     def valid_flavor(self, flavor):
         # trace shift measured for all exposure except zero and dark
-        return (flavor != "ZERO") and (flavor != "DARK")
+        return (flavor.upper() != "ZERO") and (flavor.upper() != "DARK")
 
     def run(self, indir):
         '''TODO: document'''
