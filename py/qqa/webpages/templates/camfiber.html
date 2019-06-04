@@ -14,10 +14,38 @@
     </div>
 {% endif %}
 
+{% if MEDIAN_RAW_FLUX %}
+    <p>Median raw flux</p>
+    <div>
+        {{ MEDIAN_RAW_FLUX.script }} {{ MEDIAN_RAW_FLUX.div }}
+    </div>
+{% endif %}
+
 {% if MEDIAN_RAW_SNR %}
     <p>Median raw signal-to-noise</p>
     <div>
         {{ MEDIAN_RAW_SNR.script }} {{ MEDIAN_RAW_SNR.div }}
+    </div>
+{% endif %}
+
+{% if INTEG_CALIB_FLUX %}
+    <p>Integrated calibrated flux</p>
+    <div>
+        {{ INTEG_CALIB_FLUX.script }} {{ INTEG_CALIB_FLUX.div }}
+    </div>
+{% endif %}
+
+{% if MEDIAN_CALIB_FLUX %}
+    <p>Median calibrated flux</p>
+    <div>
+        {{ MEDIAN_CALIB_FLUX.script }} {{ MEDIAN_CALIB_FLUX.div }}
+    </div>
+{% endif %}
+
+{% if MEDIAN_CALIB_SNR %}
+    <p>Median calibrated signal-to-noise ratio</p>
+    <div>
+        {{ MEDIAN_CALIB_SNR.script }} {{ MEDIAN_CALIB_SNR.div }}
     </div>
 {% endif %}
 
