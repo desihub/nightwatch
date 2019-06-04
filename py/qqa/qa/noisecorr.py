@@ -6,12 +6,10 @@ import collections
 import numpy as np
 import fitsio
 
-import scipy.ndimage
 
 from astropy.table import Table
 
 import desiutil.log
-from desispec.maskbits import ccdmask
 from desispec.preproc import _overscan
 
 def _fix_amp_names(hdr):
@@ -96,27 +94,7 @@ class QANoiseCorr(QA):
                         dico["CORR{}{}".format(i0,i1)]=corrimg[i0,i1]
                 
                 results.append(collections.OrderedDict(**dico))
-                """
-                    NIGHT=night, EXPID=expid, SPECTRO=spectro, CAM=cam, AMP=amp,
-                    CORR00=corrimg[0,0],
-                    CORR01=corrimg[0,1],
-                    CORR02=corrimg[0,2],
-                    CORR03=corrimg[0,3],
-                    CORR10=corrimg[1,0],
-                    CORR11=corrimg[1,1],
-                    CORR12=corrimg[1,2],
-                    CORR13=corrimg[1,3],
-                    CORR20=corrimg[2,0],
-                    CORR21=corrimg[2,1],
-                    CORR22=corrimg[2,2],
-                    CORR23=corrimg[2,3],
-                    CORR30=corrimg[3,0],
-                    CORR31=corrimg[3,1],
-                    CORR32=corrimg[3,2],
-                    CORR33=corrimg[3,3]
-                    )
-                    )
-                """
+
         return Table(results, names=results[0].keys())
 
             
