@@ -1,6 +1,6 @@
 import os, sys
 import argparse
-from flask import (Flask, send_from_directory)
+from flask import (Flask, send_from_directory, redirect)
 
 app = Flask(__name__)
 stat = ""
