@@ -13,13 +13,14 @@ from astropy.table import join, Table
 import desiutil.log
 
 from .amp import QAAmp
+from .noisecorr import QANoiseCorr
 from .specscore import QASpecscore
 # from .fibersnr import QAFiberSNR
 
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QASpecscore, )
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, )
 
     def __init__(self, qalist=None):
         '''TODO: document'''
