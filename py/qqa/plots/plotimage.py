@@ -8,8 +8,8 @@ import sys, os
 import numpy as np
 from bokeh.embed import components
 import jinja2
-#import fitsio
-from astropy.io import fits
+import fitsio
+#from astropy.io import fits
 from astropy.visualization import ZScaleInterval
 
 import bokeh
@@ -84,66 +84,25 @@ def main(input_in = None, output_in = None, downsample_in = None):
     else:
         if input_in == None or downsample_in == None:
             return "input_in and/or downsample_in not provided"
-        if output_in is None:
-            base, ext = os.path.splitext(input_in)
-            assert ext == '.fits'
-            output_in = base + "-" + str(n_in) + 'x.html'
         image = input_in
         basename = os.path.basename(input_in)
         n = downsample_in
         output = output_in
 
-    image = fits.getdata(image)
+    image = fitsio.read(image)
 
     short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
     long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
 
     fig = plot_image(image, downsample=n, title=long_title)
-    plot_script, plot_div = components(fig)
-    html = """
-    <html>
-    <link
-        href="https://cdn.pydata.org/bokeh/release/bokeh-{version}.min.css"
-        rel="stylesheet" type="text/css"
-    >
-    <link
-        href="https://cdn.pydata.org/bokeh/release/bokeh-tables-{version}.min.css"
-        rel="stylesheet" type="text/css"
-    >
-    <script
-        src="https://cdn.pydata.org/bokeh/release/bokeh-{version}.min.js"
-    ></script>
 
-    <script src="https://cdn.pydata.org/bokeh/release/bokeh-tables-{version}.min.js"
-    ></script>
-    <body>
-    <div>{plot_script} {plot_div}</div>
-    <div>Downsample: <input size="4" type="number" id = "down" value={downsample}></div>
-    <button onclick='
-        var url = "{basename}-" + document.getElementById("down").value + "x.html"
-        window.open(url, "_top")
-    '>Generate</button>
-    </body>
-    <script>
-        var input = document.getElementById("down");
-            input.addEventListener("keyup", function(event) {{
-                if (event.keyCode === 13) {{
-                    event.preventDefault();
-            var url = "{cam}-" + document.getElementById("down").value + "x.html"
-            window.open(url, "_top")
-            }}
-        }});
-    </script>
-    </html>
-    """.format(plot_script = plot_script, plot_div = plot_div, version=bokeh.__version__, basename=os.path.splitext(basename)[0], downsample=n)
+    if (output != None):
+        bk.output_file(output, title=short_title, mode='inline')
+        fig = plot_image(image, downsample=n, title=long_title)
+        bk.save(fig)
+        print('Wrote {}'.format(output))
 
-    with open(output, 'w') as fx:
-        fx.write(html)
-    #bk.output_file(output, title=short_title, mode='inline')
-
-    #fig = plot_image(image, downsample=n, title=long_title)
-    #bk.save(fig)
-    print('Wrote {}'.format(output))
+    return components(fig)
 
 if __name__ == '__main__':
     main()
