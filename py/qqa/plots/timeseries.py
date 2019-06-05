@@ -5,7 +5,7 @@ import fitsio
 import bokeh.plotting as bk
 from bokeh.layouts import column
 from bokeh.models import TapTool as TapTool
-from bokeh.models import OpenURL, ColumnDataSource, HoverTool
+from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
 
 def generate_timeseries(data_dir, start_date, end_date, aspect):
     """
@@ -26,22 +26,46 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
         for i,j,y in os.walk(date):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
-                    #print(fitsio.FITS(os.path.join(i, file))[1].read())
                     #list_tables += [Table.read(os.path.join(i, file))]
                     list_tables += [fitsio.read(os.path.join(i, file), "PER_AMP", columns=["SPECTRO", "CAM", "AMP", "EXPID", "NIGHT", aspect])]
 
     if list_tables == []:
         return None
-    #table = vstack(list_tables, metadata_conflicts='silent')
+    # table = vstack(list_tables, metadata_conflicts='silent')
+
     table = None
     for tab in list_tables:
         if table is None:
             table = tab
         else:
             table = np.append(table, tab)
-
-    #print(table["NIGHT"])
     table = Table(table)
+
+    lowest = min(table["EXPID"])
+    highest = max(table["EXPID"])
+
+    line_source = ColumnDataSource(data=dict(x=[lowest], lower=[lowest], upper=[highest]))
+
+    # js code is used as the callback for the HoverTool
+    js = '''
+    /// get mouse data (location of pointer in the plot)
+    var geometry = cb_data['geometry'];
+
+    /// get the current value of x in line_source
+    var data = line_source.data;
+    var x = data['x'];
+
+    /// if the mouse is indeed hovering over the plot, change the line_source value
+    if (isFinite(geometry.x) && (geometry.x >= data['lower'][0]) && (geometry.x <= data['upper'][0])) {
+      x[0] = geometry.x
+      line_source.change.emit();
+    }
+    '''
+
+    hover_follow = HoverTool(tooltips=None,
+                          point_policy='follow_mouse',
+                          callback=CustomJS(code=js, args={'line_source': line_source}))
+
     table.sort("EXPID") # axis
     table_by_amp = table.group_by(["SPECTRO", "CAM", "AMP"]).groups.aggregate(list)
 
@@ -50,6 +74,8 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
     for cam in ["B", "R", "Z"]:
         cam_table = table_by_amp[table_by_amp["CAM"] == cam]
         fig = bk.figure(title="CAM "+cam, plot_height = 200, plot_width = 500)
+        max_y=None
+        min_y=None
         for row in cam_table:
             length = len(row["EXPID"])
             source = ColumnDataSource(data=dict(
@@ -60,6 +86,17 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
                 NIGHT = row["NIGHT"],
                 aspect_values = row[aspect]
             ))
+
+            if max_y is None and min_y is None:
+                max_y = max(row[aspect])
+                min_y = min(row[aspect])
+
+            if max(row[aspect]) > max_y:
+                max_y = max(row[aspect])
+
+            if min(row[aspect]) < min_y:
+                min_y = min(row[aspect])
+
             fig.line("EXPID", "aspect_values", source=source, alpha=0.5, color=colors[cam], name="lines", nonselection_alpha=1, selection_alpha=1)
             fig.circle("EXPID", "aspect_values", size=7.5, source=source, alpha=0.5, color=colors[cam], name="dots", nonselection_fill_alpha=1,)
 
@@ -79,8 +116,12 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
             callback = OpenURL(url="../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
         )
 
+
+        fig.segment(x0='x', y0=min_y, x1='x', y1=max_y, color='grey', line_width=1, source=line_source)
+
         fig.add_tools(hover)
         fig.add_tools(tap)
+        fig.add_tools(hover_follow)
 
         cam_figs += [fig]
 
