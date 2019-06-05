@@ -55,7 +55,7 @@ class QARunner(object):
             for qframefile in qframefiles : # look at all of them and prefer arc or flat over dark or zero
                 hdr = fitsio.read_header(qframefile, 0)
                 this_flavor = hdr['FLAVOR'].strip().upper()
-                if this_flavor == "SCIENCE" or this_flavor == "ARC" or this_flavor == "FLAT" :
+                if this_flavor == "ARC" or this_flavor == "FLAT" :
                     flavor = this_flavor
                     # we use this so we exit the loop
                     break
