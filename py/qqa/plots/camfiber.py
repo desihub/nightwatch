@@ -13,7 +13,7 @@ from ..plots.fiber import plot_fibers
 
 
 def plot_per_camfiber(data, attribute, cameras, components_dict, percentiles={}, 
-                      zmaxs={}, zmins={}):
+                      zmaxs={}, zmins={}, titles={}):
     '''
     ARGS:
         data : 
@@ -28,12 +28,12 @@ def plot_per_camfiber(data, attribute, cameras, components_dict, percentiles={},
             to clip data
         zmins : dictionary of cameras corresponding to hardcoded min values
             to clip data
+        titles : dictionary of titles per camera for a group of camfiber plots
+            where key-value pairs represent a camera-attribute plot title 
     
     ***MUTATES ARGUMENT
     Updates components_dict to include key-value pairs to the html components
-    for the per camera per fiber plot
-        keys are the type of plot (represented as NAME)
-        values are a bokeh gridplot object of focal plane figures and histograms
+        for camfib attribute plot-bokeh gridplot object
     '''
     data = Table(data)
     if attribute not in data.columns:

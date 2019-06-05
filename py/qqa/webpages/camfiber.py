@@ -41,10 +41,15 @@ def write_camfiber_html(outfile, data, header):
     #- List of attributes to plot per camfiber with default arguments
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
+    TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts', 
+              'MEDIAN_RAW_SNR':'Median S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
+              'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
+              'Median Calibration S/N'}
+    TITLESPERCAM = {'B':TITLES}
     
     for attr in ATTRIBUTES:
-        plot_per_camfiber(data, attr, CAMERAS, html_components, PERCENTILES)
-                
+        plot_per_camfiber(data, attr, CAMERAS, html_components, percentiles=PERCENTILES, 
+            titles=TITLESPERCAM)
             
     #- Combine template + components -> HTML
     html = template.render(**html_components)
