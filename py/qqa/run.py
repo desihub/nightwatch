@@ -8,6 +8,26 @@ from astropy.table import Table
 
 import desiutil.log
 
+import desispec.scripts.preproc
+
+def get_ncpu(ncpu):
+    """
+    Get number of CPU cores to use, throttling to 8 for NERSC login nodes
+
+    Args:
+        ncpu : number you would like to use, or None to auto-derive
+
+    Returns:
+        number of CPU cores to use
+    """
+    if ncpu is None:
+        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+
+    if ('NERSC_HOST' in os.environ) and ('SLURM_JOBID' not in os.environ):
+        ncpu = min(8, ncpu)
+
+    return ncpu
+
 def find_unprocessed_expdir(datadir, outdir):
     '''
     Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
@@ -102,8 +122,8 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     Returns header of HDU 0 of the input raw data file
     '''
-    if not os.path.exists(datafile):
-        raise ValueError("{} doesn't exist".format(datafile))
+    if not os.path.exists(rawfile):
+        raise ValueError("{} doesn't exist".format(rawfile))
 
     log = desiutil.log.get_logger()
 
@@ -118,11 +138,10 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     arglist = list()
     for camera in cameras:
-        args = ['--infile', datafile, '--outdir', outdir, '--cameras', camera]
+        args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
         arglist.append(args)
 
-    if ncpu is None:
-        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+    ncpu = min(len(arglist), get_ncpu(ncpu))
 
     if ncpu > 1:
         log.info('Running preproc in parallel on {} cores for {} cameras'.format(
@@ -163,11 +182,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
 
-    fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid)
-    if flavor == 'SCIENCE' and not os.path.exists(fibermap):
-        print('ERROR: SCIENCE exposure {}/{} without a fibermap; only preprocessing'.format(night, expid))
-        flavor = "PREPROC"
-    
     cmdlist = list()
     loglist = list()
     msglist = list()
@@ -194,8 +208,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
-    if ncpu is None:
-        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+    ncpu = min(len(cmdlist), get_ncpu(ncpu))
 
     if ncpu > 1:
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(
@@ -203,7 +216,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
     else:
-        log.info('Running preproc serially for {} cameras'.format(ncpu))
+        log.info('Running qproc serially for {} cameras'.format(ncpu))
         for cmd, logfile in zip(cmdlist, loglist, msglist):
             runcmd(cmd, logfile)
 
