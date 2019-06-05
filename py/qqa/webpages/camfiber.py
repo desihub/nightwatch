@@ -41,29 +41,15 @@ def write_camfiber_html(outfile, data, header):
     #- List of attributes to plot per camfiber with default arguments
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
+    TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts', 
+              'MEDIAN_RAW_SNR':'Median S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
+              'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
+              'Median Calibration S/N'}
+    TITLESPERCAM = {'B':TITLES}
     
     for attr in ATTRIBUTES:
-        plot_per_camfiber(data, attr, CAMERAS, html_components, PERCENTILES)
-                
-    #- Integrated Raw Flux
-    figB, hfigB = plot_fibers(data, 'INTEG_RAW_FLUX', 'B', percentile=(0,95))
-    figR, hfigR = plot_fibers(data, 'INTEG_RAW_FLUX', 'R', percentile=(0,95))
-    figZ, hfigZ = plot_fibers(data, 'INTEG_RAW_FLUX', 'Z', percentile=(0,98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-                toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['INTEG_RAW_FLUX'] = dict(script=script, div=div)
-
-    #- Median S/N
-    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_SNR', 'B', percentile=(0, 95))#zmin=0, zmax=10)
-    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_SNR', 'R', percentile=(0, 95))#zmin=0, zmax=10)
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_SNR', 'Z', percentile=(0, 98))#zmin=0, zmax=10)
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-                toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['MEDIAN_RAW_SNR'] = dict(script=script, div=div)
+        plot_per_camfiber(data, attr, CAMERAS, html_components, percentiles=PERCENTILES, 
+            titles=TITLESPERCAM)
             
     #- Combine template + components -> HTML
     html = template.render(**html_components)

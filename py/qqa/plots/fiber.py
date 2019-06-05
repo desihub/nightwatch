@@ -36,7 +36,7 @@ def get_colors(x, xmin=None, xmax=None):
     return palette[ii]
 
 def plot_fibers(qadata, name, cam=None, width=250, height=230,
-    zmin=None, zmax=None, percentile=None):
+    zmin=None, zmax=None, percentile=None, title=None):
     '''TODO: document
     ARGS:
         qadata :  
@@ -46,9 +46,11 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
     
     Options:
         cam : string ('B', 'R', 'Z') to specify which camera wavelength
-        width, height : width and height of graph in pixels
         (zmin,zmax) : hardcoded (min,max) to clip data
         percentile : (min,max) percentiles to clip data
+        width, height : width and height of graph in pixels
+        title : title for the plot
+
     
     Generates a focal plane plot with data per fiber color-coded based on its value
     Generates a histogram of NAME values per fiber
@@ -64,7 +66,7 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
         qadata = qadata[ii]
 
     #- Focal plane colored scatter plot
-    fig = bk.figure(width=width, height=width, toolbar_location=None)
+    fig = bk.figure(width=width, height=width, toolbar_location=None, title=title)
     
     fiberpos = Table(desimodel.io.load_fiberpos())
     fiberpos.remove_column('SPECTRO')
@@ -126,6 +128,7 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
         colors = get_colors(centers)
         hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], color=colors, alpha=0.5)
     
+
     hfig.xaxis.axis_label = name
     hfig.toolbar_location = None
     hfig.title.text_color = '#ffffff'
