@@ -32,17 +32,16 @@ def plot_per_camfiber(data, attribute, cameras, components_dict, percentiles={},
             where key-value pairs represent a camera-attribute plot title 
     
     ***MUTATES ARGUMENT
-    Updates components_dict to include key-value pairs to the html components
+    Updates COMPONENTS_DICT to include key-value pairs to the html components
         for camfib attribute plot-bokeh gridplot object
     '''
-    data = Table(data)
-    if attribute not in data.columns:
+    if attribute not in data.dtype.names:
         return
 
 	figs_list, hfigs_list = [], []
 	for c in cameras:
 		fig, hfig = plot_fibers(data, attribute, cam=c, percentile=percentiles.get(c, None),
-            zmin=zmins.get(c), zmax=zmaxs.get(c))
+            zmin=zmins.get(c), zmax=zmaxs.get(c), title=titles.get(c, {}).get(attribute))
 		figs_list.append(fig)
 		hfigs_list.append(hfig)
 	figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
