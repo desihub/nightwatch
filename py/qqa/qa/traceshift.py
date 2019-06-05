@@ -14,7 +14,7 @@ import desiutil.log
 class QATraceShift(QA):
     """docstring"""
     def __init__(self):
-        self.output_type = "PER_CAM"
+        self.output_type = "PER_CAMERA"
         pass
         
     def valid_flavor(self, flavor):
