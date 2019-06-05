@@ -35,11 +35,25 @@ def get_colors(x, xmin=None, xmax=None):
     ii = (n*(x-xmin) / (xmax-xmin)).astype(int).clip(0,n-1)
     return palette[ii]
 
-def plot_fibers(qadata, name, cam=None, width=250, height=230,
-    zmin=None, zmax=None, percentile=None):
+def plot_fibers(qadata, name, cam=None, width=250, height=270,
+    zmin=None, zmax=None, percentile=None, title=None):
     '''TODO: document
+    ARGS:
+        qadata :  
+            #- TODO: would it be possible to just make this argument
+            #- an astropy table?
+        name : a string data column in qadata
+    
+    Options:
+        cam : string ('B', 'R', 'Z') to specify which camera wavelength
+        (zmin,zmax) : hardcoded (min,max) to clip data
+        percentile : (min,max) percentiles to clip data
+        width, height : width and height of graph in pixels
+        title : title for the plot
 
-    percentile : (min,max) percentiles to clip data
+    
+    Generates a focal plane plot with data per fiber color-coded based on its value
+    Generates a histogram of NAME values per fiber
     '''
 
     #- bytes vs. str, what a pain
@@ -52,7 +66,7 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
         qadata = qadata[ii]
 
     #- Focal plane colored scatter plot
-    fig = bk.figure(width=width, height=width, toolbar_location=None)
+    fig = bk.figure(width=width, height=height, toolbar_location=None, title=title)
     
     fiberpos = Table(desimodel.io.load_fiberpos())
     fiberpos.remove_column('SPECTRO')
@@ -114,6 +128,7 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
         colors = get_colors(centers)
         hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], color=colors, alpha=0.5)
     
+
     hfig.xaxis.axis_label = name
     hfig.toolbar_location = None
     hfig.title.text_color = '#ffffff'
