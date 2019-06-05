@@ -38,9 +38,20 @@ def get_colors(x, xmin=None, xmax=None):
 def plot_fibers(qadata, name, cam=None, width=250, height=230,
     zmin=None, zmax=None, percentile=None):
     '''TODO: document
-    percentile : (min,max) percentiles to clip data
-    zmin : min value to clip data
-    zmax : max value to clip data
+    ARGS:
+        qadata :  
+            #- TODO: would it be possible to just make this argument
+            #- an astropy table?
+        name : a string data column in qadata
+    
+    Options:
+        cam : string ('B', 'R', 'Z') to specify which camera wavelength
+        width, height : width and height of graph in pixels
+        (zmin,zmax) : hardcoded (min,max) to clip data
+        percentile : (min,max) percentiles to clip data
+    
+    Generates a focal plane plot with data per fiber color-coded based on its value
+    Generates a histogram of NAME values per fiber
     '''
 
     #- bytes vs. str, what a pain

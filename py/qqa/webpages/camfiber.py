@@ -35,68 +35,17 @@ def write_camfiber_html(outfile, data, header):
     #- TODO: refactor these to reduce replicated code, while still supporting
     #- customizations like percentile vs. zmin/zmax
 
+    #- Default cameras and percentile ranges for camfiber plots
     CAMERAS = ['B', 'R', 'Z']
     PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
-
-    #- Integrated Raw Flux
-    figB, hfigB = plot_fibers(data, 'INTEG_RAW_FLUX', 'B', percentile=(0,95))
-    figR, hfigR = plot_fibers(data, 'INTEG_RAW_FLUX', 'R', percentile=(0,95))
-    figZ, hfigZ = plot_fibers(data, 'INTEG_RAW_FLUX', 'Z', percentile=(0,98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-                       toolbar_location='right')    
-
-    script, div = components(figs)
-    html_components['INTEG_RAW_FLUX'] = dict(script=script, div=div)
+    #- List of attributes to plot per camfiber with default arguments
+    ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
+                 'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
     
-    #- Median Raw Flux 
-    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_FLUX', 'B', percentile=(0, 95))
-    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_FLUX', 'R', percentile=(0, 95))
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_FLUX', 'Z', percentile=(0, 98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-        toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['MEDIAN_RAW_FLUX'] = dict(script=script, div=div)
-
-    #- Median Raw S/N
-    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_SNR', 'B', percentile=(0, 95))
-    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_SNR', 'R', percentile=(0, 95))
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_SNR', 'Z', percentile=(0, 98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-        toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['MEDIAN_RAW_SNR'] = dict(script=script, div=div)
-    
-    #- Integrated Calib Flux 
-    figB, hfigB = plot_fibers(data, 'INTEG_CALIB_FLUX', 'B', percentile=(0, 95))
-    figR, hfigR = plot_fibers(data, 'INTEG_CALIB_FLUX', 'R', percentile=(0, 95))
-    figZ, hfigZ = plot_fibers(data, 'INTEG_CALIB_FLUX', 'Z', percentile=(0, 98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-        toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['INTEG_CALIB_FLUX'] = dict(script=script, div=div)
-
-    #- Median Calib Flux 
-    figB, hfigB = plot_fibers(data, 'MEDIAN_CALIB_FLUX', 'B', percentile=(0, 95))
-    figR, hfigR = plot_fibers(data, 'MEDIAN_CALIB_FLUX', 'R', percentile=(0, 95))
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_CALIB_FLUX', 'Z', percentile=(0, 98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-        toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['MEDIAN_CALIB_FLUX'] = dict(script=script, div=div)
-
-    #- Median Calib SNR 
-    figB, hfigB = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'B', percentile=(0, 95))
-    figR, hfigR = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'R', percentile=(0, 95))
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_CALIB_SNR', 'Z', percentile=(0, 98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-        toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['MEDIAN_CALIB_SNR'] = dict(script=script, div=div)    
+    for attr in ATTRIBUTES:
+        if attr in data:
+            plot_per_camfiber(data, attr, CAMERAS, html_components, PERCENTILES)
+                
             
     #- Combine template + components -> HTML
     html = template.render(**html_components)
