@@ -142,7 +142,7 @@ def main_run(options=None):
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
-        help="output directory (without appending YEARMMDD/EXPID/)")
+        help="output directory (including YEARMMDD/EXPID/)")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
