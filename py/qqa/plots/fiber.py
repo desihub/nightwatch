@@ -35,7 +35,7 @@ def get_colors(x, xmin=None, xmax=None):
     ii = (n*(x-xmin) / (xmax-xmin)).astype(int).clip(0,n-1)
     return palette[ii]
 
-def plot_fibers(qadata, name, cam=None, width=250, height=230,
+def plot_fibers(qadata, name, cam=None, width=250, height=270,
     zmin=None, zmax=None, percentile=None, title=None):
     '''TODO: document
     ARGS:
@@ -66,7 +66,7 @@ def plot_fibers(qadata, name, cam=None, width=250, height=230,
         qadata = qadata[ii]
 
     #- Focal plane colored scatter plot
-    fig = bk.figure(width=width, height=width, toolbar_location=None, title=title)
+    fig = bk.figure(width=width, height=height, toolbar_location=None, title=title)
     
     fiberpos = Table(desimodel.io.load_fiberpos())
     fiberpos.remove_column('SPECTRO')
