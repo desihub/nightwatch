@@ -1,8 +1,9 @@
 import os, sys
-import argparse
-from flask import (Flask, send_from_directory)
+import argparse, jinja2
+from flask import (Flask, send_from_directory, redirect)
 from bokeh.resources import CDN
 from bokeh.embed import file_html
+from bokeh.layouts import column
 
 app = Flask(__name__)
 stat = ""
@@ -24,31 +25,26 @@ def redict_to_cal():
 
 @app.route('/timeseries/')
 def test_input():
-    return """
-    <html>
-    <div>start date: <input type="number" id = "start"></div>
-    <div>end date: <input type="number" id = "end"></div>
-    <div>data column: <input id = "attribute"></div>
-    <button onclick='
-      var url = document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("attribute").value
-      window.open(url, "_top")
-  '>Generate Timeseries</button>
-    </html>
-    """
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('timeseries_input.html')
+    return template.render()
 
 @app.route('/timeseries/<int:start_date>/<int:end_date>/<string:attribute>')
 def test_timeseries(start_date, end_date, attribute):
-    from qqa.plots import timeseries
-    figs = timeseries.generate_timeseries(data, start_date, end_date, attribute)
+    from qqa.webpages import timeseries
+    html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, attribute)
 
-    if figs is None:
-        return "No data between {} and {}".format(start_date, end_date)
-
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('timeseries.html')
     #bk.output_file(os.path.join(stat, "testing.html"), mode='inline')
 
     #bk.save(figs)
     #print('Wrote {}'.format(os.path.join(stat, "testing.html")))
-    return file_html(figs, CDN, "{} between {} and {}".format(attribute, start_date, end_date))
+    return template.render(html_attr)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
@@ -56,7 +52,7 @@ def getfile(filepath):
     global data
     stat = os.path.abspath(stat)
     data = os.path.abspath(data)
-    
+
     exists_html = os.path.isfile(os.path.join(stat, filepath))
     if exists_html:
         print("found " + os.path.join(stat, filepath), file=sys.stderr)
