@@ -43,8 +43,7 @@ def write_camfiber_html(outfile, data, header):
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
     
     for attr in ATTRIBUTES:
-        if attr in data:
-            plot_per_camfiber(data, attr, CAMERAS, html_components, PERCENTILES)
+        plot_per_camfiber(data, attr, CAMERAS, html_components, PERCENTILES)
                 
             
     #- Combine template + components -> HTML
