@@ -1,13 +1,13 @@
-from astropy.table import Table#, vstack
+from astropy.table import Table, vstack
 import numpy as np
 import os, re, sys
-import fitsio
+#import fitsio
 import bokeh.plotting as bk
 from bokeh.layouts import column
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool
 
-def generate_timeseries(data_dir, start_date, end_date, aspect):
+def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
     Include start_date and end_date in data generation
     """
@@ -27,18 +27,18 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
                     #print(fitsio.FITS(os.path.join(i, file))[1].read())
-                    #list_tables += [Table.read(os.path.join(i, file))]
-                    list_tables += [fitsio.read(os.path.join(i, file), "PER_AMP", columns=["SPECTRO", "CAM", "AMP", "EXPID", "NIGHT", aspect])]
+                    list_tables += [Table.read(os.path.join(i, file))]
+                    #list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=["SPECTRO", "CAM", "AMP", "EXPID", "NIGHT", aspect])]
 
     if list_tables == []:
         return None
-    #table = vstack(list_tables, metadata_conflicts='silent')
-    table = None
-    for tab in list_tables:
-        if table is None:
-            table = tab
-        else:
-            table = np.append(table, tab)
+    table = vstack(list_tables, metadata_conflicts='silent')
+    # table = None
+    # for tab in list_tables:
+    #     if table is None:
+    #         table = tab
+    #     else:
+    #         table = np.append(table, tab)
 
     #print(table["NIGHT"])
     table = Table(table)
@@ -76,7 +76,7 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
 
         tap = TapTool(
             names = ["dots"],
-            callback = OpenURL(url="../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
+            callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
         )
 
         fig.add_tools(hover)

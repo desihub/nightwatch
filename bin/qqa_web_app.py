@@ -28,10 +28,10 @@ def test_input():
     template = env.get_template('timeseries_input.html')
     return template.render()
 
-@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:attribute>')
-def test_timeseries(start_date, end_date, attribute):
+@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
+def test_timeseries(start_date, end_date, hdu, attribute):
     from qqa.webpages import timeseries
-    html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, attribute)
+    html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, hdu, attribute)
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')

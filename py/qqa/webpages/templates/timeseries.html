@@ -29,9 +29,10 @@ input {
 
 <label>start date: <input type="number" id = "start" value = {{start}}></label>
 <label>end date: <input type="number" id = "end" value = {{end}}></label>
+<label>hdu: <input id = "hdu" value = {{hdu}}></label>
 <label>data column: <input id = "attribute" value = {{attribute}}></label>
 <button onclick='
-  var url = "../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("attribute").value
+  var url = "../../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
   window.open(url, "_top")
 '>Generate Timeseries</button>
 
