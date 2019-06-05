@@ -4,6 +4,7 @@ Placeholder: per-camera per-fiber plots
 import numpy as np
 
 import jinja2
+from astropy.table import Table
 
 import bokeh
 import bokeh.plotting as bk
@@ -39,13 +40,13 @@ def plot_per_camfiber(data, attribute, cameras, components_dict, percentiles={},
     if attribute not in data.columns:
         return
 
-	figs_list, hfigs_list = [], []
-	for c in cameras:
-		fig, hfig = plot_fibers(data, attribute, cam=c, percentile=percentiles.get(c, None),
+    figs_list, hfigs_list = [], []
+    for c in cameras:
+        fig, hfig = plot_fibers(data, attribute, cam=c, percentile=percentiles.get(c, None),
             zmin=zmins.get(c), zmax=zmaxs.get(c))
-		figs_list.append(fig)
-		hfigs_list.append(hfig)
-	figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
-	script, div = components(figs)
+        figs_list.append(fig)
+        hfigs_list.append(hfig)
+    figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
+    script, div = components(figs)
 
-	components_dict[attribute] = dict(script=script, div=div)
+    components_dict[attribute] = dict(script=script, div=div)
