@@ -39,13 +39,14 @@ def plot_per_camfiber(data, attribute, cameras, components_dict, percentiles={},
     if attribute not in data.dtype.names:
         return
 
-	figs_list, hfigs_list = [], []
-	for c in cameras:
-		fig, hfig = plot_fibers(data, attribute, cam=c, percentile=percentiles.get(c, None),
+    figs_list = []
+    hfigs_list = []
+    for c in cameras:
+        fig, hfig = plot_fibers(data, attribute, cam=c, percentile=percentiles.get(c, None),
             zmin=zmins.get(c), zmax=zmaxs.get(c), title=titles.get(c, {}).get(attribute))
-		figs_list.append(fig)
-		hfigs_list.append(hfig)
-	figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
-	script, div = components(figs)
+        figs_list.append(fig)
+        hfigs_list.append(hfig)
+    figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
+    script, div = components(figs)
 
     components_dict[attribute] = dict(script=script, div=div)
