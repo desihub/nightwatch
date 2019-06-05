@@ -1,9 +1,6 @@
 import os, sys
 import argparse, jinja2
 from flask import (Flask, send_from_directory, redirect)
-from bokeh.resources import CDN
-from bokeh.embed import file_html
-from bokeh.layouts import column
 
 app = Flask(__name__)
 stat = ""
@@ -40,10 +37,6 @@ def test_timeseries(start_date, end_date, attribute):
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('timeseries.html')
-    #bk.output_file(os.path.join(stat, "testing.html"), mode='inline')
-
-    #bk.save(figs)
-    #print('Wrote {}'.format(os.path.join(stat, "testing.html")))
     return template.render(html_attr)
 
 @app.route('/<path:filepath>')
