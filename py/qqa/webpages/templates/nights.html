@@ -1,4 +1,3 @@
-
 <html lang="en">
     <head>
     <meta charset="utf-8">
@@ -15,11 +14,29 @@
 <body>
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<div><center><font size="5" text_align="center">DESI Data QA</font></center><div>
+<div>
+  <center><font size="6" text_align="center">DESI Data QA</font></center>
+</div>
+<div id="box">
+  <button onclick='
+    var url = "timeseries";
+    window.open(url, "_top")'>timeseries</button>
+</div>
 
 <div class="container">
     <div class="calendar"></div>
 </div>
+
+<style>
+#box {
+    width: 100px;
+    height: 25px;
+    margin: 0 auto;
+    line-height: 20px;
+    position: relative;
+    left: 300px;
+}
+</style>
 
 <script>
 $(function() {

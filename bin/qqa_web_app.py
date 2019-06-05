@@ -1,5 +1,5 @@
 import os, sys
-import argparse
+import argparse, jinja2
 from flask import (Flask, send_from_directory, redirect)
 
 app = Flask(__name__)
@@ -19,13 +19,33 @@ def redict_to_cal():
     print('redirecting to nights.html')
     return redirect('nights.html', code=302)
 
+
+@app.route('/timeseries/')
+def test_input():
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('timeseries_input.html')
+    return template.render()
+
+@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:attribute>')
+def test_timeseries(start_date, end_date, attribute):
+    from qqa.webpages import timeseries
+    html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, attribute)
+
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('timeseries.html')
+    return template.render(html_attr)
+
 @app.route('/<path:filepath>')
 def getfile(filepath):
     global stat
     global data
     stat = os.path.abspath(stat)
     data = os.path.abspath(data)
-    
+
     exists_html = os.path.isfile(os.path.join(stat, filepath))
     if exists_html:
         print("found " + os.path.join(stat, filepath), file=sys.stderr)
