@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, re, json
 import argparse, jinja2
 from flask import (Flask, send_from_directory, redirect)
 
@@ -30,8 +30,38 @@ def test_input():
 
 @app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
 def test_timeseries(start_date, end_date, hdu, attribute):
+
+    verify = [
+    not re.match(r"20[0-9]{6}", str(start_date)),
+    not re.match(r"20[0-9]{6}", str(end_date)),
+    re.match(r"\.\.", hdu),
+    re.match(r"\.\.", attribute)
+    ]
+
+    error_string = [
+    "start date, ",
+    "end date, ",
+    "hdu, ",
+    "attribute"
+    ]
+
+    with open(os.path.join(stat, "timeseries_dropdown.json"), 'r') as myfile:
+        json_data=myfile.read()
+
+    dropdown = json.loads(json_data)
+
+    if any(verify):
+        error_message = "Invalid "
+        for i in range(len(verify)):
+            if verify[i]:
+                error_message += error_string[i]
+        return error_message
+
     from qqa.webpages import timeseries
     html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, hdu, attribute)
+
+    html_attr["dropdown_hdu"] = dropdown["hdu"]
+    html_attr["dropdown_attr"] = dropdown["attribute"]
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
