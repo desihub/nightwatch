@@ -28,7 +28,7 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
                 if re.match(r"qa-[0-9]{8}.fits", file):
                     #print(fitsio.FITS(os.path.join(i, file))[1].read())
                     #list_tables += [Table.read(os.path.join(i, file))]
-                    list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=["SPECTRO", "CAM", "AMP", "EXPID", "NIGHT", aspect])]
+                    list_tables += [fitsio.read(os.path.join(i, file), "PER_AMP", columns=["SPECTRO", "CAM", "AMP", "EXPID", "NIGHT", aspect])]
 
     if list_tables == []:
         return None
@@ -76,7 +76,7 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
 
         tap = TapTool(
             names = ["dots"],
-            callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
+            callback = OpenURL(url="../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
         )
 
         fig.add_tools(hover)
