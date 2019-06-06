@@ -2,7 +2,9 @@
 
 {% block body %}
 
-{# Rendering arguments: attribute, start, end, timeseries(.script, .div) #}
+{# Rendering arguments: attribute, start, end, timeseries_json, timeseries(.script, .div) #}
+
+<script src="../../../../cal_files/jquery_min.js"></script>
 
 <title> {{attribute}} Timeseries from {{start}} to {{end}} (inclusive)</title>
 {% if timeseries %}
@@ -36,7 +38,7 @@ select {
 <label>start date: <input type="number" id = "start" value = {{start}}></label>
 <label>end date: <input type="number" id = "end" value = {{end}}></label>
 <label>hdu:
-<select id = "hdu">
+<select id = "hdu" onchange="changed(this.value)">
   {% for hdu_ in dropdown_hdu %}
   {% if hdu == hdu_ %}
   <option value={{hdu_}} selected="selected">{{hdu_}}</option>
@@ -48,8 +50,8 @@ select {
 </label>
 <label>data column:
 <select id = "attribute">
-  {% for attr_ in dropdown_attr %}
-  {% if attribute == attr_ %}
+  {% for attr_ in dropdown_hdu[hdu] %}
+  {% if attr_ == attribute %}
   <option value={{attr_}} selected="selected">{{attr_}}</option>
   {% else %}
   <option value={{attr_}}>{{attr_}}</option>
@@ -61,5 +63,18 @@ select {
   var url = "../../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
   window.open(url, "_top")
 '>Generate Timeseries</button>
+
+<script>
+function changed(new_val) {
+  {% for hdu_ in dropdown_hdu %}
+  if(new_val == '{{hdu_}}') {
+    $('#attribute').empty();
+    {% for attr_ in dropdown_hdu[hdu_] %}
+    $('#attribute').append($('<option></option>').attr('value', '{{attr_}}').text('{{attr_}}'));
+    {% endfor %}
+  }
+  {% endfor %}
+}
+</script>
 
 {% endblock %}
