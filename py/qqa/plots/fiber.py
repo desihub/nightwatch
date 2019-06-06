@@ -105,4 +105,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     hfig = plot_histogram(metric, palette, title=name, width=width,
                           x_range=x_range, num_bins=10)
     
+
+
+    
     return fig, hfig
