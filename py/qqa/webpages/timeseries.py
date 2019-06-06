@@ -25,6 +25,4 @@ def generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdow
     script, div = components(fig)
     html_components['timeseries'] = dict(script=script, div=div)
 
-    html = template.render(**html_components)
-
     return html_components
