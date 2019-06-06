@@ -1,5 +1,7 @@
 import os, sys, re, json
 import argparse, jinja2
+import bokeh
+from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
 app = Flask(__name__)
@@ -57,14 +59,27 @@ def test_timeseries(start_date, end_date, hdu, attribute):
                 error_message += error_string[i]
         return error_message
 
-    from qqa.webpages import timeseries
-    html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
+    from qqa.plots.timeseries import generate_timeseries
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('timeseries.html')
-    return template.render(html_attr)
+
+    html_components = dict(
+        bokeh_version=bokeh.__version__, attribute=attribute,
+        start=start_date, end=end_date, hdu=hdu,
+        dropdown_hdu=dropdown,
+    )
+
+    fig = generate_timeseries(data, start_date, end_date, hdu, attribute)
+    if fig is None:
+        return "No data between {} and {}".format(start_date, end_date)
+
+    script, div = components(fig)
+    html_components['timeseries'] = dict(script=script, div=div)
+
+    return template.render(html_components)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
