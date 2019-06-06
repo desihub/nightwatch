@@ -7,7 +7,7 @@ from bokeh.layouts import column
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool
 
-def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
+def generate_timeseries(data_dir, start_date, end_date, aspect):
     """
     Include start_date and end_date in data generation
     """

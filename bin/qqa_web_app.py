@@ -1,5 +1,7 @@
 import os, sys, re, json
 import argparse, jinja2
+import bokeh
+from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
 app = Flask(__name__)
@@ -28,27 +30,20 @@ def test_input():
     template = env.get_template('timeseries_input.html')
     return template.render()
 
-@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
-def test_timeseries(start_date, end_date, hdu, attribute):
+@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:attribute>')
+def test_timeseries(start_date, end_date, attribute):
 
     verify = [
     not re.match(r"20[0-9]{6}", str(start_date)),
     not re.match(r"20[0-9]{6}", str(end_date)),
-    re.match(r"\.\.", hdu),
     re.match(r"\.\.", attribute)
     ]
 
     error_string = [
     "start date, ",
     "end date, ",
-    "hdu, ",
     "attribute"
     ]
-
-    with open(os.path.join(stat, "timeseries_dropdown.json"), 'r') as myfile:
-        json_data=myfile.read()
-
-    dropdown = json.loads(json_data)
 
     if any(verify):
         error_message = "Invalid "
@@ -56,16 +51,28 @@ def test_timeseries(start_date, end_date, hdu, attribute):
             if verify[i]:
                 error_message += error_string[i]
         return error_message
-
-    from qqa.webpages import timeseries
-    html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
     #html_attr["dropdown_hdu"] = dropdown
+
+    from qqa.plots.timeseries import generate_timeseries
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('timeseries.html')
-    return template.render(html_attr)
+
+    html_components = dict(
+        bokeh_version=bokeh.__version__, attribute=attribute,
+        start=start_date, end=end_date,
+    )
+
+    fig = generate_timeseries(data, start_date, end_date, attribute)
+    if fig is None:
+        return "No data between {} and {}".format(start_date, end_date)
+
+    script, div = components(fig)
+    html_components['timeseries'] = dict(script=script, div=div)
+
+    return template.render(html_components)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
