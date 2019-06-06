@@ -52,13 +52,13 @@ def write_camfiber_html(outfile, data, header):
     #- Gets a shared ColumnDataSource of DATA
     cds = create_cds(data)
 
-    TOOLTIPS = [('FIBER', "@FIBER")]
-    TOOLTIPS.extend([(col, "@"+col) for col in ATTRIBUTES if col in list(cds.data.keys())])
+    # TOOLTIPS = [('FIBER', "@FIBER")]
+    # TOOLTIPS.extend([(col, "@"+col) for col in ATTRIBUTES if col in list(cds.data.keys())])
     
     #- Gets the html components for each camfib plot in ATTRIBUTES
     for attr in ATTRIBUTES:
         plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
-            titles=TITLESPERCAM, tools=TOOLS, tooltips=TOOLTIPS)
+            titles=TITLESPERCAM)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)

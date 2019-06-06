@@ -90,6 +90,8 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
 
+
+
     #- Histogram of values
     if any(booleans_metric):
         metric = np.array(source.data[name], copy=True)[booleans_metric]
@@ -105,5 +107,8 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
 
     hfig = plot_histogram(metric, palette, title=name, width=width,
                           x_range=x_range, num_bins=10)
+    
+
+
     
     return fig, hfig
