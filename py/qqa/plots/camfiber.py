@@ -68,9 +68,20 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
 
 def colors_for_metric(cds, attribute, metric, num_bins=10):
-    #- If the function is here, it provides the same range for the same attribute,
-    #- rather than adjusting per camera
-    #- TODO: document
+    '''
+    Adds the color values corresponding to a metric to the data
+
+    Args:
+        cds : a bokeh ColumnDataSource object of data
+        attribute : a string column name in CDS
+        metric : a numpy array of the data corresponding to 
+            ATTRIBUTE in CDS
+    Options:
+        num_bins : the number of colors from a palette generated
+
+    ***MUTATES ARGUMENT
+    Updates CDS to include a column of colors for a given attribute
+    '''
     try:
         colors = get_colors(metric, palette=palettes.all_palettes['Paired'][num_bins])
     except RuntimeWarning as rw:

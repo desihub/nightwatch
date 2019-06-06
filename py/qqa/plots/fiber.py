@@ -48,10 +48,10 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     
     #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=name+'_color', 
-                    radius=5, alpha=0.7, hover_color='firebrick')
-    #- Add hover tool
-    hover = HoverTool(renderers = [s], tooltips=tooltips)
-    fig.add_tools(hover)
+                    radius=5, alpha=0.7)#, hover_color='firebrick')
+    # #- Add hover tool
+    # hover = HoverTool(renderers = [s], tooltips=tooltips)
+    # fig.add_tools(hover)
 
     
     #- Plot the rest of the fibers
@@ -72,8 +72,6 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
         color = camcolors[cam.upper()]
         fig.ellipse(x=[0,], y=[0,], width=830, height=830, fill_color=None,
                     line_color=color, line_alpha=0.5, line_width=2)
-
-    if cam:
         fig.text([-350,], [350,], [cam.upper(),],
             text_color=camcolors[cam.upper()],
             text_align='center', text_baseline='middle')
@@ -89,6 +87,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.yaxis.axis_line_color = None
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
+
 
     #- Histogram of values
     if any(booleans_metric):

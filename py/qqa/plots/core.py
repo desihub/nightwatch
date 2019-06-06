@@ -7,10 +7,15 @@ import bokeh.plotting as bk
 import bokeh.palettes as palettes
 
 def get_colors(x, palette=palettes.all_palettes['RdBu'][11], 
-	xmin=None, xmax=None):
+    xmin=None, xmax=None):
     '''
-    TODO: document
-    Returns a palette of colors for 
+    Returns a palette of colors for an array of values
+    Supports clipping of this metric to provided min and max values
+    Args:
+        x : an array of values corresponding to a metric to plot
+    Options:
+        palette : a bokeh palette of colors
+        xmin, xmax : cutoffs to clip values in x
     '''
     palette = np.array(palette)
     n = len(palette)
@@ -28,9 +33,8 @@ def get_colors(x, palette=palettes.all_palettes['RdBu'][11],
     return palette[ii]
 
 def plot_histogram(metric, palette=palettes.all_palettes['RdBu'][11], num_bins=50,
-                  width=250, height=80, x_range=None, title=None):
+                  width=250, height=80, x_range=None):
     '''
-    TODO: document
     Generates a histogram of values from METRIC
     
     Args:
@@ -38,10 +42,9 @@ def plot_histogram(metric, palette=palettes.all_palettes['RdBu'][11], num_bins=5
         
     Options:
         palette : a bokeh palette to color the histogram
-        num_bins : 
-        width, height : 
-        x_range : 
-        title : 
+        num_bins : number of bins for the histogram
+        width, height : width and height of figure in pixels
+        x_range : range of histogram values
     
     Returns a Bokeh figure object
     '''
