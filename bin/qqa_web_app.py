@@ -59,6 +59,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
 
     from qqa.webpages import timeseries
     html_attr = timeseries.generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
+    #html_attr["dropdown_hdu"] = dropdown
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
