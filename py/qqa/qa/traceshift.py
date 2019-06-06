@@ -34,7 +34,7 @@ class QATraceShift(QA):
             cam = hdr['CAMERA'][0].upper()
             spectro = int(hdr['CAMERA'][1])
             dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"CAM":cam}
-            for k in ["MEANDX","MINDX","MAXDX","MEANDY","MINDX","MAXDX"] :
+            for k in ["MEANDX","MINDX","MAXDX","MEANDY","MINDY","MAXDY"] :
                 dico[k]=hdr[k]
             log.debug("{} {} {} {}".format(night,expid,cam,spectro))
             results.append(collections.OrderedDict(**dico))
