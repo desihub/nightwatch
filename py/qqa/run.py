@@ -8,6 +8,26 @@ from astropy.table import Table
 
 import desiutil.log
 
+import desispec.scripts.preproc
+
+def get_ncpu(ncpu):
+    """
+    Get number of CPU cores to use, throttling to 8 for NERSC login nodes
+
+    Args:
+        ncpu : number you would like to use, or None to auto-derive
+
+    Returns:
+        number of CPU cores to use
+    """
+    if ncpu is None:
+        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+
+    if ('NERSC_HOST' in os.environ) and ('SLURM_JOBID' not in os.environ):
+        ncpu = min(8, ncpu)
+
+    return ncpu
+
 def find_unprocessed_expdir(datadir, outdir):
     '''
     Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
@@ -35,9 +55,9 @@ def find_latest_expdir(basedir, processed):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
-    
+
     processed: set of exposure directories already processed
-    
+
     Returns directory, or None if no matching directories are found
     '''
     #- Search for most recent basedir/YEARMMDD
@@ -47,7 +67,7 @@ def find_latest_expdir(basedir, processed):
             break
     else:
         return None  #- no basename/YEARMMDD directory was found
-    
+
     for dirname in sorted(os.listdir(nightdir)):
         expdir = os.path.join(nightdir, dirname)
         if expdir in processed:
@@ -56,8 +76,8 @@ def find_latest_expdir(basedir, processed):
             break
     else:
         return None  #- no basename/YEARMMDD/EXPID directory was found
-    
-    return expdir    
+
+    return expdir
 
 def which_cameras(rawfile):
     '''
@@ -69,7 +89,7 @@ def which_cameras(rawfile):
             extname = hdu.get_extname().upper()
             if re.match('[BRZ][0-9]', extname):
                 cameras.append(extname.lower())
-    
+
     return sorted(cameras)
 
 def runcmd(command, logfile, msg):
@@ -102,8 +122,8 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     Returns header of HDU 0 of the input raw data file
     '''
-    if not os.path.exists(datafile):
-        raise ValueError("{} doesn't exist".format(datafile))
+    if not os.path.exists(rawfile):
+        raise ValueError("{} doesn't exist".format(rawfile))
 
     log = desiutil.log.get_logger()
 
@@ -118,11 +138,10 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     arglist = list()
     for camera in cameras:
-        args = ['--infile', datafile, '--outdir', outdir, '--cameras', camera]
+        args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
         arglist.append(args)
 
-    if ncpu is None:
-        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+    ncpu = min(len(arglist), get_ncpu(ncpu))
 
     if ncpu > 1:
         log.info('Running preproc in parallel on {} cores for {} cameras'.format(
@@ -139,9 +158,9 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
-    
+
     cameras can be a list
-    
+
     returns header of HDU 0 of the input rawfile
     '''
     log = desiutil.log.get_logger()
@@ -163,11 +182,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
 
-    fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid)
-    if flavor == 'SCIENCE' and not os.path.exists(fibermap):
-        print('ERROR: SCIENCE exposure {}/{} without a fibermap; only preprocessing'.format(night, expid))
-        flavor = "PREPROC"
-    
     cmdlist = list()
     loglist = list()
     msglist = list()
@@ -194,8 +208,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
-    if ncpu is None:
-        ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+    ncpu = min(len(cmdlist), get_ncpu(ncpu))
 
     if ncpu > 1:
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(
@@ -203,7 +216,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
     else:
-        log.info('Running preproc serially for {} cameras'.format(ncpu))
+        log.info('Running qproc serially for {} cameras'.format(ncpu))
         for cmd, logfile in zip(cmdlist, loglist, msglist):
             runcmd(cmd, logfile)
 
@@ -212,7 +225,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 def run_qa(indir, outfile=None, qalist=None):
     """
     Run QA analysis of qproc files in indir, writing output to outfile
-    
+
     Args:
         indir: directory containing qproc outputs (qframe, etc.)
 
@@ -226,7 +239,7 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, outdir):
+def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
     '''Make plots for a single exposure
 
     Args:
@@ -247,7 +260,7 @@ def make_plots(infile, outdir):
 
     night = header['NIGHT']
     expid = header['EXPID']
-    
+
     #- Early data have wrong NIGHT in header; check by hand
     #- YEARMMDD/EXPID/infile
     dirnight = os.path.basename(os.path.dirname(os.path.dirname(infile)))
@@ -255,7 +268,7 @@ def make_plots(infile, outdir):
         log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
         night = int(dirnight)
         header['NIGHT'] = night
-    
+
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
@@ -272,6 +285,14 @@ def make_plots(infile, outdir):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
     webpages.summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
+    from qqa.plots import plotimage
+    if (preprocdir is not None):
+        if cameras is None:
+            cameras = which_cameras(rawfile)
+        for camera in cameras:
+            input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
+            output = os.path.join(outdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
+            plotimage.main(input, output, 4)
 
 def write_tables(indir, outdir):
     import re
@@ -313,4 +334,3 @@ def write_tables(indir, outdir):
     webpages.tables.write_nights_table(nightsfile, exposures)
 
     webpages.tables.write_exposures_tables(indir,outdir, exposures)
-    

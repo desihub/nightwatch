@@ -116,7 +116,7 @@ def main_monitor(options=None):
                 plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
                 if not os.path.isdir(plotdir) : 
                     os.makedirs(plotdir)
-                run.make_plots(infile=qafile, outdir=plotdir)
+                run.make_plots(infile=qafile, outdir=plotdir, preprocdir=outdir, cameras=cameras, rawfile=rawfile)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -142,7 +142,7 @@ def main_run(options=None):
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
-        help="output directory (without appending YEARMMDD/EXPID/)")
+        help="output directory (including YEARMMDD/EXPID/)")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
