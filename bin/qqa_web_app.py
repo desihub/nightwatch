@@ -36,8 +36,8 @@ def test_timeseries(start_date, end_date, hdu, attribute):
     verify = [
     not re.match(r"20[0-9]{6}", str(start_date)),
     not re.match(r"20[0-9]{6}", str(end_date)),
-    re.match(r"\.\.", hdu),
-    re.match(r"\.\.", attribute)
+    re.match(r"\.\.", hdu) or hdu="",
+    re.match(r"\.\.", attribute) or attribute=""
     ]
 
     error_string = [
