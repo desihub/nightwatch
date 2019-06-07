@@ -1,23 +1,45 @@
 {% extends "qabase.html" %}
 
 {% block body %}
-<h1>Per-Fiber per-camera QA metrics</h1>
-<h2>Night {{ night }} exposure {{ expid }}:
+<h3>Per-Fiber per-camera QA metrics</h3>
+<!-- <h2>Night {{ night }} exposure {{ expid }}:
     {{ exptime }} second {{ flavor }} ({{ program }})</h2>
-
+ -->
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
 {% if INTEG_RAW_FLUX %}
-    <p>Integrated Raw Counts</p>
     <div>
         {{ INTEG_RAW_FLUX.script }} {{ INTEG_RAW_FLUX.div }}
     </div>
 {% endif %}
 
+{% if MEDIAN_RAW_FLUX %}
+    <div>
+        {{ MEDIAN_RAW_FLUX.script }} {{ MEDIAN_RAW_FLUX.div }}
+    </div>
+{% endif %}
+
 {% if MEDIAN_RAW_SNR %}
-    <p>Median raw signal-to-noise</p>
     <div>
         {{ MEDIAN_RAW_SNR.script }} {{ MEDIAN_RAW_SNR.div }}
+    </div>
+{% endif %}
+
+{% if INTEG_CALIB_FLUX %}
+    <div>
+        {{ INTEG_CALIB_FLUX.script }} {{ INTEG_CALIB_FLUX.div }}
+    </div>
+{% endif %}
+
+{% if MEDIAN_CALIB_FLUX %}
+    <div>
+        {{ MEDIAN_CALIB_FLUX.script }} {{ MEDIAN_CALIB_FLUX.div }}
+    </div>
+{% endif %}
+
+{% if MEDIAN_CALIB_SNR %}
+    <div>
+        {{ MEDIAN_CALIB_SNR.script }} {{ MEDIAN_CALIB_SNR.div }}
     </div>
 {% endif %}
 

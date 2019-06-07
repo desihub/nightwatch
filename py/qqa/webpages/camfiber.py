@@ -7,6 +7,7 @@ import bokeh.plotting as bk
 from bokeh.embed import components
 
 from ..plots.fiber import plot_fibers
+from ..plots.camfiber import plot_per_camfiber
 
 def write_camfiber_html(outfile, data, header):
     '''TODO: document'''
@@ -27,32 +28,28 @@ def write_camfiber_html(outfile, data, header):
 
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
-        night=night, expid=expid, flavor=flavor, program=program,
-        qatype = 'camfiber',
+        night=night, expid=expid, zexpid='{:08d}'.format(expid),
+        flavor=flavor, program=program, qatype = 'camfiber',
     )
 
     #- TODO: refactor these to reduce replicated code, while still supporting
     #- customizations like percentile vs. zmin/zmax
 
-    #- Integrated Raw Flux
-    figB, hfigB = plot_fibers(data, 'INTEG_RAW_FLUX', 'B', percentile=(0,95))
-    figR, hfigR = plot_fibers(data, 'INTEG_RAW_FLUX', 'R', percentile=(0,95))
-    figZ, hfigZ = plot_fibers(data, 'INTEG_RAW_FLUX', 'Z', percentile=(0,98))
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-                toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['INTEG_RAW_FLUX'] = dict(script=script, div=div)
-
-    #- Median S/N
-    figB, hfigB = plot_fibers(data, 'MEDIAN_RAW_SNR', 'B', percentile=(0, 95))#zmin=0, zmax=10)
-    figR, hfigR = plot_fibers(data, 'MEDIAN_RAW_SNR', 'R', percentile=(0, 95))#zmin=0, zmax=10)
-    figZ, hfigZ = plot_fibers(data, 'MEDIAN_RAW_SNR', 'Z', percentile=(0, 98))#zmin=0, zmax=10)
-    figs = bk.gridplot([[figB, figR, figZ], [hfigB, hfigR, hfigZ]],
-                toolbar_location='right')
-
-    script, div = components(figs)
-    html_components['MEDIAN_RAW_SNR'] = dict(script=script, div=div)
+    #- Default cameras and percentile ranges for camfiber plots
+    CAMERAS = ['B', 'R', 'Z']
+    PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
+    #- List of attributes to plot per camfiber with default arguments
+    ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
+                 'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
+    TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts', 
+              'MEDIAN_RAW_SNR':'Median S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
+              'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
+              'Median Calibration S/N'}
+    TITLESPERCAM = {'B':TITLES}
+    
+    for attr in ATTRIBUTES:
+        plot_per_camfiber(data, attr, CAMERAS, html_components, percentiles=PERCENTILES, 
+            titles=TITLESPERCAM)
             
     #- Combine template + components -> HTML
     html = template.render(**html_components)
