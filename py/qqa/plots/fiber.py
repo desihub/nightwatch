@@ -10,16 +10,21 @@ from bokeh.embed import components
 from astropy.table import Table, join
 # from bokeh.models.tickers import FixedTicker
 # from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, HoverTool #, CustomJS, HTMLTemplateFormatter, NumeralTickFormatter
+from bokeh.models import LinearColorMapper, ColorBar, HoverTool #, CustomJS, HTMLTemplateFormatter
 from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
 from bokeh.transform import transform
 from bokeh.transform import linear_cmap
 import bokeh.palettes as bp
+from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter
+
+
 from ..plots.core import get_colors, plot_histogram
+
+
 
 def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None, 
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                plate_x_range=None, plate_y_range=None, mapper=None,
+                plate_x_range=None, plate_y_range=None, colorbar=False,
                 tools='box_select,reset', tooltips=None):
     '''
     ARGS:
@@ -40,22 +45,27 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     Generates a focal plane plot with data per fiber color-coded based on its value
     Generates a histogram of NAME values per fiber
     '''
+    full_metric = np.array(source.data.get(name), copy=True)
+    #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
+    
+    #- adjusts for outliers on the full scale
+    pmin, pmax = np.percentile(full_metric, (2.5, 97.5))
+    full_metric = np.clip(full_metric, pmin, pmax)
+
+    #- Generate colors for both plots
+    palette = np.array(bp.RdYlBu[11])
+    mapper = linear_cmap(name, palette, low=min(full_metric), high=max(full_metric),
+                         nan_color='gray')
+    palette = mapper['transform'].palette
+    
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools, 
                     x_range=plate_x_range, y_range=plate_y_range)
 
-    full_metric = np.array(source.data[name])
     #- Filter data to just this camera
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
         #- TODO: switch to group filter
-
-    #- Generate colors for both plots
-    if mapper:
-        palette = mapper['transform'].palette
-    else:
-        palette = bp.RdYlBu[11]
-        mapper = linear_cmap(name, palette, low=min(full_metric), high=max(full_metric))
     
     #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper, 
@@ -106,6 +116,14 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.yaxis.axis_line_color = None
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
+    
+    if colorbar:
+        fig.plot_width = fig.plot_width + 30
+        color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=8, border_line_color=None,
+                location=(0,0), ticker=BasicTicker(), width=10, 
+                formatter=NumeralTickFormatter(format='0.0a'))
+        fig.add_layout(color_bar, 'right')
+
     
     
     return fig, hfig
