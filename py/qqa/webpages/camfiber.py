@@ -50,7 +50,7 @@ def write_camfiber_html(outfile, data, header):
     TOOLS = ['box_select', 'reset']
     
     #- Gets a shared ColumnDataSource of DATA
-    cds = create_cds(dat, ATTRIBUTES)
+    cds = create_cds(data, ATTRIBUTES)
 
     # TOOLTIPS = [('FIBER', "@FIBER")]
     # TOOLTIPS.extend([(col, "@"+col) for col in ATTRIBUTES if col in list(cds.data.keys())])
