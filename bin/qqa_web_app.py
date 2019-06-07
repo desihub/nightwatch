@@ -3,6 +3,7 @@ import argparse, jinja2
 import bokeh
 from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
+from pkg_resources import resource_filename
 
 app = Flask(__name__)
 stat = ""
@@ -47,7 +48,9 @@ def test_timeseries(start_date, end_date, hdu, attribute):
     "attribute"
     ]
 
-    with open(os.path.join(stat, "timeseries_dropdown.json"), 'r') as myfile:
+    filename = resource_filename('qqa', os.path.join('cal_files', "timeseries_dropdown.json"))
+
+    with open(filename, 'r') as myfile:
         json_data=myfile.read()
 
     dropdown = json.loads(json_data)
