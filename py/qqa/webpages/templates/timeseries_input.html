@@ -1,4 +1,5 @@
 <html>
+<script src="../../../../cal_files/jquery_min.js"></script>
 <style>
 label {
   display: flex;
@@ -18,10 +19,31 @@ input {
 </style>
 <label>start date: <input type="number" id = "start"></label>
 <label>end date: <input type="number" id = "end"></label>
-<label>hdu: <input id = "hdu"></label>
-<label>data column: <input id = "attribute"></label>
+<label>hdu:
+<select id = "hdu" onchange="changed(this.value)">
+  {% for hdu_ in dropdown_hdu %}
+  <option value={{hdu_}}>{{hdu_}}</option>
+  {% endfor %}
+</select>
+</label>
+<label>data column:
+<select id = "attribute">
+</select>
+</label>
 <button onclick='
-  var url = document.getElementById("start").value + "/" + document.getElementById("end").value + "/" + document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
+  var url = document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
   window.open(url, "_top")
 '>Generate Timeseries</button>
-</html>
+
+<script>
+function changed(new_val) {
+  {% for hdu_ in dropdown_hdu %}
+  if(new_val == '{{hdu_}}') {
+    $('#attribute').empty();
+    {% for attr_ in dropdown_hdu[hdu_] %}
+    $('#attribute').append($('<option></option>').attr('value', '{{attr_}}').text('{{attr_}}'));
+    {% endfor %}
+  }
+  {% endfor %}
+}
+</script>

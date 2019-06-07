@@ -28,8 +28,15 @@ def test_input():
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
+    filename = resource_filename('qqa', os.path.join('cal_files', "timeseries_dropdown.json"))
+
+    with open(filename, 'r') as myfile:
+        json_data=myfile.read()
+
+    dropdown = json.loads(json_data)
+
     template = env.get_template('timeseries_input.html')
-    return template.render()
+    return template.render(dropdown_hdu=dropdown)
 
 @app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
 def test_timeseries(start_date, end_date, hdu, attribute):
