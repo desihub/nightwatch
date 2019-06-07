@@ -250,7 +250,7 @@ def main_tables(options=None):
 
     if options is None:
         options = sys.argv[2:]
-
+    
     args = parser.parse_args(options)
     if args.outdir is None:
         args.outdir = args.indir

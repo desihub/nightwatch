@@ -268,7 +268,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
         log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
         night = int(dirnight)
         header['NIGHT'] = night
-
+    
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
