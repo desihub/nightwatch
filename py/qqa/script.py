@@ -11,7 +11,7 @@ from desiutil.log import get_logger
 
 def print_help():
     print("""USAGE: qqa <command> [options]
-    
+
 Supported commands are:
     monitor  Monitor input directory and run qproc, qa, and generate plots
     run      Run qproc, qa, and generate plots for a single exposure
@@ -20,7 +20,6 @@ Supported commands are:
     qa       Run QA analysis on qproc outputs
     plot     Generate webpages with plots of QA output
     tables   Generate webpages with tables of nights and exposures
-
 Run "qqa <command> --help" for details options about each command
 """)
 
@@ -59,7 +58,7 @@ def main_monitor(options=None):
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
-    
+
     if options is None:
         options = sys.argv[2:]
 
@@ -69,14 +68,14 @@ def main_monitor(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
-    
+
     if args.plotdir is None :
         args.plotdir = args.outdir
 
     log = get_logger()
     tmp = os.path.join(args.indir, 'YEARMMDD', 'EXPID')
     log.info('Monitoring {}/ for new raw data'.format(tmp))
-    
+
     qarunner = QARunner()
 
     processed = set()
@@ -111,12 +110,12 @@ def main_monitor(options=None):
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
                 qarunner.run(indir=outdir, outfile=qafile)
-                
+
                 print('Generating plots for {}/{}'.format(night, expid))
                 plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-                if not os.path.isdir(plotdir) : 
+                if not os.path.isdir(plotdir) :
                     os.makedirs(plotdir)
-                run.make_plots(infile=qafile, outdir=plotdir)
+                run.make_plots(infile=qafile, outdir=plotdir, preprocdir=outdir, cameras=cameras, rawfile=rawfile)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -221,7 +220,7 @@ def main_qa(options=None):
         options = sys.argv[2:]
 
     args = parser.parse_args(options)
-    
+
     qaresults = run.run_qa(args.indir, outfile=args.outfile)
     print("Done running QA on {}; wrote outputs to {}".format(args.indir, args.outfile))
 
@@ -232,7 +231,7 @@ def main_plot(options=None):
 
     if options is None:
         options = sys.argv[2:]
-    
+
     args = parser.parse_args(options)
 
     for infile in args.infile:
@@ -251,7 +250,7 @@ def main_tables(options=None):
 
     if options is None:
         options = sys.argv[2:]
-    
+
     args = parser.parse_args(options)
     if args.outdir is None:
         args.outdir = args.indir
