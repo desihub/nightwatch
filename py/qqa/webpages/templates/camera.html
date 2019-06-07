@@ -4,12 +4,28 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-{% if DX %}
-    <div>{{ DX.script }} {{ DX.div }}</div>
-{% endif %}
+<style>
+  .container{
+    display: flex;
+}
+.fixed{
+    width: 200px;
+}
+.flex-item{
+    flex-grow: 1;
+}
+</style>
 
-{% if DY %}
-    <div>{{ DY.script }} {{ DY.div }}</div>
-{% endif %}
+<div class="container">
+  {% if DX %}
+      <div class=fixed>{{ DX.script }} {{ DX.div }}</div>
+  {% endif %}
+  {% if DY %}
+      <div class=flex-item>{{ DY.script }} {{ DY.div }}</div>
+  {% endif %}
+</div>
+
+
+
 
 {% endblock %}

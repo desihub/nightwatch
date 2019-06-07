@@ -1,14 +1,16 @@
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource, Whisker
 from bokeh.layouts import column
+from astropy.table import Table
 
-def plot_camera_qa(table_by_camfiber, attribute, title=None):
+def plot_camera_qa(table, attribute, title=None):
+    astrotable = Table(table)
     if title is None:
         title=attribute
 
     cam_figs=[]
     for cam in ["B", "R", "Z"]:
-        cam_table = table_by_camfiber[table_by_camfiber["CAM"]==cam]
+        cam_table = astrotable[astrotable["CAM"]==cam]
         fig = bk.figure(plot_height=250, title = title+" "+cam)
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],
@@ -23,5 +25,7 @@ def plot_camera_qa(table_by_camfiber, attribute, title=None):
         fig.add_layout(
             Whisker(source=source, base="SPECTRO", upper="MAXattr", lower="MINattr")
         )
+        fig.xaxis.axis_label = "Spectrograph number"
+        fig.yaxis.axis_label = attribute
         cam_figs += [fig]
     return column(cam_figs)
