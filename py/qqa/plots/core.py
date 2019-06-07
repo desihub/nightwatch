@@ -33,7 +33,7 @@ def get_colors(x, palette=palettes.all_palettes['RdBu'][11],
     return palette[ii]
 
 def plot_histogram(metric, palette=palettes.all_palettes['RdBu'][11], num_bins=50,
-                  width=250, height=80, x_range=None):
+                  width=250, height=80, x_range=None, title=None):
     '''
     Generates a histogram of values from METRIC
     
@@ -45,6 +45,7 @@ def plot_histogram(metric, palette=palettes.all_palettes['RdBu'][11], num_bins=5
         num_bins : number of bins for the histogram
         width, height : width and height of figure in pixels
         x_range : range of histogram values
+        title : figure title
     
     Returns a Bokeh figure object
     '''

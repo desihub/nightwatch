@@ -48,13 +48,12 @@ def write_camfiber_html(outfile, data, header):
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'box_select,reset'
-    
+
+
     #- Gets a shared ColumnDataSource of DATA
     cds = create_cds(data, ATTRIBUTES)
 
-    # TOOLTIPS = [('FIBER', "@FIBER")]
-    # TOOLTIPS.extend([(col, "@"+col) for col in ATTRIBUTES if col in list(cds.data.keys())])
-    
+
     #- Gets the html components for each camfib plot in ATTRIBUTES
     for attr in ATTRIBUTES:
         plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
@@ -73,6 +72,10 @@ def write_camfiber_html(outfile, data, header):
 def create_cds(data, attributes):
     '''
     Creates a ColumnDataSource object from DATA
+    Args:
+        data : a fits file of camfib data collected
+        attributes : a list of metrics
+
     Returns a bokeh ColumnDataSource object
     '''
     #- Get the positions of the fibers on the focal plane
@@ -82,7 +85,7 @@ def create_cds(data, attributes):
     #- bytes vs. str
     data = Table(data)
     data['CAM'] = data['CAM'].astype(str)
-
+    
     #- Join the metrics data with the corresponding fibers
     #- TODO: use input fibermap instead
     if len(data) > 0:
@@ -94,7 +97,6 @@ def create_cds(data, attributes):
             data_dict[colname] = data[colname].astype(np.float32)
         else:
             data_dict[colname] = data[colname]
-    
     cds = ColumnDataSource(data=data_dict)
     
     return cds

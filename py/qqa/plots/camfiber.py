@@ -33,6 +33,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
             to clip data
         titles : dictionary of titles per camera for a group of camfiber plots
             where key-value pairs represent a camera-attribute plot title
+        tools, tooltips : supported plot interactivity features
 
     ***MUTATES ARGUMENT
     Updates COMPONENTS_DICT to include key-value pairs to the html components
@@ -46,18 +47,24 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     pmin, pmax = np.percentile(metric, (2.5, 97.5))
     metric = np.clip(metric, pmin, pmax)
     
-    xrange = (min(metric) * 0.99, max(metric) * 1.01)
-
-    colors_for_metric(cds, attribute, metric)
+    hist_x_range = (min(metric) * 0.99, max(metric) * 1.01)
     
     figs_list = []
     hfigs_list = []
     
-    for c in cameras:
+    for i in range(len(cameras)):
+        c = cameras[i]
+        if i == 0:
+            plate_x_range = bokeh.models.Range1d(-420, 420)
+            plate_y_range = bokeh.models.Range1d(-420, 420)
+        else:
+            plate_x_range = figs_list[0].x_range
+            plate_y_range = figs_list[0].y_range
+
         fig, hfig = plot_fibers(cds, attribute, cam=c, percentile=percentiles.get(c),
-                                zmin=zmins.get(c), zmax=zmaxs.get(c), 
-                                title=titles.get(c, {}).get(attribute), tools=tools,
-                                tooltips=tooltips, x_range=xrange)
+                        zmin=zmins.get(c), zmax=zmaxs.get(c), 
+                        title=titles.get(c, {}).get(attribute), tools=tools,
+                        tooltips=tooltips)
 
         figs_list.append(fig)
         hfigs_list.append(hfig)
@@ -65,27 +72,3 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     script, div = components(figs)
 
     components_dict[attribute] = dict(script=script, div=div)
-
-
-def colors_for_metric(cds, attribute, metric, num_bins=10):
-    '''
-    Adds the color values corresponding to a metric to the data
-
-    Args:
-        cds : a bokeh ColumnDataSource object of data
-        attribute : a string column name in CDS
-        metric : a numpy array of the data corresponding to 
-            ATTRIBUTE in CDS
-    Options:
-        num_bins : the number of colors from a palette generated
-
-    ***MUTATES ARGUMENT
-    Updates CDS to include a column of colors for a given attribute
-    '''
-    try:
-        colors = get_colors(metric, palette=palettes.all_palettes['Paired'][num_bins])
-    except RuntimeWarning as rw:
-        print(attribute + ' get colors caused a truedivide error from get colors')
-    colname = attribute + '_color'
-
-    cds.add(colors, colname)

@@ -1,4 +1,3 @@
-import numpy as np
 import jinja2
 import desimodel.io
 
@@ -17,10 +16,12 @@ from bokeh.transform import linear_cmap
 import bokeh.palettes as palettes
 from ..plots.core import get_colors, plot_histogram
 
+
 def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None, 
-                zmax=None, percentile=None, title=None, x_range=None,
+                zmax=None, percentile=None, title=None, hist_x_range=None,
+                plate_x_range=None, plate_y_range=None,
                 tools='box_select,reset', tooltips=None):
-    '''TODO: document
+    '''
     ARGS:
         source :  ColumnDataSource object
         name : a string data column in qadata
@@ -33,27 +34,38 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
         title : title for the plot
         tools : string of supported features for the plot
         tooltips : hovertool info
+        hist_x_range, plate_x_range, plate_y_range : figure ranges to support linking
 
 
     Generates a focal plane plot with data per fiber color-coded based on its value
     Generates a histogram of NAME values per fiber
     '''
     #- Focal plane colored scatter plot
-    fig = bk.figure(width=width, height=height, title=title, tools=tools)
+    fig = bk.figure(width=width, height=height, title=title, tools=tools, 
+                    x_range=plate_x_range, y_range=plate_y_range)
 
     #- Filter data to just this camera
-    booleans_metric = np.array([True if c == cam.lower() or c == cam.upper()
-        else False for c in source.data['CAM']])
-    view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    full_metric = np.array(source.data[name], copy=True)
+    if any(booleans_metric):
+        metric = full_metric[booleans_metric]
+        if percentile:
+            pmin, pmax = np.percentile(metric, percentile)
+            metric = np.clip(metric, pmin, pmax)
+        if zmin or zmax:
+            metric = np.clip(metric, zmin, zmax)
+
+    #- Generate colors
+    palette = LinearColorMapper(palettes.all_palettes['Paired'][10],
+                               low=min(full_metric), high=max(full_metric), nan_color='gray').palette
+    mapper = linear_cmap(name, palettes.all_palettes['Paired'][10],
+                        low=min(full_metric), high=max(full_metric), nan_color='gray')
+    
     
     #- Plot only the fibers which measured the metric
-    s = fig.scatter('X', 'Y', source=source, view=view_metric, color=name+'_color', 
+    view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper, 
                     radius=5, alpha=0.7)#, hover_color='firebrick')
-    # #- Add hover tool
-    # hover = HoverTool(renderers = [s], tooltips=tooltips)
-    # fig.add_tools(hover)
 
-    
     #- Plot the rest of the fibers
     fibers_measured = source.data['FIBER'][booleans_metric]
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
@@ -62,10 +74,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
 
     #- Aesthetics: outline the focal plates by camera color, label cameras,
-    #-             style visual attributes of the figure
-    fig.x_range = bokeh.models.Range1d(-420, 420)
-    fig.y_range = bokeh.models.Range1d(-420, 420)
-
+    #- style visual attributes of the figure
     camcolors = dict(B='steelblue', R='firebrick', Z='gray')
 
     if cam:
@@ -87,25 +96,10 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.yaxis.axis_line_color = None
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
-
-
-    #- Histogram of values
-    if any(booleans_metric):
-        metric = np.array(source.data[name], copy=True)[booleans_metric]
-        if percentile:
-            pmin, pmax = np.percentile(metric, percentile)
-            metric = np.clip(metric, pmin, pmax)
-        if zmin or zmax:
-            metric = np.clip(metric, zmin, zmax)
-        palette = np.sort(source.data[name+'_color'][booleans_metric])
-        #palette = palettes.linear_palette(colors, 10)
-    else:
-        palette = palettes.all_palettes['RdBu'][11]
-
-    hfig = plot_histogram(metric, palette, title=name, width=width,
-                          x_range=x_range, num_bins=10)
     
-
-
+    #- Histogram of values
+    hfig = plot_histogram(metric, palette=palette, title=name, width=width,
+                          x_range=hist_x_range, num_bins=50)
     
     return fig, hfig
+
