@@ -13,10 +13,8 @@ import desispec.scripts.preproc
 def get_ncpu(ncpu):
     """
     Get number of CPU cores to use, throttling to 8 for NERSC login nodes
-
     Args:
         ncpu : number you would like to use, or None to auto-derive
-
     Returns:
         number of CPU cores to use
     """
@@ -32,10 +30,8 @@ def find_unprocessed_expdir(datadir, outdir):
     '''
     Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
-
     Returns directory, of None if no unprocessed directories were found
     (either because no inputs exist, or because all inputs have been processed)
-
     Warning: traverses the whole tree every time.
     TODO: cache previously identified already-processed data and don't rescan.
     '''
@@ -55,9 +51,7 @@ def find_latest_expdir(basedir, processed):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
-    
     processed: set of exposure directories already processed
-    
     Returns directory, or None if no matching directories are found
     '''
     #- Search for most recent basedir/YEARMMDD
@@ -67,7 +61,7 @@ def find_latest_expdir(basedir, processed):
             break
     else:
         return None  #- no basename/YEARMMDD directory was found
-    
+
     for dirname in sorted(os.listdir(nightdir)):
         expdir = os.path.join(nightdir, dirname)
         if expdir in processed:
@@ -76,8 +70,8 @@ def find_latest_expdir(basedir, processed):
             break
     else:
         return None  #- no basename/YEARMMDD/EXPID directory was found
-    
-    return expdir    
+
+    return expdir
 
 def which_cameras(rawfile):
     '''
@@ -89,7 +83,7 @@ def which_cameras(rawfile):
             extname = hdu.get_extname().upper()
             if re.match('[BRZ][0-9]', extname):
                 cameras.append(extname.lower())
-    
+
     return sorted(cameras)
 
 def runcmd(command, logfile, msg):
@@ -111,15 +105,12 @@ def runcmd(command, logfile, msg):
 
 def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
     '''Runs preproc on the input raw data file, outputting to outdir
-
     Args:
         rawfile: input desi-EXPID.fits.fz raw data file
         outdir: directory to write preproc-CAM-EXPID.fits files
-
     Options:
         ncpu: number of CPU cores to use for parallelism; serial if ncpu<=1
         cameras: list of cameras to process; default all found in rawfile
-
     Returns header of HDU 0 of the input raw data file
     '''
     if not os.path.exists(rawfile):
@@ -158,9 +149,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
-    
     cameras can be a list
-    
     returns header of HDU 0 of the input rawfile
     '''
     log = desiutil.log.get_logger()
@@ -225,23 +214,19 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 def run_qa(indir, outfile=None, qalist=None):
     """
     Run QA analysis of qproc files in indir, writing output to outfile
-    
     Args:
         indir: directory containing qproc outputs (qframe, etc.)
-
     Options:
         outfile: write QA output to this FITS file
         qalist: list of QA objects to include; default QARunner.qalist
-
     Returns dictionary of QA results, keyed by PER_AMP, PER_CCD, PER_FIBER, ...
     """
     from .qa import QARunner
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, outdir):
+def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
     '''Make plots for a single exposure
-
     Args:
         infile: input QA fits file with HDUs like PER_AMP, PER_FIBER, ...
         outdir: write output HTML files to this directory
@@ -260,7 +245,7 @@ def make_plots(infile, outdir):
 
     night = header['NIGHT']
     expid = header['EXPID']
-    
+
     #- Early data have wrong NIGHT in header; check by hand
     #- YEARMMDD/EXPID/infile
     dirnight = os.path.basename(os.path.dirname(os.path.dirname(infile)))
@@ -268,7 +253,7 @@ def make_plots(infile, outdir):
         log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
         night = int(dirnight)
         header['NIGHT'] = night
-    
+
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
@@ -285,6 +270,14 @@ def make_plots(infile, outdir):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
     webpages.summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
+    from qqa.webpages import plotimage
+    if (preprocdir is not None):
+        if cameras is None:
+            cameras = which_cameras(rawfile)
+        for camera in cameras:
+            input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
+            output = os.path.join(outdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
+            plotimage.write_image_html(input, output, 4)
 
 def write_tables(indir, outdir):
     import re
@@ -326,4 +319,3 @@ def write_tables(indir, outdir):
     webpages.tables.write_nights_table(nightsfile, exposures)
 
     webpages.tables.write_exposures_tables(indir,outdir, exposures)
-    
