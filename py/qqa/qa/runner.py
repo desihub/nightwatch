@@ -17,12 +17,13 @@ from .noisecorr import QANoiseCorr
 from .specscore import QASpecscore
 from .traceshift import QATraceShift
 from .psf import QAPSF
+from .fiberflat import QAFiberflat
 # from .fibersnr import QAFiberSNR
 
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF)
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF,QAFiberflat)
 
     def __init__(self, qalist=None):
         '''TODO: document'''
