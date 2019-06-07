@@ -37,7 +37,6 @@ class QARunner(object):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         log.debug('Running QA in {}'.format(indir))
-        
         preprocfiles = sorted(glob.glob('{}/preproc-*.fits'.format(indir)))
         if len(preprocfiles) == 0:
             log.error('No preproc files found in {}'.format(indir))
@@ -53,6 +52,7 @@ class QARunner(object):
             flavor = hdr['FLAVOR'].strip()
         else :
             flavor = None
+            log.debug("Reading qframe headers to guess flavor ...")
             for qframefile in qframefiles : # look at all of them and prefer arc or flat over dark or zero
                 hdr = fitsio.read_header(qframefile, 0)
                 this_flavor = hdr['FLAVOR'].strip().upper()
