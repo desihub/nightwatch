@@ -43,7 +43,10 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
         return
     
     metric = np.array(cds.data.get(attribute), copy=True)
-    #- TODO: add customizable clipping (percentiles, zmins, zmaxs)    
+    #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
+    #- adjusts for outliers on the full scale
+    pmin, pmax = np.percentile(metric, (2.5, 97.5))
+    metric = np.clip(metric, pmin, pmax)
     
     hist_x_range = (min(metric) * 0.99, max(metric) * 1.01)
     
