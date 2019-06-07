@@ -19,7 +19,7 @@ from ..plots.core import get_colors, plot_histogram
 
 def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None, 
                 zmax=None, percentile=None, title=None, x_range=None,
-                tools='pan,box_select,reset', tooltips=None):
+                tools='box_select,reset', tooltips=None):
     '''TODO: document
     ARGS:
         source :  ColumnDataSource object
