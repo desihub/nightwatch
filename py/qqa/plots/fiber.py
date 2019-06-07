@@ -1,3 +1,4 @@
+import numpy as np
 import jinja2
 import desimodel.io
 
@@ -44,10 +45,13 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig = bk.figure(width=width, height=height, title=title, tools=tools, 
                     x_range=plate_x_range, y_range=plate_y_range)
 
+    full_metric = np.array(source.data[name])
     #- Filter data to just this camera
-    full_metric = np.array(source.data[name], copy=True)
+    cameras = np.array(source.data['CAM']).astype(str)
+    booleans_metric = np.char.upper(cameras) == cam.upper()
+    metric = full_metric[booleans_metric]
+
     if any(booleans_metric):
-        metric = full_metric[booleans_metric]
         if percentile:
             pmin, pmax = np.percentile(metric, percentile)
             metric = np.clip(metric, pmin, pmax)
@@ -55,14 +59,13 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
             metric = np.clip(metric, zmin, zmax)
 
     #- Generate colors
-    palette = LinearColorMapper(palettes.all_palettes['Paired'][10],
-                               low=min(full_metric), high=max(full_metric), nan_color='gray').palette
-    mapper = linear_cmap(name, palettes.all_palettes['Paired'][10],
-                        low=min(full_metric), high=max(full_metric), nan_color='gray')
-    
+    mapper = linear_cmap(name, palette, low=min(full_metric), high=max(full_metric),
+                         nan_color='gray')
+    palette = mapper['transform'].palette
     
     #- Plot only the fibers which measured the metric
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+        #- TODO: switch to group filter
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper, 
                     radius=5, alpha=0.7)#, hover_color='firebrick')
 
@@ -71,7 +74,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])    
-    fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
+    fig.scatter('X', 'Y', source=source, view=view_empty, fill_color='#DDDDDD', radius=2)
 
     #- Aesthetics: outline the focal plates by camera color, label cameras,
     #- style visual attributes of the figure
@@ -102,4 +105,3 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
                           x_range=hist_x_range, num_bins=50)
     
     return fig, hfig
-

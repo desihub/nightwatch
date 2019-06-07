@@ -44,8 +44,6 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     
     metric = np.array(cds.data.get(attribute), copy=True)
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)    
-    pmin, pmax = np.percentile(metric, (2.5, 97.5))
-    metric = np.clip(metric, pmin, pmax)
     
     hist_x_range = (min(metric) * 0.99, max(metric) * 1.01)
     
@@ -64,7 +62,8 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
         fig, hfig = plot_fibers(cds, attribute, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c), 
                         title=titles.get(c, {}).get(attribute), tools=tools,
-                        tooltips=tooltips)
+                        tooltips=tooltips, hist_x_range=hist_x_range,
+                        plate_x_range=plate_x_range, plate_y_range=plate_y_range)
 
         figs_list.append(fig)
         hfigs_list.append(hfig)
