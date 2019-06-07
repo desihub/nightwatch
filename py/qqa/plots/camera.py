@@ -9,6 +9,7 @@ def plot_camera_qa(table, attribute, title=None):
         title=attribute
 
     cam_figs=[]
+    colors = {"B":"blue", "R":"red", "Z":"green"}
     for cam in ["B", "R", "Z"]:
         cam_table = astrotable[astrotable["CAM"]==cam]
         fig = bk.figure(plot_height=250, title = title+" "+cam)
@@ -18,7 +19,7 @@ def plot_camera_qa(table, attribute, title=None):
             MINattr = cam_table["MIN"+attribute],
             MAXattr = cam_table["MAX"+attribute]
         ))
-        fig.circle(source=source, x="SPECTRO", y="MEANattr", size=10)
+        fig.circle(source=source, x="SPECTRO", y="MEANattr", size=10, color=colors[cam])
         fig.circle(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
         fig.circle(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
         fig.line(source=source, x="SPECTRO", y=0)
