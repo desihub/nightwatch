@@ -57,7 +57,7 @@ def write_camfiber_html(outfile, data, header):
     #- Gets the html components for each camfib plot in ATTRIBUTES
     for attr in ATTRIBUTES:
         plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
-            titles=TITLESPERCAM)
+            titles=TITLESPERCAM, tools=TOOLS)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)

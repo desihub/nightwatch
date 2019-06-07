@@ -14,13 +14,12 @@ from bokeh.models import LinearColorMapper, ColorBar, HoverTool #, CustomJS, HTM
 from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
 from bokeh.transform import transform
 from bokeh.transform import linear_cmap
-import bokeh.palettes as palettes
+import bokeh.palettes as bp
 from ..plots.core import get_colors, plot_histogram
-
 
 def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None, 
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                plate_x_range=None, plate_y_range=None,
+                plate_x_range=None, plate_y_range=None, mapper=None,
                 tools='box_select,reset', tooltips=None):
     '''
     ARGS:
@@ -47,28 +46,22 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
 
     full_metric = np.array(source.data[name])
     #- Filter data to just this camera
-    cameras = np.array(source.data['CAM']).astype(str)
-    booleans_metric = np.char.upper(cameras) == cam.upper()
-    metric = full_metric[booleans_metric]
-
-    if any(booleans_metric):
-        if percentile:
-            pmin, pmax = np.percentile(metric, percentile)
-            metric = np.clip(metric, pmin, pmax)
-        if zmin or zmax:
-            metric = np.clip(metric, zmin, zmax)
-
-    #- Generate colors
-    mapper = linear_cmap(name, palette, low=min(full_metric), high=max(full_metric),
-                         nan_color='gray')
-    palette = mapper['transform'].palette
-    
-    #- Plot only the fibers which measured the metric
+    booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
         #- TODO: switch to group filter
+
+    #- Generate colors for both plots
+    if mapper:
+        palette = mapper['transform'].palette
+    else:
+        palette = bp.RdYlBu[11]
+        mapper = linear_cmap(name, palette, low=min(full_metric), high=max(full_metric))
+    
+    #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper, 
                     radius=5, alpha=0.7)#, hover_color='firebrick')
 
+    
     #- Plot the rest of the fibers
     fibers_measured = source.data['FIBER'][booleans_metric]
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
@@ -76,6 +69,20 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])    
     fig.scatter('X', 'Y', source=source, view=view_empty, fill_color='#DDDDDD', radius=2)
 
+    #- Histogram of values
+    metric = full_metric[booleans_metric]
+    
+    if any(booleans_metric):
+        if percentile:
+            pmin, pmax = np.percentile(metric, percentile)
+            metric = np.clip(metric, pmin, pmax)
+        if zmin or zmax:
+            metric = np.clip(metric, zmin, zmax)
+    
+    hfig = plot_histogram(metric, palette=palette, title=name, width=width,
+                          x_range=hist_x_range, num_bins=50)
+
+    
     #- Aesthetics: outline the focal plates by camera color, label cameras,
     #- style visual attributes of the figure
     camcolors = dict(B='steelblue', R='firebrick', Z='gray')
@@ -100,8 +107,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
     
-    #- Histogram of values
-    hfig = plot_histogram(metric, palette=palette, title=name, width=width,
-                          x_range=hist_x_range, num_bins=50)
     
     return fig, hfig
+
+

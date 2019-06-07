@@ -12,7 +12,8 @@ from bokeh.embed import components
 
 from ..plots.fiber import plot_fibers
 from ..plots.core import get_colors
-import bokeh.palettes as palettes
+import bokeh.palettes as bp
+from bokeh.transform import linear_cmap
 
 
 def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
@@ -44,28 +45,33 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     
     metric = np.array(cds.data.get(attribute), copy=True)
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
+    
     #- adjusts for outliers on the full scale
     pmin, pmax = np.percentile(metric, (2.5, 97.5))
     metric = np.clip(metric, pmin, pmax)
+
     
     hist_x_range = (min(metric) * 0.99, max(metric) * 1.01)
     
     figs_list = []
     hfigs_list = []
     
-    for i in range(len(cameras)):
-        c = cameras[i]
-        if i == 0:
+    for c in cameras:
+        if not figs_list:
             plate_x_range = bokeh.models.Range1d(-420, 420)
             plate_y_range = bokeh.models.Range1d(-420, 420)
         else:
             plate_x_range = figs_list[0].x_range
             plate_y_range = figs_list[0].y_range
 
-        fig, hfig = plot_fibers(cds, attribute, cam=c, percentile=percentiles.get(c),
+        palette = np.array(bp.RdYlBu[11])
+        mapper = linear_cmap(attribute, palette, low=min(metric), high=max(metric),
+                             nan_color='gray')
+
+        fig, hfig = plot_fibers(cds, attribute, colors=mapper, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c), 
-                        title=titles.get(c, {}).get(attribute), tools=tools,
-                        tooltips=tooltips, hist_x_range=hist_x_range,
+                        title=titles.get(c, {}).get(attribute), 
+                        tools=tools, tooltips=tooltips, hist_x_range=hist_x_range, 
                         plate_x_range=plate_x_range, plate_y_range=plate_y_range)
 
         figs_list.append(fig)
@@ -74,3 +80,4 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     script, div = components(figs)
 
     components_dict[attribute] = dict(script=script, div=div)
+

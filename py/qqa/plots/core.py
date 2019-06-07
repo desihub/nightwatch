@@ -6,7 +6,7 @@ import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as palettes
 
-def get_colors(x, palette=palettes.all_palettes['RdBu'][11], 
+def get_colors(x, palette=palettes.all_palettes['RdYlBu'][11], 
     xmin=None, xmax=None):
     '''
     Returns a palette of colors for an array of values
