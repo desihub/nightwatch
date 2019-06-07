@@ -58,7 +58,7 @@ class QAFiberflat(QA):
 
             for f,fiber in enumerate(qframe.fibermap["FIBER"]) :
                 results.append(collections.OrderedDict(
-                    NIGHT=night, EXPID=expid, SPECTRO=spectro, CAM=cam, FIBER=fiber,THIS_FIBER_FLAT=this_fflat[f],REF_FIBER_FLAT=reference_fflat[f]))
+                    NIGHT=night, EXPID=expid, SPECTRO=spectro, CAM=cam, FIBER=fiber,FIBERFLAT=this_fflat[f],REF_FIBERFLAT=reference_fflat[f]))
 
         if len(results)==0 :
             return None
