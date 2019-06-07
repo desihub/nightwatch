@@ -57,7 +57,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
 
     cam_figs = []
 
-    if "CAM" not in table_by_amp.colnames:
+    if "CAM" in table_by_amp.colnames:
         colors = {"B":"blue", "R":"red", "Z":"green"}
         group_by_list.remove("CAM")
         for cam in ["B", "R", "Z"]:
