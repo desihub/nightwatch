@@ -50,7 +50,7 @@ def write_camfiber_html(outfile, data, header):
     TOOLS = ['box_select', 'reset']
     
     #- Gets a shared ColumnDataSource of DATA
-    cds = create_cds(data)
+    cds = create_cds(dat, ATTRIBUTES)
 
     # TOOLTIPS = [('FIBER', "@FIBER")]
     # TOOLTIPS.extend([(col, "@"+col) for col in ATTRIBUTES if col in list(cds.data.keys())])
@@ -70,7 +70,7 @@ def write_camfiber_html(outfile, data, header):
     return html_components
 
 
-def create_cds(data):
+def create_cds(data, attributes):
     '''
     Creates a ColumnDataSource object from DATA
     Returns a bokeh ColumnDataSource object
@@ -90,7 +90,11 @@ def create_cds(data):
 
     data_dict = dict({})
     for colname in data.dtype.names:
-        data_dict[colname] = data[colname]
+        if colname in attributes:
+            data_dict[colname] = data[colname].astype(np.float32)
+        else:
+            data_dict[colname] = data[colname]
+    
     cds = ColumnDataSource(data=data_dict)
     
     return cds
