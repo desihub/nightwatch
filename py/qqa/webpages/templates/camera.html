@@ -1,0 +1,15 @@
+{% extends "qabase.html" %}
+
+{% block body %}
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+{% if DX %}
+    <div>{{ DX.script }} {{ DX.div }}</div>
+{% endif %}
+
+{% if DY %}
+    <div>{{ DY.script }} {{ DY.div }}</div>
+{% endif %}
+
+{% endblock %}

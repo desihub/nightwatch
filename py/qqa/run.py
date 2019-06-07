@@ -55,9 +55,9 @@ def find_latest_expdir(basedir, processed):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
-    
+
     processed: set of exposure directories already processed
-    
+
     Returns directory, or None if no matching directories are found
     '''
     #- Search for most recent basedir/YEARMMDD
@@ -67,7 +67,7 @@ def find_latest_expdir(basedir, processed):
             break
     else:
         return None  #- no basename/YEARMMDD directory was found
-    
+
     for dirname in sorted(os.listdir(nightdir)):
         expdir = os.path.join(nightdir, dirname)
         if expdir in processed:
@@ -76,8 +76,8 @@ def find_latest_expdir(basedir, processed):
             break
     else:
         return None  #- no basename/YEARMMDD/EXPID directory was found
-    
-    return expdir    
+
+    return expdir
 
 def which_cameras(rawfile):
     '''
@@ -89,7 +89,7 @@ def which_cameras(rawfile):
             extname = hdu.get_extname().upper()
             if re.match('[BRZ][0-9]', extname):
                 cameras.append(extname.lower())
-    
+
     return sorted(cameras)
 
 def runcmd(command, logfile, msg):
@@ -158,9 +158,9 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
-    
+
     cameras can be a list
-    
+
     returns header of HDU 0 of the input rawfile
     '''
     log = desiutil.log.get_logger()
@@ -225,7 +225,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 def run_qa(indir, outfile=None, qalist=None):
     """
     Run QA analysis of qproc files in indir, writing output to outfile
-    
+
     Args:
         indir: directory containing qproc outputs (qframe, etc.)
 
@@ -260,7 +260,7 @@ def make_plots(infile, outdir):
 
     night = header['NIGHT']
     expid = header['EXPID']
-    
+
     #- Early data have wrong NIGHT in header; check by hand
     #- YEARMMDD/EXPID/infile
     dirnight = os.path.basename(os.path.dirname(os.path.dirname(infile)))
@@ -268,7 +268,7 @@ def make_plots(infile, outdir):
         log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
         night = int(dirnight)
         header['NIGHT'] = night
-    
+
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
@@ -279,6 +279,12 @@ def make_plots(infile, outdir):
     if 'PER_CAMFIBER' in qadata:
         htmlfile = '{}/qa-camfiber-{:08d}.html'.format(outdir, expid)
         pc = webpages.camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
+        plot_components.update(pc)
+        print('Wrote {}'.format(htmlfile))
+
+    if 'PER_CAMERA' in qadata:
+        htmlfile = '{}/qa-camera-{:08d}.html'.format(outdir, expid)
+        pc = webpages.camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
@@ -326,4 +332,3 @@ def write_tables(indir, outdir):
     webpages.tables.write_nights_table(nightsfile, exposures)
 
     webpages.tables.write_exposures_tables(indir,outdir, exposures)
-    
