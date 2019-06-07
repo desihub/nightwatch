@@ -68,7 +68,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
         mapper = linear_cmap(attribute, palette, low=min(metric), high=max(metric),
                              nan_color='gray')
 
-        fig, hfig = plot_fibers(cds, attribute, colors=mapper, cam=c, percentile=percentiles.get(c),
+        fig, hfig = plot_fibers(cds, attribute, mapper=mapper, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c), 
                         title=titles.get(c, {}).get(attribute), 
                         tools=tools, tooltips=tooltips, hist_x_range=hist_x_range, 
