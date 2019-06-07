@@ -47,7 +47,7 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = ['box_select', 'reset']
+    TOOLS = 'box_select,reset'
     
     #- Gets a shared ColumnDataSource of DATA
     cds = create_cds(data, ATTRIBUTES)
