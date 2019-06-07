@@ -285,14 +285,14 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
     webpages.summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
-    from qqa.plots import plotimage
+    from qqa.webpages import plotimage
     if (preprocdir is not None):
         if cameras is None:
             cameras = which_cameras(rawfile)
         for camera in cameras:
             input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
             output = os.path.join(outdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
-            plotimage.main(input, output, 4)
+            plotimage.write_image_html(input, output, 4)
 
 def write_tables(indir, outdir):
     import re
