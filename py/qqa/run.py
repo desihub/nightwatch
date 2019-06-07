@@ -268,7 +268,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
         log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
         night = int(dirnight)
         header['NIGHT'] = night
-    
+
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
@@ -285,10 +285,14 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
     webpages.summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
+
     from qqa.webpages import plotimage
     if (preprocdir is not None):
         if cameras is None:
-            cameras = which_cameras(rawfile)
+            cameras = []
+            import glob
+            for preprocfile in glob.glob(os.path.join(preprocdir, 'preproc-*-*.fits')):
+                cameras += [os.path.basename(preprocfile).split('-')[1]]
         for camera in cameras:
             input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
             output = os.path.join(outdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))

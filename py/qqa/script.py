@@ -115,7 +115,7 @@ def main_monitor(options=None):
                 plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
                 if not os.path.isdir(plotdir) :
                     os.makedirs(plotdir)
-                run.make_plots(infile=qafile, outdir=plotdir, preprocdir=outdir, cameras=cameras, rawfile=rawfile)
+                run.make_plots(infile=qafile, outdir=plotdir, preprocdir=outdir, cameras=cameras)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -250,7 +250,7 @@ def main_tables(options=None):
 
     if options is None:
         options = sys.argv[2:]
-    
+
     args = parser.parse_args(options)
     if args.outdir is None:
         args.outdir = args.indir
