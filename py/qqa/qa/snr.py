@@ -91,14 +91,10 @@ class QASNR(QA):
 
             # need to decode fibermap
             columns , masks, survey = targets.main_cmx_or_sv(fmap)
-            print("columns=",columns)
-            print("masks=",masks)
-            print("survey=",survey)
             desi_target = fmap[columns[0]]  # (SV1_)DESI_TARGET
-            desi_mask   = masks[0]                 # (sv1) desi_mask
-            
-            stars = (desi_target & desi_mask.mask('STD_WD|STD_FAINT|STD_BRIGHT')) != 0
-            qsos  = (desi_target & desi_mask.QSO) != 0
+            desi_mask   = masks[0]          # (sv1) desi_mask
+            stars       = (desi_target & desi_mask.mask('STD_WD|STD_FAINT|STD_BRIGHT')) != 0
+            qsos        = (desi_target & desi_mask.QSO) != 0
             
             for f,fiber in enumerate(fmap["FIBER"]) :
                 
