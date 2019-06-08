@@ -8,7 +8,7 @@ from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
 from qqa.qa.base import QA
 
-def generate_timeseries(data_dir, start_date, end_date, aspect):
+def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
     Include start_date and end_date in data generation
     """
@@ -128,7 +128,7 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
                 names = ["dots"],
                 callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
             )
-            
+
             fig.segment(x0='x', y0=min_y, x1='x', y1=max_y, color='grey', line_width=1, source=line_source)
             fig.add_tools(hover)
             fig.add_tools(tap)
@@ -150,7 +150,7 @@ def generate_timeseries(data_dir, start_date, end_date, aspect):
             for col in group_by_list:
                 data[col] = [str(row[col])]*length
             source = ColumnDataSource(data=data)
-            
+
             if max_y is None and min_y is None:
                 max_y = max(row[aspect])
                 min_y = min(row[aspect])

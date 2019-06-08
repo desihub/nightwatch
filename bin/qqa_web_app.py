@@ -38,8 +38,8 @@ def test_input():
     template = env.get_template('timeseries_input.html')
     return template.render(dropdown_hdu=dropdown)
 
-@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:attribute>')
-def test_timeseries(start_date, end_date, attribute):
+@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
+def test_timeseries(start_date, end_date, hdu, attribute):
 
     verify = [
     not re.match(r"20[0-9]{6}", str(start_date)),

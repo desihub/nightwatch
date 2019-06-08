@@ -36,6 +36,11 @@ input {
 </label>
 <label>data column:
 <select id = "attribute">
+  {% for hdu_ in dropdown_hdu %}
+  {% if loop.index == 1%}
+  <option value={{dropdown_hdu[hdu_][0]}}>{{dropdown_hdu[hdu_][0]}}</option>
+  {% endif %}
+  {% endfor %}
 </select>
 </label>
 <button onclick='

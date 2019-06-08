@@ -38,10 +38,44 @@ input {
 
 <label>start date: <input type="number" id = "start" value = {{start}}></label>
 <label>end date: <input type="number" id = "end" value = {{end}}></label>
-<label>data column: <input id = "attribute" value = {{attribute}}></label>
+<label>hdu:
+<select id = "hdu" onchange="changed(this.value)">
+  {% for hdu_ in dropdown_hdu %}
+  {% if hdu == hdu_ %}
+  <option value={{hdu_}} selected="selected">{{hdu_}}</option>
+  {% else %}
+  <option value={{hdu_}}>{{hdu_}}</option>
+  {% endif %}
+  {% endfor %}
+</select>
+</label>
+<label>data column:
+<select id = "attribute">
+  {% for attr_ in dropdown_hdu[hdu] %}
+  {% if attr_ == attribute %}
+  <option value={{attr_}} selected="selected">{{attr_}}</option>
+  {% else %}
+  <option value={{attr_}}>{{attr_}}</option>
+  {% endif %}
+  {% endfor %}
+</select>
+</label>
 <button onclick='
-  var url = "../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("attribute").value
+  var url = "../../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
   window.open(url, "_top")
 '>Generate Timeseries</button>
+
+<script>
+function changed(new_val) {
+  {% for hdu_ in dropdown_hdu %}
+  if(new_val == '{{hdu_}}') {
+    $('#attribute').empty();
+    {% for attr_ in dropdown_hdu[hdu_] %}
+    $('#attribute').append($('<option></option>').attr('value', '{{attr_}}').text('{{attr_}}'));
+    {% endfor %}
+  }
+  {% endfor %}
+}
+</script>
 
 {% endblock %}
