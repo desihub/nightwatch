@@ -245,6 +245,15 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
     Args:
         infile: input QA fits file with HDUs like PER_AMP, PER_FIBER, ...
         outdir: write output HTML files to this directory
+
+    Options:
+        preprocdir: directory to where the "preproc-*-*.fits" are located. If
+            not provided, function will NOT generate any image files from any
+            preproc fits file.
+        cameras: list of cameras (strings) to generate image files of. If not
+            provided, will generate a cameras list from parcing through the
+            preproc fits files in the preprocdir
+
     '''
 
     from . import webpages
