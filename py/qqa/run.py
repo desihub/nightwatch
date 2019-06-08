@@ -239,7 +239,7 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, outdir, preprocdir=None, cameras=None, rawfile=None):
+def make_plots(infile, outdir, preprocdir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
