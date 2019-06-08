@@ -7,13 +7,16 @@ import numpy as np
 import fitsio
 
 from astropy.table import Table
-from astropy import units
+from astropy import units,constants
 
 import desiutil.log
 from desispec.qproc.io import read_qframe
 from desispec.calibfinder import CalibFinder
 from desispec.interpolation import resample_flux
 from desispec.io.filters import load_filter
+from desispec.io.fluxcalibration import read_average_flux_calibration
+
+from desimodel.io import load_desiparams
 
 from desitarget import targets
 
@@ -22,7 +25,16 @@ class QASNR(QA):
     """docstring """
     def __init__(self):
         self.output_type = "PER_FIBER"
-        pass
+    
+        # load things we will use several times
+        desiparams = load_desiparams()
+        
+        geometric_area_cm2 = 1e4 * desiparams["area"]["geometric_area"] # m2
+        
+        self.thru_conversion_wavelength = 6000 # A
+        energy_per_photon = (constants.h * constants.c / (self.thru_conversion_wavelength*units.Angstrom)).to(units.erg).value #ergs
+        self.thru_conversion_factor_ergs_per_cm2 = 1e17*energy_per_photon/geometric_area_cm2 # ergs/cm2 
+        
 
     def valid_flavor(self, flavor):
         return ( flavor.upper() == "SCIENCE" )
@@ -61,6 +73,7 @@ class QASNR(QA):
                 qframe=read_qframe(infile)
                 cam=qframe.meta["CAMERA"][0].upper()
                 qframes[cam]=qframe
+                
                 if fmap is None :
                     fmap = qframe.fibermap
                     night = int(qframe.meta['NIGHT'])
@@ -89,12 +102,12 @@ class QASNR(QA):
                         rwave=np.linspace(min_filter_wave,max_filter_wave,int(max_filter_wave-min_filter_wave))
                    
 
-            # need to decode fibermap
-            columns , masks, survey = targets.main_cmx_or_sv(fmap)
-            desi_target = fmap[columns[0]]  # (SV1_)DESI_TARGET
-            desi_mask   = masks[0]          # (sv1) desi_mask
-            stars       = (desi_target & desi_mask.mask('STD_WD|STD_FAINT|STD_BRIGHT')) != 0
-            qsos        = (desi_target & desi_mask.QSO) != 0
+                    # need to decode fibermap
+                    columns , masks, survey = targets.main_cmx_or_sv(fmap)
+                    desi_target = fmap[columns[0]]  # (SV1_)DESI_TARGET
+                    desi_mask   = masks[0]          # (sv1) desi_mask
+                    stars       = (desi_target & desi_mask.mask('STD_WD|STD_FAINT|STD_BRIGHT')) != 0
+                    qsos        = (desi_target & desi_mask.QSO) != 0
             
             for f,fiber in enumerate(fmap["FIBER"]) :
                 
@@ -123,6 +136,33 @@ class QASNR(QA):
                 fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
                 for c in ["G","R","Z"] :
                     dico["SPECFLUX_"+c]=filters[c].get_ab_maggies(rflux*fluxunits,rwave)*1e9 # nano maggies 
+
+            
+                for c in ["B","R","Z"] :
+                    
+                    dico["THRU_{}".format(c)] = 0.
+                    
+                    if c in qframes :                            
+                        
+                        qframe=qframes[c]
+                        if not "CALVALUE" in qframe.meta : 
+                            continue
+                        calwave  = qframe.meta["CALWAVE"] # reference wavelength for 'CALVALUE'
+                        calvalue = qframe.meta["CALVALUE"] # calibration used in qproc
+                        if c=="B" : 
+                            photometric_band = "G"
+                        else :
+                            photometric_band = c
+                            
+                        if dico["FLUX_"+photometric_band] < 10. :
+                            continue
+
+                        # the throughput is proportional to the calibration value used in qproc ( flux = electrons/calvalue) 
+                        thru = calvalue*self.thru_conversion_factor_ergs_per_cm2 * self.thru_conversion_wavelength / calwave / qframe.meta["EXPTIME"]
+
+                        # multiply by ratio of calibrated spec flux to photom flux
+                        dico["THRU_{}".format(c)] = thru * dico["SPECFLUX_"+photometric_band] / dico["FLUX_"+photometric_band]
+
 
 
                 dico["MORPHTYPE"] = fmap["MORPHTYPE"][f]
