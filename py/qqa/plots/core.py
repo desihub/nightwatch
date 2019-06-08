@@ -32,8 +32,7 @@ def get_colors(x, palette=palettes.all_palettes['RdYlBu'][11],
     ii = (n*(x-xmin) / (xmax-xmin)).astype(int).clip(0,n-1)
     return palette[ii]
 
-def plot_histogram(metric, palette=palettes.all_palettes['RdBu'][11], num_bins=50,
-                  width=250, height=80, x_range=None, title=None):
+def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, title=None):
     '''
     Generates a histogram of values from METRIC
     
@@ -51,10 +50,10 @@ def plot_histogram(metric, palette=palettes.all_palettes['RdBu'][11], num_bins=5
     '''
     hfig = bk.figure(width=width, height=height, x_range=x_range)
     hist, edges = np.histogram(metric, density=True, bins=num_bins)
-    centers = 0.5 * (edges[1:] + edges[:-1])
-    colors = get_colors(centers, palette)
-    hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], 
-        color=colors, alpha=0.5)
+    #centers = 0.5 * (edges[1:] + edges[:-1])
+    #colors = get_colors(centers, palette)
+    hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], alpha=0.5,
+              color='gray')
     
     hfig.xaxis.axis_label = title
     hfig.toolbar_location = None

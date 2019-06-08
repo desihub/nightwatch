@@ -47,35 +47,40 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
     
     #- adjusts for outliers on the full scale
-    pmin, pmax = np.percentile(metric, (2.5, 97.5))
-    metric = np.clip(metric, pmin, pmax)
+    pmin, pmax = np.percentile(metric, (5, 95))
 
-    
-    hist_x_range = (min(metric) * 0.99, max(metric) * 1.01)
+#     metric = np.clip(metric, pmin, pmax)
+    hist_x_range = (pmin * 0.99, pmax * 1.01)
     
     figs_list = []
     hfigs_list = []
     
-    for c in cameras:
+    for i in range(len(cameras)):
+        c = cameras[i]
         if not figs_list:
             plate_x_range = bokeh.models.Range1d(-420, 420)
             plate_y_range = bokeh.models.Range1d(-420, 420)
         else:
             plate_x_range = figs_list[0].x_range
             plate_y_range = figs_list[0].y_range
-
-        palette = np.array(bp.RdYlBu[11])
-        mapper = linear_cmap(attribute, palette, low=min(metric), high=max(metric),
-                             nan_color='gray')
-
-        fig, hfig = plot_fibers(cds, attribute, mapper=mapper, cam=c, percentile=percentiles.get(c),
+        
+        if i == (len(cameras) - 1):
+            colorbar = True
+        else:
+            colorbar = False
+        
+        fig, hfig = plot_fibers(cds, attribute, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c), 
                         title=titles.get(c, {}).get(attribute), 
                         tools=tools, tooltips=tooltips, hist_x_range=hist_x_range, 
-                        plate_x_range=plate_x_range, plate_y_range=plate_y_range)
-
+                        plate_x_range=plate_x_range, plate_y_range=plate_y_range,
+                        colorbar = colorbar)
+        
         figs_list.append(fig)
         hfigs_list.append(hfig)
+    
+    
+    
     figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
     script, div = components(figs)
 

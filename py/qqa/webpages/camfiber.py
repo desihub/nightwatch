@@ -81,15 +81,17 @@ def create_cds(data, attributes):
     #- Get the positions of the fibers on the focal plane
     fiberpos = Table(desimodel.io.load_fiberpos())
     fiberpos.remove_column('SPECTRO')
-
-    #- bytes vs. str
-    data = Table(data)
-    data['CAM'] = data['CAM'].astype(str)
     
     #- Join the metrics data with the corresponding fibers
     #- TODO: use input fibermap instead
+    data = Table(data)
     if len(data) > 0:
         data = join(data, fiberpos, keys='FIBER')
+        
+        #- bytes vs. strings
+        for colname in data.colnames:
+            if data[colname].dtype.kind == 'S':
+                data[colname] = data[colname].astype(str)
 
     data_dict = dict({})
     for colname in data.dtype.names:

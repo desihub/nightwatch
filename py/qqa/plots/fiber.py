@@ -25,7 +25,7 @@ from ..plots.core import get_colors, plot_histogram
 def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None, 
                 zmax=None, percentile=None, title=None, hist_x_range=None,
                 plate_x_range=None, plate_y_range=None, colorbar=False,
-                tools='box_select,reset', tooltips=None):
+                plot_hist=True, tools='box_select,reset', tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -49,20 +49,19 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
     
     #- adjusts for outliers on the full scale
-    pmin, pmax = np.percentile(full_metric, (2.5, 97.5))
-    full_metric = np.clip(full_metric, pmin, pmax)
+    pmin, pmax = np.percentile(full_metric, (0, 95))
+    #full_metric = np.clip(full_metric, pmin, pmax)
 
     #- Generate colors for both plots
     palette = np.array(bp.RdYlBu[11])
-    mapper = linear_cmap(name, palette, low=min(full_metric), high=max(full_metric),
-                         nan_color='gray')
-    palette = mapper['transform'].palette
+    mapper = linear_cmap(name, palette, low=pmin, high=pmax, nan_color='gray')
     
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools, 
                     x_range=plate_x_range, y_range=plate_y_range)
 
     #- Filter data to just this camera
+    #- TODO: DOES THIS WORK WITHOUT A CAM ARGUMENT PASSED IN?
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
         #- TODO: switch to group filter
@@ -78,19 +77,6 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])    
     fig.scatter('X', 'Y', source=source, view=view_empty, fill_color='#DDDDDD', radius=2)
-
-    #- Histogram of values
-    metric = full_metric[booleans_metric]
-    
-    if any(booleans_metric):
-        if percentile:
-            pmin, pmax = np.percentile(metric, percentile)
-            metric = np.clip(metric, pmin, pmax)
-        if zmin or zmax:
-            metric = np.clip(metric, zmin, zmax)
-    
-    hfig = plot_histogram(metric, palette=palette, title=name, width=width,
-                          x_range=hist_x_range, num_bins=50)
 
     
     #- Aesthetics: outline the focal plates by camera color, label cameras,
@@ -118,14 +104,28 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.yaxis.major_label_text_font_size = '0pt'
     
     if colorbar:
-        fig.plot_width = fig.plot_width + 30
+        fig.plot_width = fig.plot_width + 60
         color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=8, border_line_color=None,
                 location=(0,0), ticker=BasicTicker(), width=10, 
                 formatter=NumeralTickFormatter(format='0.0a'))
         fig.add_layout(color_bar, 'right')
 
     
+    if not plot_hist:
+        return fig, None
+    
+    #- Histogram of values
+    metric = full_metric[booleans_metric]
+    
+    if any(booleans_metric):
+        if percentile:
+            pmin, pmax = np.percentile(metric, percentile)
+            metric = np.clip(metric, pmin, pmax)
+        if zmin or zmax:
+            metric = np.clip(metric, zmin, zmax)
+    
+    hfig = plot_histogram(metric, title=name, width=width, x_range=hist_x_range, num_bins=50)
+    
     
     return fig, hfig
-
 
