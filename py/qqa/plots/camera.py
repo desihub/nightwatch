@@ -3,7 +3,7 @@ from bokeh.models import ColumnDataSource, Whisker
 from bokeh.layouts import column
 from astropy.table import Table
 
-def plot_camera_qa(table, attribute, height=225, width=525, title=None, line0 = True):
+def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = True):
     astrotable = Table(table)
     if title is None:
         title=attribute

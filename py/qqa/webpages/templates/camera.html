@@ -8,9 +8,6 @@
   .container{
     display: flex;
 }
-.fixed{
-    width: 350px;
-}
 .flex-item{
     flex-grow: 1;
 }
@@ -18,7 +15,7 @@
 
 <div class="container">
   {% if DX %}
-      <div class=fixed>{{ DX.script }} {{ DX.div }}</div>
+      <div class=flex-item>{{ DX.script }} {{ DX.div }}</div>
   {% endif %}
   {% if DY %}
       <div class=flex-item>{{ DY.script }} {{ DY.div }}</div>
