@@ -17,7 +17,7 @@ from bokeh.transform import linear_cmap
 
 
 def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
-                      zmaxs={}, zmins={}, titles={}, tools=None, tooltips=None):
+                      zmaxs={}, zmins={}, titles={}, tools=None):
     '''
     ARGS:
         cds : ColumnDataSource of data
@@ -47,10 +47,17 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
 
     #- adjusts for outliers on the full scale
+    #- change back to (2.5, 97.5) for the middle 95% for real data...?
     pmin, pmax = np.percentile(metric, (0, 95))
 
 #     metric = np.clip(metric, pmin, pmax)
+    #- common scale for all histograms for this metric
     hist_x_range = (pmin * 0.99, pmax * 1.01)
+
+    #- for hover tool
+    attr_formatted_str = "@" + attribute + '{(0.00 a)}'
+    tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
+                (attribute, attr_formatted_str)]
 
     figs_list = []
     hfigs_list = []
@@ -74,7 +81,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
                         title=titles.get(c, {}).get(attribute),
                         tools=tools, tooltips=tooltips, hist_x_range=hist_x_range,
                         plate_x_range=plate_x_range, plate_y_range=plate_y_range,
-                        colorbar = colorbar)
+                        colorbar=colorbar)
 
         figs_list.append(fig)
         hfigs_list.append(hfig)

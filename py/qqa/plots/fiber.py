@@ -68,7 +68,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
-                    radius=5, alpha=0.7)#, hover_color='firebrick')
+                    radius=5, alpha=0.7)
 
 
     #- Plot the rest of the fibers

@@ -10,7 +10,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.models import NumeralTickFormatter
 import math
 
-
+#- TODO: delete this function?
 def get_colors(x, palette=bp.all_palettes['RdYlBu'][11],
     xmin=None, xmax=None):
     '''
@@ -82,8 +82,6 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
 
     hfig.quad(top='top', bottom='bottom', left='left', right='right', color=mapper,
               alpha=0.5, source=src)
-#     hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], alpha=0.5,
-#               color=mapper)
 
     hfig.xaxis.axis_label = title
     hfig.toolbar_location = None
