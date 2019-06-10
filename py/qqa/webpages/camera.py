@@ -38,6 +38,14 @@ def write_camera_html(outfile, data, header):
     script, div = components(fig)
     html_components['DY'] = dict(script=script, div=div)
 
+    fig = plot_camera_qa(data, 'XSIG', title='XSIG with camera', line0=False)
+    script, div = components(fig)
+    html_components['XSIG'] = dict(script=script, div=div)
+
+    fig = plot_camera_qa(data, 'YSIG', title='YSIG with camera', line0=False)
+    script, div = components(fig)
+    html_components['YSIG'] = dict(script=script, div=div)
+
     #- Combine template + components -> HTML
     html = template.render(**html_components)
 

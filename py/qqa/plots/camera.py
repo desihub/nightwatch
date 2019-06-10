@@ -3,7 +3,7 @@ from bokeh.models import ColumnDataSource, Whisker
 from bokeh.layouts import column
 from astropy.table import Table
 
-def plot_camera_qa(table, attribute, title=None):
+def plot_camera_qa(table, attribute, height=225, width=525, title=None, line0 = True):
     astrotable = Table(table)
     if title is None:
         title=attribute
@@ -12,7 +12,7 @@ def plot_camera_qa(table, attribute, title=None):
     colors = {"B":"blue", "R":"red", "Z":"green"}
     for cam in ["B", "R", "Z"]:
         cam_table = astrotable[astrotable["CAM"]==cam]
-        fig = bk.figure(plot_height=250, title = title+" "+cam)
+        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam)
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],
             MEANattr = cam_table["MEAN"+attribute],
@@ -22,7 +22,8 @@ def plot_camera_qa(table, attribute, title=None):
         fig.circle(source=source, x="SPECTRO", y="MEANattr", size=10, color=colors[cam])
         fig.circle(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
         fig.circle(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
-        fig.line(source=source, x="SPECTRO", y=0)
+        if line0:
+            fig.line(source=source, x="SPECTRO", y=0)
         fig.add_layout(
             Whisker(source=source, base="SPECTRO", upper="MAXattr", lower="MINattr")
         )
