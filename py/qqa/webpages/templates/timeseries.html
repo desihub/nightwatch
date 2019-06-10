@@ -4,20 +4,6 @@
 
 {# Rendering arguments: attribute, start, end, timeseries(.script, .div) #}
 
-<title> {{attribute}} Timeseries from {{start}} to {{end}} (inclusive)</title>
-{% if timeseries %}
-    <div>{{ timeseries.script }} {{ timeseries.div }}</div>
-{% endif %}
-<script src="../../../../cal_files/jquery_min.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script>
-  $( function() {
-    $( "#start" ).datepicker({ dateFormat: 'yymmdd' });
-    $( "#end" ).datepicker({ dateFormat: 'yymmdd' });
-  } );
-</script>
-
 <style>
 label {
   display: flex;
@@ -34,8 +20,31 @@ input {
   flex: 0 0 200px;
   margin-left: 10px;
 }
+
+.container{
+  display: flex;
+}
+.flex-item{
+  flex-grow: 1;
+}
 </style>
 
+<header><strong>{{attribute}} Timeseries from {{start}} to {{end}} (inclusive)</strong></header>
+
+<div class="container">
+{% if timeseries %}
+    <div class=flex-item>{{ timeseries.script }} {{ timeseries.div }}</div>
+{% endif %}
+<script src="../../../../cal_files/jquery_min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script>
+  $( function() {
+    $( "#start" ).datepicker({ dateFormat: 'yymmdd' });
+    $( "#end" ).datepicker({ dateFormat: 'yymmdd' });
+  } );
+</script>
+<div class=flex-item>
 <label>start date: <input type="number" id = "start" value = {{start}}></label>
 <label>end date: <input type="number" id = "end" value = {{end}}></label>
 <label>hdu:
@@ -60,11 +69,11 @@ input {
   {% endfor %}
 </select>
 </label>
-<button onclick='
+<button style="margin-left: 260px;" onclick='
   var url = "../../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
   window.open(url, "_top")
 '>Generate Timeseries</button>
-
+</div>
 <script>
 function changed(new_val) {
   {% for hdu_ in dropdown_hdu %}
