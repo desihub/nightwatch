@@ -1,12 +1,12 @@
-from astropy.table import Table#, vstack
+from astropy.table import Table, vstack
 import numpy as np
 import os, re, sys
-import fitsio
+#import fitsio
 import bokeh.plotting as bk
 from bokeh.layouts import column
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
-from qqa.qa.base import QA
+#from qqa.qa.base import QA
 
 def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
@@ -27,19 +27,19 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         for i,j,y in os.walk(date):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
-                    #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
-                    list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                    list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
+                    #list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
 
     if list_tables == []:
         return None
-    #table = vstack(list_tables, metadata_conflicts='silent')
-    table = None
-    for tab in list_tables:
-        if table is None:
-            table = tab
-        else:
-            table = np.append(table, tab)
-    table = Table(table)
+    table = vstack(list_tables, metadata_conflicts='silent')
+    # table = None
+    # for tab in list_tables:
+    #     if table is None:
+    #         table = tab
+    #     else:
+    #         table = np.append(table, tab)
+    # table = Table(table)
 
     lowest = min(table["EXPID"])
     highest = max(table["EXPID"])
@@ -68,7 +68,13 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
 
     table.sort("EXPID") # axis
 
-    metacols = QA.metacols
+    metacols = {'ALL': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'AMP', 'FIBER'),
+ 'PER_AMP': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'AMP'),
+ 'PER_CAMERA': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM'),
+ 'PER_FIBER': ('NIGHT', 'EXPID', 'SPECTRO', 'FIBER'),
+ 'PER_CAMFIBER': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'FIBER'),
+ 'PER_SPECTRO': ('NIGHT', 'EXPID', 'SPECTRO'),
+ 'PER_EXP': ('NIGHT', 'EXPID')}#QA.metacols
 
     group_by_list = list(metacols[hdu])
     group_by_list.remove("NIGHT")
@@ -84,7 +90,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         group_by_list.remove("CAM")
         for cam in ["B", "R", "Z"]:
             cam_table = table_by_amp[table_by_amp["CAM"] == cam]
-            fig = bk.figure(title="CAM "+cam, plot_height = 200, plot_width = 500)
+            fig = bk.figure(title="CAM "+cam, toolbar_location="above", plot_height = 200, plot_width = 500)
             max_y=None
             min_y=None
             for row in cam_table:
@@ -93,7 +99,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
                     EXPID = row["EXPID"],
                     EXPIDZ = [str(expid).zfill(8) for expid in row["EXPID"]],
                     NIGHT = row["NIGHT"],
-                    aspect_values = row[aspect]
+                    aspect_values = row[aspect],
                 )
                 for col in group_by_list:
                     data[col] = [str(row[col])]*length
@@ -126,8 +132,9 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
 
             tap = TapTool(
                 names = ["dots"],
-                callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
+                callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-{}-@EXPIDZ.html".format(hdu[4:].lower()))
             )
+            fig.toolbar.autohide = True
 
             fig.segment(x0='x', y0=min_y, x1='x', y1=max_y, color='grey', line_width=1, source=line_source)
             fig.add_tools(hover)
@@ -138,7 +145,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         fig = column(cam_figs)
 
     else:
-        fig = bk.figure(plot_height = 300, plot_width = 750)
+        fig = bk.figure(toolbar_location="above", plot_height = 300, plot_width = 750)
         for row in table_by_amp:
             length = len(row["EXPID"])
             data=dict(
@@ -180,8 +187,9 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
 
         tap = TapTool(
             names = ["dots"],
-            callback = OpenURL(url="../../../../@NIGHT/@EXPIDZ/qa-amp-@EXPIDZ.html")
+            callback = OpenURL(url="../../../../@NIGHT/@EXPIDZ/qa-{}-@EXPIDZ.html".format(hdu[4:].lower()))
         )
+        fig.toolbar.autohide = True
 
         fig.segment(x0='x', y0=min_y, x1='x', y1=max_y, color='grey', line_width=1, source=line_source)
         fig.add_tools(hover)
