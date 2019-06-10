@@ -111,7 +111,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
                 formatter=NumeralTickFormatter(format='0.0a'))
         fig.add_layout(color_bar, 'right')
         #- adjusting histogram width for colorbar
-        width = fig.plot_width - 20 - colorbar_offset
+        width = fig.plot_width - colorbar_offset
 
 
     if not plot_hist:
