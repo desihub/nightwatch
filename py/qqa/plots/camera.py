@@ -28,7 +28,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         fig.add_layout(
             Whisker(source=source, base="SPECTRO", upper="MAXattr", lower="MINattr")
         )
-        fig.xaxis.ticker = FixedTicker(ticks=range(1, 10, 1))
+        fig.xaxis.ticker = FixedTicker(ticks=[i for i in range(0, 10, 1)])
         fig.xaxis.axis_label = "Spectrograph number"
         fig.yaxis.axis_label = attribute
         cam_figs += [fig]
