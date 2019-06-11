@@ -49,8 +49,6 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
     Generates a histogram of NAME values per fiber
     '''
     full_metric = np.array(source.data.get(name), copy=True)
-    #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
-
     #- adjusts for outliers on the full scale
     pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
 
@@ -69,7 +67,6 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
     '''
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
-        #- TODO: switch to group filter
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
