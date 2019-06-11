@@ -15,6 +15,7 @@ from ..plots.core import get_colors
 import bokeh.palettes as bp
 from bokeh.transform import linear_cmap
 
+from ..plots.core import get_size
 
 def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
                       zmaxs={}, zmins={}, titles={}, tools=None, scatter_fibernum=False):
@@ -61,6 +62,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     for i in range(len(cameras)):
         c = cameras[i]
 
+
         """
         TODO:
             are linked features supported on the version of bokeh on cori?
@@ -71,7 +73,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
         if scatter_fibernum:
             func = plot_fibers_scatter
-            first_x_range = bokeh.models.Range1d(0, 5000)
+            first_x_range = bokeh.models.Range1d(0, 50)
             first_y_range = None
         else:
             func = plot_fibers
@@ -80,11 +82,11 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
         #- shared ranges to support linked features
         if not figs_list:
-            plate_x_range = first_x_range
-            plate_y_range = first_y_range
+            fig_x_range = first_x_range
+            fig_y_range = first_y_range
         else:
-            plate_x_range = figs_list[0].x_range
-            plate_y_range = figs_list[0].y_range
+            fig_x_range = figs_list[0].x_range
+            fig_y_range = figs_list[0].y_range
 
         if i == (len(cameras) - 1):
             colorbar = True
@@ -95,7 +97,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute),
                         tools=tools, hist_x_range=hist_x_range,
-                        plate_x_range=plate_x_range, plate_y_range=plate_y_range,
+                        fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=colorbar)
 
         figs_list.append(fig)
@@ -104,5 +106,13 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
 
     figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
+    #- TODO: delete
+    #print('gridplot size is ' + str(get_size(figs)))
+
     script, div = components(figs)
+    #- TODO: delete
+    #print('script : ' + str(get_size(script)))
+    #print('div : ' + str(get_size(div)))
+
+
     components_dict[attribute] = dict(script=script, div=div)

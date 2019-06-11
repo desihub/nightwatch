@@ -10,7 +10,10 @@ from ..plots.fiber import plot_fibers
 from ..plots.camfiber import plot_per_camfiber
 import desimodel.io
 from bokeh.models import ColumnDataSource
-from astropy.table import Table, join, hstack
+from astropy.table import Table, join, vstack#, hstack
+
+
+from ..plots.core import get_size
 
 
 def write_camfiber_html(outfile, data, header):
@@ -43,6 +46,9 @@ def write_camfiber_html(outfile, data, header):
         flavor=flavor, program=program, qatype = 'camfiber',
     )
 
+    #- TODO: delete
+    #print('before plots: html_components dict size is ' + str(get_size(html_components)))
+
     #- List of attributes to plot per camfiber with default arguments
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
@@ -56,17 +62,26 @@ def write_camfiber_html(outfile, data, header):
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = ['pan','box_select','reset']
+    SCATTER = True
 
     #- Gets a shared ColumnDataSource of DATA
-    cds = get_cds(data, ATTRIBUTES, CAMERAS, scatter=True)
+    cds = get_cds(data, ATTRIBUTES, CAMERAS, scatter=SCATTER)
+
+    #- TODO: delete
+    #print('cds size is ' + str(get_size(cds)))
+
 
     #- Gets the html components for each camfib plot in ATTRIBUTES
     for attr in ATTRIBUTES:
         plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
-            titles=TITLESPERCAM, tools=TOOLS, scatter_fibernum=True)
+            titles=TITLESPERCAM, tools=TOOLS, scatter_fibernum=SCATTER)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)
+
+    #- TODO: delete
+    #print('html size is ' + str(get_size(html)))
+    #print('html dict size is ' + str(get_size(html_components)))
 
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
@@ -99,10 +114,11 @@ def get_cds(data, attributes, cameras, scatter=False):
         if data[colname].dtype.kind == 'S':
             data[colname] = data[colname].astype(str)
 
-#     if scatter:
-#         #- TODO: consider reshaping data into metric-camera combo columns
-#         #- data = data_per_cam_metric(data, attributes, cameras)
-#         #data = agg_data_cds(data, attributes, cameras, agg_func=np.mean)
+    if scatter:
+        data = aggregate_by_fibernums(data)
+#       #- TODO: consider reshaping data into metric-camera combo columns
+#       #- data = data_per_cam_metric(data, attributes, cameras)
+#       #- data = agg_data_cds(data, attributes, cameras, agg_func=np.mean)
 
     cds = create_cds(data, attributes)
 
@@ -113,7 +129,7 @@ def create_cds(data, attributes):
     '''
     Creates a column data source from DATA with metrics in ATTRIBUTES
     Args:
-        data : an astorpy table of camfib data collected
+        data : an astropy table of camfib data collected
         attributes : a list of metrics
     '''
     data_dict = dict({})
@@ -127,106 +143,159 @@ def create_cds(data, attributes):
     return cds
 
 
-def agg_data_cds(data, attributes, cameras, agg_func=np.mean):
+def aggregate_by_fibernums(data):
     '''
-    Aggregates the data by fiber position into 50 groups of 10 using AGG_FUNC
+    Bins DATA by fiber number by binning the data per camera
+    and then vertically stacking them
     Args:
-        data : an astropy table of camfib data collected
-        attributes : a list of metrics
-        cameras : a list of camera filters
-    Options:
-        agg_func : the aggregation function
+        data : a full astropy table of camfiber data
 
-    Returns an astropy table object from DATA with a unique column for every
-        metric-camera combination in ATTRIBUTES and CAMERAS respectively
+    Returns an astropy table object
     '''
-    fiber_bins = np.array(data['FIBER']) // 100
+    cams = ['B', 'R', 'Z']
+    cam_stacks = []
+    #- get the subtables for each camera
+    for c in cams:
+        c_table = bin_subtable(data, c)
+        cam_stacks.append(c_table)
+
+    return vstack(cam_stacks)
+
+def bin_subtable(data, cam, agg_func=np.mean, num_bins=100):
+    '''
+    Aggregates DATA by fiber number into NUM_BINS to prevent overplotting
+    Args:
+        data : an astropy table of camfiber data filtered by CAM
+        cam : a string representation of a camera filter (i.e. 'B', 'R', 'Z')
+    Options:
+        agg_func : function to use for aggregation
+        num_bins : number of bins to aggregate into
+
+    Returns an astropy table object
+    '''
+    #- Filters to only CAM data
+    mask = np.char.upper(np.array(data['CAM'])) == cam.upper()
+    data = data[mask]
+
+    #- Generates bins
+    fiber_bins = np.array(data['FIBER']) // num_bins
     data = data.group_by(fiber_bins)
 
-    '''TODO: DEVICE_TYPE, CAM columns dropped'''
+    #- replaces the CAM, DEVICE_TYPE column at the end to avoid aggregation warnings
+    #- from string columns
+    data.remove_column('CAM')
+
+    #- TODO: DEVICE_TYPE, CAM columns dropped
     data = data.groups.aggregate(agg_func)
+
+    #- replaces the CAM, DEVICE_TYPE column
+    data['CAM'] = cam
+    #- redo the FIBER column to correspond to group numbers
+    data['FIBER'] = np.array(data['FIBER']) // num_bins
+    data['FIBER'] = data['FIBER'].astype(int)
 
     return data
 
 
-def data_per_cam_metric(t, attributes, cameras):
-    '''
-    Generates a table which reorganizes DATA so it has a column
-        for each metric-camera combo in ATTRIBUTES-CAMERAS
-    Args:
-        data : an astropy table of camfib data collected
-        attributes : a list of metrics
-        cameras : a list of camera filters
 
-    Returns an astropy table object
-    '''
-    #- get the metrics for each camera
-    cam_stacks = [get_metrics_for_cam(t, c, attributes) for c in cameras]
+# def agg_data_cds(data, attributes, cameras, agg_func=np.mean):
+#     '''
+#     Aggregates the data by fiber position into 50 groups of 10 using AGG_FUNC
+#     Args:
+#         data : an astropy table of camfib data collected
+#         attributes : a list of metrics
+#         cameras : a list of camera filters
+#     Options:
+#         agg_func : the aggregation function
 
-    #- get the nonmetric columns
-    single_cam = filter_by_cam(t, cameras[0])
-    non_metrics = get_nonmetric_table(single_cam)
+#     Returns an astropy table object from DATA binned by fiber num
+#     '''
+#     fiber_bins = np.array(data['FIBER']) // 100
+#     data = data.group_by(fiber_bins)
 
-    #- horizontally stack the tables
-    stacks = [non_metrics] + cam_stacks
-    by_cam = hstack(stacks)
+#     '''TODO: DEVICE_TYPE, CAM columns dropped'''
+#     data = data.groups.aggregate(agg_func)
 
-    return by_cam
+#     return data
 
-def get_metrics_for_cam(t, cam, attributes):
-    '''
-    Generates a table of columns corresponding to a specific
-        CAM-ATTRIBUTE combination from T
-    Args:
-        t : a full astropy table of camfiber data
-        cam : a string representation of a camera filter
-            (i.e. 'B', 'R', 'Z')
-        attributes : a list of metrics to include in the new table
+# def data_per_cam_metric(t, attributes, cameras):
+#     '''
+#     Generates a table which reorganizes DATA so it has a column
+#         for each metric-camera combo in ATTRIBUTES-CAMERAS
+#     Args:
+#         data : an astropy table of camfib data collected
+#         attributes : a list of metrics
+#         cameras : a list of camera filters
 
-    Returns an astropy table object
-    '''
-    #- only select the subset of rows measured by camera
-    t = filter_by_cam(t, cam)
-    #- only get the metrics columns
-    t = t[attributes]
-    #- renames the columns to have the form metric_cam
-    for colname in t.colnames:
-        t.rename_column(colname, colname + "_" + cam)
+#     Returns an astropy table object
+#     '''
+#     #- get the metrics for each camera
+#     cam_stacks = [get_metrics_for_cam(t, c, attributes) for c in cameras]
 
-    return t
+#     #- get the nonmetric columns
+#     single_cam = filter_by_cam(t, cameras[0])
+#     non_metrics = get_nonmetric_table(single_cam)
 
-def filter_by_cam(t, cam):
-    '''
-    Filters T by CAM
-    Args:
-        t : an astropy table of camfib data
-        cam : a string representation of a camera filter
-            (i.e. 'B', 'R', 'Z')
+#     #- horizontally stack the tables
+#     stacks = [non_metrics] + cam_stacks
+#     by_cam = hstack(stacks)
 
-    Returns an astropy table object
-    '''
-    #- selects the row indices of t which corresond to cam
-    mask = np.char.upper(np.array(t['CAM'])) == cam.upper()
-    return t[mask]
+#     return by_cam
 
-def get_nonmetric_table(t):
-    '''
-    Generates a table corresponding to the non-metric columns
-    TODO: check, it should be determined based on each fiber as the primary key
-    Args:
-        t : an astropy table of camfiber data filtered to a single camera
+# def get_metrics_for_cam(t, cam, attributes):
+#     '''
+#     Generates a table of columns corresponding to a specific
+#         CAM-ATTRIBUTE combination from T
+#     Args:
+#         t : a full astropy table of camfiber data
+#         cam : a string representation of a camera filter
+#             (i.e. 'B', 'R', 'Z')
+#         attributes : a list of metrics to include in the new table
 
-    Returns an astropy table object
-    '''
-    #- a list of columns to include in this table
-    cols = ['NIGHT', 'EXPID', 'SPECTRO', 'FIBER', 'PETAL', 'DEVICE',
-                  'DEVICE_TYPE', 'LOCATION', 'X', 'Y', 'Z', 'Q', 'S', 'SLIT',
-                  'SLITBLOCK', 'BLOCKFIBER', 'POSITIONER', 'SPECTROGRAPH']
+#     Returns an astropy table object
+#     '''
+#     #- only select the subset of rows measured by camera
+#     t = filter_by_cam(t, cam)
+#     #- only get the metrics columns
+#     t = t[attributes]
+#     #- renames the columns to have the form metric_cam
+#     for colname in t.colnames:
+#         t.rename_column(colname, colname + "_" + cam)
 
-    nonmetric_cols = []
+#     return t
 
-    for col in t.colnames:
-        if col in cols:
-            nonmetric_cols.append(col)
+# def filter_by_cam(t, cam):
+#     '''
+#     Filters T by CAM
+#     Args:
+#         t : an astropy table of camfib data
+#         cam : a string representation of a camera filter
+#             (i.e. 'B', 'R', 'Z')
 
-    return t[nonmetric_cols]
+#     Returns an astropy table object
+#     '''
+#     #- selects the row indices of t which corresond to cam
+#     mask = np.char.upper(np.array(t['CAM'])) == cam.upper()
+#     return t[mask]
+
+# def get_nonmetric_table(t):
+#     '''
+#     Generates a table corresponding to the non-metric columns
+#     TODO: check, it should be determined based on each fiber as the primary key
+#     Args:
+#         t : an astropy table of camfiber data filtered to a single camera
+
+#     Returns an astropy table object
+#     '''
+#     #- a list of columns to include in this table
+#     cols = ['NIGHT', 'EXPID', 'SPECTRO', 'FIBER', 'PETAL', 'DEVICE',
+#                   'DEVICE_TYPE', 'LOCATION', 'X', 'Y', 'Z', 'Q', 'S', 'SLIT',
+#                   'SLITBLOCK', 'BLOCKFIBER', 'POSITIONER', 'SPECTROGRAPH']
+
+#     nonmetric_cols = []
+
+#     for col in t.colnames:
+#         if col in cols:
+#             nonmetric_cols.append(col)
+
+#     return t[nonmetric_cols]

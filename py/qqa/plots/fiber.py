@@ -6,6 +6,7 @@ import bokeh
 import bokeh.plotting as bk
 import bokeh.models
 from bokeh.embed import components
+
 from astropy.table import Table, join
 # from bokeh.models.tickers import FixedTicker
 # from bokeh.models.ranges import FactorRange
@@ -16,13 +17,16 @@ from bokeh.transform import linear_cmap
 import bokeh.palettes as bp
 from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter
 import math
+
+
 from ..plots.core import get_colors, plot_histogram
+from ..plots.core import get_size
 
 
 
 def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                plate_x_range=None, plate_y_range=None, colorbar=False, palette=None,
+                fig_x_range=None, fig_y_range=None, colorbar=False, palette=None,
                 plot_hist=True, tools='pan,box_select,reset', tooltips=None):
     '''
     ARGS:
@@ -37,7 +41,7 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
         title : title for the plot
         tools : string of supported features for the plot
         tooltips : hovertool info
-        hist_x_range, plate_x_range, plate_y_range : figure ranges to support linking
+        hist_x_range, fig_x_range, fig_y_range : figure ranges to support linking
         palette : bokeh palette of colors
         colorbar : boolean value to add a color bar
         plot_hist : boolean value to add a histogram
@@ -57,7 +61,7 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
 
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
-                    x_range=plate_x_range, y_range=plate_y_range)
+                    x_range=fig_x_range, y_range=fig_y_range)
 
     #- Filter data to just this camera
     '''TODO: this assumes that the source passed in has a cam argument...
@@ -138,12 +142,15 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
     hfig = plot_histogram(metric, title=name, width=width, x_range=hist_x_range, num_bins=50,
                          palette=mapper['transform'].palette, low=pmin_full, high=pmax_full)
 
+    #- TODO: delete
+    #print('fig : ' + str(get_size(fig)))
+    #print('hfig : ' + str(get_size(hfig)))
     return fig, hfig
 
 
 def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                plate_x_range=None, plate_y_range=None, colorbar=False, palette=None,
+                fig_x_range=None, fig_y_range=None, colorbar=False, palette=None,
                 plot_hist=True, tools='pan,box_select,reset', tooltips=None):
     '''
     ARGS:
@@ -158,7 +165,7 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
         title : title for the plot
         tools : string of supported features for the plot
         tooltips : hovertool info
-        hist_x_range, plate_x_range, plate_y_range : figure ranges to support linking
+        hist_x_range, fig_x_range, fig_y_range : figure ranges to support linking
         palette : bokeh palette of colors
         colorbar : boolean value to add a color bar
         plot_hist : boolean value to add a histogram
@@ -182,7 +189,7 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
 
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
-                    x_range=plate_x_range, y_range=plate_y_range, y_axis_type="log")
+                    x_range=fig_x_range, y_range=fig_y_range)
 
     #- Filter data to just this camera
     #- TODO: fails when CAM not in the data source provided
@@ -190,7 +197,7 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
 
     #- Plot only the fibers which measured the metric
-    s = fig.scatter(name, 'FIBER', source=source, view=view_metric, color=mapper,
+    s = fig.scatter('FIBER', name, source=source, view=view_metric, color=mapper,
                         radius=2, alpha=0.5)
 
     #- Add hover tool
@@ -218,17 +225,16 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
     fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
 
-#     #- Add colorbar
-#     if colorbar:
-#         fig.plot_width = fig.plot_width + 60
-#         colorbar_offset = 12
-#         color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=colorbar_offset,
-#                 border_line_color=None, location=(0,0), ticker=BasicTicker(), width=10,
-#                 formatter=NumeralTickFormatter(format='0.0a'))
-#         fig.add_layout(color_bar, 'right')
-#         #- adjusting histogram width for colorbar
-#         width = fig.plot_width - colorbar_offset
-
+    #- Add colorbar
+    if colorbar:
+        fig.plot_width = fig.plot_width + 60
+        colorbar_offset = 12
+        color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=colorbar_offset,
+                border_line_color=None, location=(0,0), ticker=BasicTicker(), width=10,
+                formatter=NumeralTickFormatter(format='0.0a'))
+        fig.add_layout(color_bar, 'right')
+        #- adjusting histogram width for colorbar
+        width = fig.plot_width - colorbar_offset
 
     if not plot_hist:
         return fig, None
@@ -246,4 +252,7 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
     hfig = plot_histogram(metric, title=name, width=width, x_range=hist_x_range, num_bins=50,
                          palette=mapper['transform'].palette, low=pmin_full, high=pmax_full)
 
+    #- TODO: delete
+    #print('fig : ' + str(get_size(fig)))
+    #print('hfig : ' + str(get_size(hfig)))
     return fig, hfig
