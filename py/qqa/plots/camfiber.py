@@ -10,14 +10,15 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.embed import components
 
-from ..plots.fiber import plot_fibers
+from ..plots.fiber import plot_fibers, plot_fibers_scatter
 from ..plots.core import get_colors
 import bokeh.palettes as bp
 from bokeh.transform import linear_cmap
 
+from ..plots.core import get_size
 
 def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
-                      zmaxs={}, zmins={}, titles={}, tools=None):
+                      zmaxs={}, zmins={}, titles={}, tools=None, scatter_fibernum=False):
     '''
     ARGS:
         cds : ColumnDataSource of data
@@ -35,6 +36,8 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
         titles : dictionary of titles per camera for a group of camfiber plots
             where key-value pairs represent a camera-attribute plot title
         tools, tooltips : supported plot interactivity features
+        scatter_fibernum : boolean that scatterplots per fiber number instead of
+            fiber position on the focal plane when True
 
     ***MUTATES ARGUMENT
     Updates COMPONENTS_DICT to include key-value pairs to the html components
@@ -50,7 +53,6 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
     #- change back to (2.5, 97.5) for the middle 95% for real data...?
     pmin, pmax = np.percentile(metric, (0, 95))
 
-#     metric = np.clip(metric, pmin, pmax)
     #- common scale for all histograms for this metric
     hist_x_range = (pmin * 0.99, pmax * 1.01)
 
@@ -72,24 +74,33 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
             shows the same steps where the tools, column data source, and ranges are shared,
             but the output webpages do not seem to support the linked features
         """
+        if scatter_fibernum:
+            func = plot_fibers_scatter
+            first_x_range = bokeh.models.Range1d(0, 50)
+            first_y_range = None
+        else:
+            func = plot_fibers
+            first_x_range = bokeh.models.Range1d(-420, 420)
+            first_y_range = bokeh.models.Range1d(-420, 420)
+
         #- shared ranges to support linked features
         if not figs_list:
-            plate_x_range = bokeh.models.Range1d(-420, 420)
-            plate_y_range = bokeh.models.Range1d(-420, 420)
+            fig_x_range = first_x_range
+            fig_y_range = first_y_range
         else:
-            plate_x_range = figs_list[0].x_range
-            plate_y_range = figs_list[0].y_range
+            fig_x_range = figs_list[0].x_range
+            fig_y_range = figs_list[0].y_range
 
         if i == (len(cameras) - 1):
             colorbar = True
         else:
             colorbar = False
 
-        fig, hfig = plot_fibers(cds, attribute, cam=c, percentile=percentiles.get(c),
+        fig, hfig = func(cds, attribute, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute),
-                        tools=tools, tooltips=tooltips, hist_x_range=hist_x_range,
-                        plate_x_range=plate_x_range, plate_y_range=plate_y_range,
+                        tools=tools, hist_x_range=hist_x_range,
+                        fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=colorbar)
 
         figs_list.append(fig)
@@ -98,6 +109,13 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
 
     figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
+    #- TODO: delete
+    #print('gridplot size is ' + str(get_size(figs)))
+
     script, div = components(figs)
+    #- TODO: delete
+    #print('script : ' + str(get_size(script)))
+    #print('div : ' + str(get_size(div)))
+
 
     components_dict[attribute] = dict(script=script, div=div)
