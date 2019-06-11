@@ -64,6 +64,15 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
     for i in range(len(cameras)):
         c = cameras[i]
+
+        """
+        TODO:
+            are linked features supported on the version of bokeh on cori?
+            because https://bokeh.pydata.org/en/latest/docs/user_guide/data.html#booleanfilter
+            shows the same steps where the tools, column data source, and ranges are shared,
+            but the output webpages do not seem to support the linked features
+        """
+        #- shared ranges to support linked features
         if not figs_list:
             plate_x_range = bokeh.models.Range1d(-420, 420)
             plate_y_range = bokeh.models.Range1d(-420, 420)

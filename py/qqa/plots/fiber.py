@@ -22,10 +22,10 @@ from ..plots.core import get_colors, plot_histogram
 
 
 
-def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
+def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                plate_x_range=None, plate_y_range=None, colorbar=False,
-                plot_hist=True, tools='box_select,reset', tooltips=None):
+                plate_x_range=None, plate_y_range=None, colorbar=False, palette=None,
+                plot_hist=True, tools='pan,box_select,reset', tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -40,6 +40,9 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
         tools : string of supported features for the plot
         tooltips : hovertool info
         hist_x_range, plate_x_range, plate_y_range : figure ranges to support linking
+        palette : bokeh palette of colors
+        colorbar : boolean value to add a color bar
+        plot_hist : boolean value to add a histogram
 
 
     Generates a focal plane plot with data per fiber color-coded based on its value
@@ -50,10 +53,10 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
 
     #- adjusts for outliers on the full scale
     pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
-    #full_metric = np.clip(full_metric, pmin_full, pmax_full)
 
     #- Generate colors for both plots
-    palette = np.array(bp.RdYlBu[11])
+    if not palette:
+        palette = np.array(bp.RdYlBu[11])
     mapper = linear_cmap(name, palette, low=pmin_full, high=pmax_full, nan_color='gray')
 
     #- Focal plane colored scatter plot
@@ -61,7 +64,9 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
                     x_range=plate_x_range, y_range=plate_y_range)
 
     #- Filter data to just this camera
-    #- TODO: DOES THIS WORK WITHOUT A CAM ARGUMENT PASSED IN?
+    '''TODO: this assumes that the source passed in has a cam argument...
+        Will that break when plotting fiber plots individually?
+    '''
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
         #- TODO: switch to group filter
@@ -70,17 +75,16 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
                     radius=5, alpha=0.7)
 
-
     #- Plot the rest of the fibers
     fibers_measured = source.data['FIBER'][booleans_metric]
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
     fig.scatter('X', 'Y', source=source, view=view_empty, fill_color='#DDDDDD', radius=2)
+    if not palette:
+        palette = np.array(bp.RdYlBu[11])
 
-
-    #- Aesthetics: outline the focal plates by camera color, label cameras,
-    #- style visual attributes of the figure
+    #- Adds colored outline based on camera
     camcolors = dict(B='steelblue', R='firebrick', Z='gray')
 
     if cam:
@@ -91,6 +95,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
             text_color=camcolors[cam.upper()],
             text_align='center', text_baseline='middle')
 
+    #- style visual attributes of the figure
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
     fig.xaxis.major_tick_line_color = None
@@ -103,6 +108,7 @@ def plot_fibers(source, name, cam=None, width=250, height=270, zmin=None,
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
 
+    #- Add colorbar
     if colorbar:
         fig.plot_width = fig.plot_width + 60
         colorbar_offset = 12

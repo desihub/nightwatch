@@ -13,7 +13,14 @@ from bokeh.models import ColumnDataSource
 from astropy.table import Table, join
 
 def write_camfiber_html(outfile, data, header):
-    '''TODO: document'''
+    '''
+    Args:
+        outfile : output directory for generated html file
+        data : fits file of per_camfiber data
+        header : fits file header
+
+    Writes the generated plots to OUTFILE
+    '''
 
     night = header['NIGHT']
     expid = header['EXPID']
@@ -47,7 +54,7 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = 'box_select,reset'
+    TOOLS = 'pan,box_select,reset'
 
 
     #- Gets a shared ColumnDataSource of DATA
