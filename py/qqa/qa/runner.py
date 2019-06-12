@@ -104,8 +104,9 @@ class QARunner(object):
             if os.path.exists(jsonfile):
                 with open(jsonfile, 'r') as myfile:
                     json_data=myfile.read()
+                json_data = json.loads(json_data)
             else:
-                json_data=dict()
+                json_data = dict()
 
             rewrite_necessary = False
             for key1 in results:
