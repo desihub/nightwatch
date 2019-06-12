@@ -106,11 +106,13 @@ class QARunner(object):
             with open(jsonfiledir, 'w') as out:
                 result1 = dict()
                 for key1 in results:
-                    colnames_lst = results[key1][0].colnames
-                    for i in join_keys[key1]:
-                        colnames_lst.remove(i)
-                    result1[key1] = colnames_lst
+                    if key1 != "PER_CAMFIBER":
+                        colnames_lst = results[key1][0].colnames
+                        for i in join_keys[key1]:
+                            colnames_lst.remove(i)
+                        result1[key1] = colnames_lst
                 json.dump(result1, out)
+            print('Wrote {}'.format(jsonfiledir))
 
         for qatype in list(results.keys()):
             if len(results[qatype]) == 1:
