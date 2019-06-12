@@ -59,7 +59,7 @@ def write_camfiber_html(outfile, data, header):
     SCATTER = True
 
     #- Gets a shared ColumnDataSource of DATA
-    cds = get_cds(data, ATTRIBUTES, CAMERAS, scatter=SCATTER)
+    cds = get_cds(data, ATTRIBUTES, CAMERAS, agg=SCATTER)
 
 
     #- Gets the html components for each camfib plot in ATTRIBUTES
@@ -86,7 +86,7 @@ def get_cds(data, attributes, cameras, agg=False):
         cameras : a list of cameras
     Options:
     	agg : get an aggregated column data source
-    		to plot per fiber number instead of 
+    		to plot per fiber number instead of
     		focal plate
 
     Returns a bokeh ColumnDataSource object

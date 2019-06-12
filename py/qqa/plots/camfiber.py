@@ -109,13 +109,5 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
 
     figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
-    #- TODO: delete
-    #print('gridplot size is ' + str(get_size(figs)))
-
     script, div = components(figs)
-    #- TODO: delete
-    #print('script : ' + str(get_size(script)))
-    #print('div : ' + str(get_size(div)))
-
-
     components_dict[attribute] = dict(script=script, div=div)
