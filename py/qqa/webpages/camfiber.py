@@ -5,6 +5,7 @@ import jinja2
 import bokeh
 import bokeh.plotting as bk
 from bokeh.embed import components
+from bokeh.layouts import layout
 
 from ..plots.fiber import plot_fibers
 from ..plots.camfiber import plot_per_camfiber
@@ -54,11 +55,19 @@ def write_camfiber_html(outfile, data, header):
     cds = create_cds(data, ATTRIBUTES)
 
 
-    #- Gets the html components for each camfib plot in ATTRIBUTES
+    #- Gets the gridplots for each metric in ATTRIBUTES
+    gridlist = []
     for attr in ATTRIBUTES:
-        plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
+        metric_grid = plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
             titles=TITLESPERCAM, tools=TOOLS)
+        gridlist.append(metric_grid)
 
+    #- Organizes the layout of the plots
+    camfiber_layout = layout(children=gridlist)
+
+    #- Gets the html components of the camfiber plots
+    script, div = components(camfiber_layout)
+    html_components['METRIC_PLOTS'] = dict(script=script, div=div)
     #- Combine template + components -> HTML
     html = template.render(**html_components)
 
@@ -81,13 +90,13 @@ def create_cds(data, attributes):
     #- Get the positions of the fibers on the focal plane
     fiberpos = Table(desimodel.io.load_fiberpos())
     fiberpos.remove_column('SPECTRO')
-    
+
     #- Join the metrics data with the corresponding fibers
     #- TODO: use input fibermap instead
     data = Table(data)
     if len(data) > 0:
         data = join(data, fiberpos, keys='FIBER')
-        
+
         #- bytes vs. strings
         for colname in data.colnames:
             if data[colname].dtype.kind == 'S':
@@ -100,5 +109,5 @@ def create_cds(data, attributes):
         else:
             data_dict[colname] = data[colname]
     cds = ColumnDataSource(data=data_dict)
-    
+
     return cds
