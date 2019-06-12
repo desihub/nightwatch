@@ -1,17 +1,18 @@
 import numpy as np
-
 import jinja2
-
 import bokeh
-import bokeh.plotting as bk
+import desimodel.io
+
 from bokeh.embed import components
 from bokeh.layouts import layout
 
-from ..plots.fiber import plot_fibers
-from ..plots.camfiber import plot_per_camfiber
-import desimodel.io
+import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
 from astropy.table import Table, join
+
+from ..plots.fiber import plot_fibers
+from ..plots.camfiber import plot_per_camfiber
+
 
 def write_camfiber_html(outfile, data, header):
     '''TODO: document'''
@@ -54,7 +55,6 @@ def write_camfiber_html(outfile, data, header):
     #- Gets a shared ColumnDataSource of DATA
     cds = create_cds(data, ATTRIBUTES)
 
-
     #- Gets the gridplots for each metric in ATTRIBUTES
     gridlist = []
     for attr in ATTRIBUTES:
@@ -68,6 +68,7 @@ def write_camfiber_html(outfile, data, header):
     #- Gets the html components of the camfiber plots
     script, div = components(camfiber_layout)
     html_components['METRIC_PLOTS'] = dict(script=script, div=div)
+
     #- Combine template + components -> HTML
     html = template.render(**html_components)
 

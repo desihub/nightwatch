@@ -1,12 +1,9 @@
-"""
-Placeholder: Core shared routines for plotting
-"""
 import numpy as np
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as palettes
 
-def get_colors(x, palette=palettes.all_palettes['RdYlBu'][11], 
+def get_colors(x, palette=palettes.all_palettes['RdYlBu'][11],
     xmin=None, xmax=None):
     '''
     Returns a palette of colors for an array of values
@@ -35,17 +32,17 @@ def get_colors(x, palette=palettes.all_palettes['RdYlBu'][11],
 def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, title=None):
     '''
     Generates a histogram of values from METRIC
-    
+
     Args:
         metric : a numpy array of values to plot
-        
+
     Options:
         palette : a bokeh palette to color the histogram
         num_bins : number of bins for the histogram
         width, height : width and height of figure in pixels
         x_range : range of histogram values
         title : figure title
-    
+
     Returns a Bokeh figure object
     '''
     hfig = bk.figure(width=width, height=height, x_range=x_range)
@@ -54,7 +51,7 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     #colors = get_colors(centers, palette)
     hfig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], alpha=0.5,
               color='gray')
-    
+
     hfig.xaxis.axis_label = title
     hfig.toolbar_location = None
     hfig.title.text_color = '#ffffff'
