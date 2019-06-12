@@ -30,21 +30,25 @@ def write_camera_html(outfile, data, header):
     )
 
     #- Generate the bokeh figures
-    fig = plot_camera_qa(data, 'DX', title='DX with camera')
+    fig = plot_camera_qa(data, 'DX', title='DX with camera', minmax=(-0.1, 0.1))
     script, div = components(fig)
     html_components['DX'] = dict(script=script, div=div)
 
-    fig = plot_camera_qa(data, 'DY', title='DY with camera')
+    fig = plot_camera_qa(data, 'DY', title='DY with camera', minmax=(-0.1, 0.1))
     script, div = components(fig)
     html_components['DY'] = dict(script=script, div=div)
 
-    fig = plot_camera_qa(data, 'XSIG', title='XSIG with camera', line0=False)
-    script, div = components(fig)
-    html_components['XSIG'] = dict(script=script, div=div)
+    if "MEANXSIG" in data.dtype.names:
+        fig = plot_camera_qa(data, 'XSIG', title='XSIG with camera',
+                line0=False, minmax=(0.8, 1.3))
+        script, div = components(fig)
+        html_components['XSIG'] = dict(script=script, div=div)
 
-    fig = plot_camera_qa(data, 'YSIG', title='YSIG with camera', line0=False)
-    script, div = components(fig)
-    html_components['YSIG'] = dict(script=script, div=div)
+    if "MEANYSIG" in data.dtype.names:
+        fig = plot_camera_qa(data, 'YSIG', title='YSIG with camera',
+                line0=False, minmax=(0.8, 1.3))
+        script, div = components(fig)
+        html_components['YSIG'] = dict(script=script, div=div)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)
