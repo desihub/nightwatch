@@ -34,7 +34,7 @@ class QARunner(object):
         #- Runner keeps instances, not just their classes
         self.qalist = [X() for X in qalist]
 
-    def run(self, indir, outfile=None):
+    def run(self, indir, outfile=None, json_gen=True):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         log.debug('Running QA in {}'.format(indir))
@@ -100,19 +100,20 @@ class QARunner(object):
             PER_EXP = ['NIGHT', 'EXPID'],
         )
 
-        from pkg_resources import resource_filename
-        jsonfiledir = resource_filename('qqa', os.path.join('cal_files', 'timeseries_dropdown.json'))
-        if os.path.isdir(os.path.dirname(jsonfiledir)):
-            with open(jsonfiledir, 'w') as out:
-                result1 = dict()
-                for key1 in results:
-                    if key1 != "PER_CAMFIBER":
-                        colnames_lst = results[key1][0].colnames
-                        for i in join_keys[key1]:
-                            colnames_lst.remove(i)
-                        result1[key1] = colnames_lst
-                json.dump(result1, out)
-            print('Wrote {}'.format(jsonfiledir))
+        if json_gen:
+            from pkg_resources import resource_filename
+            jsonfiledir = resource_filename('qqa', os.path.join('cal_files', 'timeseries_dropdown.json'))
+            if os.path.isdir(os.path.dirname(jsonfiledir)):
+                with open(jsonfiledir, 'w') as out:
+                    result1 = dict()
+                    for key1 in results:
+                        if key1 != "PER_CAMFIBER":
+                            colnames_lst = results[key1][0].colnames
+                            for i in join_keys[key1]:
+                                colnames_lst.remove(i)
+                            result1[key1] = colnames_lst
+                    json.dump(result1, out)
+                print('Wrote {}'.format(jsonfiledir))
 
         for qatype in list(results.keys()):
             if len(results[qatype]) == 1:

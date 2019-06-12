@@ -79,6 +79,7 @@ def main_monitor(options=None):
     qarunner = QARunner()
 
     processed = set()
+    json_gen=True
     while True:
         if args.catchup:
             expdir = run.find_unprocessed_expdir(args.indir, args.outdir)
@@ -109,7 +110,8 @@ def main_monitor(options=None):
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
-                qarunner.run(indir=outdir, outfile=qafile)
+                qarunner.run(indir=outdir, outfile=qafile, json_gen=json_gen)
+                json_gen=False
 
                 print('Generating plots for {}/{}'.format(night, expid))
                 plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
