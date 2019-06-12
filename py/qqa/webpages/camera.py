@@ -7,7 +7,19 @@ from bokeh.embed import components
 from ..plots.camera import plot_camera_qa
 
 def write_camera_html(outfile, data, header):
-    '''TODO: document'''
+    '''
+    Creates a html file with camera qa data (DX, DY, XSIG, YSIG) plotted vs
+    Spectrograph number. Each column should have three plots, corresponding to
+    the R, B, Z cameras.
+
+    Args :
+        outfile : path to where put the html file
+        data : PER_CAMERA table (can be astropy table or just numpy matrix)
+        header : header of HDU 0 of the input raw data file
+
+    Returns :
+        dictionary containing the html components used to plot the html file
+    '''
 
     night = header['NIGHT']
     expid = header['EXPID']

@@ -6,6 +6,24 @@ from bokeh.models.tickers import FixedTicker
 from astropy.table import Table
 
 def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = True, minmax=None):
+    '''
+    Creates 3 plots of an attribute vs Spectrograph number, corresponding to
+    R, B, Z cameras.
+
+    Args :
+        table : PER_CAMERA table (can be astropy table or just numpy matrix)
+        attribute : string that is a column name of table
+
+    Options :
+        height : height of each plot
+        width : width of each plot
+        title : title + " " + cam is the title for each figure
+        line0 : if True, plot a line at x=0
+        minmax : range of fixed y range
+
+    Returns :
+        Bokeh figure that contains three vertically stacked plots
+    '''
     astrotable = Table(table)
     if title is None:
         title=attribute
