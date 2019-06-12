@@ -28,7 +28,7 @@ def test_input():
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    filename = resource_filename('qqa', os.path.join('cal_files', "timeseries_dropdown.json"))
+    filename = os.path.join(static, "cal_files", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
@@ -54,7 +54,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
     "attribute"
     ]
 
-    filename = resource_filename('qqa', os.path.join('cal_files', "timeseries_dropdown.json"))
+    filename = os.path.join(static, "cal_files", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
