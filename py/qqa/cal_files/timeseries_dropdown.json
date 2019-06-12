@@ -4,11 +4,6 @@
     "COSMICS_RATE",
     "BIAS"
   ],
-  "PER_CAMFIBER": [
-    "INTEG_RAW_FLUX",
-    "MEDIAN_RAW_FLUX",
-    "MEDIAN_RAW_SNR"
-  ],
   "PER_CAMERA": [
     "MEANDX",
     "MINDX",
