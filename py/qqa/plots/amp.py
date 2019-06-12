@@ -6,114 +6,93 @@ from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool
 import bokeh.palettes
+from bokeh.layouts import column, gridplot
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None):
-    '''
-    Plot a per-amp visualization of data[name]
-
-    qamin/qamax: min/max ranges for the color scale
-    '''
+def plot_amp_qa(data, name, title=None, palette="YlGn9", 
+                qamin=None, qamax=None, plot_height=100, 
+                plot_width=500):
+    '''Plot a per-amp visualization of data[name]
+    qamin/qamax: min/max ranges for the color scale'''
+    
     if title is None:
         title = name
-
-    #- Map data[name] into location on image to display
-    img = np.zeros(shape=(4,30)) * np.nan
-    x_data = []
-    y_data = []
-    name_data = []
+        
+    #unpacking data
+    spec_labels = []
+    amp_labels = []
+    data_R = []
+    data_B = []
+    data_Z = []
     for row in data:
-        #- TODO: check rows for amp, spectro, and img plotting orientation
-        if row['SPECTRO'] < 5:
-            i = 2
-        else:
-            i = 0
-        if row['AMP'] in ['C', 'D', b'C', b'D']:
-            i += 1
-
-        j = 6*(row['SPECTRO'] % 5)
-        if row['CAM'].upper() in ('R', b'R'):
-            j += 2
-        elif row['CAM'].upper() in ('Z', b'Z'):
-            j += 4
-
-        if row['AMP'] in ['D', 'B', b'D', b'B']:
-            j += 1
-
-        x_data += [j/2+.25]
-        y_data += [i+.5]
-        cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
-        name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
-        img[i,j] = row[name]
-
-    splabels_top = list()
-    for sp in range(0,5):
-        for cam in ['B', 'R', 'Z']:
-            splabels_top.append(cam+str(sp))
-
-    splabels_bottom = list()
-    for sp in range(5,10):
-        for cam in ['B', 'R', 'Z']:
-            splabels_bottom.append(cam+str(sp))
-
-    fig = bk.figure(height=180, width=850, x_range=FactorRange(*splabels_bottom),
-                    toolbar_location=None, title=title, tools='tap')
+        if row['CAM'] in ('R', b'R'):
+            amp_labels.append(row['AMP'].decode('utf-8'))
+            spec_labels.append(str(row['SPECTRO']))
+            data_R.append(row[name])
+        if row['CAM'] in ('B', b'B'):
+            data_B.append(row[name])
+        if row['CAM'] in ('Z', b'Z'):
+            data_Z.append(row[name])
+    labels = [(spec, amp) for spec in np.unique(spec_labels) for amp in amp_labels]
+    
+    source = ColumnDataSource(data=dict(
+        data_R=data_R,
+        data_B=data_B,
+        data_Z=data_Z,
+        labels=labels,
+    ))
+    
+    #x-axis
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+                     plot_height=50, plot_width=plot_width,
+                     y_axis_location=None)         
+    axis.line(x=labels, y=0, line_color=None)
+    axis.grid.grid_line_color=None
+    axis.outline_line_color=None
+    
+    #R
+    fig_R = bk.figure(x_range=axis.x_range, toolbar_location=None, 
+               plot_height=plot_height, plot_width=plot_width,
+               x_axis_location=None)
 
     if qamin is None:
-        qamin = np.nanmin(img)
+        qamin = np.min(data[name])
     if qamax is None:
-        qamax = np.nanmax(img)
-
+        qamax = np.max(data[name])
+    
     color_mapper = LinearColorMapper(palette=palette, low=qamin, high=qamax,
-                                     low_color='#CC1111', high_color='#CC1111')
-    fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
+                                     low_color='#CC1111', high_color='#CC1111')   
 
-    # color_bar = ColorBar(color_mapper=color_mapper)
-    # fig.add_layout(color_bar, 'right')
-    #     # label_standoff=12, border_line_color=None, location=(0,0))
+    fig_R.circle(x='labels', y='data_R', line_color=None, 
+                 fill_color={'field':'data_R', 'transform':color_mapper}, size=8, source=source)
+    fig_R.line(x='labels', y='data_R', line_color='black', source=source)
+    fig_R.yaxis.axis_label = 'R'
+    fig_R.yaxis.minor_tick_line_color=None
+    fig_R.ygrid.grid_line_color=None
 
-    for x in [0, 3, 6, 9, 12, 15]:
-        fig.line([x,x], [0,4], line_color='black', line_width=4, alpha=0.6)
-    for y in [0, 2, 4]:
-        fig.line([0, 15], [y, y], line_color='black', line_width=4, alpha=0.6)
-    for x in range(1, 15, 1):
-        fig.line([x,x], [0,4], line_color='black', line_width=1, line_alpha=0.6)
+    #B
+    fig_B = bk.figure(x_range=fig_R.x_range,
+                   toolbar_location=None, x_axis_location=None,
+                   plot_height=plot_height, plot_width=plot_width)
+        
+    fig_B.circle(x='labels', y='data_B', line_color=None, 
+                 fill_color={'field':'data_B', 'transform':color_mapper}, size=8, source=source)
+    fig_B.line(x='labels', y='data_B', line_color='black', source=source)
+    fig_B.yaxis.axis_label = 'B'
+    fig_B.ygrid.grid_line_color=None
+    fig_B.yaxis.minor_tick_line_color=None
 
-    #- overplot values
-    for y in range(img.shape[0]):
-        x = np.arange(img.shape[1])
-        text = list()
-        for value in img[y]:
-            if np.isnan(value):
-                text.append('')
-            else:
-                text.append('{:.1f}'.format(value))
+    #Z
+    fig_Z = bk.figure(x_range=fig_R.x_range,
+                   toolbar_location=None, x_axis_location=None,
+                   plot_height=plot_height, plot_width=plot_width)
 
-        fig.text(x/2+0.25, y+0.45, text, text_font_size='8pt', text_alpha=0.5, text_align='center', text_baseline='middle')
+    fig_Z.circle(x='labels', y='data_Z', line_color=None, 
+                 fill_color={'field':'data_Z', 'transform':color_mapper}, size=8, source=source)
+    fig_Z.line(x='labels', y='data_Z', line_color='black', source=source)
+    fig_Z.yaxis.axis_label = 'Z'
+    fig_Z.ygrid.grid_line_color=None
+    fig_Z.yaxis.minor_tick_line_color=None
 
-    # fig.x_range.start, fig.x_range.end = (-0.05, 30.05)
-    fig.y_range.start, fig.y_range.end = (-0.05, 4.05)
-    fig.yaxis.ticker = FixedTicker(ticks=[])
-    fig.yaxis.minor_tick_line_color = None
-
-    #- Add SP0 - SP4 labels along the top
-    fig.extra_x_ranges = {"top_spectrographs": FactorRange(*splabels_top)}
-    top_axis = bokeh.models.CategoricalAxis(x_range_name="top_spectrographs")
-
-    fig.add_layout(top_axis, 'above')
-
-    #- No ticks; make camera labels close to plot
-    fig.xaxis.major_tick_out = 0
-    fig.xaxis.major_label_standoff = 5
-
-    source = ColumnDataSource(data=dict(
-    x=x_data,
-    y=y_data,
-    name=name_data,
-    ))
-    fig.square('x', 'y', line_alpha=0.3, line_color='black', fill_alpha=0, size=29, source=source, name="squares")
-
-    taptool = fig.select(type=TapTool)
-    taptool.names = ["squares"]
-    taptool.callback = OpenURL(url="@name-4x.html")
-
+    fig = gridplot([[fig_R], [fig_B], [fig_Z], [axis]])
+    
     return fig
