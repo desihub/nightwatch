@@ -1,1 +1,1 @@
-from . import amp, fiber, camfiber
+from . import amp, fiber, camfiber, camera

@@ -291,6 +291,12 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
+    if 'PER_CAMERA' in qadata:
+        htmlfile = '{}/qa-camera-{:08d}.html'.format(outdir, expid)
+        pc = webpages.camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
+        plot_components.update(pc)
+        print('Wrote {}'.format(htmlfile))
+
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
     webpages.summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
