@@ -1,17 +1,19 @@
 import numpy as np
-
 import jinja2
-
 import bokeh
-import bokeh.plotting as bk
-from bokeh.embed import components
-
-from ..plots.fiber import plot_fibers
-from ..plots.camfiber import plot_per_camfiber
 import desimodel.io
+
+from bokeh.embed import components
+from bokeh.layouts import layout
+
+import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
 from astropy.table import Table, join, vstack#, hstack
 from ..plots.core import get_size
+
+
+from ..plots.fiber import plot_fibers
+from ..plots.camfiber import plot_per_camfiber
 
 
 def write_camfiber_html(outfile, data, header):
@@ -61,11 +63,19 @@ def write_camfiber_html(outfile, data, header):
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS, agg=SCATTER)
 
-
-    #- Gets the html components for each camfib plot in ATTRIBUTES
+    #- Gets the gridplots for each metric in ATTRIBUTES
+    gridlist = []
     for attr in ATTRIBUTES:
-        plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
-            titles=TITLESPERCAM, tools=TOOLS, scatter_fibernum=SCATTER)
+        metric_grid = plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
+            titles=TITLESPERCAM, tools=TOOLS)
+        gridlist.append(metric_grid)
+
+    #- Organizes the layout of the plots
+    camfiber_layout = layout(children=gridlist)
+
+    #- Gets the html components of the camfiber plots
+    script, div = components(camfiber_layout)
+    html_components['METRIC_PLOTS'] = dict(script=script, div=div)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)

@@ -1,20 +1,14 @@
-"""
-Placeholder: per-camera per-fiber plots
-"""
 import numpy as np
-
 import jinja2
-from astropy.table import Table
-
 import bokeh
-import bokeh.plotting as bk
-from bokeh.embed import components
 
-from ..plots.fiber import plot_fibers, plot_fibers_scatter
-from ..plots.core import get_colors
+from astropy.table import Table
+import bokeh.plotting as bk
 import bokeh.palettes as bp
 from bokeh.transform import linear_cmap
 
+from ..plots.fiber import plot_fibers, plot_fibers_scatter
+from ..plots.core import get_colors
 from ..plots.core import get_size
 
 def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
@@ -108,6 +102,6 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
 
 
-    figs = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
-    script, div = components(figs)
-    components_dict[attribute] = dict(script=script, div=div)
+    gridplot = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
+
+    return gridplot

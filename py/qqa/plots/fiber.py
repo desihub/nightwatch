@@ -122,6 +122,8 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
         #- adjusting histogram width for colorbar
         width = fig.plot_width - colorbar_offset
 
+    if not plot_hist:
+        return fig, None
 
     if not plot_hist:
         return fig, None
