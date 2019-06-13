@@ -32,10 +32,6 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
         tools, tooltips : supported plot interactivity features
         scatter_fibernum : boolean that scatterplots per fiber number instead of
             fiber position on the focal plane when True
-
-    ***MUTATES ARGUMENT
-    Updates COMPONENTS_DICT to include key-value pairs to the html components
-        for camfib attribute plot-bokeh gridplot object
     '''
     if attribute not in list(cds.data.keys()):
         return
