@@ -4,18 +4,25 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import layout
+from bokeh.layouts import gridplot
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
-from astropy.table import Table, join
+from astropy.table import Table, join, vstack
 
 from ..plots.fiber import plot_fibers
-from ..plots.camfiber import plot_per_camfiber
+from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum
 
 
 def write_camfiber_html(outfile, data, header):
-    '''TODO: document'''
+    '''
+    Args:
+        outfile : output directory for generated html file
+        data : fits file of per_camfiber data
+        header : fits file header
+
+    Writes the generated plots to OUTFILE
+    '''
 
     night = header['NIGHT']
     expid = header['EXPID']
@@ -40,7 +47,6 @@ def write_camfiber_html(outfile, data, header):
     #- List of attributes to plot per camfiber with default arguments
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
-
     #- Default cameras and percentile ranges for camfiber plots
     CAMERAS = ['B', 'R', 'Z']
     PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
@@ -49,21 +55,41 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = 'box_select,reset'
-
+    TOOLS = 'pan,box_zoom,reset'
+    FIBERNUM = True
 
     #- Gets a shared ColumnDataSource of DATA
-    cds = create_cds(data, ATTRIBUTES)
+    cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
-    #- Gets the gridplots for each metric in ATTRIBUTES
     gridlist = []
-    for attr in ATTRIBUTES:
-        metric_grid = plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
-            titles=TITLESPERCAM, tools=TOOLS)
-        gridlist.append(metric_grid)
 
-    #- Organizes the layout of the plots
-    camfiber_layout = layout(children=gridlist)
+    #- Gets the layout for the webpage (either focalplate or fibernum)
+
+    if FIBERNUM:
+        #- Gets the gridplots for each metric in ATTRIBUTES
+        for attr in ATTRIBUTES:
+            if attr in list(cds.data.keys()):
+                figs_list = plot_per_fibernum(
+                        cds, attr, CAMERAS, percentiles=PERCENTILES,
+                        titles=TITLESPERCAM, tools=TOOLS)
+
+                gridlist.extend(figs_list)
+
+        #- Organizes the layout of the plots
+        camfiber_layout = gridplot(gridlist, ncols=1)
+
+    else:
+        #- Gets the gridplots for each metric in ATTRIBUTES
+        for attr in ATTRIBUTES:
+            if attr in list(cds.data.keys()):
+                figs_list, hfigs_list = plot_camfib_focalplate(
+                        cds, attr, CAMERAS, percentiles=PERCENTILES,
+                        titles=TITLESPERCAM, tools=TOOLS)
+
+                gridlist.extend([figs_list, hfigs_list])
+
+        #- Organizes the layout of the plots
+        camfiber_layout = gridplot(gridlist, toolbar_location='right')
 
     #- Gets the html components of the camfiber plots
     script, div = components(camfiber_layout)
@@ -79,12 +105,17 @@ def write_camfiber_html(outfile, data, header):
     return html_components
 
 
-def create_cds(data, attributes):
+def get_cds(data, attributes, cameras):
     '''
-    Creates a ColumnDataSource object from DATA
+    Creates a column data source from DATA
     Args:
         data : a fits file of camfib data collected
         attributes : a list of metrics
+        cameras : a list of cameras
+    Options:
+    	agg : get an aggregated column data source
+    		to plot per fiber number instead of
+    		focal plate
 
     Returns a bokeh ColumnDataSource object
     '''
@@ -98,11 +129,23 @@ def create_cds(data, attributes):
     if len(data) > 0:
         data = join(data, fiberpos, keys='FIBER')
 
-        #- bytes vs. strings
-        for colname in data.colnames:
-            if data[colname].dtype.kind == 'S':
-                data[colname] = data[colname].astype(str)
+    #- bytes vs. strings
+    for colname in data.colnames:
+        if data[colname].dtype.kind == 'S':
+            data[colname] = data[colname].astype(str)
 
+    cds = create_cds(data, attributes)
+
+    return cds
+
+
+def create_cds(data, attributes):
+    '''
+    Creates a column data source from DATA with metrics in ATTRIBUTES
+    Args:
+        data : an astropy table of camfib data collected
+        attributes : a list of metrics
+    '''
     data_dict = dict({})
     for colname in data.dtype.names:
         if colname in attributes:
