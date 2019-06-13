@@ -49,22 +49,32 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
         qamax = np.max(data[name])    
     
     #unpacking data
-    spec_loc = []
-    amp_loc = []
+    spec_loc_R = []
+    amp_loc_R = []
+    spec_loc_B = []
+    amp_loc_B = []
+    spec_loc_Z = []
+    amp_loc_Z = []
     data_R = []
     data_B = []
     data_Z = []
     for row in data:
         if row['CAM'] in ('R', b'R'):
-            amp_loc.append(row['AMP'].decode('utf-8'))
-            spec_loc.append(str(row['SPECTRO']))
+            amp_loc_R.append(row['AMP'].decode('utf-8'))
+            spec_loc_R.append(str(row['SPECTRO']))
             data_R.append(row[name])
         if row['CAM'] in ('B', b'B'):
+            amp_loc_B.append(row['AMP'].decode('utf-8'))
+            spec_loc_B.append(str(row['SPECTRO']))
             data_B.append(row[name])
         if row['CAM'] in ('Z', b'Z'):
+            amp_loc_Z.append(row['AMP'].decode('utf-8'))
+            spec_loc_Z.append(str(row['SPECTRO']))
             data_Z.append(row[name])
     
-    locations = [(spec, amp) for spec in np.unique(spec_loc) for amp in amp_loc]
+    locations_R = [(spec, amp) for spec in np.unique(spec_loc_R) for amp in np.unique(amp_loc_R)]
+    locations_B = [(spec, amp) for spec in np.unique(spec_loc_B) for amp in np.unique(amp_loc_B)]
+    locations_Z = [(spec, amp) for spec in np.unique(spec_loc_Z) for amp in np.unique(amp_loc_Z)]
     
     colors_Z = get_amp_colors(data_Z, qamax)
     colors_R = get_amp_colors(data_R, qamax)
@@ -77,7 +87,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
         data_R=data_R,
         data_B=data_B,
         data_Z=data_Z,
-        locations=locations,
+        locations_R=locations_R,
+        locations_B = locations_B,
+        locations_Z = locations_Z,
         colors_Z=colors_Z,
         colors_B=colors_B,
         colors_R=colors_R,
@@ -99,9 +111,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
     fig_R = bk.figure(x_range=axis.x_range, 
                       toolbar_location=None, plot_height=plot_height, 
                       plot_width=plot_width, x_axis_location=None)
-    fig_R.circle(x='locations', y='data_R', line_color=None, 
+    fig_R.circle(x='locations_R', y='data_R', line_color=None, 
                  fill_color='colors_R', size='sizes_R', source=source)
-    fig_R.line(x='locations', y='data_R', line_color='black', source=source)
+    fig_R.line(x='locations_R', y='data_R', line_color='black', source=source)
     fig_R.yaxis.axis_label = 'R'
     fig_R.yaxis.minor_tick_line_color=None
     fig_R.ygrid.grid_line_color=None
@@ -110,9 +122,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
     fig_B = bk.figure(x_range=axis.x_range, toolbar_location=None, x_axis_location=None,
                    plot_height=plot_height+25, plot_width=plot_width, title=title)
         
-    fig_B.circle(x='locations', y='data_B', line_color=None, 
+    fig_B.circle(x='locations_B', y='data_B', line_color=None, 
                  fill_color='colors_B', size='sizes_B', source=source)
-    fig_B.line(x='locations', y='data_B', line_color='black', source=source)
+    fig_B.line(x='locations_B', y='data_B', line_color='black', source=source)
     fig_B.yaxis.axis_label = 'B'
     fig_B.ygrid.grid_line_color=None
     fig_B.yaxis.minor_tick_line_color=None
@@ -121,9 +133,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
     fig_Z = bk.figure(x_range=axis.x_range, toolbar_location=None, x_axis_location=None,
                    plot_height=plot_height, plot_width=plot_width)
 
-    fig_Z.circle(x='locations', y='data_Z', line_color=None, 
+    fig_Z.circle(x='locations_Z', y='data_Z', line_color=None, 
                  fill_color='colors_Z', size='sizes_Z', source=source)
-    fig_Z.line(x='locations', y='data_Z', line_color='black', source=source)
+    fig_Z.line(x='locations_Z', y='data_Z', line_color='black', source=source)
     fig_Z.yaxis.axis_label = 'Z'
     fig_Z.ygrid.grid_line_color=None
     fig_Z.yaxis.minor_tick_line_color=None
