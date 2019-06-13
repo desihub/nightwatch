@@ -31,7 +31,7 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
         tools, tooltips : supported plot interactivity features
     '''
     if attribute not in list(cds.data.keys()):
-        return
+        raise ValueError('{} not in cds.data.keys'.format(attribute))
 
     metric = np.array(cds.data.get(attribute), copy=True)
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
@@ -142,22 +142,22 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
             but the output webpages do not seem to support the linked features
         """
         first_x_range = bokeh.models.Range1d(0, 5000)
-        first_y_range = None
+        # first_y_range = None
 
         #- shared ranges to support linked features
         if not figs_list:
             fig_x_range = first_x_range
-            fig_y_range = first_y_range
+            # fig_y_range = first_y_range
         else:
             fig_x_range = figs_list[0].x_range
-            fig_y_range = figs_list[0].y_range
+            # fig_y_range = figs_list[0].y_range
 
         fig = plot_fibernums(cds, attribute, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute), tools=tools,
                         tooltips=tooltips, toolbar_location=None,
                         hist_x_range=hist_x_range, fig_x_range=fig_x_range,
-                        fig_y_range=fig_y_range,)
+                        )
 
         figs_list.append(fig)
 

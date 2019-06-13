@@ -55,8 +55,8 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = 'pan,box_select,reset'
-    FIBERNUM = False
+    TOOLS = 'pan,box_zoom,reset'
+    FIBERNUM = True
 
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
@@ -64,13 +64,16 @@ def write_camfiber_html(outfile, data, header):
     gridlist = []
 
     #- Gets the layout for the webpage (either focalplate or fibernum)
+
     if FIBERNUM:
         #- Gets the gridplots for each metric in ATTRIBUTES
         for attr in ATTRIBUTES:
-            figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                         titles=TITLESPERCAM, tools=TOOLS)
+            if attr in list(cds.data.keys()):
+                figs_list = plot_per_fibernum(
+                        cds, attr, CAMERAS, percentiles=PERCENTILES,
+                        titles=TITLESPERCAM, tools=TOOLS)
 
-            gridlist.extend(figs_list)
+                gridlist.extend(figs_list)
 
         #- Organizes the layout of the plots
         camfiber_layout = gridplot(gridlist, ncols=1)
@@ -78,10 +81,12 @@ def write_camfiber_html(outfile, data, header):
     else:
         #- Gets the gridplots for each metric in ATTRIBUTES
         for attr in ATTRIBUTES:
-            figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                     titles=TITLESPERCAM, tools=TOOLS)
+            if attr in list(cds.data.keys()):
+                figs_list, hfigs_list = plot_camfib_focalplate(
+                        cds, attr, CAMERAS, percentiles=PERCENTILES,
+                        titles=TITLESPERCAM, tools=TOOLS)
 
-            gridlist.extend([figs_list, hfigs_list])
+                gridlist.extend([figs_list, hfigs_list])
 
         #- Organizes the layout of the plots
         camfiber_layout = gridplot(gridlist, toolbar_location='right')
