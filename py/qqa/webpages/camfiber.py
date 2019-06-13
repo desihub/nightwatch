@@ -4,7 +4,7 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import column
+from bokeh.layouts import gridplot
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
