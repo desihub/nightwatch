@@ -38,13 +38,13 @@ def write_camfiber_html(outfile, data, header):
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('camfiber.html')
-    fibernum_template = env.get_template('fibernum.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
         flavor=flavor, program=program, qatype = 'camfiber',
     )
+
 
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
@@ -56,65 +56,67 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = 'pan,box_select,reset'
+    TOOLS = 'pan,box_zoom,reset'
 
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
-
-    #- Gets the layout for the focal plate plots
-    focalplate_gridlist = []
-    #- Gets the gridplots for each metric in ATTRIBUTES
-    for attr in ATTRIBUTES:
-        figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                 titles=TITLESPERCAM, tools=TOOLS)
-
-        focalplate_gridlist.extend([figs_list, hfigs_list])
-
-    #- Organizes the layout of the plots
-    fp_camfiber_layout = gridplot(gridlist, toolbar_location='right')
-
-    #- Gets the html components of the camfiber plots
-    script, div = components(fp_camfiber_layout)
-    html_components['FOCALPLATE_PLOTS'] = dict(script=script, div=div)
-
-    #- Combine template + components -> HTML
-    html = template.render(**html_components)
-
-    #- Write HTML text to the output file
-    with open(outfile, 'w') as fx:
-        fx.write(html)
 
     #- Gets the layout for the fibernum plots
     fibernum_gridlist = []
     #- Gets the gridplots for each metric in ATTRIBUTES
     for attr in ATTRIBUTES:
-        #- TODO: aggregation later (box and whisker) or binning?
-        figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                     titles=TITLESPERCAM, tools=TOOLS)
+        #- TODO: aggregation later (box and whisker) or binning
+        if attr in list(cds.data.keys()):
+            figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
+                                         titles=TITLESPERCAM, tools=TOOLS)
 
-        fibernum_gridlist.extend(figs_list)
+            fibernum_gridlist.extend(figs_list)
 
     #- Organizes the layout of the plots
     fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1)
 
-    #- Gets the html components of the camfiber plots
+    #- Gets the html components of the fibernum plots
     script, div = components(fn_camfiber_layout)
     html_components['FIBERNUM_PLOTS'] = dict(script=script, div=div)
-
     #- Combine template + components -> HTML
-    html = template.render(**html_components)
+    html_fibernum = template.render(**html_components)
 
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
-        fx.write(html)
+        fx.write(html_fibernum)
 
 
+    focalplate_template = env.get_template('focalplate.html')
+    #- Gets the layout for the focal plate plots
+    focalplate_gridlist = []
+    #- Gets the gridplots for each metric in ATTRIBUTES
+    for attr in ATTRIBUTES:
+        if attr in list(cds.data.keys()):
+            figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
+                                     titles=TITLESPERCAM, tools=TOOLS)
+
+            focalplate_gridlist.extend([figs_list, hfigs_list])
+
+    #- Organizes the layout of the plots
+    fp_camfiber_layout = gridplot(gridlist, toolbar_location='right')
+
+    #- Gets the html components of the focalplate plots
+    script, div = components(fp_camfiber_layout)
+    html_components['FOCALPLATE_PLOTS'] = dict(script=script, div=div)
+    #- Combine template + components -> HTML
+    html_focalplate = focalplate_template.render(**html_components)
+
+    #- Write HTML text to the output file
+    print('outfile is ' + outfile)
+    with open(outfile, 'w') as fx:
+        print('will write focalplate plots')
+        # fx.write(html_focalplate)
 
     return html_components
 
 
 
-def get_cds(data, attributes, cameras, agg=False):
+def get_cds(data, attributes, cameras):
 	'''
     Creates a column data source from DATA
     Args:
@@ -170,57 +172,3 @@ def create_cds(data, attributes):
     cds = ColumnDataSource(data=data_dict)
 
     return cds
-
-
-def aggregate_by_fibernums(data):
-    '''
-    Bins DATA by fiber number by binning the data per camera
-    and then vertically stacking them
-    Args:
-        data : a full astropy table of camfiber data
-
-    Returns an astropy table object
-    '''
-    cams = ['B', 'R', 'Z']
-    cam_stacks = []
-    #- get the subtables for each camera
-    for c in cams:
-        c_table = bin_subtable(data, c)
-        cam_stacks.append(c_table)
-
-    return vstack(cam_stacks)
-
-def bin_subtable(data, cam, agg_func=np.mean, num_bins=100):
-    '''
-    Aggregates DATA by fiber number into NUM_BINS to prevent overplotting
-    Args:
-        data : an astropy table of camfiber data filtered by CAM
-        cam : a string representation of a camera filter (i.e. 'B', 'R', 'Z')
-    Options:
-        agg_func : function to use for aggregation
-        num_bins : number of bins to aggregate into
-
-    Returns an astropy table object
-    '''
-    #- Filters to only CAM data
-    mask = np.char.upper(np.array(data['CAM'])) == cam.upper()
-    data = data[mask]
-
-    #- Generates bins
-    fiber_bins = np.array(data['FIBER']) // num_bins
-    data = data.group_by(fiber_bins)
-
-    #- replaces the CAM, DEVICE_TYPE column at the end to avoid aggregation warnings
-    #- from string columns
-    data.remove_column('CAM')
-
-    #- TODO: DEVICE_TYPE, CAM columns dropped
-    data = data.groups.aggregate(agg_func)
-
-    #- replaces the CAM, DEVICE_TYPE column
-    data['CAM'] = cam
-    #- redo the FIBER column to correspond to group numbers
-    data['FIBER'] = np.array(data['FIBER']) // num_bins
-    data['FIBER'] = data['FIBER'].astype(int)
-
-    return data
