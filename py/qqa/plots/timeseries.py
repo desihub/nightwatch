@@ -27,8 +27,11 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         for i,j,y in os.walk(date):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
-                    #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
-                    list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                    try:
+                        #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
+                        list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                    except Exception as e:
+                        print("{} does not have desired hdu or column".format(file))
 
     if list_tables == []:
         return None
