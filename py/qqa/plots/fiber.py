@@ -144,10 +144,10 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
     return fig, hfig
 
 
-def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
+def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                fig_x_range=None, fig_y_range=None, colorbar=False, palette=None,
-                plot_hist=True, tools='pan,box_select,reset', tooltips=None):
+                fig_x_range=None, fig_y_range=None, colorbar=True, palette=None,
+                tools='pan,box_select,reset', toolbar_location=None, tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -159,12 +159,10 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
         percentile : (min,max) percentiles to clip data
         width, height : width and height of graph in pixels
         title : title for the plot
-        tools : string of supported features for the plot
-        tooltips : hovertool info
+        tools, tooltips, toolbar_location : supported features for the plot
         hist_x_range, fig_x_range, fig_y_range : figure ranges to support linking
         palette : bokeh palette of colors
         colorbar : boolean value to add a color bar
-        plot_hist : boolean value to add a histogram
 
     Generates a scatterplot of a metric based on its fiber number
     Generates a histogram of NAME values per fiber
@@ -173,7 +171,6 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
     #- Will that break when plotting fiber plots individually?
     #- What will break if you try and pass in a column data source with metric-cam columns
     #- instead of full metric columns?
-
     full_metric = np.array(source.data.get(name), copy=True)
     #- adjusts for outliers on the full scale
     pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
@@ -193,8 +190,7 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
 
     #- Plot only the fibers which measured the metric
-    s = fig.scatter('FIBER', name, source=source, view=view_metric, color=mapper,
-                        radius=2, alpha=0.5)
+    s = fig.scatter('FIBER', name, source=source, view=view_metric, color=mapper, alpha=0.5)
 
     #- Add hover tool
     if not tooltips:
@@ -208,44 +204,10 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
     #- style visual attributes of the figure
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
-#     fig.xaxis.major_tick_line_color = None
-#     fig.xaxis.minor_tick_line_color = None
-#     fig.yaxis.major_tick_line_color = None
-#     fig.yaxis.minor_tick_line_color = None
     fig.outline_line_color = None
     fig.xaxis.axis_line_color = camcolors[cam]
     fig.yaxis.axis_line_color = camcolors[cam]
-#     fig.xaxis.major_label_text_font_size = '0pt'
-#     fig.yaxis.major_label_text_font_size = '0pt'
     fig.xaxis.major_label_orientation = math.pi/4
     fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
-
-    #- Add colorbar
-    if colorbar:
-        fig.plot_width = fig.plot_width + 60
-        colorbar_offset = 12
-        color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=colorbar_offset,
-                border_line_color=None, location=(0,0), ticker=BasicTicker(), width=10,
-                formatter=NumeralTickFormatter(format='0.0a'))
-        fig.add_layout(color_bar, 'right')
-        #- adjusting histogram width for colorbar
-        width = fig.plot_width - colorbar_offset
-
-    if not plot_hist:
-        return fig, None
-
-    #- Histogram of values
-    metric = full_metric[booleans_metric]
-
-    if any(booleans_metric):
-        if percentile:
-            pmin, pmax = np.percentile(metric, percentile)
-            metric = np.clip(metric, pmin, pmax)
-        if zmin or zmax:
-            metric = np.clip(metric, zmin, zmax)
-
-    hfig = plot_histogram(metric, title=name, width=width, x_range=hist_x_range, num_bins=50,
-                         palette=mapper['transform'].palette, low=pmin_full, high=pmax_full)
-
-    return fig, hfig
+    return fig
