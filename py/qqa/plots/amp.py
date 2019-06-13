@@ -52,7 +52,7 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9",
     #R
     fig_R = bk.figure(x_range=axis.x_range, toolbar_location=None, 
                plot_height=plot_height, plot_width=plot_width,
-               x_axis_location=None)
+               x_axis_location=None, title=title)
 
     if qamin is None:
         qamin = np.min(data[name])
