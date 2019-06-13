@@ -108,7 +108,7 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
 
     #B
     fig_B = bk.figure(x_range=axis.x_range, toolbar_location=None, x_axis_location=None,
-                   plot_height=plot_height, plot_width=plot_width, title=title)
+                   plot_height=plot_height+25, plot_width=plot_width, title=title)
         
     fig_B.circle(x='locations', y='data_B', line_color=None, 
                  fill_color='colors_B', size='sizes_B', source=source)
@@ -128,7 +128,6 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
     fig_Z.ygrid.grid_line_color=None
     fig_Z.yaxis.minor_tick_line_color=None
 
-    fig = gridplot([[fig_B], [fig_R], [fig_Z]], toolbar_location=None, plot_height=plot_height)
-    fig1 = column(fig, axis)
+    fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location=None)
     
-    return fig1
+    return fig
