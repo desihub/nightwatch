@@ -94,3 +94,36 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     hfig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
     return hfig
+
+
+def boxplot(q1, q2, q3, upper, lower, outliers_list, fig, xpos, color='gray'):
+    # outliers
+    if any(outliers):
+        fig.circle([x] * len(outliers), outliers,
+                   size=1, color="#F38630", fill_alpha=0.6)
+        alpha = 0.5
+    else:
+        #- fade out boxplots without outliers to prevent overplotting
+        alpha = 0.1
+
+    # stems
+    fig.segment(xpos, upper, xpos, q3,
+                line_color=color, alpha=alpha)
+    fig.segment(xpos, lower, xpos, q1,
+                line_color=color, alpha=alpha)
+
+    # boxes
+    fig.vbar(xpos, width=1, q2, q3,
+             fill_color="#E08E79", line_color="black", alpha=alpha)
+    fig.vbar(xpos, width=1, q1, q2,
+             fill_color="#3B8686", line_color="black", alpha=alpha)
+
+    # whiskers
+    fig.rect(xpos, lower, 1, 0.01, line_color=color, alpha=alpha)
+    fig.rect(xpos, upper, 1, 0.01, line_color=color, alpha=alpha)
+
+    #- style
+    fig.xgrid.grid_line_color = None
+    fig.ygrid.grid_line_color = None
+    fig.grid.grid_line_width = 2
+    fig.xaxis.major_label_text_font_size="12pt"

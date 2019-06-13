@@ -162,3 +162,24 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
         figs_list.append(fig)
 
     return figs_list
+
+
+
+def binned_boxplots_per_metric(cds, attribute, cameras, width=800, height=200):
+    '''TODO: document'''
+    gridlist = []
+    for c in cameras:
+        summarystats = cds.data[attribute]
+        fig = bk.figure(width=width, height=height)
+
+        #- one boxplot per bin
+        for i in range(len(summarystats)):
+            fiber_boxplot(summarystats[i], fig, i, cam=c)
+
+        #- add camera label
+        fig.yaxis.axis_label = c
+
+        gridlist.append(fig)
+
+    gridplot = bk.gridplot(gridlist, ncols=1)
+    return gridplot
