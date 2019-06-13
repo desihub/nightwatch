@@ -98,31 +98,34 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     return hfig
 
 
-def get_size(obj, seen=None):
-    """Recursively finds size of objects in bytes"""
-    size = sys.getsizeof(obj)
-    if seen is None:
-        seen = set()
-    obj_id = id(obj)
-    if obj_id in seen:
-        return 0
-    # Important mark as seen *before* entering recursion to gracefully handle
-    # self-referential objects
-    seen.add(obj_id)
-    if hasattr(obj, '__dict__'):
-        for cls in obj.__class__.__mro__:
-            if '__dict__' in cls.__dict__:
-                d = cls.__dict__['__dict__']
-                if inspect.isgetsetdescriptor(d) or inspect.ismemberdescriptor(d):
-                    size += get_size(obj.__dict__, seen)
-                break
-    if isinstance(obj, dict):
-        size += sum((get_size(v, seen) for v in obj.values()))
-        size += sum((get_size(k, seen) for k in obj.keys()))
-    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray, type)):
-        size += sum([get_size(i, seen) for i in obj])
+def boxplot(q1, q2, q3, upper, lower, outliers_list, fig, xpos, color='gray'):
+    # outliers
+    if any(outliers):
+        fig.circle([x] * len(outliers), outliers,
+                   size=1, color="#F38630", fill_alpha=0.6)
+        alpha = 0.5
+    else:
+        #- fade out boxplots without outliers to prevent overplotting
+        alpha = 0.1
 
-    if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
-        size += sum(get_size(getattr(obj, s), seen) for s in obj.__slots__ if hasattr(obj, s))
+    # stems
+    fig.segment(xpos, upper, xpos, q3,
+                line_color=color, alpha=alpha)
+    fig.segment(xpos, lower, xpos, q1,
+                line_color=color, alpha=alpha)
 
-    return size
+    # boxes
+    fig.vbar(xpos, width=1, q2, q3,
+             fill_color="#E08E79", line_color="black", alpha=alpha)
+    fig.vbar(xpos, width=1, q1, q2,
+             fill_color="#3B8686", line_color="black", alpha=alpha)
+
+    # whiskers
+    fig.rect(xpos, lower, 1, 0.01, line_color=color, alpha=alpha)
+    fig.rect(xpos, upper, 1, 0.01, line_color=color, alpha=alpha)
+
+    #- style
+    fig.xgrid.grid_line_color = None
+    fig.ygrid.grid_line_color = None
+    fig.grid.grid_line_width = 2
+    fig.xaxis.major_label_text_font_size="12pt"

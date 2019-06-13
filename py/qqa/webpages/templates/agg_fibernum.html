@@ -10,19 +10,18 @@
  </ul>
  {% endblock %}
 
- {% if AGGFIB_PLOTS %}
+ {% if FOCALPLATE_PLOTS %}
  <ul class="navigationbar">
-   <li style="float:right"><a id="agg_fibernum_plots"
-     href="qa-camfiber-{{ zexpid }}.html/agg_fibernum_plots">FOCALPLATE Plots</a></li>
+   <li style="float:right"><a id="focalplate_plots"
+     href="qa-camfiber-{{ zexpid }}.html/focalplate_plots">FOCALPLATE Plots</a></li>
  </ul>
  {% endblock %}
 
-
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-{% if FOCALPLATE_PLOTS %}
+{% if AGGFIB_PLOTS %}
     <div>
-        {{ FOCALPLATE_PLOTS.script }} {{ FOCALPLATE_PLOTS.div }}
+        {{ AGGFIB_PLOTS.script }} {{ AGG_PLOTS.div }}
     </div>
 {% endif %}
 

@@ -249,3 +249,16 @@ def plot_fibers_scatter(source, name, cam='', width=250, height=270, zmin=None,
                          palette=mapper['transform'].palette, low=pmin_full, high=pmax_full)
 
     return fig, hfig
+
+
+
+def fiber_boxplot(summarystat, fig, fiberbin, cam=''):
+    '''TODO: document'''
+
+    cam_colors = dict(B='blue', R='red', Z='black')
+    color = cam_colors.get(cam, 'gray')
+
+    # outliers
+    outliers = summarystat['outliers']
+    boxplot(summarystat['q1'], summarystat['q2'], summarystat['q3'],
+        summarystat['upper'], summarystat['lower'], outliers, fig, xpos, color=color)

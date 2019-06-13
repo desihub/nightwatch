@@ -10,6 +10,13 @@
  </ul>
  {% endblock %}
 
+ {% if AGGFIB_PLOTS %}
+ <ul class="navigationbar">
+   <li style="float:right"><a id="agg_fibernum_plots"
+     href="qa-camfiber-{{ zexpid }}.html/agg_fibernum_plots">FOCALPLATE Plots</a></li>
+ </ul>
+ {% endblock %}
+
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
 {% if FIBERNUM_PLOTS %}

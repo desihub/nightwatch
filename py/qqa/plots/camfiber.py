@@ -34,7 +34,7 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
             fiber position on the focal plane when True
     '''
     if attribute not in list(cds.data.keys()):
-        return
+        raise ValueError('{} not in cds.data.keys'.format(attribute))
 
     metric = np.array(cds.data.get(attribute), copy=True)
     #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
@@ -100,4 +100,25 @@ def plot_per_camfiber(cds, attribute, cameras, components_dict, percentiles={},
 
     gridplot = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
 
+    return gridplot
+
+
+
+def binned_boxplots_per_metric(cds, attribute, cameras, width=800, height=200):
+    '''TODO: document'''
+    gridlist = []
+    for c in cameras:
+        summarystats = cds.data[attribute]
+        fig = bk.figure(width=width, height=height)
+
+        #- one boxplot per bin
+        for i in range(len(summarystats)):
+            fiber_boxplot(summarystats[i], fig, i, cam=c)
+
+        #- add camera label
+        fig.yaxis.axis_label = c
+
+        gridlist.append(fig)
+
+    gridplot = bk.gridplot(gridlist, ncols=1)
     return gridplot
