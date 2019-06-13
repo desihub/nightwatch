@@ -36,6 +36,22 @@ def get_amp_size(data, threshold):
             sizes.append(6)
     return sizes
 
+def isolate_spec_lines(data_locs, data):
+    '''function to generate isolated data sets so that each spectrograph has an isolated line'''
+    ids = [0]
+    for i in range(len(data_locs)-1):
+        if data_locs[i][0] == data_locs[i+1][0]:
+            continue
+        if data_locs[i][0] != data_locs[i+1][0]:
+            ids.append(i+1)
+    ids.append(len(data_locs))
+    spec_groups = []
+    data_groups = []
+    for i in range(len(ids)-1):
+        spec_groups.append(data_locs[ids[i]:ids[i+1]])
+        data_groups.append(data[ids[i]:ids[i+1]])
+    return spec_groups, data_groups
+
 def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
                 plot_width=700):
     '''Plot a per-amp visualization of data[name]
@@ -72,9 +88,22 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
             spec_loc_Z.append(str(row['SPECTRO']))
             data_Z.append(row[name])
     
-    locations_R = [(spec, amp) for spec in np.unique(spec_loc_R) for amp in np.unique(amp_loc_R)]
-    locations_B = [(spec, amp) for spec in np.unique(spec_loc_B) for amp in np.unique(amp_loc_B)]
-    locations_Z = [(spec, amp) for spec in np.unique(spec_loc_Z) for amp in np.unique(amp_loc_Z)]
+    spec_loc, ids = np.unique(spec_loc_R, return_index=True)
+    spec_loc_R = np.array(spec_loc_R)[np.sort(ids)]
+    amp_loc, ids = np.unique(amp_loc_R, return_index=True)
+    amp_loc_R = np.array(amp_loc_R)[np.sort(ids)]
+    spec_loc, ids = np.unique(spec_loc_B, return_index=True)
+    spec_loc_B = np.array(spec_loc_B)[np.sort(ids)]
+    amp_loc, ids = np.unique(amp_loc_B, return_index=True)
+    amp_loc_B = np.array(amp_loc_B)[np.sort(ids)]
+    spec_loc, ids = np.unique(spec_loc_Z, return_index=True)
+    spec_loc_Z = np.array(spec_loc_Z)[np.sort(ids)]
+    amp_loc, ids = np.unique(amp_loc_Z, return_index=True)
+    amp_loc_Z = np.array(amp_loc_Z)[np.sort(ids)]
+    
+    locations_R = [(spec, amp) for spec in spec_loc_R for amp in amp_loc_R]
+    locations_B = [(spec, amp) for spec in spec_loc_B for amp in amp_loc_B]
+    locations_Z = [(spec, amp) for spec in spec_loc_Z for amp in amp_loc_Z]
     
     colors_Z = get_amp_colors(data_Z, qamax)
     colors_R = get_amp_colors(data_R, qamax)
@@ -113,7 +142,11 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
                       plot_width=plot_width, x_axis_location=None)
     fig_R.circle(x='locations_R', y='data_R', line_color=None, 
                  fill_color='colors_R', size='sizes_R', source=source)
-    fig_R.line(x='locations_R', y='data_R', line_color='black', source=source)
+    
+    spec_groups, data_groups = isolate_spec_lines(locations_R, data_R)
+    for i in range(len(spec_groups)):
+        fig_R.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+
     fig_R.yaxis.axis_label = 'R'
     fig_R.yaxis.minor_tick_line_color=None
     fig_R.ygrid.grid_line_color=None
@@ -124,7 +157,11 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
         
     fig_B.circle(x='locations_B', y='data_B', line_color=None, 
                  fill_color='colors_B', size='sizes_B', source=source)
-    fig_B.line(x='locations_B', y='data_B', line_color='black', source=source)
+    
+    spec_groups, data_groups = isolate_spec_lines(locations_B, data_B)
+    for i in range(len(spec_groups)):
+        fig_B.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+        
     fig_B.yaxis.axis_label = 'B'
     fig_B.ygrid.grid_line_color=None
     fig_B.yaxis.minor_tick_line_color=None
@@ -135,7 +172,11 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
 
     fig_Z.circle(x='locations_Z', y='data_Z', line_color=None, 
                  fill_color='colors_Z', size='sizes_Z', source=source)
-    fig_Z.line(x='locations_Z', y='data_Z', line_color='black', source=source)
+    
+    spec_groups, data_groups = isolate_spec_lines(locations_Z, data_Z)
+    for i in range(len(spec_groups)):
+        fig_Z.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+    
     fig_Z.yaxis.axis_label = 'Z'
     fig_Z.ygrid.grid_line_color=None
     fig_Z.yaxis.minor_tick_line_color=None
