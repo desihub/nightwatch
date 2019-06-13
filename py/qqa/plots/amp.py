@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
@@ -22,8 +22,21 @@ def get_amp_colors(data, threshold):
             colors.append('red')
     return colors
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", 
-                qamin=None, qamax=None, plot_height=100, 
+def get_amp_size(data, threshold):
+    '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
+    we allow for individual amplifiers to have different thresholds).
+    Input: array of amplifier metric data, upper threshold (float)
+    Output: array of sizes for markers to be put into a ColumnDataSource
+    '''
+    sizes = []
+    for i in range(len(data)):
+        if data[i] < threshold:
+            sizes.append(4)
+        if data[i] >= threshold:
+            sizes.append(6)
+    return sizes
+
+def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
                 plot_width=700):
     '''Plot a per-amp visualization of data[name]
     qamin/qamax: min/max ranges for the color scale'''
@@ -56,6 +69,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9",
     colors_Z = get_amp_colors(data_Z, qamax)
     colors_R = get_amp_colors(data_R, qamax)
     colors_B = get_amp_colors(data_B, qamax)
+    sizes_Z = get_amp_size(data_Z, qamax)
+    sizes_R = get_amp_size(data_R, qamax)
+    sizes_B = get_amp_size(data_B, qamax)
    
     source = ColumnDataSource(data=dict(
         data_R=data_R,
@@ -65,6 +81,9 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9",
         colors_Z=colors_Z,
         colors_B=colors_B,
         colors_R=colors_R,
+        sizes_Z=sizes_Z,
+        sizes_B=sizes_B,
+        sizes_R=sizes_R,
     ))
     
     #x-axis
@@ -77,11 +96,11 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9",
     axis.outline_line_color=None
     
     #R
-    fig_R = bk.figure(x_range=axis.x_range, toolbar_location=None, plot_height=plot_height, 
-                      plot_width=plot_width, x_axis_location=None, 
-                      title=title)
+    fig_R = bk.figure(x_range=axis.x_range, 
+                      toolbar_location=None, plot_height=plot_height, 
+                      plot_width=plot_width, x_axis_location=None)
     fig_R.circle(x='locations', y='data_R', line_color=None, 
-                 fill_color='colors_R', size=8, source=source)
+                 fill_color='colors_R', size='sizes_R', source=source)
     fig_R.line(x='locations', y='data_R', line_color='black', source=source)
     fig_R.yaxis.axis_label = 'R'
     fig_R.yaxis.minor_tick_line_color=None
@@ -89,10 +108,10 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9",
 
     #B
     fig_B = bk.figure(x_range=axis.x_range, toolbar_location=None, x_axis_location=None,
-                   plot_height=plot_height, plot_width=plot_width)
+                   plot_height=plot_height, plot_width=plot_width, title=title)
         
     fig_B.circle(x='locations', y='data_B', line_color=None, 
-                 fill_color='colors_B', size=8, source=source)
+                 fill_color='colors_B', size='sizes_B', source=source)
     fig_B.line(x='locations', y='data_B', line_color='black', source=source)
     fig_B.yaxis.axis_label = 'B'
     fig_B.ygrid.grid_line_color=None
@@ -103,12 +122,13 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9",
                    plot_height=plot_height, plot_width=plot_width)
 
     fig_Z.circle(x='locations', y='data_Z', line_color=None, 
-                 fill_color='colors_Z', size=8, source=source)
+                 fill_color='colors_Z', size='sizes_Z', source=source)
     fig_Z.line(x='locations', y='data_Z', line_color='black', source=source)
     fig_Z.yaxis.axis_label = 'Z'
     fig_Z.ygrid.grid_line_color=None
     fig_Z.yaxis.minor_tick_line_color=None
 
-    fig = gridplot([[fig_R], [fig_B], [fig_Z], [axis]])
+    fig = gridplot([[fig_B], [fig_R], [fig_Z]], toolbar_location=None, plot_height=plot_height)
+    fig1 = column(fig, axis)
     
-    return fig
+    return fig1
