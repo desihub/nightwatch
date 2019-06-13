@@ -3,7 +3,6 @@ import argparse, jinja2
 import bokeh
 from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
-from pkg_resources import resource_filename
 
 app = Flask(__name__)
 stat = ""
