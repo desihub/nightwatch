@@ -9,7 +9,7 @@ from bokeh.transform import linear_cmap
 
 from ..plots.fiber import plot_fibers, plot_fibernums
 from ..plots.core import get_colors
-from ..plots.core import get_size
+
 
 def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
                       zmaxs={}, zmins={}, titles={}, tools=None):
@@ -88,10 +88,7 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
         figs_list.append(fig)
         hfigs_list.append(hfig)
 
-
-    gridplot = bk.gridplot([figs_list, hfigs_list], toolbar_location='right')
-
-    return gridplot
+    return figs_list, hfigs_list
 
 
 
@@ -164,6 +161,4 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
 
         figs_list.append(fig)
 
-    gridplot = bk.gridplot(figs_list, ncols=1, toolbar_location='above')
-
-    return gridplot
+    return figs_list

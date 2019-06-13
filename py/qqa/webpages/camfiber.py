@@ -4,13 +4,11 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import layout
+from bokeh.layouts import column
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
 from astropy.table import Table, join, vstack
-from ..plots.core import get_size
-
 
 from ..plots.fiber import plot_fibers
 from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum
@@ -58,25 +56,35 @@ def write_camfiber_html(outfile, data, header):
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_select,reset'
-    SCATTER = True
+    FIBERNUM = False
 
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
-    if SCATTER:
-        func = plot_per_fibernum
-    else:
-        func = plot_camfib_focalplate
-
-    #- Gets the gridplots for each metric in ATTRIBUTES
     gridlist = []
-    for attr in ATTRIBUTES:
-        metric_grid = func(cds, attr, CAMERAS, percentiles=PERCENTILES,
-            titles=TITLESPERCAM, tools=TOOLS)
-        gridlist.append(metric_grid)
 
-    #- Organizes the layout of the plots
-    camfiber_layout = layout(children=gridlist)
+    #- Gets the layout for the webpage (either focalplate or fibernum)
+    if FIBERNUM:
+        #- Gets the gridplots for each metric in ATTRIBUTES
+        for attr in ATTRIBUTES:
+            figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
+                                         titles=TITLESPERCAM, tools=TOOLS)
+
+            gridlist.extend(figs_list)
+
+        #- Organizes the layout of the plots
+        camfiber_layout = gridplot(gridlist, ncols=1)
+
+    else:
+        #- Gets the gridplots for each metric in ATTRIBUTES
+        for attr in ATTRIBUTES:
+            figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
+                                     titles=TITLESPERCAM, tools=TOOLS)
+
+            gridlist.extend([figs_list, hfigs_list])
+
+        #- Organizes the layout of the plots
+        camfiber_layout = gridplot(gridlist, toolbar_location='right')
 
     #- Gets the html components of the camfiber plots
     script, div = components(camfiber_layout)

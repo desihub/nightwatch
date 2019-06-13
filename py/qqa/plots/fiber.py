@@ -18,7 +18,6 @@ import bokeh.palettes as bp
 from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter
 import math
 from ..plots.core import get_colors, plot_histogram
-from ..plots.core import get_size
 
 
 def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
@@ -146,8 +145,8 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
 
 def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
                 zmax=None, percentile=None, title=None, hist_x_range=None,
-                fig_x_range=None, fig_y_range=None, colorbar=True, palette=None,
-                tools='pan,box_select,reset', toolbar_location=None, tooltips=None):
+                fig_x_range=None, fig_y_range=None, tools='pan,box_select,reset',
+                toolbar_location=None, tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -175,10 +174,8 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
     #- adjusts for outliers on the full scale
     pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
 
-    #- Generate colors for both plots
-    if not palette:
-        palette = np.array(bp.RdYlBu[11])
-    mapper = linear_cmap(name, palette, low=pmin_full, high=pmax_full, nan_color='gray')
+    #- Colors based on camera
+    camcolors = dict(B='steelblue', R='firebrick', Z='gray')
 
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
@@ -190,16 +187,14 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
 
     #- Plot only the fibers which measured the metric
-    s = fig.scatter('FIBER', name, source=source, view=view_metric, color=mapper, alpha=0.5)
+    s = fig.scatter('FIBER', name, source=source, view=view_metric,
+                    color=camcolors[cam], alpha=0.5)
 
     #- Add hover tool
     if not tooltips:
         tooltips = [("FIBER", "@FIBER"), (name, "@" + name + '{(0.00 a)}')]
     hover = HoverTool(renderers = [s], tooltips=tooltips)
     fig.add_tools(hover)
-
-    #- Adds colored outline based on camera
-    camcolors = dict(B='steelblue', R='firebrick', Z='gray')
 
     #- style visual attributes of the figure
     fig.xgrid.grid_line_color = None
