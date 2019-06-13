@@ -4,16 +4,15 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import layout
+from bokeh.layouts import gridplot
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
-from astropy.table import Table, join, vstack#, hstack
-from ..plots.core import get_size
+from astropy.table import Table, join, vstack
 
 
-from ..plots.fiber import plot_fibers
-from ..plots.camfiber import plot_per_camfiber
+from ..plots.fiber import plot_fibers, plot_fibernums
+from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum
 
 
 def write_camfiber_html(outfile, data, header):
@@ -39,6 +38,7 @@ def write_camfiber_html(outfile, data, header):
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('camfiber.html')
+    fibernum_template = env.get_template('fibernum.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
@@ -46,7 +46,6 @@ def write_camfiber_html(outfile, data, header):
         flavor=flavor, program=program, qatype = 'camfiber',
     )
 
-    #- List of attributes to plot per camfiber with default arguments
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
     #- Default cameras and percentile ranges for camfiber plots
@@ -58,24 +57,25 @@ def write_camfiber_html(outfile, data, header):
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_select,reset'
-    SCATTER = True
 
     #- Gets a shared ColumnDataSource of DATA
-    cds = get_cds(data, ATTRIBUTES, CAMERAS, agg=SCATTER)
+    cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
+    #- Gets the layout for the focal plate plots
+    focalplate_gridlist = []
     #- Gets the gridplots for each metric in ATTRIBUTES
-    gridlist = []
     for attr in ATTRIBUTES:
-        metric_grid = plot_per_camfiber(cds, attr, CAMERAS, html_components, percentiles=PERCENTILES,
-            titles=TITLESPERCAM, tools=TOOLS)
-        gridlist.append(metric_grid)
+        figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
+                                 titles=TITLESPERCAM, tools=TOOLS)
+
+        focalplate_gridlist.extend([figs_list, hfigs_list])
 
     #- Organizes the layout of the plots
-    camfiber_layout = layout(children=gridlist)
+    fp_camfiber_layout = gridplot(gridlist, toolbar_location='right')
 
     #- Gets the html components of the camfiber plots
-    script, div = components(camfiber_layout)
-    html_components['METRIC_PLOTS'] = dict(script=script, div=div)
+    script, div = components(fp_camfiber_layout)
+    html_components['FOCALPLATE_PLOTS'] = dict(script=script, div=div)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)
@@ -84,7 +84,34 @@ def write_camfiber_html(outfile, data, header):
     with open(outfile, 'w') as fx:
         fx.write(html)
 
+    #- Gets the layout for the fibernum plots
+    fibernum_gridlist = []
+    #- Gets the gridplots for each metric in ATTRIBUTES
+    for attr in ATTRIBUTES:
+        #- TODO: aggregation later (box and whisker) or binning?
+        figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
+                                     titles=TITLESPERCAM, tools=TOOLS)
+
+        fibernum_gridlist.extend(figs_list)
+
+    #- Organizes the layout of the plots
+    fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1)
+
+    #- Gets the html components of the camfiber plots
+    script, div = components(fn_camfiber_layout)
+    html_components['FIBERNUM_PLOTS'] = dict(script=script, div=div)
+
+    #- Combine template + components -> HTML
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(outfile, 'w') as fx:
+        fx.write(html)
+
+
+
     return html_components
+
 
 
 def get_cds(data, attributes, cameras, agg=False):

@@ -3,18 +3,18 @@
 {% block body %}
 <h3>Per-Fiber per-camera QA metrics</h3>
 
- {% if FIBERNUM_PLOTS %}
+ {% if FOCALPLATE_PLOTS %}
  <ul class="navigationbar">
-   <li style="float:right"><a id="fibernum_plots"
-     href="qa-camfiber-{{ zexpid }}.html/fibernum_plots">FIBERNUM Plots</a></li>
+   <li style="float:right"><a id="focalplane_plots"
+     href="qa-camfiber-{{ zexpid }}.html">FOCAL PLANE Plots</a></li>
  </ul>
  {% endblock %}
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-{% if FOCALPLATE_PLOTS %}
+{% if FIBERNUM_PLOTS %}
     <div>
-        {{ FOCALPLATE_PLOTS.script }} {{ FOCALPLATE_PLOTS.div }}
+        {{ FIBERNUM_PLOTS.script }} {{ FIBERNUM_PLOTS.div }}
     </div>
 {% endif %}
 
