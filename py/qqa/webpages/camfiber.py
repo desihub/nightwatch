@@ -8,11 +8,10 @@ from bokeh.layouts import gridplot
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
+from bokeh.models import Panel, Tabs
 from astropy.table import Table, join, vstack, hstack
 
-
-from ..plots.fiber import plot_fibers, plot_fibernums
-from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum
+from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum, binned_boxplots_per_metric
 
 
 def write_camfiber_html(outfile, data, header):
@@ -37,13 +36,6 @@ def write_camfiber_html(outfile, data, header):
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('camfiber.html')
-
-    html_components = dict(
-        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
-        night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program, qatype = 'camfiber',
-    )
 
 
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
@@ -59,8 +51,17 @@ def write_camfiber_html(outfile, data, header):
     TOOLS = 'pan,box_zoom,reset'
 
     #- Gets a shared ColumnDataSource of DATA
-    cds, agg_cds = get_cds(data, ATTRIBUTES, CAMERAS)
+    cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
+
+    '''FIBERNUM PLOTS'''
+    fibernum_components = dict(
+        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
+        night=night, expid=expid, zexpid='{:08d}'.format(expid),
+        flavor=flavor, program=program, qatype = 'camfiber',
+    )
+
+    fn_template = env.get_template('fibernums.html')
     #- Gets the layout for the fibernum plots
     fibernum_gridlist = []
     #- Gets the gridplots for each metric in ATTRIBUTES
@@ -76,15 +77,18 @@ def write_camfiber_html(outfile, data, header):
     fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1, toolbar_location='above')
 
     #- Gets the html components of the fibernum plots
-    script, div = components(fn_camfiber_layout)
-    html_components['FIBERNUM_PLOTS'] = dict(script=script, div=div)
+    fn_script, fn_div = components(fn_camfiber_layout)
+    fibernum_components['FIBERNUM_PLOTS'] = dict(script=fn_script, div=fn_div)
     #- Combine template + components -> HTML
-    html_fibernum = template.render(**html_components)
+    html_fibernum = fn_template.render(**fibernum_components)
 
-    #- Write HTML text to the output file
-    with open(outfile, 'w') as fx:
-        fx.write(html_fibernum)
 
+    '''FOCAL PLATE PLOTS'''
+    focalplate_components = dict(
+        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
+        night=night, expid=expid, zexpid='{:08d}'.format(expid),
+        flavor=flavor, program=program, qatype = 'camfiber',
+    )
 
     focalplate_template = env.get_template('focalplate.html')
     #- Gets the layout for the focal plate plots
@@ -101,44 +105,25 @@ def write_camfiber_html(outfile, data, header):
     fp_camfiber_layout = gridplot(focalplate_gridlist, toolbar_location='right')
 
     #- Gets the html components of the focalplate plots
-    script, div = components(fp_camfiber_layout)
-    html_components['FOCALPLATE_PLOTS'] = dict(script=script, div=div)
+    fp_script, fp_div = components(fp_camfiber_layout)
+    focalplate_components['FOCALPLATE_PLOTS'] = dict(script=fp_script, div=fp_div)
     #- Combine template + components -> HTML
-    html_focalplate = focalplate_template.render(**html_components)
+    html_focalplate = focalplate_template.render(**focalplate_components)
 
-    #- Write HTML text to the output file
-    print('outfile is ' + outfile)
+
+    #- Write HTML text to the output files
+    #- fibernums
     with open(outfile, 'w') as fx:
-        print('will write focalplate plots')
-        # fx.write(html_focalplate)
+        fx.write(html_fibernum)
+
+    #- focalplate plots
+    index_fp_file = outfile.index('.html')
+    fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
+    with open(fp_outfile, 'w') as fx:
+        fx.write(html_focalplate)
 
 
-    agg_fibernum_template = env.get_template('agg_fibernum.html')
-    #- Gets the layout for the focal plate plots
-    aggfib_tabslist = []
-    #- Gets the gridplots for each metric in ATTRIBUTES
-    for attr in ATTRIBUTES:
-        if attr in list(agg_cds.data.keys()):
-            gplot = binned_boxplots_per_metric(agg_cds, attr, width=width, height=height)
-            tab = Panel(child=gplot, title=attr)
-            tabs_list.append(tab)
-
-    #- Organizes the layout of the plots
-    af_camfiber_layout = Tabs(tabs=aggfib_tabslist)
-
-    #- Gets the html components of the focalplate plots
-    script, div = components(af_camfiber_layout)
-    html_components['AGGFIB_PLOTS'] = dict(script=script, div=div)
-    #- Combine template + components -> HTML
-    html_aggfib = agg_fibernum_template.render(**html_components)
-
-    #- Write HTML text to the output file
-    print('outfile is ' + outfile)
-    with open(outfile, 'w') as fx:
-        print('will write aggfib plots')
-        # fx.write(html_aggfib)
-
-    return html_components
+    return fibernum_components
 
 
 def get_cds(data, attributes, cameras):
@@ -171,11 +156,10 @@ def get_cds(data, attributes, cameras):
             data[colname] = data[colname].astype(str)
 
     cds = create_cds(data, attributes)
-    agg_cds = aggregate_by_fibernums(data, attributes)
-    return cds, agg_cds
+    return cds
 
 
-def create_cds(data, attributes):
+def create_cds(data, attributes, bin_size=25):
     '''
     Creates a column data source from DATA with metrics in ATTRIBUTES
     Args:
@@ -183,8 +167,6 @@ def create_cds(data, attributes):
         attributes : a list of metrics
     '''
     data_dict = dict({})
-    bins = np.array(np.array(data['FIBER']) // bin_size).astype(int)
-    data['FIBER_BIN'] = bins
 
     for colname in data.dtype.names:
         if colname in attributes:
@@ -195,105 +177,3 @@ def create_cds(data, attributes):
     cds = ColumnDataSource(data=data_dict)
 
     return cds
-
-
-
-def aggregate_by_fibernums(data, metrics, num_bins=200):
-    '''
-    Bins DATA by fiber number by binning the data per camera
-    and then vertically stacking them
-    Args:
-        data : a full astropy table of camfiber data
-        metrics : a list of attributes
-    Options:
-        num_bins : number of bins to aggreate fibers into
-
-    Returns an astropy table object
-    '''
-    #- Generates bins
-    fiber_bins = np.array(data['FIBER']) // num_bins
-    fiber_bins = fiber_bins.astype(int)
-    data['FIBER_BINS'] = fiber_bins
-
-    #- Only the metrics which are in the data
-    metrics = [m for m in metrics if m in data.colnames]
-
-    cameras = ['B', 'R', 'Z']
-    data = camerastack(data, metrics, cameras)
-
-    metrics = [["{}_{}".format(m, c) for c in cameras] for m in metrics]
-
-    agg_cds = (data, metrics, num_bins=num_bins)
-    return agg_cds
-
-
-
-def camerastack(data, metrics, cams):
-    cam_stacks = []
-    #- get the metrics columns for each camera
-    for c in cameras:
-        c_table = rename_camcolumns(data, c, metrics)
-        cam_stacks.append(c_table)
-    data.remove_column('CAM')
-
-    return hstack(cam_stacks)
-
-def rename_camcolumns(data, cam, metrics):
-    '''
-    TODO: document
-    '''
-    #- Filters to only CAM data
-    mask = np.char.upper(np.array(data['CAM'])) == cam.upper()
-    data = data[mask]
-
-    #- Chooses only the subset of columns which are metrics
-    data = data[[metrics]]
-    #- Renmaes the metrics columns to be camera specific
-    for colname metrics:
-        data.rename(colname, colname + "_" + cam)
-
-    return data
-
-
-def summarystats_metric(table, metric, num_bins=200):
-
-    def get_outliers(metric_col, upper, lower):
-        metric_col = np.array(metric_col)
-        metric_outliers = metric_col[(metric_col > upper) | (metric_col < lower)]
-        return metric_outliers
-
-    full_metric_col = table['FIBER_BIN', metric]
-    summary_stats = []
-    for fiberbin in range(num_bins):
-        #- get subtable rows
-        subtable = full_metric_col[full_metric_col['FIBER_BIN'] == fiberbin]
-        subcol = subtable[metric]
-
-        #- get summary stats
-        q1, q2, q3 = np.quantile(subcol, [0.25, 0.5, 0.75])
-        iqr = q3 - q1
-        upper = q3 + 1.5*iqr
-        lower = q1 - 1.5*iqr
-
-        #- get list of outliers
-        metric_outliers = get_outliers(subcol, upper, lower)
-
-        #- shrink stem size if no outliers
-        upper = min(np.quantile(subcol, 1), upper)
-        lower = max(np.quantile(subcol, 0), lower)
-
-        summary = dict(q1=q1, q2=q2, q3=q3, iqr=iqr, upper=upper,
-                       lower=lower, outliers=metric_outliers)
-        summary_stats.append(summary)
-    return summary_stats
-
-
-def summarytable(agg_data_table, metrics, num_bins=200):
-    agg_data = dict(FIBERNUM=np.arange(num_bins))
-
-    for m in metrics:
-        statsdict_list = summarystats_metric(agg_data_table, m, num_bins)
-        agg_data[m] = statsdict_list
-
-    agg_cds = ColumnDataSource(data=agg_data)
-    return agg_cds
