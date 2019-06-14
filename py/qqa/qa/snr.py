@@ -13,7 +13,7 @@ import desiutil.log
 from desispec.qproc.io import read_qframe
 from desispec.calibfinder import CalibFinder
 from desispec.interpolation import resample_flux
-from desispec.io.filters import load_filter
+from desispec.io.filters import load_legacy_survey_filter
 from desispec.io.fluxcalibration import read_average_flux_calibration
 
 from desimodel.io import load_desiparams
@@ -25,7 +25,9 @@ class QASNR(QA):
     """docstring """
     def __init__(self):
         self.output_type = "PER_FIBER"
-    
+
+        log = desiutil.log.get_logger()
+
         # load things we will use several times
         desiparams = load_desiparams()
         
@@ -35,6 +37,21 @@ class QASNR(QA):
         energy_per_photon = (constants.h * constants.c / (self.thru_conversion_wavelength*units.Angstrom)).to(units.erg).value #ergs
         self.thru_conversion_factor_ergs_per_cm2 = 1e17*energy_per_photon/geometric_area_cm2 # ergs/cm2 
         
+        # preload filters
+        self.filters=dict()
+        for photsys in ["N","S"] :
+            for band in ["G","R","Z","W1","W2"] :
+                self.filters[band+photsys] = load_legacy_survey_filter(band=band,photsys=photsys)
+        # define wavelength array
+        min_filter_wave = 100000
+        max_filter_wave = 0
+        for k in self.filters.keys() :
+            log.debug(self.filters[k].name)
+            min_filter_wave = min(min_filter_wave,np.min(self.filters[k].wavelength))-0.1
+            max_filter_wave = max(max_filter_wave,np.max(self.filters[k].wavelength))+0.1
+            log.debug("min max wavelength for filters= {:d} , {:d}".format(int(min_filter_wave),int(max_filter_wave)))
+        self.rwave=np.linspace(min_filter_wave,max_filter_wave,int(max_filter_wave-min_filter_wave))
+
 
     def valid_flavor(self, flavor):
         return ( flavor.upper() == "SCIENCE" )
@@ -53,7 +70,7 @@ class QASNR(QA):
 
         
 
-        filters = None
+        
 
         # find number of spectros
         spectros=[]
@@ -62,6 +79,7 @@ class QASNR(QA):
             s=int(hdr['CAMERA'][1])
             spectros.append(s)
         spectros=np.unique(spectros)
+        
         
         for spectro in spectros :
             
@@ -79,29 +97,6 @@ class QASNR(QA):
                     night = int(qframe.meta['NIGHT'])
                     expid = int(qframe.meta['EXPID'])
                     
-                    if filters is None : # load filters
-                        filters = dict()
-                        
-                        if 'S' in fmap['PHOTSYS']:
-                            for b in ["G","R","Z"] :
-                                filters[b] = load_filter("DECAM_"+b)
-                                
-                        if 'N' in fmap['PHOTSYS']:
-                            for b in ["G","R","Z"] :
-                                filters[b] = load_filter("BASS_"+b)
-
-                        if len(filters) == 0:
-                            raise ValueError("No filters loaded; neither 'N' nor 'S' in PHOTSYS?")
-                        
-                        min_filter_wave = 100000
-                        max_filter_wave = 0
-                        for k in filters.keys() :
-                            min_filter_wave = min(min_filter_wave,np.min(filters[k].wavelength))-0.1
-                            max_filter_wave = max(max_filter_wave,np.max(filters[k].wavelength))+0.1
-                        log.debug("min max wavelength for filters= {:d} , {:d}".format(int(min_filter_wave),int(max_filter_wave)))
-                        rwave=np.linspace(min_filter_wave,max_filter_wave,int(max_filter_wave-min_filter_wave))
-                   
-
                     # need to decode fibermap
                     columns , masks, survey = targets.main_cmx_or_sv(fmap)
                     desi_target = fmap[columns[0]]  # (SV1_)DESI_TARGET
@@ -115,15 +110,17 @@ class QASNR(QA):
                 for k in ["FLUX_G","FLUX_R","FLUX_Z"] :
                     dico[k]=fmap[k][f]
                 
-                sw  = np.zeros(rwave.size)
-                swf = np.zeros(rwave.size)
+                photsys=fmap["PHOTSYS"][f]
+                
+                sw  = np.zeros(self.rwave.size)
+                swf = np.zeros(self.rwave.size)
                 
                 for c in ["B","R","Z"] :
                     
                     if c in qframes :
                         qframe=qframes[c]
                         dico["SNR_"+c] = np.median(qframe.flux[f] * np.sqrt(qframe.ivar[f]))
-                        cf , cw = resample_flux(rwave,qframe.wave[f],qframe.flux[f],qframe.ivar[f])
+                        cf , cw = resample_flux(self.rwave,qframe.wave[f],qframe.flux[f],qframe.ivar[f])
                         sw  += cw
                         swf += cw*cf
                     else :
@@ -131,11 +128,11 @@ class QASNR(QA):
                 
                 rflux = swf/(sw+(sw==0))
                 # interpolate over masked pixels
-                rflux[sw==0] = np.interp(rwave[sw==0],rwave[sw>0],rflux[sw>0],left=0,right=0)
+                rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
 
                 fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
                 for c in ["G","R","Z"] :
-                    dico["SPECFLUX_"+c]=filters[c].get_ab_maggies(rflux*fluxunits,rwave)*1e9 # nano maggies 
+                    dico["SPECFLUX_"+c]=self.filters[c+photsys].get_ab_maggies(rflux*fluxunits,self.rwave)*1e9 # nano maggies 
 
             
                 for c in ["B","R","Z"] :
