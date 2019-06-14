@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
@@ -137,49 +137,68 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
     axis.outline_line_color=None
     
     #R
+    hover_R= HoverTool(tooltips = [
+        ('(spec, amp)', '@locations_R'),
+        ('{}'.format(name), '$y')],
+                      line_policy='next')
     fig_R = bk.figure(x_range=axis.x_range, 
                       toolbar_location=None, plot_height=plot_height, 
-                      plot_width=plot_width, x_axis_location=None)
-    fig_R.circle(x='locations_R', y='data_R', line_color=None, 
-                 fill_color='colors_R', size='sizes_R', source=source)
+                      plot_width=plot_width, x_axis_location=None, tools=[hover_R])
     
     spec_groups, data_groups = isolate_spec_lines(locations_R, data_R)
     for i in range(len(spec_groups)):
         fig_R.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+        
+    fig_R.circle(x='locations_R', y='data_R', line_color=None, 
+                 fill_color='colors_R', size='sizes_R', source=source)
 
     fig_R.yaxis.axis_label = 'R'
     fig_R.yaxis.minor_tick_line_color=None
     fig_R.ygrid.grid_line_color=None
+    fig_R.outline_line_color='firebrick'
+    fig_R.outline_line_alpha=0.7
 
     #B
+    hover_B= HoverTool(tooltips = [
+        ('(spec, amp)', '@locations_B'),
+        ('{}'.format(name), '$y')],
+                      line_policy='next')
     fig_B = bk.figure(x_range=axis.x_range, toolbar_location=None, x_axis_location=None,
-                   plot_height=plot_height+25, plot_width=plot_width, title=title)
+                   plot_height=plot_height+25, plot_width=plot_width, title=title, tools=[hover_B])
         
-    fig_B.circle(x='locations_B', y='data_B', line_color=None, 
-                 fill_color='colors_B', size='sizes_B', source=source)
-    
     spec_groups, data_groups = isolate_spec_lines(locations_B, data_B)
     for i in range(len(spec_groups)):
         fig_B.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+    
+    circle_B = fig_B.circle(x='locations_B', y='data_B', line_color=None, 
+                 fill_color='colors_B', size='sizes_B', source=source)
         
     fig_B.yaxis.axis_label = 'B'
     fig_B.ygrid.grid_line_color=None
     fig_B.yaxis.minor_tick_line_color=None
+    fig_B.outline_line_color='steelblue'
+    fig_B.outline_line_alpha=0.7
 
     #Z
+    hover_Z= HoverTool(tooltips = [
+        ('(spec, amp)', '@locations_Z'),
+        ('{}'.format(name), '$y')],
+                      line_policy='next')
     fig_Z = bk.figure(x_range=axis.x_range, toolbar_location=None, x_axis_location=None,
-                   plot_height=plot_height, plot_width=plot_width)
-
-    fig_Z.circle(x='locations_Z', y='data_Z', line_color=None, 
-                 fill_color='colors_Z', size='sizes_Z', source=source)
-    
+                   plot_height=plot_height, plot_width=plot_width, tools=[hover_Z])
+        
     spec_groups, data_groups = isolate_spec_lines(locations_Z, data_Z)
     for i in range(len(spec_groups)):
         fig_Z.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
     
+    circle_Z = fig_Z.circle(x='locations_Z', y='data_Z', line_color=None, 
+                 fill_color='colors_Z', size='sizes_Z', source=source)
+    
     fig_Z.yaxis.axis_label = 'Z'
     fig_Z.ygrid.grid_line_color=None
     fig_Z.yaxis.minor_tick_line_color=None
+    fig_Z.outline_line_color='grey'
+    fig_Z.outline_line_alpha=0.7
 
     fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location=None)
     
