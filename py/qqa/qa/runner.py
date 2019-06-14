@@ -2,7 +2,8 @@
 QARunner class
 '''
 
-import sys
+import os, sys
+import json
 import traceback
 import glob
 
@@ -37,11 +38,12 @@ class QARunner(object):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         log.debug('Running QA in {}'.format(indir))
+
         preprocfiles = sorted(glob.glob('{}/preproc-*.fits'.format(indir)))
         if len(preprocfiles) == 0:
             log.error('No preproc files found in {}'.format(indir))
             raise RuntimeError
-            
+
         # We can have different flavors (signal+dark) with calibration data
         # obtained with a calibration slit hooked to a single spectrograph.
         # So we have to loop over all frames to check if there are science,
@@ -63,8 +65,8 @@ class QARunner(object):
                 elif flavor == None :
                     flavor = this_flavor
                     # we stay in the loop in case another frame has another flavor
-                
-    
+
+
         log.debug('Found FLAVOR={} files'.format(flavor))
 
         results = dict()
@@ -98,6 +100,19 @@ class QARunner(object):
             PER_SPECTRO = ['NIGHT', 'EXPID', 'SPECTRO'],
             PER_EXP = ['NIGHT', 'EXPID'],
         )
+
+        from pkg_resources import resource_filename
+        jsonfiledir = resource_filename('qqa', os.path.join('cal_files', 'timeseries_dropdown.json'))
+        if os.path.isdir(os.path.dirname(jsonfiledir)):
+            with open(jsonfiledir, 'w') as out:
+                result1 = dict()
+                for key1 in results:
+                    colnames_lst = results[key1][0].colnames
+                    for i in join_keys[key1]:
+                        colnames_lst.remove(i)
+                    result1[key1] = colnames_lst
+                json.dump(result1, out)
+
         for qatype in list(results.keys()):
             if len(results[qatype]) == 1:
                 results[qatype] = results[qatype][0]
@@ -106,7 +121,7 @@ class QARunner(object):
                 for i in range(1, len(results[qatype])):
                     tx = join(tx, results[qatype][i], keys=join_keys[qatype], join_type='outer')
                 results[qatype] = tx
-            
+
             #- convert python string to bytes for FITS format compatibility
             if 'AMP' in results[qatype].colnames:
                 results[qatype]['AMP'] = results[qatype]['AMP'].astype('S1')
@@ -129,12 +144,3 @@ class QARunner(object):
                     fx.write_table(qatable.as_array(), extname=qatype, header=hdr)
 
         return results
-
-
-
-
-
-
-
-
-

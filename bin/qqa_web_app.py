@@ -3,6 +3,7 @@ import argparse, jinja2
 import bokeh
 from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
+from pkg_resources import resource_filename
 
 app = Flask(__name__)
 stat = ""
@@ -27,16 +28,24 @@ def test_input():
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('timeseries_input.html')
-    return template.render()
+    filename = resource_filename('qqa', os.path.join('cal_files', "timeseries_dropdown.json"))
 
-@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:attribute>')
-def test_timeseries(start_date, end_date, attribute):
+    with open(filename, 'r') as myfile:
+        json_data=myfile.read()
+
+    dropdown = json.loads(json_data)
+
+    template = env.get_template('timeseries_input.html')
+    return template.render(dropdown_hdu=dropdown)
+
+@app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
+def test_timeseries(start_date, end_date, hdu, attribute):
 
     verify = [
     not re.match(r"20[0-9]{6}", str(start_date)),
     not re.match(r"20[0-9]{6}", str(end_date)),
-    re.match(r"\.\.", attribute) or attribute == ""
+    re.match(r"\.\.", hdu) or hdu=="",
+    re.match(r"\.\.", attribute) or attribute==""
     ]
 
     error_string = [
@@ -44,6 +53,13 @@ def test_timeseries(start_date, end_date, attribute):
     "end date, ",
     "attribute"
     ]
+
+    filename = resource_filename('qqa', os.path.join('cal_files', "timeseries_dropdown.json"))
+
+    with open(filename, 'r') as myfile:
+        json_data=myfile.read()
+
+    dropdown = json.loads(json_data)
 
     if any(verify):
         error_message = "Invalid "
@@ -62,10 +78,11 @@ def test_timeseries(start_date, end_date, attribute):
 
     html_components = dict(
         bokeh_version=bokeh.__version__, attribute=attribute,
-        start=start_date, end=end_date,
+        start=start_date, end=end_date, hdu=hdu,
+        dropdown_hdu=dropdown,
     )
 
-    fig = generate_timeseries(data, start_date, end_date, attribute)
+    fig = generate_timeseries(data, start_date, end_date, hdu, attribute)
     if fig is None:
         return "No data between {} and {}".format(start_date, end_date)
 

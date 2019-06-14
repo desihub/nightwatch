@@ -8,7 +8,7 @@
   <li><a id="spectro">spectro</a></li>
   <li><a id="camfiber" href="qa-camfiber-{{ zexpid }}.html">camfiber</a></li>
   <li><a id="fiber">fiber</a></li>
-  <li><a id="camera">camera</a></li>
+  <li><a id="camera" href="qa-camera-{{ zexpid }}.html">camera</a></li>
   <li><a id="amp" href="qa-amp-{{ zexpid }}.html">amp</a></li>
   <li><a id="summary" href="qa-summary-{{ zexpid }}.html">summary</a></li>
   <li><a id="exposures" href="../exposures.html">exposures</a></li>
@@ -24,7 +24,7 @@ function get_explinks(links) {
     if (next_item == null) {
         document.getElementById("next").className = "noHover";
     } else {
-        document.getElementById("next").href = 
+        document.getElementById("next").href =
             "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
     }
 
