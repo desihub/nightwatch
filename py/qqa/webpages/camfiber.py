@@ -11,7 +11,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.models import Panel, Tabs
 from astropy.table import Table, join, vstack, hstack
 
-from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum, binned_boxplots_per_metric
+from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum
 
 
 def write_camfiber_html(outfile, data, header):

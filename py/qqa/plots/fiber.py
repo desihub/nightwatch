@@ -206,15 +206,3 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
     fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
     return fig
-
-
-def fiber_boxplot(summarystat, fig, fiberbin, cam=''):
-    '''TODO: document'''
-
-    cam_colors = dict(B='blue', R='red', Z='black')
-    color = cam_colors.get(cam, 'gray')
-
-    # outliers
-    outliers = summarystat['outliers']
-    boxplot(summarystat['q1'], summarystat['q2'], summarystat['q3'],
-        summarystat['upper'], summarystat['lower'], outliers, fig, xpos, color=color)

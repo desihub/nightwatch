@@ -96,10 +96,11 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     return hfig
 
 
-def boxplot(q1, q2, q3, upper, lower, outliers_list, fig, xpos, color='gray'):
+def boxplot(q1, q2, q3, upper, lower, outliers, fig, xpos, color='gray'):
+    '''TODO: document'''
     # outliers
     if any(outliers):
-        fig.circle([x] * len(outliers), outliers,
+        fig.circle([xpos] * len(outliers), outliers,
                    size=1, color="#F38630", fill_alpha=0.6)
         alpha = 0.5
     else:
@@ -107,20 +108,20 @@ def boxplot(q1, q2, q3, upper, lower, outliers_list, fig, xpos, color='gray'):
         alpha = 0.1
 
     # stems
-    fig.segment(xpos, upper, xpos, q3,
+    fig.segment(x0=xpos, y0=upper, x1=xpos, y1=q3,
                 line_color=color, alpha=alpha)
-    fig.segment(xpos, lower, xpos, q1,
+    fig.segment(x0=xpos, y0=lower, x1=xpos, y1=q1,
                 line_color=color, alpha=alpha)
 
     # boxes
-    fig.vbar(xpos, width=1, q2, q3,
+    fig.vbar(x=xpos, width=1, bottom=q2, top=q3,
              fill_color="#E08E79", line_color="black", alpha=alpha)
-    fig.vbar(xpos, width=1, q1, q2,
+    fig.vbar(x=xpos, width=1, bottom=q1, top=q2,
              fill_color="#3B8686", line_color="black", alpha=alpha)
 
     # whiskers
-    fig.rect(xpos, lower, 1, 0.01, line_color=color, alpha=alpha)
-    fig.rect(xpos, upper, 1, 0.01, line_color=color, alpha=alpha)
+    fig.rect(x=xpos, y=lower, width=1, height=0.01, line_color=color, alpha=alpha)
+    fig.rect(x=xpos, y=upper, width=1, height=0.01, line_color=color, alpha=alpha)
 
     #- style
     fig.xgrid.grid_line_color = None
