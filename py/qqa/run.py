@@ -391,27 +391,27 @@ def write_nights_summary(indir, last):
                 else:
                     qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
 
-            readnoise_csa = dict()
-            bias_csa = dict()
+            readnoise_sca = dict()
+            bias_sca = dict()
 
             for s in range(0, 10, 1):
                 for c in ["R", "B", "Z"]:
                     for a in ["A", "B", "C", "D"]:
                         specific = qadata_stacked[(qadata_stacked["SPECTRO"]==s) & (qadata_stacked["CAM"]==c) & (qadata_stacked["AMP"]==a)]
                         if len(specific) > 0:
-                            readnoise_csa_dict = dict(
+                            readnoise_sca_dict = dict(
                                 median=np.median(list(specific["READNOISE"])),
                                 std=np.std(list(specific["READNOISE"])),
                                 num_exp=len(specific)
                             )
-                            readnoise_csa[c + str(s) + a] = readnoise_csa_dict
+                            readnoise_sca[str(s) + c + a] = readnoise_sca_dict
 
-                            bias_csa_dict = dict(
+                            bias_sca_dict = dict(
                                 median=np.median(list(specific["BIAS"])),
                                 std=np.std(list(specific["BIAS"])),
                                 num_exp=len(specific)
                             )
-                            bias_csa[c + str(s) + a] = bias_csa_dict
+                            bias_sca[str(s) + c + a] = bias_sca_dict
 
             cosmics_rates = dict(
                 p90=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 90),
@@ -421,8 +421,8 @@ def write_nights_summary(indir, last):
 
             data = dict(
                 PER_AMP=dict(
-                    READNOISE=readnoise_csa,
-                    BIAS=bias_csa,
+                    READNOISE=readnoise_sca,
+                    BIAS=bias_sca,
                     COSMICS_RATES=cosmics_rates
                 )
             )

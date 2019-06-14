@@ -282,4 +282,4 @@ def main_summary(options=None):
         last = False
 
     run.write_nights_summary(args.indir, last)
-    print('Wrote summary tables to {}'.format(args.indir))
+    print('Wrote summary jsons for each night to {}'.format(args.indir))
