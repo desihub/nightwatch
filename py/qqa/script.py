@@ -268,7 +268,7 @@ def main_summary(options=None):
     parser.add_argument("-l", "--last", type=bool, help="True if last night shown is complete and ready to summarize")
 
     if options is None:
-        options = sys.argv[1:]
+        options = sys.argv[2:]
 
     args = parser.parse_args(options)
 
