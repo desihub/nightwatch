@@ -384,12 +384,17 @@ def write_nights_summary(indir, last):
             for expid in expids:
                 fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
                 if not os.path.isfile(fitsfile):
-                    continue
-                qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
-                if (qadata_stacked is None):
-                    qadata_stacked = qadata
+                    print("could not find {}".format(fitsfile))
                 else:
-                    qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
+                    qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
+                    if (qadata_stacked is None):
+                        qadata_stacked = qadata
+                    else:
+                        qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
+
+            if qadata_stacked is None:
+                print("no exposures found")
+                return
 
             readnoise_sca = dict()
             bias_sca = dict()
