@@ -65,11 +65,14 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     spec_loc = []
     amp_loc = []
     name_data = []
+    data_val = []
     for row in data:
         if row['CAM'] in (cam, cam.encode('utf-8')):
             amp_loc.append(row['AMP'].decode('utf-8'))
             spec_loc.append(str(row['SPECTRO']))
-            name_data.append(row[name])
+            data_val.append(row[name])
+            cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+            name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         else:
             continue
     _, ids = np.unique(spec_loc, return_index=True)
@@ -79,14 +82,15 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     
     locations = [(spec, amp) for spec in spec_loc for amp in amp_loc]
     
-    colors = get_amp_colors(name_data, qamax)
-    sizes = get_amp_size(name_data, qamax)
-   
+    colors = get_amp_colors(data_val, qamax)
+    sizes = get_amp_size(data_val, qamax)
+
     source = ColumnDataSource(data=dict(
-        name_data=name_data,
+        data_val=data_val,
         locations=locations,
         colors=colors,
         sizes=sizes,
+        name=name_data,
     ))
     
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
@@ -95,22 +99,22 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     #plotting
     hover= HoverTool(tooltips = [
         ('(spec, amp)', '@locations'),
-        ('{}'.format(name), '@name_data')],
+        ('{}'.format(name), '@data_val')],
                       line_policy='nearest')
     
     fig = bk.figure(x_range=axis.x_range, 
                       toolbar_location=None, plot_height=plot_height, 
-                      plot_width=plot_width, x_axis_location=None, tools=[hover])
+                      plot_width=plot_width, x_axis_location=None, tools=[hover, 'tap'])
     
-    spec_groups, data_groups = isolate_spec_lines(locations, name_data)
+    spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
         fig.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
         
-    fig.circle(x='locations', y='name_data', line_color=None, 
-                 fill_color='colors', size='sizes', source=source)
+    fig.circle(x='locations', y='data_val', line_color=None, 
+                 fill_color='colors', size='sizes', source=source, name='circles')
 
     fig.yaxis.axis_label = cam
-    fig.y_range = Range1d(np.min(name_data)*0.9, np.max(name_data)*1.1)
+    fig.y_range = Range1d(np.min(data_val)*0.9, np.max(data_val)*1.1)
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color=None
     if cam == 'R':
@@ -124,6 +128,10 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     
     good_range = BoxAnnotation(bottom=qamin, top=qamax, fill_alpha=0.1, fill_color='green')
     fig.add_layout(good_range)
+    
+    taptool = fig.select(type=TapTool)
+    taptool.names = ['circles']
+    taptool.callback = OpenURL(url='@name-4x.html')
 
     return fig
 
