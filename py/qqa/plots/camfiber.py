@@ -8,7 +8,7 @@ import bokeh.palettes as bp
 from bokeh.transform import linear_cmap
 
 from ..plots.fiber import plot_fibers, plot_fibernums
-from ..plots.core import get_colors
+# from ..plots.core import get_colors
 
 
 def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
