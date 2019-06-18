@@ -155,7 +155,8 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return header
 
-def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
+def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch=False, nodes=1, ntasks=1, constraint='haswell', 
+             qos='interactive', time=5):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
 
@@ -203,7 +204,26 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             outdir = outdir,
             camera = camera
         )
-        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+        
+        
+        if batch:
+            batch_options = dict(
+                nodes=nodes,
+                ntasks=ntasks,
+                constraint=constraint,
+                qos=qos,
+                time=time,
+            )
+            batch_cmd = "srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} ".format(
+                **batch_options)
+        else:
+            batch_cmd = ""
+        
+        qproc_cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+        
+        cmd = batch_cmd + qproc_cmd
+#         print('batch cmd is ' + cmd)
+        
         cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))

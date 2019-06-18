@@ -4,7 +4,7 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import gridplot
+from bokeh.layouts import gridplot, layout
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
@@ -42,11 +42,10 @@ def write_camfiber_html(outfile, data, header):
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
     #- Default cameras and percentile ranges for camfiber plots
     CAMERAS = ['B', 'R', 'Z']
-    PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
+    PERCENTILES = {} #{'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
-              'MEDIAN_RAW_SNR':'Median S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
-              'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':
-              'Median Calibration S/N'}
+              'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
+              'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,reset'
 
@@ -61,28 +60,28 @@ def write_camfiber_html(outfile, data, header):
         flavor=flavor, program=program, qatype = 'camfiber',
     )
 
-    fn_template = env.get_template('fibernums.html')
+    fn_template = env.get_template('fibernum.html')
     #- Gets the layout for the fibernum plots
     fibernum_gridlist = []
     #- Gets the gridplots for each metric in ATTRIBUTES
     for attr in ATTRIBUTES:
         #- TODO: aggregation later (box and whisker) or binning
         if attr in list(cds.data.keys()):
-            figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                         titles=TITLESPERCAM, tools=TOOLS)
+            figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
 
             fibernum_gridlist.extend(figs_list)
 
     #- Organizes the layout of the plots
-    fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1, toolbar_location='above')
+#    fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1, toolbar_location='above')
+    fn_camfiber_layout = layout(fibernum_gridlist)
 
     #- Gets the html components of the fibernum plots
     fn_script, fn_div = components(fn_camfiber_layout)
     fibernum_components['FIBERNUM_PLOTS'] = dict(script=fn_script, div=fn_div)
     #- Combine template + components -> HTML
     html_fibernum = fn_template.render(**fibernum_components)
-
-
+    
+    
     '''FOCAL PLATE PLOTS'''
     focalplate_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
@@ -123,7 +122,17 @@ def write_camfiber_html(outfile, data, header):
         fx.write(html_focalplate)
 
 
-    return fibernum_components
+    '''Summary plots'''
+    SUMMARY_CAMFIBER_METRICS = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR']
+    summary_components = dict({})
+    for attr in SUMMARY_CAMFIBER_METRICS:
+        if attr in list(cds.data.keys()):
+            fig_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
+            gplot = bk.gridplot(fig_list, ncols=1, toolbar_location='right')
+            script, div = components(gplot)
+            summary_components[attr] = dict(script=script, div=div)
+    
+    return summary_components
 
 
 def get_cds(data, attributes, cameras):

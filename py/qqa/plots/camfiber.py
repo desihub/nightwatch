@@ -21,11 +21,11 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
 
     Options:
         percentiles : dictionary of cameras corresponding to (min,max)
-            to clip data
+            to clip data for histogram
         zmaxs : dictionary of cameras corresponding to hardcoded max values
-            to clip data
+            to clip data for histogram
         zmins : dictionary of cameras corresponding to hardcoded min values
-            to clip data
+            to clip data for histogram
         titles : dictionary of titles per camera for a group of camfiber plots
             where key-value pairs represent a camera-attribute plot title
         tools, tooltips : supported plot interactivity features
@@ -34,7 +34,6 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
         raise ValueError('{} not in cds.data.keys'.format(attribute))
 
     metric = np.array(cds.data.get(attribute), copy=True)
-    #- TODO: add customizable clipping (percentiles, zmins, zmaxs)
 
     #- adjusts for outliers on the full scale
     #- change back to (2.5, 97.5) for the middle 95% for real data...?
@@ -92,8 +91,7 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
 
 
 
-def plot_per_fibernum(cds, attribute, cameras, percentiles={},
-                      zmaxs={}, zmins={}, titles={}, tools=None):
+def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None):
     '''
     ARGS:
         cds : ColumnDataSource of data
@@ -101,12 +99,6 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
         cameras : list of string representing unique camera values
 
     Options:
-        percentiles : dictionary of cameras corresponding to (min,max)
-            to clip data
-        zmaxs : dictionary of cameras corresponding to hardcoded max values
-            to clip data
-        zmins : dictionary of cameras corresponding to hardcoded min values
-            to clip data
         titles : dictionary of titles per camera for a group of camfiber plots
             where key-value pairs represent a camera-attribute plot title
         tools, tooltips : supported plot interactivity features
@@ -120,9 +112,6 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
     #- adjusts for outliers on the full scale
     #- change back to (2.5, 97.5) for the middle 95% for real data...?
     pmin, pmax = np.percentile(metric, (0, 95))
-
-    #- common scale for all histograms for this metric
-    hist_x_range = (pmin * 0.99, pmax * 1.01)
 
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
@@ -148,16 +137,16 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
         if not figs_list:
             fig_x_range = first_x_range
             # fig_y_range = first_y_range
+            toolbar_location='above'
         else:
             fig_x_range = figs_list[0].x_range
             # fig_y_range = figs_list[0].y_range
+            toolbar_location=None
 
-        fig = plot_fibernums(cds, attribute, cam=c, percentile=percentiles.get(c),
-                        zmin=zmins.get(c), zmax=zmaxs.get(c),
-                        title=titles.get(c, {}).get(attribute), tools=tools,
-                        tooltips=tooltips, toolbar_location=None,
-                        hist_x_range=hist_x_range, fig_x_range=fig_x_range,
-                        )
+        fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute), 
+                             tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
+                             fig_x_range=fig_x_range
+                            )
 
         figs_list.append(fig)
 
