@@ -77,11 +77,11 @@ def write_camfiber_html(outfile, data, header):
 
     #- Gets the html components of the fibernum plots
     fn_script, fn_div = components(fn_camfiber_layout)
-    fibernum_components['FIBERNUM_PLOTS'] = dict(script=fn_script, div=fn_div)
+    fibernum_components['CAMFIBER_PLOTS'] = dict(script=fn_script, div=fn_div)
     #- Combine template + components -> HTML
     html_fibernum = fn_template.render(**fibernum_components)
-    
-    
+
+
     '''FOCAL PLATE PLOTS'''
     focalplate_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
@@ -105,7 +105,7 @@ def write_camfiber_html(outfile, data, header):
 
     #- Gets the html components of the focalplate plots
     fp_script, fp_div = components(fp_camfiber_layout)
-    focalplate_components['FOCALPLATE_PLOTS'] = dict(script=fp_script, div=fp_div)
+    focalplate_components['CAMFIBER_PLOTS'] = dict(script=fp_script, div=fp_div)
     #- Combine template + components -> HTML
     html_focalplate = focalplate_template.render(**focalplate_components)
 
@@ -131,7 +131,7 @@ def write_camfiber_html(outfile, data, header):
             gplot = bk.gridplot(fig_list, ncols=1, toolbar_location='right')
             script, div = components(gplot)
             summary_components[attr] = dict(script=script, div=div)
-    
+
     return summary_components
 
 

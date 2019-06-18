@@ -6,6 +6,15 @@
 {% endblock %}
 
 {% block plots %}
+
+{# Plots are wrapped in if/endif for robustness against missing plots #}
+
+{% if CAMFIBER_PLOTS %}
+    <div>
+        {{ CAMFIBER_PLOTS.script }} {{ CAMFIBER_PLOTS.div }}
+    </div>
+{% endif %}
+
 {% endblock %}
 
 {% endblock %}
