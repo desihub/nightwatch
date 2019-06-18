@@ -58,7 +58,6 @@ def main_monitor(options=None):
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
-    parser.add_argument("-qb", "--qproc_batch", type=bool, default=False, help="Spawn qproc processes to batch job")
 
     if options is None:
         options = sys.argv[2:]
@@ -106,7 +105,7 @@ def main_monitor(options=None):
                 time.strftime('%H:%M'), night, expid))
             try :
                 print('Running qproc on {}'.format(rawfile))
-                header = run.run_qproc(rawfile, outdir, cameras=cameras, batch=args.qproc_batch)
+                header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
