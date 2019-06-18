@@ -1,0 +1,34 @@
+{% extends "qabase.html" %}
+
+{% block body %}
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+<style>
+  .container{
+    display: flex;
+}
+.flex-item{
+    flex-grow: 1;
+}
+</style>
+
+<div class="container">
+  {% if DX %}
+      <div class=flex-item>{{ DX.script }} {{ DX.div }}</div>
+  {% endif %}
+  {% if DY %}
+      <div class=flex-item>{{ DY.script }} {{ DY.div }}</div>
+  {% endif %}
+  {% if XSIG %}
+      <div class=flex-item>{{ XSIG.script }} {{ XSIG.div }}</div>
+  {% endif %}
+  {% if YSIG %}
+      <div class=flex-item>{{ YSIG.script }} {{ YSIG.div }}</div>
+  {% endif %}
+</div>
+
+
+
+
+{% endblock %}
