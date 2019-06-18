@@ -42,7 +42,7 @@ def write_camfiber_html(outfile, data, header):
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
     #- Default cameras and percentile ranges for camfiber plots
     CAMERAS = ['B', 'R', 'Z']
-    PERCENTILES = {} #{'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
+    PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
               'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':'Median Calibration S/N'}
