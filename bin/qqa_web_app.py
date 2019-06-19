@@ -91,6 +91,19 @@ def test_timeseries(start_date, end_date, hdu, attribute):
 
     return template.render(html_components)
 
+@app.route('/<int:night>/<string:expid>/spectra/')
+def redirect_to_spectrograph_stectra(night, expid):
+    print('redirecting to spectrograph stectra')
+    return redirect('{}/{}/spectra/spectrograph'.format(night, expid), code=302)
+
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'select_string': None})
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:select_string>')
+def getspectra(night, expid, view, select_string):
+    global data
+    data = os.path.abspath(data)
+    from qqa.webpages import spectra
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, view, select_string)
+
 @app.route('/<path:filepath>')
 def getfile(filepath):
     global stat
