@@ -216,7 +216,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
-    print('ncpu is ' + str(ncpu))
 
     if batch_args:
         try:
@@ -236,7 +235,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
 
 
     if not batch_args:
-        print('ncpu is ' + str(ncpu))
         if ncpu > 1:
             log.info('Running qproc in parallel on {} cores for {} cameras'.format(
                 ncpu, len(cameras) ))
