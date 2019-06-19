@@ -62,7 +62,7 @@ def main_monitor(options=None):
     parser.add_argument("--constraint", type=str, default="haswell", help="Constraint for qproc batch job")
     parser.add_argument("--qos", type=str, default="interactive", help="Qos for qproc batch job")
     parser.add_argument("--time", type=int, default=5, help="time for qproc batch job")
-    parser.add_argument("--batch", type=bool, default=False, help="True if you want qproc data processing to spawn a batch job")
+    parser.add_argument("--batch", type=bool, default=True, help="True if you want qproc data processing to spawn a batch job")
 
     if options is None:
         options = sys.argv[2:]
