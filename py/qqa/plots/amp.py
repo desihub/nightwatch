@@ -4,116 +4,160 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation
 import bokeh.palettes
+from bokeh.layouts import column, gridplot
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None):
-    '''
-    Plot a per-amp visualization of data[name]
+import json
 
-    qamin/qamax: min/max ranges for the color scale
+def get_amp_colors(data, threshold):
+    '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
+    we allow for individual amplifiers to have different thresholds).
+    Input: array of amplifier metric data, upper threshold (float)
+    Output: array of colors to be put into a ColumnDataSource
     '''
+    colors = []
+    for i in range(len(data)):
+        if data[i] < threshold:
+            colors.append('black')
+        if data[i] >= threshold:
+            colors.append('red')
+    return colors
+
+def get_amp_size(data, threshold):
+    '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
+    we allow for individual amplifiers to have different thresholds).
+    Input: array of amplifier metric data, upper threshold (float)
+    Output: array of sizes for markers to be put into a ColumnDataSource
+    '''
+    sizes = []
+    for i in range(len(data)):
+        if data[i] < threshold:
+            sizes.append(4)
+        if data[i] >= threshold:
+            sizes.append(6)
+    return sizes
+
+def isolate_spec_lines(data_locs, data):
+    '''function to generate isolated data sets so that each spectrograph has an isolated line'''
+    ids = [0]
+    for i in range(len(data_locs)-1):
+        if data_locs[i][0] == data_locs[i+1][0]:
+            continue
+        if data_locs[i][0] != data_locs[i+1][0]:
+            ids.append(i+1)
+    ids.append(len(data_locs))
+    spec_groups = []
+    data_groups = []
+    for i in range(len(ids)-1):
+        spec_groups.append(data_locs[ids[i]:ids[i+1]])
+        data_groups.append(data[ids[i]:ids[i+1]])
+    return spec_groups, data_groups
+
+def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="YlGn9", plot_height=80, plot_width=700):
+    '''Plot a per-amp visualization of data[name]
+    qamin/qamax: min/max ranges for the color scale'''
+    
     if title is None:
-        title = name
-
-    #- Map data[name] into location on image to display
-    img = np.zeros(shape=(4,30)) * np.nan
-    x_data = []
-    y_data = []
+        title = name   
+    
+    #unpacking data
+    spec_loc = []
+    amp_loc = []
     name_data = []
+    data_val = []
     for row in data:
-        #- TODO: check rows for amp, spectro, and img plotting orientation
-        if row['SPECTRO'] < 5:
-            i = 2
+        if row['CAM'] in (cam, cam.encode('utf-8')):
+            amp_loc.append(row['AMP'].decode('utf-8'))
+            spec_loc.append(str(row['SPECTRO']))
+            data_val.append(row[name])
+            cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+            name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         else:
-            i = 0
-        if row['AMP'] in ['C', 'D', b'C', b'D']:
-            i += 1
-
-        j = 6*(row['SPECTRO'] % 5)
-        if row['CAM'].upper() in ('R', b'R'):
-            j += 2
-        elif row['CAM'].upper() in ('Z', b'Z'):
-            j += 4
-
-        if row['AMP'] in ['D', 'B', b'D', b'B']:
-            j += 1
-
-        x_data += [j/2+.25]
-        y_data += [i+.5]
-        cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
-        name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
-        img[i,j] = row[name]
-
-    splabels_top = list()
-    for sp in range(0,5):
-        for cam in ['B', 'R', 'Z']:
-            splabels_top.append(cam+str(sp))
-
-    splabels_bottom = list()
-    for sp in range(5,10):
-        for cam in ['B', 'R', 'Z']:
-            splabels_bottom.append(cam+str(sp))
-
-    fig = bk.figure(height=180, width=850, x_range=FactorRange(*splabels_bottom),
-                    toolbar_location=None, title=title, tools='tap')
-
-    if qamin is None:
-        qamin = np.nanmin(img)
-    if qamax is None:
-        qamax = np.nanmax(img)
-
-    color_mapper = LinearColorMapper(palette=palette, low=qamin, high=qamax,
-                                     low_color='#CC1111', high_color='#CC1111')
-    fig.image(image=[img,], x=0, y=0, dw=15, dh=4, color_mapper=color_mapper)
-
-    # color_bar = ColorBar(color_mapper=color_mapper)
-    # fig.add_layout(color_bar, 'right')
-    #     # label_standoff=12, border_line_color=None, location=(0,0))
-
-    for x in [0, 3, 6, 9, 12, 15]:
-        fig.line([x,x], [0,4], line_color='black', line_width=4, alpha=0.6)
-    for y in [0, 2, 4]:
-        fig.line([0, 15], [y, y], line_color='black', line_width=4, alpha=0.6)
-    for x in range(1, 15, 1):
-        fig.line([x,x], [0,4], line_color='black', line_width=1, line_alpha=0.6)
-
-    #- overplot values
-    for y in range(img.shape[0]):
-        x = np.arange(img.shape[1])
-        text = list()
-        for value in img[y]:
-            if np.isnan(value):
-                text.append('')
-            else:
-                text.append('{:.1f}'.format(value))
-
-        fig.text(x/2+0.25, y+0.45, text, text_font_size='8pt', text_alpha=0.5, text_align='center', text_baseline='middle')
-
-    # fig.x_range.start, fig.x_range.end = (-0.05, 30.05)
-    fig.y_range.start, fig.y_range.end = (-0.05, 4.05)
-    fig.yaxis.ticker = FixedTicker(ticks=[])
-    fig.yaxis.minor_tick_line_color = None
-
-    #- Add SP0 - SP4 labels along the top
-    fig.extra_x_ranges = {"top_spectrographs": FactorRange(*splabels_top)}
-    top_axis = bokeh.models.CategoricalAxis(x_range_name="top_spectrographs")
-
-    fig.add_layout(top_axis, 'above')
-
-    #- No ticks; make camera labels close to plot
-    fig.xaxis.major_tick_out = 0
-    fig.xaxis.major_label_standoff = 5
+            continue
+    _, ids = np.unique(spec_loc, return_index=True)
+    spec_loc = np.array(spec_loc)[np.sort(ids)]
+    _, ids = np.unique(amp_loc, return_index=True)
+    amp_loc = np.array(amp_loc)[np.sort(ids)]
+    
+    locations = [(spec, amp) for spec in spec_loc for amp in amp_loc]
+    
+    colors = get_amp_colors(data_val, qamax)
+    sizes = get_amp_size(data_val, qamax)
 
     source = ColumnDataSource(data=dict(
-    x=x_data,
-    y=y_data,
-    name=name_data,
+        data_val=data_val,
+        locations=locations,
+        colors=colors,
+        sizes=sizes,
+        name=name_data,
     ))
-    fig.square('x', 'y', line_alpha=0.3, line_color='black', fill_alpha=0, size=29, source=source, name="squares")
+    
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+                     plot_height=50, plot_width=plot_width,
+                     y_axis_location=None)      
+    #plotting
+    hover= HoverTool(tooltips = [
+        ('(spec, amp)', '@locations'),
+        ('{}'.format(name), '@data_val')],
+                      line_policy='nearest')
+    
+    fig = bk.figure(x_range=axis.x_range, 
+                      toolbar_location=None, plot_height=plot_height, 
+                      plot_width=plot_width, x_axis_location=None, tools=[hover, 'tap'])
+    
+    spec_groups, data_groups = isolate_spec_lines(locations, data_val)
+    for i in range(len(spec_groups)):
+        fig.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+        
+    fig.circle(x='locations', y='data_val', line_color=None, 
+                 fill_color='colors', size='sizes', source=source, name='circles')
 
+    fig.yaxis.axis_label = cam
+    fig.y_range = Range1d(np.min(data_val)*0.9, np.max(data_val)*1.1)
+    fig.yaxis.minor_tick_line_color=None
+    fig.ygrid.grid_line_color=None
+    if cam == 'R':
+        fig.outline_line_color='firebrick'
+    if cam == 'B':
+        fig.outline_line_color='steelblue'
+        fig.title.text = title
+    if cam =='Z':
+        fig.outline_line_color='grey'
+    fig.outline_line_alpha=0.7
+    
+    good_range = BoxAnnotation(bottom=qamin, top=qamax, fill_alpha=0.1, fill_color='green')
+    fig.add_layout(good_range)
+    
     taptool = fig.select(type=TapTool)
-    taptool.names = ["squares"]
-    taptool.callback = OpenURL(url="@name-4x.html")
+    taptool.names = ['circles']
+    taptool.callback = OpenURL(url='@name-4x.html')
 
     return fig
+
+def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
+                plot_width=700):
+    
+    if qamin is None:
+        qamin = np.min(data[name])
+    if qamax is None:
+        qamax = np.max(data[name]) 
+    
+    labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
+    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
+    fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
+    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
+    
+    #x-axis
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+                     plot_height=50, plot_width=plot_width,
+                     y_axis_location=None)         
+    axis.line(x=labels, y=0, line_color=None)
+    axis.grid.grid_line_color=None
+    axis.outline_line_color=None
+    
+    fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location=None)
+    
+    return fig
+        
+        
