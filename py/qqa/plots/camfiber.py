@@ -141,7 +141,9 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
             shows the same steps where the tools, column data source, and ranges are shared,
             but the output webpages do not seem to support the linked features
         """
-        first_x_range = bokeh.models.Range1d(0, 5000)
+        min_fiber = min(cds.data['FIBER'])
+        max_fiber = min(cds.data['FIBER'])
+        first_x_range = bokeh.models.Range1d(min_fiber-1, max_fiber-1)
         # first_y_range = None
 
         #- shared ranges to support linked features
