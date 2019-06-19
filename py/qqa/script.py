@@ -58,11 +58,12 @@ def main_monitor(options=None):
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
-    parser.add_argument("--nodes", type=int, default=1, help="Number of nodes for qproc batch job")
-    parser.add_argument("--constraint", type=str, default="haswell", help="Constraint for qproc batch job")
-    parser.add_argument("--qos", type=str, default="interactive", help="Qos for qproc batch job")
-    parser.add_argument("--time", type=int, default=5, help="time for qproc batch job")
-    parser.add_argument("--batch", type=bool, default=False, help="True if you want qproc data processing to spawn a batch job")
+    parser.add_argument("--batch", "-b", type=bool, default=True, help="True if you want qproc data processing to spawn a batch job")
+    parser.add_argument("--nodes", "-N", type=int, default=1, help="Number of nodes for qproc batch job")
+    parser.add_argument("--ntasks", "-n", type=int, default=1, help="Number of tasks per node for qproc batch job")
+    parser.add_argument("--constraint", "-C", type=str, default="haswell", help="Constraint for qproc batch job")
+    parser.add_argument("--qos", "-q", type=str, default="interactive", help="Qos for qproc batch job")
+    parser.add_argument("--time", "-t", type=int, default=5, help="time for qproc batch job")
 
     if options is None:
         options = sys.argv[2:]
@@ -109,15 +110,18 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
+
                 if args.batch:
                     batch_args = dict(
                         nodes=args.nodes,
+                        ntasks=args.ntasks,
                         constraint=args.constraint,
                         qos=args.qos,
                         time=args.time
                     )
                 else:
                     batch_args = dict()
+
                 print('Running qproc on {}'.format(rawfile))
                 header = run.run_qproc(rawfile, outdir, cameras=cameras, batch_args=batch_args)
 

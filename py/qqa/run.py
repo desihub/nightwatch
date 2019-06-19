@@ -183,6 +183,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     cmdlist = list()
+    batchcmdlist = list()
     loglist = list()
     msglist = list()
     rawcameras = which_cameras(rawfile)
@@ -203,25 +204,49 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
             outdir = outdir,
             camera = camera
         )
-        if batch_args != dict():
-            cmd = "srun -N {nodes} -n 1 -C {constraint} -q {qos} -t {time} desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**batch_args, **outfiles)
-        else:
-            cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+
+        if batch_args:
+            batchcmd = "srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**batch_args, **outfiles)
+            batchcmdlist.append(batchcmd)
+
+        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
         cmdlist.append(cmd)
+
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
+    print('ncpu is ' + str(ncpu))
 
-    if ncpu > 1:
-        log.info('Running qproc in parallel on {} cores for {} cameras'.format(
-            ncpu, len(cameras) ))
-        pool = mp.Pool(ncpu)
-        pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
-    else:
-        log.info('Running qproc serially for {} cameras'.format(ncpu))
-        for cmd, logfile in zip(cmdlist, loglist, msglist):
-            runcmd(cmd, logfile)
+    if batch_args:
+        try:
+            log.info('Running qproc via batch processes')
+            if ncpu > 1:
+                log.info('Running qproc in parallel on {} cores for {} cameras'.format(
+                    ncpu, len(cameras) ))
+                pool = mp.Pool(ncpu)
+                pool.starmap(runcmd, zip(batchcmdlist, loglist, msglist))
+            else:
+                log.info('Running qproc serially for {} cameras'.format(ncpu))
+                for cmd, logfile in zip(batchcmdlist, loglist, msglist):
+                    runcmd(cmd, logfile)
+        except:
+            print('Failed spawning qproc to batch processes')
+            batch_args = dict()
+
+
+    if not batch_args:
+        print('ncpu is ' + str(ncpu))
+        if ncpu > 1:
+            log.info('Running qproc in parallel on {} cores for {} cameras'.format(
+                ncpu, len(cameras) ))
+            pool = mp.Pool(ncpu)
+            pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
+        else:
+            log.info('Running qproc serially for {} cameras'.format(ncpu))
+            for cmd, logfile in zip(cmdlist, loglist, msglist):
+                runcmd(cmd, logfile)
+
 
     return hdr
 
