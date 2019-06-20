@@ -256,7 +256,10 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 
     '''
 
-    from . import webpages
+    from . import webpages.amp as web_amp
+    from . import webpages.camfiber as web_camfiber
+    from . import webpages.camera as web_camera
+    from . import webpages.summary as web_summary
     from . import io
 
     log = desiutil.log.get_logger()
@@ -281,24 +284,24 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
-        pc = webpages.amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
+        pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMFIBER' in qadata:
         htmlfile = '{}/qa-camfiber-{:08d}.html'.format(outdir, expid)
-        pc = webpages.camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
+        pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMERA' in qadata:
         htmlfile = '{}/qa-camera-{:08d}.html'.format(outdir, expid)
-        pc = webpages.camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
+        pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
-    webpages.summary.write_summary_html(htmlfile, plot_components)
+    web_summary.write_summary_html(htmlfile, plot_components)
     print('Wrote {}'.format(htmlfile))
 
     from qqa.webpages import plotimage
@@ -316,7 +319,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 def write_tables(indir, outdir):
     import re
     from astropy.table import Table
-    from . import webpages
+    from . import webpages.tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
 
@@ -350,6 +353,6 @@ def write_tables(indir, outdir):
             copyfile(infile, outfile)
 
     nightsfile = os.path.join(outdir, 'nights.html')
-    webpages.tables.write_nights_table(nightsfile, exposures)
+    web_tables.write_nights_table(nightsfile, exposures)
 
-    webpages.tables.write_exposures_tables(indir,outdir, exposures)
+    web_tables.write_exposures_tables(indir,outdir, exposures)
