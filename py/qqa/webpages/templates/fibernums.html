@@ -1,0 +1,14 @@
+{% extends "camfiber.html" %}
+
+{% block plots %}
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+{% if FIBERNUM_PLOTS %}
+    <div>
+        {{ FIBERNUM_PLOTS.script }} {{ FIBERNUM_PLOTS.div }}
+    </div>
+{% endif %}
+
+
+{% endblock %}
