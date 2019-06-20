@@ -34,7 +34,7 @@ class QARunner(object):
         #- Runner keeps instances, not just their classes
         self.qalist = [X() for X in qalist]
 
-    def run(self, indir, outfile=None):
+    def run(self, indir, outfile=None, jsonfile=None):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         log.debug('Running QA in {}'.format(indir))
@@ -100,17 +100,36 @@ class QARunner(object):
             PER_EXP = ['NIGHT', 'EXPID'],
         )
 
-        from pkg_resources import resource_filename
-        jsonfiledir = resource_filename('qqa', os.path.join('cal_files', 'timeseries_dropdown.json'))
-        if os.path.isdir(os.path.dirname(jsonfiledir)):
-            with open(jsonfiledir, 'w') as out:
-                result1 = dict()
-                for key1 in results:
+        if jsonfile is not None:
+            if os.path.exists(jsonfile):
+                with open(jsonfile, 'r') as myfile:
+                    json_data=myfile.read()
+                json_data = json.loads(json_data)
+            else:
+                json_data = dict()
+
+            rewrite_necessary = False
+            for key1 in results:
+                if key1 != "PER_CAMFIBER" and key1.startswith("PER_"):
                     colnames_lst = results[key1][0].colnames
-                    for i in join_keys[key1]:
-                        colnames_lst.remove(i)
-                    result1[key1] = colnames_lst
-                json.dump(result1, out)
+                    if key1 in join_keys:
+                        for i in join_keys[key1]:
+                            colnames_lst.remove(i)
+
+                    if key1 not in json_data:
+                        json_data[key1] = colnames_lst
+                        rewrite_necessary = True
+                    else:
+                        for aspect in colnames_lst:
+                            if aspect not in json_data[key1]:
+                                json_data[key1] += [aspect]
+                                rewrite_necessary = True
+
+            if rewrite_necessary:
+                if os.path.isdir(os.path.dirname(jsonfile)):
+                    with open(jsonfile, 'w') as out:
+                        json.dump(json_data, out)
+                    print('Wrote {}'.format(jsonfile))
 
         for qatype in list(results.keys()):
             if len(results[qatype]) == 1:

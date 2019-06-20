@@ -2,11 +2,17 @@
 
 {% block navigation %}
 <ul class="navigationbar">
+  <li style="float:left"><a id="nights" href = "../../nights.html">nights</a></li>
   <li style="float:left"><a>QA {{ night }}/{{ expid }}</a></li>
   <li style="float:left"><a id="prev">prev</a></li>
   <li style="float:left"><a id="next">next</a></li>
   <li><a id="spectro">spectro</a></li>
-  <li><a id="camfiber" href="qa-camfiber-{{ zexpid }}.html">camfiber</a></li>
+  <li class="dropdown"><a id="camfiber" href = "qa-camfiber-{{ zexpid }}.html">camfiber</a>
+      <ul class="dropdown-content">
+        <a id="camfiber" href="qa-camfiber-{{ zexpid }}.html">fibernum</a>
+        <a id="focalplate" href="qa-camfiber-{{ zexpid }}-focalplate_plots.html">focalplate</a>
+      </ul>
+  </li>   
   <li><a id="fiber">fiber</a></li>
   <li><a id="camera" href="qa-camera-{{ zexpid }}.html">camera</a></li>
   <li><a id="amp" href="qa-amp-{{ zexpid }}.html">amp</a></li>

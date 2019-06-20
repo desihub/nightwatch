@@ -4,14 +4,15 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
+<h3>Amp Metrics</h3>
 {% if READNOISE %}
     <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
 {% endif %}
 
-{% if INTEG_RAW_FLUX %}
-    <p>Integrated Raw Counts</p>
+<h3>Camfiber Metrics</h3>
+{% if CAMFIBER_METRICS %}
     <div>
-        {{ INTEG_RAW_FLUX.script }} {{ INTEG_RAW_FLUX.div }}
+        {{ CAMFIBER_METRICS.script }} {{ CAMFIBER_METRICS.div }}
     </div>
 {% endif %}
 

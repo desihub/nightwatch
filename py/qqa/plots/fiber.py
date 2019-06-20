@@ -20,10 +20,13 @@ import math
 from ..plots.core import get_colors, plot_histogram
 
 
-def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
-                zmax=None, percentile=None, title=None, hist_x_range=None,
-                fig_x_range=None, fig_y_range=None, colorbar=False, palette=None,
-                plot_hist=True, tools='pan,box_select,reset', tooltips=None):
+def plot_fibers_focalplate(source, name, cam='',
+                camcolors=dict(B='steelblue', R='firebrick', Z='green'),
+                width=250, height=270, zmin=None, zmax=None,
+                percentile=None, title=None, hist_x_range=None,
+                fig_x_range=None, fig_y_range=None,
+                colorbar=False, palette=None, plot_hist=True,
+                tools='pan,box_select,reset', tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -31,9 +34,10 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
 
     Options:
         cam : string ('B', 'R', 'Z') to specify which camera wavelength
-        (zmin,zmax) : hardcoded (min,max) to clip data
-        percentile : (min,max) percentiles to clip data
+        camcolors : dictionary of colors corresponding to each CAM option
         width, height : width and height of graph in pixels
+        (zmin,zmax) : hardcoded (min,max) to clip data for histogram
+        percentile : (min,max) percentiles to clip data for histogram
         title : title for the plot
         tools : string of supported features for the plot
         tooltips : hovertool info
@@ -83,18 +87,16 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
-    fig.scatter('X', 'Y', source=source, view=view_empty, fill_color='#DDDDDD', radius=2)
+    fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
 
 
     #- Adds colored outline based on camera
-    camcolors = dict(B='steelblue', R='firebrick', Z='gray')
-
     if cam:
-        color = camcolors[cam.upper()]
+        color = camcolors.get(cam.upper())
         fig.ellipse(x=[0,], y=[0,], width=830, height=830, fill_color=None,
                     line_color=color, line_alpha=0.5, line_width=2)
         fig.text([-350,], [350,], [cam.upper(),],
-            text_color=camcolors[cam.upper()],
+#             text_color=camcolors.get(cam.upper()),
             text_align='center', text_baseline='middle')
 
     #- style visual attributes of the figure
@@ -143,9 +145,10 @@ def plot_fibers(source, name, cam='', width=250, height=270, zmin=None,
     return fig, hfig
 
 
-def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
-                zmax=None, percentile=None, title=None, hist_x_range=None,
-                fig_x_range=None, fig_y_range=None, tools='pan,box_select,reset',
+def plot_fibernums(source, name, cam='',
+                camcolors=dict(B='steelblue', R='firebrick', Z='green'),
+                width=650, height=150, title=None, fig_x_range=None,
+                fig_y_range=None, tools='pan,box_select,reset',
                 toolbar_location=None, tooltips=None):
     '''
     ARGS:
@@ -154,12 +157,11 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
 
     Options:
         cam : string ('B', 'R', 'Z') to specify which camera wavelength
-        (zmin,zmax) : hardcoded (min,max) to clip data
-        percentile : (min,max) percentiles to clip data
+        camcolors : dictionary of colors corresponding to each CAM option
         width, height : width and height of graph in pixels
         title : title for the plot
         tools, tooltips, toolbar_location : supported features for the plot
-        hist_x_range, fig_x_range, fig_y_range : figure ranges to support linking
+        fig_x_range, fig_y_range : figure ranges to support linking
         palette : bokeh palette of colors
         colorbar : boolean value to add a color bar
 
@@ -174,12 +176,9 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
     #- adjusts for outliers on the full scale
     pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
 
-    #- Colors based on camera
-    camcolors = dict(B='steelblue', R='firebrick', Z='gray')
-
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
-                    x_range=fig_x_range, y_range=fig_y_range)
+                    x_range=fig_x_range, y_range=fig_y_range, toolbar_location=toolbar_location)
 
     #- Filter data to just this camera
     #- TODO: fails when CAM not in the data source provided
@@ -188,7 +187,7 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('FIBER', name, source=source, view=view_metric,
-                    color=camcolors[cam], alpha=0.5)
+                    color=camcolors.get(cam.upper()), alpha=0.5)
 
     #- Add hover tool
     if not tooltips:
@@ -197,12 +196,13 @@ def plot_fibernums(source, name, cam='', width=650, height=150, zmin=None,
     fig.add_tools(hover)
 
     #- style visual attributes of the figure
+    fig.yaxis.axis_label = cam
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
     fig.outline_line_color = None
-    fig.xaxis.axis_line_color = camcolors[cam]
-    fig.yaxis.axis_line_color = camcolors[cam]
+    fig.xaxis.axis_line_color = camcolors.get(cam.upper())
+    fig.yaxis.axis_line_color = camcolors.get(cam.upper())
     fig.xaxis.major_label_orientation = math.pi/4
-    fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
+    # fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
     return fig
