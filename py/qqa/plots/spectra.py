@@ -5,7 +5,19 @@ from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool
 import numpy as np
 import random, os, sys, re
 
-def plot_spectra_spectro(data, expid_num, num_fibs=3, height=250, width=320):
+def downsample(datax, n, agg=np.mean):
+    resultx = []
+    length = len(datax)
+    for j in range(0, length, n):
+        if (j+n <= length):
+            samplex = datax[j:(j+n)]
+            resultx += [agg(samplex)]
+        else:
+            samplex = datax[j:length]
+            resultx += [agg(samplex)]
+    return resultx
+
+def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
     p1 = []
     p2 = []
     first = None
@@ -42,6 +54,7 @@ def plot_spectra_spectro(data, expid_num, num_fibs=3, height=250, width=320):
         else:
             indexes = []
         fig=bk.figure(plot_height = height, plot_width = width+50)
+        fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
         fig.add_layout(Title(text= "Fibers: {}".format(common), text_font_style="italic"), 'above')
         fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="16pt"), 'above')
         tooltips = tooltips=[
@@ -64,21 +77,26 @@ def plot_spectra_spectro(data, expid_num, num_fibs=3, height=250, width=320):
         for cam in colors:
             wavelength = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "WAVELENGTH")
             flux = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "FLUX")
-            if first is None:
-                flux_total += [val for sublist in flux for val in sublist]
             for i in indexes:
-                length = len(wavelength[i])
+                dwavelength = downsample(wavelength[i], n)
+                dflux = downsample(flux[i], n)
+                if first is None:
+                    flux_total += dflux
+                length = len(dwavelength)
                 source = ColumnDataSource(data=dict(
                             fiber = [fib[0][i]]*length,
                             cam = [cam]*length,
-                            wave = wavelength[i],
-                            flux = flux[i]
+                            wave = dwavelength,
+                            flux = dflux,
                         ))
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
 
         if first is None:
             if len(colors) == 3:
-                upper = int(np.percentile(flux_total, 99.99))
+                if len(flux_total) == 0:
+                    upper = 1
+                else:
+                    upper = int(np.percentile(flux_total, 99.99))
                 fig.y_range = Range1d(int(-0.02*upper), upper)
                 first = fig
 
@@ -87,6 +105,7 @@ def plot_spectra_spectro(data, expid_num, num_fibs=3, height=250, width=320):
         else:
             p2 += [fig]
 
+    #print(flux_total, file=sys.stderr)
     for fig in p1:
         fig.x_range=first.x_range
         fig.y_range=first.y_range
@@ -98,7 +117,7 @@ def plot_spectra_spectro(data, expid_num, num_fibs=3, height=250, width=320):
     grid = gridplot([p1, p2], sizing_mode="fixed")
     return grid
 
-def plot_spectra_objtype(data, expid_num, num_fibs=5, height=500, width=1000):
+def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000):
     colors = {"R":"red", "B":"blue", "Z":"green"}
     expid = str(expid_num).zfill(8)
 
@@ -138,20 +157,23 @@ def plot_spectra_objtype(data, expid_num, num_fibs=5, height=500, width=1000):
                     continue
                 wavelength = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "WAVELENGTH")
                 flux = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "FLUX")
-                if first:
-                    flux_total += [val for sublist in flux for val in sublist]
                 for i in indexes:
-                    length = len(wavelength[i])
+                    dwavelength = downsample(wavelength[i], n)
+                    dflux = downsample(flux[i], n)
+                    if first:
+                        flux_total += dflux
+                    length = len(dwavelength)
                     source = ColumnDataSource(data=dict(
                                 fiber = [r_fib[i]]*length,
                                 cam = [cam]*length,
-                                wave = wavelength[i],
-                                flux = flux[i]
+                                wave = dwavelength,
+                                flux = dflux
                             ))
                     fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
             first = False
 
         #grid = gridplot(p1, p2)
+        fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
         fig.add_layout(Title(text= "Fibers: {}".format(com), text_font_style="italic"), 'above')
         fig.add_layout(Title(text= "OBJTYPE: {}".format(obj), text_font_size="16pt"), 'above')
 
@@ -200,7 +222,7 @@ def grouper(lst):
         lst = [j for j in lst if j >= i]
     return result
 
-def plot_spectra_input(data, expid_num, select_string, height=500, width=1000):
+def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000):
     fibers = lister(select_string)
     if fibers is None:
         return None
@@ -247,14 +269,16 @@ def plot_spectra_input(data, expid_num, select_string, height=500, width=1000):
             wavelength = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "WAVELENGTH")
             flux = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "FLUX")
             for i in indexes:
-                length = len(wavelength[i])
+                dwavelength = downsample(wavelength[i], n)
+                dflux = downsample(flux[i], n)
+                length = len(dwavelength)
                 source = ColumnDataSource(data=dict(
                             fiber = [fibs[i]]*length,
                             cam = [cam]*length,
-                            wave = wavelength[i],
-                            flux = flux[i]
+                            wave = dwavelength,
+                            flux = dflux
                         ))
-                flux_total += [val for sublist in flux for val in sublist]
+                flux_total += dflux
                 #print(str(i), file=sys.stderr)
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
 
@@ -264,6 +288,7 @@ def plot_spectra_input(data, expid_num, select_string, height=500, width=1000):
             else:
                 result_not += [group[spectro][i]]
 
+    fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
     fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
     fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
     fig.add_layout(Title(text= select_string, text_font_size="16pt"), 'above')
@@ -281,7 +306,10 @@ def plot_spectra_input(data, expid_num, select_string, height=500, width=1000):
 
     fig.add_tools(hover)
 
-    upper = int(np.percentile(flux_total, 99.99))
+    if len(flux_total) == 0:
+        upper = 1
+    else:
+        upper = int(np.percentile(flux_total, 99.99))
     fig.y_range = Range1d(int(-0.02*upper), upper)
 
     return fig

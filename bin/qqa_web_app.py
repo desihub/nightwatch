@@ -94,15 +94,23 @@ def test_timeseries(start_date, end_date, hdu, attribute):
 @app.route('/<int:night>/<string:expid>/spectra/')
 def redirect_to_spectrograph_stectra(night, expid):
     print('redirecting to spectrograph stectra')
-    return redirect('{}/{}/spectra/spectrograph'.format(night, expid), code=302)
+    return redirect('{}/{}/spectra/spectrograph/2x/'.format(night, expid), code=302)
 
-@app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'select_string': None})
-@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:select_string>')
-def getspectra(night, expid, view, select_string):
+@app.route('/<int:night>/<int:expid>/spectra/input/', defaults={'select_string': None, 'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:downsample>/')
+def getspectrainput(night, expid, select_string, downsample):
     global data
     data = os.path.abspath(data)
     from qqa.webpages import spectra
-    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, view, select_string)
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, "input", downsample, select_string)
+
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:downsample>/')
+def getspectra(night, expid, view, downsample):
+    global data
+    data = os.path.abspath(data)
+    from qqa.webpages import spectra
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, view, downsample)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):

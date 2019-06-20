@@ -3,18 +3,32 @@
 {% block body %}
 
 {# Rendering arguments: spectra(.script, .div) #}
-
+<style>
+label {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 5px;
+}
+</style>
 {% if spectra %}
     <div class=flex-item>{{ spectra.script }} {{ spectra.div }}</div>
 {% endif %}
 <br>
 {% if input %}
-<label> Select Fibers:
+<label> Fibers:
     <input type="text" id="fibs" size=40 {% if select_str %} value="{{select_str}}" {% endif %} >
 </label>
 
+<label> Downsample:
+    <input type="int" id="down" size=4 {% if downsample %} value="{{downsample}}" {% endif %} >
+</label>
+
 <button onclick='
-  var url = document.getElementById("fibs").value
+{% if select_str %}
+  var url = "../../" + document.getElementById("fibs").value + "/" + document.getElementById("down").value + "x"
+{% else %}
+  var url = document.getElementById("fibs").value + "/" + document.getElementById("down").value + "x"
+{% endif %}
   window.open(url, "_top")
 '>Generate Spectra
 </button>
