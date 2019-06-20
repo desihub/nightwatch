@@ -213,19 +213,17 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
             outdir = outdir,
             camera = camera
         )
-        
         if batch_args:
-            batchcmd = "srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**batch_args, **outfiles) 
+            batchcmd = "srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**batch_args, **outfiles)
             batchcmdlist.append(batchcmd)
-        
+
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
         cmdlist.append(cmd)
-        
+
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
-    print('ncpu is ' + str(ncpu))
     
     while batch_args:
         count = 0
@@ -258,7 +256,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
             
 
     if not batch_args:
-        print('ncpu is ' + str(ncpu))
         if ncpu > 1:
             log.info('Running qproc in parallel on {} cores for {} cameras'.format(
                 ncpu, len(cameras) ))
@@ -268,7 +265,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
             log.info('Running qproc serially for {} cameras'.format(ncpu))
             for cmd, logfile in zip(cmdlist, loglist, msglist):
                 runcmd(cmd, logfile)
-        
 
     return hdr
 

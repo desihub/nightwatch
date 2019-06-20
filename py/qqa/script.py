@@ -121,7 +121,7 @@ def main_monitor(options=None):
                     )
                 else:
                     batch_args = dict()
-                
+
                 print('Running qproc on {}'.format(rawfile))
                 header = run.run_qproc(rawfile, outdir, cameras=cameras, batch_args=batch_args)
 
