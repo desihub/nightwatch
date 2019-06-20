@@ -20,6 +20,7 @@ Supported commands are:
     qa       Run QA analysis on qproc outputs
     plot     Generate webpages with plots of QA output
     tables   Generate webpages with tables of nights and exposures
+    summary  Generate summary.json for every night available
 Run "qqa <command> --help" for details options about each command
 """)
 
@@ -43,6 +44,8 @@ def main():
         main_plot()
     elif command == 'tables':
         main_tables()
+    elif command == 'summary':
+        main_summary()
     else:
         print('ERROR: unrecognized command "{}"'.format(command))
         print_help()
@@ -109,7 +112,13 @@ def main_monitor(options=None):
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
-                qarunner.run(indir=outdir, outfile=qafile)
+
+                caldir = os.path.join(args.plotdir, "cal_files")
+                jsonfile = os.path.join(caldir, "timeseries_dropdown.json")
+
+                if not os.path.isdir(caldir):
+                    os.makedirs(caldir)
+                qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
 
                 print('Generating plots for {}/{}'.format(night, expid))
                 plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
@@ -257,3 +266,20 @@ def main_tables(options=None):
 
     run.write_tables(args.indir, args.outdir)
     print('Wrote summary tables to {}'.format(args.outdir))
+
+def main_summary(options=None):
+    parser = argparse.ArgumentParser(usage = "{prog} [options]")
+    parser.add_argument("-i", "--indir", type=str, required=True, help="directory of night directories; write summary data to indir/night/summary.json")
+    parser.add_argument("-l", "--last", type=bool, help="True if last night shown is complete and ready to summarize")
+
+    if options is None:
+        options = sys.argv[2:]
+
+    args = parser.parse_args(options)
+
+    last = args.last
+    if last is None:
+        last = False
+
+    run.write_nights_summary(args.indir, last)
+    print('Wrote summary jsons for each night to {}'.format(args.indir))

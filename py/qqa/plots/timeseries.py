@@ -1,12 +1,12 @@
-from astropy.table import Table, vstack
+from astropy.table import Table#, vstack
 import numpy as np
 import os, re, sys
-#import fitsio
+import fitsio
 import bokeh.plotting as bk
 from bokeh.layouts import column
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
-#from qqa.qa.base import QA
+from qqa.qa.base import QA
 
 def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
@@ -27,19 +27,22 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         for i,j,y in os.walk(date):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
-                    list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
-                    #list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                    try:
+                        #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
+                        list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                    except Exception as e:
+                        print("{} does not have desired hdu or column".format(file))
 
     if list_tables == []:
         return None
-    table = vstack(list_tables, metadata_conflicts='silent')
-    # table = None
-    # for tab in list_tables:
-    #     if table is None:
-    #         table = tab
-    #     else:
-    #         table = np.append(table, tab)
-    # table = Table(table)
+    #table = vstack(list_tables, metadata_conflicts='silent')
+    table = None
+    for tab in list_tables:
+        if table is None:
+            table = tab
+        else:
+            table = np.append(table, tab)
+    table = Table(table)
 
     lowest = min(table["EXPID"])
     highest = max(table["EXPID"])
@@ -68,13 +71,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
 
     table.sort("EXPID") # axis
 
-    metacols = {'ALL': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'AMP', 'FIBER'),
- 'PER_AMP': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'AMP'),
- 'PER_CAMERA': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM'),
- 'PER_FIBER': ('NIGHT', 'EXPID', 'SPECTRO', 'FIBER'),
- 'PER_CAMFIBER': ('NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'FIBER'),
- 'PER_SPECTRO': ('NIGHT', 'EXPID', 'SPECTRO'),
- 'PER_EXP': ('NIGHT', 'EXPID')}#QA.metacols
+    metacols = QA.metacols
 
     group_by_list = list(metacols[hdu])
     group_by_list.remove("NIGHT")
