@@ -24,18 +24,19 @@
         } else {
             document.getElementById("prev").href = prev_item;
         }
-    }    
+    }
 </script>
 <script src="../nightlinks.js"></script>
 
 <table>
 <tr>
-  <th colspan="3">Metadata</th>
+  <th colspan="4">Metadata</th>
   <th colspan="6">QA Status</th>
 <tr>
   <th>NIGHT</th>
   <th>EXPID</th>
   <th>FLAVOR</th>
+  <th>EXPTIME</th>
   <th>Amp</th>
   <th>Camera</th>
   <th>Fiber</th>
@@ -49,6 +50,7 @@
   <td>{{ exp.night }}</td>
   <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
   <td>{{ exp.flavor }}</td>
+  <td>{{ exp.exptime }}</td>
 
 {% if exp.PER_AMP_link != "na" %}
   <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>
