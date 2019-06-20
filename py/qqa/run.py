@@ -345,7 +345,9 @@ def write_tables(indir, outdir):
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
 
-    files = ['bootstrap.js', 'bootstrap.css', 'bootstrap-year-calendar.css', 'bootstrap-year-calendar.js', 'jquery_min.js', 'popper_min.js']
+    files = ['bootstrap.js', 'bootstrap.css',
+             'bootstrap-year-calendar.css', 'bootstrap-year-calendar.js',
+             'jquery_min.js', 'popper_min.js', 'live.js']
     for f in files:
         outfile = os.path.join(outdir, 'cal_files', f)
         if not os.path.exists(outfile):
