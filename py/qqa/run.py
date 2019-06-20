@@ -204,9 +204,11 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
             outdir = outdir,
             camera = camera
         )
+        
         if batch_args:
-            cmd = "srun -N {nodes} -n 1 -C {constraint} -q {qos} -t {time} desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**batch_args, **outfiles)
-            batchcmdlist.append(cmd)
+            batchcmd = "srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**batch_args, **outfiles) 
+            batchcmdlist.append(batchcmd)
+        
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
         cmdlist.append(cmd)
         
@@ -232,8 +234,9 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, batch_args=dict()):
             print('Failed spawning qproc to batch processes')
             batch_args = dict()
             
-            
+
     if not batch_args:
+        print('ncpu is ' + str(ncpu))
         if ncpu > 1:
             log.info('Running qproc in parallel on {} cores for {} cameras'.format(
                 ncpu, len(cameras) ))
