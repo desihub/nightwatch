@@ -93,8 +93,6 @@ def write_fibernum_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPER
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile)
 
 
-
-
 def write_focalplate_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
@@ -164,7 +162,6 @@ def create_cds(data, attributes, bin_size=25):
             data_dict[colname] = data[colname]
 
     cds = ColumnDataSource(data=data_dict)
-
     return cds
 
 
@@ -177,8 +174,8 @@ def write_htmlfile(layout, template, outfile):
 
     script, div = components(layout)
     components_dict['CAMFIBER_PLOTS'] = dict(script=script, div=div)
-    camfib = template.render(**components_dict)
+    html_camfib = template.render(**components_dict)
 
     #- Write HTML text to the output files
     with open(outfile, 'w') as fx:
-        fx.write(html_fibernum)
+        fx.write(html_camfib)
