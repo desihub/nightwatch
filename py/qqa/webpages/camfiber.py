@@ -21,26 +21,13 @@ def write_camfiber_html(outfile, data, header):
         data : fits file of per_camfiber data
         header : fits file header
 
-    Writes the generated plots to OUTFILE
+    Writes the default generated fibernum camfiber plots to OUTFILE
+    Also generates and writes an alternate view of focalplate camfiber plots
+    Returns a components dictionary of summary camfiber plots
     '''
-
-    night = header['NIGHT']
-    expid = header['EXPID']
-    flavor = header['FLAVOR'].rstrip()
-    if "PROGRAM" not in header :
-        program = "no program in header!"
-    else :
-        program = header['PROGRAM'].rstrip()
-    exptime = header['EXPTIME']
-
-    env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
-    )
-
-
+    #- Default plot options
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
-    #- Default cameras and percentile ranges for camfiber plots
     CAMERAS = ['B', 'R', 'Z']
     PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
@@ -49,15 +36,21 @@ def write_camfiber_html(outfile, data, header):
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,reset'
 
+    
+    #- Sets environment to get get templates
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+
     #- FIBERNUM PLOTS (default camfiber page)
     fn_template = env.get_template('fibernum.html')
-    write_fibernum_plots(data, fn_template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+    write_fibernum_plots(data, fn_template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
 
     #- FOCALPLATE PLOTS
     index_fp_file = outfile.index('.html')
     fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
     fp_template = env.get_template('focalplate.html')
-    write_focalplate_plots(data, fp_template, fp_outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+    write_focalplate_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
 
     #- SUMMARY CAMFIBER PLOTS
     SUMMARY_CAMFIBER_METRICS = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR']
@@ -73,7 +66,20 @@ def write_camfiber_html(outfile, data, header):
     return summary_components
 
 
-def write_fibernum_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
+def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
+    '''
+    Args:
+        data : fits file of per_camfiber data
+        template : html template
+        outfile : output directory for generated html file
+        header : fits file header
+        ATTRIBUTES : list of attributes to plot
+        CAMERAS : list of camera filters to plot
+        TITLESPERCAM : titles for plots
+        TOOLS : supported features
+        
+    Writes the fibernum plots to OUTFILE
+    '''
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
@@ -90,10 +96,24 @@ def write_fibernum_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPER
     fn_camfiber_layout = layout(fibernum_gridlist)
 
     #- Writes the htmlfile
-    write_file = write_htmlfile(fn_camfiber_layout, template, outfile)
+    write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
 
 
-def write_focalplate_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
+def write_focalplate_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS):    
+    '''
+    Args:
+        data : fits file of per_camfiber data
+        template : html template
+        outfile : output directory for generated html file
+        header : fits file header
+        ATTRIBUTES : list of attributes to plot
+        CAMERAS : list of camera filters to plot
+        PERCENTILES : list of percentiles to clip histogram data per camera
+        TITLESPERCAM : titles for plots
+        TOOLS : supported features
+        
+    Writes the focalplate plots to OUTFILE
+    '''
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
@@ -110,7 +130,8 @@ def write_focalplate_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESP
     fp_camfiber_layout = gridplot(focalplate_gridlist, toolbar_location='right')
 
     #- Writes the htmlfile
-    write_file = write_htmlfile(fp_camfiber_layout, template, outfile)
+    write_file = write_htmlfile(fp_camfiber_layout, template, outfile, header)
+
 
 
 def get_cds(data, attributes, cameras):
@@ -165,7 +186,25 @@ def create_cds(data, attributes, bin_size=25):
     return cds
 
 
-def write_htmlfile(layout, template, outfile):
+def write_htmlfile(layout, template, outfile, header):
+    '''
+    Args:
+        layout : bokeh layout object of plot figures
+        template : html template
+        outfile : outfile directory
+        header : fits file header
+    
+    Writes the LAYOUT of plots to OUTFILE
+    '''
+    night = header['NIGHT']
+    expid = header['EXPID']
+    flavor = header['FLAVOR'].rstrip()
+    if "PROGRAM" not in header :
+        program = "no program in header!"
+    else :
+        program = header['PROGRAM'].rstrip()
+    exptime = header['EXPTIME']
+
     components_dict = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
