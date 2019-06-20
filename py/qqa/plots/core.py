@@ -96,8 +96,23 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     return hfig
 
 
-def boxplot(q1, q2, q3, upper, lower, outliers, fig, xpos, color='gray'):
-    '''TODO: document'''
+def boxplot(q1, q2, q3, upper, lower, outliers, xpos, color='gray',
+            fig=bk.figure(width=200, height=200)):
+    '''Generates a single vertical boxplot
+    Args:
+        q1 : first quartile
+        q2 : second quartile (median)
+        q3 : third quartile
+        upper : the upper limit of the whisker
+        lower : the lower limit of the whisker
+        outliers : a list of any outlier values
+        xpos : the x position the boxplot should be centered on
+    Options:
+        color : color of the boxplot stem and whiskers
+        fig : a bokeh figure object on which to render the boxplot
+        
+    Returns a bokeh figure object
+    '''
     # outliers
     if any(outliers):
         fig.circle([xpos] * len(outliers), outliers,

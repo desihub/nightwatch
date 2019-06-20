@@ -3,8 +3,9 @@ import multiprocessing as mp
 import subprocess
 
 import fitsio
+import numpy as np
 
-from astropy.table import Table
+from astropy.table import Table, vstack
 
 import desiutil.log
 
@@ -203,7 +204,9 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             outdir = outdir,
             camera = camera
         )
+
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+
         cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
@@ -353,3 +356,85 @@ def write_tables(indir, outdir):
     webpages.tables.write_nights_table(nightsfile, exposures)
 
     webpages.tables.write_exposures_tables(indir,outdir, exposures)
+
+def write_nights_summary(indir, last):
+    '''
+    Creates summary.json in each of the nights directory within indir
+
+    Args:
+        indir: directory where all the nights subdirectories are located. Is also
+            the output directory for the summary.json files.
+
+        last: if True, the function will process the last night
+
+    Writes to directory and returns nothing
+    '''
+
+    nights = next(os.walk(indir))[1]
+    nights = [night for night in nights if re.match(r"[0-9]{8}", night)]
+    nights.sort()
+
+    if not last:
+        nights = nights[0:len(nights)-1]
+
+    for night in nights:
+        jsonfile = os.path.join(indir, night, "summary.json")
+        if not os.path.isfile(jsonfile):
+            expids = next(os.walk(os.path.join(indir, night)))[1]
+            expid = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
+            qadata_stacked = None
+            for expid in expids:
+                fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
+                if not os.path.isfile(fitsfile):
+                    print("could not find {}".format(fitsfile))
+                else:
+                    qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
+                    if (qadata_stacked is None):
+                        qadata_stacked = qadata
+                    else:
+                        qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
+
+            if qadata_stacked is None:
+                print("no exposures found")
+                return
+
+            readnoise_sca = dict()
+            bias_sca = dict()
+
+            for s in range(0, 10, 1):
+                for c in ["R", "B", "Z"]:
+                    for a in ["A", "B", "C", "D"]:
+                        specific = qadata_stacked[(qadata_stacked["SPECTRO"]==s) & (qadata_stacked["CAM"]==c) & (qadata_stacked["AMP"]==a)]
+                        if len(specific) > 0:
+                            readnoise_sca_dict = dict(
+                                median=np.median(list(specific["READNOISE"])),
+                                std=np.std(list(specific["READNOISE"])),
+                                num_exp=len(specific)
+                            )
+                            readnoise_sca[str(s) + c + a] = readnoise_sca_dict
+
+                            bias_sca_dict = dict(
+                                median=np.median(list(specific["BIAS"])),
+                                std=np.std(list(specific["BIAS"])),
+                                num_exp=len(specific)
+                            )
+                            bias_sca[str(s) + c + a] = bias_sca_dict
+
+            cosmics_rates = dict(
+                p90=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 90),
+                p95=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 95),
+                num_exp=len(qadata_stacked)
+            )
+
+            data = dict(
+                PER_AMP=dict(
+                    READNOISE=readnoise_sca,
+                    BIAS=bias_sca,
+                    COSMICS_RATES=cosmics_rates
+                )
+            )
+
+            import json
+            with open(jsonfile, 'w') as out:
+                json.dump(data, out, indent=4)
+            print('Wrote {}'.format(jsonfile))
