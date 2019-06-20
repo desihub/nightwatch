@@ -62,6 +62,42 @@ ul.navigationbar li a:hover {
   background-color: #111;
 }
 
+ul.navigationbar li.dropdown ul.dropdown-content {
+  visibility: hidden;
+  position: absolute;
+  display: none;
+}
+
+ul.navigationbar li.dropdown:hover > ul.dropdown-content {
+  visibility: visible;
+  display: block;
+  background-color: #777777;
+  z-index:999;
+}
+
+ul.navigationbar li.dropdown:hover ul.dropdown-content a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  padding: 12px;
+  text-align: center;
+}
+
+ul.navigationbar li.dropdown:hover > ul.dropdown-content,
+ul.dropdown-content a {
+  visibility: visible;
+  display: block;
+  background-color: #777777;
+  z-index:999;
+}
+
+ul.navigationbar li.dropdown ul.dropdown-content a:hover { 
+  visibility: visible;
+  display: block;
+  background-color: #111;
+  z-index:999;
+}
+
 ul.navigationbar li a.noHover {
   pointer-events: none;
   color: #777777;
@@ -71,7 +107,7 @@ ul.navigationbar li a.current_page {
   pointer-events: none;
   background-color: DarkSlateBlue;
 }
-    
+
 </style>
 </head>
 
