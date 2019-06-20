@@ -24,6 +24,8 @@ def get_spectra_html(data, expid, view, downsample_str, select_string = None):
     if downsample_str is None:
         downsample = 4
     else:
+        if downsample_str[len(downsample_str)] != "x":
+            return("invalid downsample")
         try:
             downsample = int(downsample_str[0:len(downsample_str)-1])
         except:
