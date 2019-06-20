@@ -256,10 +256,10 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 
     '''
 
-    from . import webpages.amp as web_amp
-    from . import webpages.camfiber as web_camfiber
-    from . import webpages.camera as web_camera
-    from . import webpages.summary as web_summary
+    from qqa.webpages import amp as web_amp
+    from qqa.webpages import camfiber as web_camfiber
+    from qqa.webpages import camera as web_camera
+    from qqa.webpages import summary as web_summary
     from . import io
 
     log = desiutil.log.get_logger()
@@ -319,7 +319,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 def write_tables(indir, outdir):
     import re
     from astropy.table import Table
-    from . import webpages.tables as web_tables
+    from qqa.webpages import tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
 
