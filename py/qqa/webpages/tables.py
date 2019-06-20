@@ -54,18 +54,18 @@ def _write_night_links(outdir):
             list_nights += [fil]
     list_nights.sort()
 
-    links = dict() 
+    links = dict()
     for i in range(len(list_nights)):
         night = list_nights[i]
         prev_n = None
         next_n = None
-        
+
         if i != len(list_nights)-1:
             next_n = os.path.join("..", list_nights[i+1], "exposures.html")
 
         if i != 0:
             prev_n = os.path.join("..", list_nights[i-1], "exposures.html")
-        
+
         links[night] = dict(prev_n = prev_n, next_n = next_n)
 
     outfile = os.path.join(outdir, 'nightlinks.js')
@@ -85,10 +85,10 @@ get_nightlinks({})
 def _write_expid_links(outdir, exposures, nights=None):
     """
     Write outdir/YEARMMDD/EXPID/explinks.js with info about prev/next exp
-    
+
     may re-sort input exposures list by NIGHT,EXPID
     """
-    
+
     exposures = Table(exposures)
     exposures.sort(keys=['NIGHT', 'EXPID'])
 
@@ -108,7 +108,7 @@ def _write_expid_links(outdir, exposures, nights=None):
 
         if night not in links:
             links[night] = dict()
-        
+
         zexpid = '{:08d}'.format(exposures['EXPID'][i])
         assert zexpid not in links[night]
 
@@ -118,7 +118,7 @@ def _write_expid_links(outdir, exposures, nights=None):
             prevnight = int(exposures['NIGHT'][i-1])
             prevzexpid = '{:08d}'.format(exposures['EXPID'][i-1])
             prevlink = dict(night=prevnight, zexpid=prevzexpid)
-    
+
         if i+1 < nexp:
             nextnight = int(exposures['NIGHT'][i+1])
             nextzexpid = '{:08d}'.format(exposures['EXPID'][i+1])
@@ -149,29 +149,30 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
     exposures: table with columns NIGHT, EXPID
     nights: optional list of nights to process
     """
-    
+
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('exposures.html')
 
     if nights is None:
-        nights = np.unique(exposures['NIGHT'])    
+        nights = np.unique(exposures['NIGHT'])
 
     for night in nights:
         ii = (exposures['NIGHT'] == night)
         explist = list()
         for expid in sorted(exposures['EXPID'][ii]):
-            
+
             qafile = io.findfile('qa', night, expid, basedir=indir)
             qadata = io.read_qa(qafile)
             status = get_status(qadata)
             flavor = qadata['HEADER']['FLAVOR'].rstrip()
+            exptime = qadata['HEADER']['EXPTIME']
             link = '{expid:08d}/qa-summary-{expid:08d}.html'.format(
                 night=night, expid=expid)
 
-            expinfo = dict(night=night, expid=expid, flavor=flavor, link=link)
-            
+            expinfo = dict(night=night, expid=expid, flavor=flavor, link=link, exptime=exptime)
+
             #- TODO: have actual thresholds
             for i, qatype in enumerate(['PER_AMP', 'PER_CAMERA', 'PER_FIBER',
                                         'PER_CAMFIBER', 'PER_SPECTRO', 'PER_EXP']):
@@ -186,13 +187,12 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
                     expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(expid=expid, name=short_name)
 
             explist.append(expinfo)
-                    
+
         html = template.render(night=night, exposures=explist)
         outfile = os.path.join(outdir, str(night), 'exposures.html')
         with open(outfile, 'w') as fx:
             fx.write(html)
 
         _write_expid_links(outdir, exposures, nights)
-    
-    _write_night_links(outdir)
 
+    _write_night_links(outdir)
