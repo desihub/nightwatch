@@ -31,6 +31,13 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
     cam_figs=[]
     colors = {"B":"blue", "R":"red", "Z":"green"}
     for cam in ["B", "R", "Z"]:
+        
+        #- TODO: fix, addresses issue in amp-cam plots when erroring batch qproc causes a 
+        #- missing processed data file for a specific wavelength        
+        if cam not in astrotable['CAM']:
+            print('ERROR: missing per camera data from camera ' + cam)
+            continue
+        
         cam_table = astrotable[astrotable["CAM"]==cam]
         fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam)
         source = ColumnDataSource(data=dict(

@@ -58,6 +58,12 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     '''Plot a per-amp visualization of data[name]
     qamin/qamax: min/max ranges for the color scale'''
     
+    #- TODO: fix, addresses issue in amp-cam plots when erroring batch qproc causes a 
+    #- missing processed data file for a specific wavelength
+    if cam not in data['CAM']:
+        print('ERROR: missing per amp data from camera ' + cam)
+        return None
+    
     if title is None:
         title = name   
     
