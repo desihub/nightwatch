@@ -39,7 +39,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
             MINattr = cam_table["MIN"+attribute],
             MAXattr = cam_table["MAX"+attribute]
         ))
-        fig.circle(source=source, x="SPECTRO", y="MEANattr", size=10, color=colors[cam])
+        fig.circle(source=source, x="SPECTRO", y="MEANattr", color=colors[cam])
         fig.circle(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
         fig.circle(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
         if line0:
