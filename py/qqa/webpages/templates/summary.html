@@ -10,14 +10,9 @@
 {% endif %}
 
 <h3>Camfiber Metrics</h3>
-{% if INTEG_RAW_FLUX %}
+{% if CAMFIBER_METRICS %}
     <div>
-        {{ INTEG_RAW_FLUX.script }} {{ INTEG_RAW_FLUX.div }}
-    </div>
-{% endif %}
-{% if MEDIAN_RAW_SNR %}
-    <div>
-        {{ MEDIAN_RAW_SNR.script }} {{ MEDIAN_RAW_SNR.div }}
+        {{ CAMFIBER_METRICS.script }} {{ CAMFIBER_METRICS.div }}
     </div>
 {% endif %}
 
