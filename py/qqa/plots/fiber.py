@@ -203,6 +203,6 @@ def plot_fibernums(source, name, cam='',
     fig.xaxis.axis_line_color = camcolors.get(cam.upper())
     fig.yaxis.axis_line_color = camcolors.get(cam.upper())
     fig.xaxis.major_label_orientation = math.pi/4
-    fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
+    # fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
     return fig

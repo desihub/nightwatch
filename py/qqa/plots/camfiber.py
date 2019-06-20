@@ -116,7 +116,9 @@ def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None):
     for i in range(len(cameras)):
         c = cameras[i]
 
-        first_x_range = bokeh.models.Range1d(0, 5000)
+        min_fiber = max(0, min(list(cds.data['FIBER'])))
+        max_fiber = min(5000, max(list(cds.data['FIBER'])))
+        first_x_range = bokeh.models.Range1d(min_fiber-1, max_fiber+1)
         # first_y_range = None
 
         #- shared ranges to support linked features
