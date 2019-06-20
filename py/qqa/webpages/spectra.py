@@ -24,7 +24,7 @@ def get_spectra_html(data, expid, view, downsample_str, select_string = None):
     if downsample_str is None:
         downsample = 4
     else:
-        if downsample_str[len(downsample_str)] != "x":
+        if downsample_str[len(downsample_str)-1] != "x":
             return("invalid downsample")
         try:
             downsample = int(downsample_str[0:len(downsample_str)-1])
@@ -41,6 +41,7 @@ def get_spectra_html(data, expid, view, downsample_str, select_string = None):
         html_components["input"] = True
         fig = None
         if select_string != None:
+            select_string =select_string.replace(" ", "")
             html_components["select_str"] = select_string
             fig = spectra.plot_spectra_input(data, expid, downsample, select_string)
             if fig is None:
