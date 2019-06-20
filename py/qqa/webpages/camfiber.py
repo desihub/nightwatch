@@ -52,18 +52,7 @@ def write_camfiber_html(outfile, data, header):
     fp_template = env.get_template('focalplate.html')
     write_focalplate_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
 
-    #- SUMMARY CAMFIBER PLOTS
-    SUMMARY_CAMFIBER_METRICS = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR']
-    cds = get_cds(data, ATTRIBUTES, CAMERAS)
-    summary_components = dict({})
-    for attr in SUMMARY_CAMFIBER_METRICS:
-        if attr in list(cds.data.keys()):
-            fig_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
-            gplot = bk.gridplot(fig_list, ncols=1, toolbar_location='right')
-            script, div = components(gplot)
-            summary_components[attr] = dict(script=script, div=div)
-
-    return summary_components
+    return dict({})
 
 
 def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):

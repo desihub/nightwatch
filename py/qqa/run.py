@@ -301,7 +301,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
         print('Wrote {}'.format(htmlfile))
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
-    webpages.summary.write_summary_html(htmlfile, plot_components)
+    webpages.summary.write_summary_html(htmlfile, qadata, plot_components)
     print('Wrote {}'.format(htmlfile))
 
     from qqa.webpages import plotimage
