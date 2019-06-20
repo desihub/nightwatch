@@ -204,7 +204,9 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             outdir = outdir,
             camera = camera
         )
+
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+
         cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
