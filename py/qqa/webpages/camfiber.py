@@ -49,41 +49,61 @@ def write_camfiber_html(outfile, data, header):
               'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,reset'
+    
+    fn_template = env.get_template('fibernums.html')
+    write_fibernum_plots(data, fn_template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+    
+    index_fp_file = outfile.index('.html')
+    fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
+    write_focalplate_plots(data, fp_template, fp_outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+    
+    
+    return summary_components
 
+    
+
+def write_fibernum_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):    
+        #- Gets a shared ColumnDataSource of DATA
+        cds = get_cds(data, ATTRIBUTES, CAMERAS)
+
+        fibernum_components = dict(
+            bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
+            night=night, expid=expid, zexpid='{:08d}'.format(expid),
+            flavor=flavor, program=program, qatype = 'camfiber',
+        )
+
+        fn_template = env.get_template('fibernums.html')
+        #- Gets the layout for the fibernum plots
+        fibernum_gridlist = []
+        #- Gets the gridplots for each metric in ATTRIBUTES
+        for attr in ATTRIBUTES:
+            #- TODO: aggregation later (box and whisker) or binning
+            if attr in list(cds.data.keys()):
+                figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, 
+                                              tools=TOOLS)
+
+                fibernum_gridlist.extend(figs_list)
+
+        #- Organizes the layout of the plots
+        fn_camfiber_layout = layout(fibernum_gridlist)
+
+        #- Gets the html components of the fibernum plots
+        fn_script, fn_div = components(fn_camfiber_layout)
+        fibernum_components['FIBERNUM_PLOTS'] = dict(script=fn_script, div=fn_div)
+        #- Combine template + components -> HTML
+        html_fibernum = fn_template.render(**fibernum_components)
+        
+        #- Write HTML text to the output files
+        #- fibernums
+        with open(outfile, 'w') as fx:
+            fx.write(html_fibernum)
+        
+    
+
+def write_focalplate_plots(data, template, outfile, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
-
-    '''FIBERNUM PLOTS'''
-    fibernum_components = dict(
-        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
-        night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program, qatype = 'camfiber',
-    )
-
-    fn_template = env.get_template('fibernums.html')
-    #- Gets the layout for the fibernum plots
-    fibernum_gridlist = []
-    #- Gets the gridplots for each metric in ATTRIBUTES
-    for attr in ATTRIBUTES:
-        #- TODO: aggregation later (box and whisker) or binning
-        if attr in list(cds.data.keys()):
-            figs_list = plot_per_fibernum(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                         titles=TITLESPERCAM, tools=TOOLS)
-
-            fibernum_gridlist.extend(figs_list)
-
-    #- Organizes the layout of the plots
-    fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1, toolbar_location='above')
-
-    #- Gets the html components of the fibernum plots
-    fn_script, fn_div = components(fn_camfiber_layout)
-    fibernum_components['FIBERNUM_PLOTS'] = dict(script=fn_script, div=fn_div)
-    #- Combine template + components -> HTML
-    html_fibernum = fn_template.render(**fibernum_components)
-
-
-    '''FOCAL PLATE PLOTS'''
     focalplate_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
@@ -112,18 +132,10 @@ def write_camfiber_html(outfile, data, header):
 
 
     #- Write HTML text to the output files
-    #- fibernums
     with open(outfile, 'w') as fx:
-        fx.write(html_fibernum)
-
-    #- focalplate plots
-    index_fp_file = outfile.index('.html')
-    fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
-    with open(fp_outfile, 'w') as fx:
-        fx.write(html_focalplate)
-
-
-    return fibernum_components
+        fx.write(html_focalplate) 
+    
+    return focalplate_components
 
 
 def get_cds(data, attributes, cameras):
