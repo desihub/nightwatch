@@ -134,7 +134,8 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
                 names = ["dots"],
                 callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-{}-@EXPIDZ.html".format(hdu[4:].lower()))
             )
-            fig.toolbar.autohide = True
+            if hasattr(fig.toolbar, 'autohide'):
+                fig.toolbar.autohide = True
 
             fig.segment(x0='x', y0=min_y, x1='x', y1=max_y, color='grey', line_width=1, source=line_source)
             fig.add_tools(hover)
