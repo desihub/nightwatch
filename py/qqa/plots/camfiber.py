@@ -54,7 +54,6 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
     for i in range(len(cameras)):
         c = cameras[i]
 
-        func = plot_fibers
         first_x_range = bokeh.models.Range1d(-420, 420)
         first_y_range = bokeh.models.Range1d(-420, 420)
 
@@ -71,7 +70,7 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
         else:
             colorbar = False
 
-        fig, hfig = plot_fibers(cds, attribute, cam=c,
+        fig, hfig = plot_fibers_focalplate(cds, attribute, cam=c,
                         percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute),
