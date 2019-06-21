@@ -134,7 +134,7 @@ def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None):
         if i == 0:
             fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
                                  tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
-                                 fig_x_range=fig_x_range
+                                 fig_x_range=fig_x_range, height=175
                                 )
         else:
             fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
