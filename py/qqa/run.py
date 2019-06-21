@@ -263,6 +263,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
     from qqa.webpages import camfiber as web_camfiber
     from qqa.webpages import camera as web_camera
     from qqa.webpages import summary as web_summary
+    from qqa.webpages import lastexp as web_lastexp
     from . import io
 
     log = desiutil.log.get_logger()
@@ -305,6 +306,11 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, plot_components)
+    print('Wrote {}'.format(htmlfile))
+
+    #- TODO: this shouldn't go in the per-exposure directory
+    htmlfile = '{}/qa-lastexp.html'.format(outdir)
+    web_lastexp.write_lastexp_html(htmlfile, qadata)
     print('Wrote {}'.format(htmlfile))
 
     from qqa.webpages import plotimage

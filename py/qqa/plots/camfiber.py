@@ -13,7 +13,7 @@ from ..plots.fiber import plot_fibers_focalplate, plot_fibernums
 
 def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
                       zmaxs={}, zmins={}, titles={},
-                      tools='pan,box_select,reset'):
+                      tools='pan,box_zoom,reset'):
     '''
     ARGS:
         cds : ColumnDataSource of data
@@ -85,8 +85,8 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
 
 
 
-def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None,
-        width=650, height=150):
+def plot_per_fibernum(cds, attribute, cameras, titles={},
+        tools='pan,box_zoom,reset', width=650, height=150):
     '''
     ARGS:
         cds : ColumnDataSource of data
