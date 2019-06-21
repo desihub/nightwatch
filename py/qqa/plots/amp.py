@@ -135,7 +135,7 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
 
     return fig
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=75, 
+def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
                 plot_width=700):
     
     if qamin is None:
