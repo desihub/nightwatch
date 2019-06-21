@@ -85,12 +85,15 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
 
 
 
-def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None):
+def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None,
+        width=650, height=150):
     '''
     ARGS:
         cds : ColumnDataSource of data
         attribute : string corresponding to column name in DATA
         cameras : list of string representing unique camera values
+        width : width of individual camera plots in pixels
+        height : height of individual camera plots in pixels
 
     Options:
         titles : dictionary of titles per camera for a group of camfiber plots
@@ -130,17 +133,12 @@ def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None):
             fig_x_range = figs_list[0].x_range
             # fig_y_range = figs_list[0].y_range
             toolbar_location=None
-        
-        if i == 0:
-            fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
-                                 tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
-                                 fig_x_range=fig_x_range, height=175
-                                )
-        else:
-            fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
-                                 tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
-                                 fig_x_range=fig_x_range
-                                )
+
+        heightpad = 25 if i==0 else 0  #- extra space for title and toolbar
+        fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
+                             tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
+                             fig_x_range=fig_x_range, width=width, height=height+heightpad
+                            )
 
         figs_list.append(fig)
 
