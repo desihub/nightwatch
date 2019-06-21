@@ -151,13 +151,22 @@ def plot_per_fibernum(cds, attribute, cameras, percentiles={},
         else:
             fig_x_range = figs_list[0].x_range
             # fig_y_range = figs_list[0].y_range
-
-        fig = plot_fibernums(cds, attribute, cam=c, percentile=percentiles.get(c),
+        
+        #making sure all plots are the same height
+        if i == 0:
+            fig = plot_fibernums(cds, attribute, cam=c, percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute), tools=tools,
                         tooltips=tooltips, toolbar_location=None,
                         hist_x_range=hist_x_range, fig_x_range=fig_x_range,
-                        )
+                        height=175)
+        else:
+            fig = plot_fibernums(cds, attribute, cam=c, percentile=percentiles.get(c),
+                            zmin=zmins.get(c), zmax=zmaxs.get(c),
+                            title=titles.get(c, {}).get(attribute), tools=tools,
+                            tooltips=tooltips, toolbar_location=None,
+                            hist_x_range=hist_x_range, fig_x_range=fig_x_range,
+                            )
 
         figs_list.append(fig)
 

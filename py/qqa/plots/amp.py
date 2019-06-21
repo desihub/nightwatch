@@ -135,7 +135,7 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
 
     return fig
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
+def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=75, 
                 plot_width=700):
     
     if qamin is None:
@@ -144,7 +144,7 @@ def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None,
         qamax = np.max(data[name]) 
     
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
-    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
+    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height+25)
     fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
     fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
     
