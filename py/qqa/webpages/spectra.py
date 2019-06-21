@@ -7,7 +7,29 @@ from bokeh.embed import components
 from ..plots import spectra
 
 def get_spectra_html(data, expid, view, downsample_str, select_string = None):
-    '''TODO: document'''
+    '''
+    Generates the html for the page conatining spectra plots. The format of
+    the page depends on the provided view.
+
+    Args:
+        data: night directory that contains the expid we want to process spectra for
+        expid: string or int of the expid we want to process spectra for
+        view: must be either "spectrograph", "objtype", "input".
+            "spectrograph":
+                generates 10 different plots corresponding to each spectrograph
+            "objtype":
+                generates different plots corresponding to each different objtype
+            "input":
+                generates different plots corresponding to the user's input
+        downsample_str: string corresponding to downsample, structured like "4x".
+            if None, assumes "4x"
+
+    Options:
+        select_string: the user input only for when view = "input". If None,
+            returns no spectra plot, but only inputboxes
+
+    Returns html string that should display the spectra plots
+    '''
 
     if view not in ["spectrograph", "objtype", "input"]:
         print("No such view " + view, file=sys.stderr)

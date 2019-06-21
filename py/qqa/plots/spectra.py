@@ -5,19 +5,47 @@ from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool
 import numpy as np
 import random, os, sys, re
 
-def downsample(datax, n, agg=np.mean):
+def downsample(data, n, agg=np.mean):
+    '''
+    Produces downsampled data of data
+
+    Args:
+        data: an array or list of elements able to be aggregated by agg
+        n: int of downsample size
+
+    Options:
+        agg: aggregate function; default is np.mean
+
+    Returns a list of the downsampled data
+    '''
     resultx = []
-    length = len(datax)
+    length = len(data)
     for j in range(0, length, n):
         if (j+n <= length):
-            samplex = datax[j:(j+n)]
+            samplex = data[j:(j+n)]
             resultx += [agg(samplex)]
         else:
-            samplex = datax[j:length]
+            samplex = data[j:length]
             resultx += [agg(samplex)]
     return resultx
 
 def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
+    '''
+    Produces a gridplot of 10 different spectra plots, each displaying a number of randomly
+    selected fibers that correspond to the 10 different spectrographs.
+
+    Args:
+        data: night directory that contains the expid we want to process spectra for
+        expid_num: string or int of the expid we want to process spectra for
+        n: int of downsample size
+
+    Options:
+        num_fibs: number of fibers per spectrograph spectra plot
+        height: height of each plot
+        width: height of each plot
+
+    Returns bokeh.layouts.gridplot object containing all 10 plots
+    '''
     p1 = []
     p2 = []
     first = None
@@ -118,6 +146,22 @@ def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
     return grid
 
 def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000):
+    '''
+    Produces a gridplot of different spectra plots, each displaying a number of randomly
+    selected fibers that correspond to each unique OBJTYPE.
+
+    Args:
+        data: night directory that contains the expid we want to process spectra for
+        expid_num: string or int of the expid we want to process spectra for
+        n: int of downsample size
+
+    Options:
+        num_fibs: number of fibers per objtype spectra plot
+        height: height of each plot
+        width: height of each plot
+
+    Returns bokeh.layouts.gridplot object containing the objtype plots
+    '''
     colors = {"R":"red", "B":"blue", "Z":"green"}
     expid = str(expid_num).zfill(8)
 
@@ -196,6 +240,14 @@ def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000)
     return gridplot(gridlist, sizing_mode="fixed")
 
 def lister(string):
+    '''
+    Produces a list of fibers from translating the string input
+
+    Args:
+        string that requests specific fibers (eg "1, 3-5, 501")
+
+    Returns a list of ints corresponding to the fibers specified (eg [1, 3, 5, 501])
+    '''
     try:
         str_spl = string.split(',')
         result = []
@@ -214,6 +266,16 @@ def lister(string):
         return None
 
 def grouper(lst):
+    '''
+    Produces a dictionary of spectrographs, with each entry including the fibers
+    within the input list
+
+    Args:
+        lst: int list of fibers (eg [1, 3, 5, 501])
+
+    Returns a dictionary of spectrographs with each entry including the fibers
+    within the input list (eg {0: [1, 3, 5], 1: [501]})
+    '''
     result = {}
     for i in range(500, 5001, 500):
         sub = [j for j in lst if j < i]
@@ -223,6 +285,22 @@ def grouper(lst):
     return result
 
 def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000):
+    '''
+    Produces plot displaying the specific fibers requested.
+
+    Args:
+        data: night directory that contains the expid we want to process spectra for
+        expid_num: string or int of the expid we want to process spectra for
+        n: int of downsample size
+        select_string: string that requests specific fibers ("1, 3-5" corresponds
+            to fibers 1, 3, 5)
+
+    Options:
+        height: height of the plot
+        width: height of the plot
+
+    Returns bokeh.plotting.figure containing all existing specified fibers
+    '''
     fibers = lister(select_string)
     if fibers is None:
         return None
