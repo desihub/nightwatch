@@ -1,0 +1,71 @@
+output
+
+
+
+
+rdoshi99@cori12:~> cd $SCRATCH/desi/qqatest                                     rdoshi99@cori12:/global/cscratch1/sd/rdoshi99/desi/qqatest> srun -N 1 -n 1 -C haswell -q interactive -t 5 python -c "print('hello world')";
+
+
+>>> script = "print(\'hello world!\');"
+>>> batch_args = list(['srun', '-N', '1', '-n', '1', '-C', 'haswell', '-q', 'interactive', '-t', '5', 'python', '-c', script,])
+ >>> batch_args
+['srun', '-N', '1', '-n', '1', '-C', 'haswell', '-q', 'interactive', '-t', '5', 'python', '-c', "print('hello world!');"]
+>>> import subprocess
+>>> subprocess.call(batch_args)
+hello world!
+0
+
+
+
+hello world
+rdoshi99@cori12:/global/cscratch1/sd/rdoshi99/desi/qqatest> qqa monitor -i data -o output     --plotdir /project/projectdirs/desi/www/users/$USER/qqatest/output
+INFO:script.py:87:main_monitor: Monitoring data/YEARMMDD/EXPID/ for new raw data
+
+10:33 Found new exposure 20190306/00001076
+Spawning qproc to batch
+Running qproc on data/20190306/00001076/desi-00001076.fits.fz
+Failed to process or QA or plot exposure 00001076
+Error message: 'haswell'
+Traceback (most recent call last):
+  File "/global/cscratch1/sd/rdoshi99/desi/code/qqa/py/qqa/script.py", line 133, in main_monitor
+    cmd = batchcmd.format(**batch_args)
+KeyError: 'haswell'
+Now moving on ...
+
+
+
+rdoshi99@cori12:/global/cscratch1/sd/rdoshi99/desi/qqatest> qqa monitor -i data -o output     --plotdir /project/projectdirs/desi/www/users/$USER/qqatest/output
+INFO:script.py:87:main_monitor: Monitoring data/YEARMMDD/EXPID/ for new raw data
+
+10:34 Found new exposure 20190306/00001076
+Spawning qproc to batch
+Running qproc on data/20190306/00001076/desi-00001076.fits.fz
+args are
+['srun', '-N', '1', '-n', '1', '-C', 'haswell', '-q', 'interactive', '-t', '5', 'python', '-c', '"from', 'qqa.run', 'import', 'run_qproc;', 'run_qproc(data/20190306/00001076/desi-00001076.fits.fz,', 'output/20190306/00001076,', 'cameras=None)";']
+  File "<string>", line 1
+    "from
+        ^
+SyntaxError: EOL while scanning string literal
+srun: error: nid00149: task 0: Exited with exit code 1
+srun: Terminating job step 22467794.0
+subprocess.call finished, err is 1
+ERROR 1 while running qproc as batch process
+Failed to run qproc as batch process, switching to run locally
+Running qproc on data/20190306/00001076/desi-00001076.fits.fz
+INFO:run.py:227:run_qproc: Running qproc in parallel on 3 cores for 3 cameras
+Logging qproc 20190306/1076 r2 to output/20190306/00001076/qproc-r2-00001076.log
+Logging qproc 20190306/1076 b2 to output/20190306/00001076/qproc-b2-00001076.log
+Logging qproc 20190306/1076 z2 to output/20190306/00001076/qproc-z2-00001076.log
+SUCCESS qproc 20190306/1076 z2
+SUCCESS qproc 20190306/1076 b2
+SUCCESS qproc 20190306/1076 r2
+Running QA on 20190306/00001076
+Generating plots for 20190306/00001076
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/qa-amp-00001076.html
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/qa-camfiber-00001076.html
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/qa-camera-00001076.html
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/qa-summary-00001076.html
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/preproc-r2-00001076-4x.html
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/preproc-b2-00001076-4x.html
+Wrote /project/projectdirs/desi/www/users/rdoshi99/qqatest/output/20190306/00001076/preproc-z2-00001076-4x.html
+10:35 Finished exposure 20190306/00001076 (1.6 min)

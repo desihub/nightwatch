@@ -5,6 +5,7 @@ qqa command line script
 import os, sys, time, glob
 import argparse
 import traceback
+import subprocess
 from . import run, plots
 from .qa import QARunner
 from desiutil.log import get_logger
@@ -113,20 +114,35 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
+                
+                run_batch_qproc=args.batch
+                if run_batch_qproc:
+                    print('Spawning qproc of {} to batch process'.format(rawfile))
+                    
+                    script='"print(\'Hello world!\'); from qqa.run import run_qproc; run_qproc(\'{rawfile}\', \'{outdir}\', cameras={cameras});"'.format(rawfile=rawfile, outdir=outdir, cameras=cameras)
+                    
+                    print('script is ')
+                    print(script)
+                    
+                    batch_args = list(
+                        ['salloc', '-N', str(args.nodes), '-n', str(args.ntasks), '-C', str(args.constraint), '-q',
+                         str(args.qos), '-t', str(args.time), 'python', '-c', script,
+                        ])
 
-                if args.batch:
-                    batch_args = dict(
-                        nodes=args.nodes,
-                        ntasks=args.ntasks,
-                        constraint=args.constraint,
-                        qos=args.qos,
-                        time=args.time
-                    )
-                else:
-                    batch_args = dict()
+                    print('calling subprocess')
+                    err = subprocess.call(batch_args)      
+                    print('ending subprocess')
 
-                print('Running qproc on {}'.format(rawfile))
-                header = run.run_qproc(rawfile, outdir, cameras=cameras, batch_args=batch_args)
+                    if err == 0:
+                        print('SUCCESS {}'.format('running qproc as batch process'))
+                    if err != 0:
+                        print('ERROR {} while running {}'.format(err, 'qproc as batch process'))
+                        print('Failed to run qproc as batch process, switching to run locally')
+                        run_batch_qproc = False
+                    
+                if not run_batch_qproc:
+                    print('Running qproc on {}'.format(rawfile))
+                    header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
