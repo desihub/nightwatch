@@ -130,11 +130,17 @@ def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None):
             fig_x_range = figs_list[0].x_range
             # fig_y_range = figs_list[0].y_range
             toolbar_location=None
-
-        fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
-                             tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
-                             fig_x_range=fig_x_range
-                            )
+        
+        if i == 0:
+            fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
+                                 tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
+                                 fig_x_range=fig_x_range
+                                )
+        else:
+            fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
+                                 tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
+                                 fig_x_range=fig_x_range
+                                )
 
         figs_list.append(fig)
 
