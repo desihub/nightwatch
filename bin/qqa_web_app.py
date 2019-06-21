@@ -68,27 +68,11 @@ def test_timeseries(start_date, end_date, hdu, attribute):
         return error_message
     #html_attr["dropdown_hdu"] = dropdown
 
-    from qqa.plots.timeseries import generate_timeseries
+    from qqa.webpages.timeseries import generate_timeseries_html
 
-    env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
-    )
-    template = env.get_template('timeseries.html')
+    html = generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
 
-    html_components = dict(
-        bokeh_version=bokeh.__version__, attribute=attribute,
-        start=start_date, end=end_date, hdu=hdu,
-        dropdown_hdu=dropdown,
-    )
-
-    fig = generate_timeseries(data, start_date, end_date, hdu, attribute)
-    if fig is None:
-        return "No data between {} and {}".format(start_date, end_date)
-
-    script, div = components(fig)
-    html_components['timeseries'] = dict(script=script, div=div)
-
-    return template.render(html_components)
+    return html
 
 @app.route('/<int:night>/<string:expid>/spectra/')
 def redirect_to_spectrograph_stectra(night, expid):
