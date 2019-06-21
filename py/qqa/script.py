@@ -6,7 +6,7 @@ import os, sys, time, glob
 import argparse
 import traceback
 from . import run, plots
-from .qa import QARunner
+from .qa import runner.QARunner
 from desiutil.log import get_logger
 
 def print_help():
@@ -79,7 +79,7 @@ def main_monitor(options=None):
     tmp = os.path.join(args.indir, 'YEARMMDD', 'EXPID')
     log.info('Monitoring {}/ for new raw data'.format(tmp))
 
-    qarunner = QARunner()
+    qarunner = runner.QARunner()
 
     processed = set()
     while True:
