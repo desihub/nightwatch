@@ -11,6 +11,8 @@ data = ""
 parser = argparse.ArgumentParser(usage = "{prog} [options]")
 parser.add_argument("-s", "--static", type=str, required=True, help="static file directory")
 parser.add_argument("-d", "--data", type=str, help="data/fits file directory")
+parser.add_argument("--host", type=str, default="localhost", help="hostname (e.g. localhost or 0.0.0.0")
+parser.add_argument("--port", type=int, default=8001, help="port number")
 args = parser.parse_args()
 
 stat = args.static
@@ -143,4 +145,4 @@ def getfile(filepath):
     return 'no data for ' + os.path.join(stat, filepath)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host=args.host, port=args.port)
