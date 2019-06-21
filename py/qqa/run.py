@@ -310,7 +310,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 
     #- TODO: this shouldn't go in the per-exposure directory
     htmlfile = '{}/qa-lastexp.html'.format(outdir)
-    web_lastexp.write_lastexp_html(htmlfile, qadata)
+    web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
 
     from qqa.webpages import plotimage

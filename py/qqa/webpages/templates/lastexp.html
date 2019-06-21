@@ -2,21 +2,29 @@
 
 {% block body %}
 
+<h3>Night {{ night }} Exposure {{ expid }}</h3>
+<p>{{ exptime }} second {{ flavor }} ({{ program }})</p>
+
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
 {% if READNOISE %}
-    <h3>CCD Read Noise</h3>
+    {# <h3>CCD Read Noise</h3> #}
     <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
 {% endif %}
 
 {% if RAWFLUX %}
-    <h3>Per-fiber integrated raw counts</h3>
+    {# <h3>Per-fiber integrated raw counts</h3> #}
     <div>{{ RAWFLUX.script }} {{ RAWFLUX.div }}</div>
 {% endif %}
 
 {% if CALIBFLUX %}
-    <h3>Per-fiber sky-subtracted flux-calibrated integrated flux</h3>
+    {# <h3>Per-fiber sky-subtracted flux-calibrated integrated flux</h3> #}
     <div>{{ CALIBFLUX.script }} {{ CALIBFLUX.div }}</div>
+{% endif %}
+
+{% if SPECTRA %}
+    {# <h3>Spectra {{ SPECTRA.fibers }}</h3> #}
+    <div>{{ SPECTRA.script }} {{ SPECTRA.div }}</div>
 {% endif %}
 
 {% endblock %}

@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 
 import jinja2
@@ -6,9 +8,10 @@ from bokeh.embed import components
 from bokeh.layouts import gridplot, layout
 
 from ..plots.amp import plot_amp_qa
+from ..plots.spectra import plot_spectra_input
 from . import camfiber
 
-def write_lastexp_html(outfile, data):
+def write_lastexp_html(outfile, data, qprocdir):
     '''TODO: document'''
     
     header = data['HEADER']
@@ -45,15 +48,25 @@ def write_lastexp_html(outfile, data):
     if flavor.upper() in ['ARC', 'FLAT']:
         cameras = ['B', 'R', 'Z']  #- TODO: derive from data
         cds = camfiber.get_cds(data['PER_CAMFIBER'], ['INTEG_RAW_FLUX',], cameras)
-        figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_RAW_FLUX', cameras) #, titles=TITLESPERCAM, tools=TOOLS)
+        figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_RAW_FLUX', cameras)        
+        figs_list[0].title = bokeh.models.Title(text="Integrated raw flux per fiber")
         fn_camfiber_layout = layout(figs_list)
 
         script, div = components(fn_camfiber_layout)
         html_components['RAWFLUX'] = dict(script=script, div=div)
 
-    #- TODO: Spectra
-    if flavor.upper() in ['ARC', 'FLAT', 'SCIENCE']:
-        pass
+    #- Random Spectra
+    if flavor.upper() in ['ARC', 'FLAT', 'SCIENCE'] and \
+            'PER_CAMFIBER' in data and \
+            qprocdir is not None:
+        downsample = 4
+        nfib = min(5, len(data['PER_CAMFIBER']))
+        fibers = sorted(np.random.choice(data['PER_CAMFIBER']['FIBER'], size=nfib, replace=False))
+        fibers = ','.join([str(tmp) for tmp in fibers])
+
+        specfig = plot_spectra_input(os.path.dirname(qprocdir), expid, downsample, fibers, height=500, width=1000)
+        script, div = components(specfig)
+        html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
 
     #- Combine template + components -> HTML
     html = template.render(**html_components)
