@@ -238,8 +238,8 @@ def run_qa(indir, outfile=None, qalist=None):
 
     Returns dictionary of QA results, keyed by PER_AMP, PER_CCD, PER_FIBER, ...
     """
-    from .qa import runner.QARunner
-    qarunner = runner.QARunner(qalist)
+    from .qa.runner import QARunner
+    qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
 def make_plots(infile, outdir, preprocdir=None, cameras=None):
