@@ -366,10 +366,13 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
             else:
                 result_not += [group[spectro][i]]
 
-    fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= select_string, text_font_size="16pt"), 'above')
+    # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
+    # fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
+    # fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
+    # fig.add_layout(Title(text= select_string, text_font_size="12pt"), 'above')
+
+    title = 'Spectra {} downsampled {}x'.format(select_string, n)
+    fig.add_layout(Title(text=title), 'above')
 
     tooltips = tooltips=[
         ("Fiber", "@fiber"),

@@ -148,7 +148,7 @@ def plot_fibers_focalplate(source, name, cam='',
 def plot_fibernums(source, name, cam='',
                 camcolors=dict(B='steelblue', R='firebrick', Z='green'),
                 width=650, height=150, title=None, fig_x_range=None,
-                fig_y_range=None, tools='pan,box_select,reset',
+                fig_y_range=None, tools='pan,box_zoom,reset',
                 toolbar_location=None, tooltips=None):
     '''
     ARGS:
@@ -178,7 +178,8 @@ def plot_fibernums(source, name, cam='',
 
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
-                    x_range=fig_x_range, y_range=fig_y_range, toolbar_location=toolbar_location)
+                    x_range=fig_x_range, y_range=fig_y_range,
+                    toolbar_location=toolbar_location)
 
     #- Filter data to just this camera
     #- TODO: fails when CAM not in the data source provided
@@ -187,7 +188,7 @@ def plot_fibernums(source, name, cam='',
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('FIBER', name, source=source, view=view_metric,
-                    color=camcolors.get(cam.upper()), alpha=0.5)
+                    color=camcolors.get(cam.upper()), alpha=0.7)
 
     #- Add hover tool
     if not tooltips:
@@ -202,6 +203,7 @@ def plot_fibernums(source, name, cam='',
     fig.outline_line_color = None
     fig.xaxis.axis_line_color = camcolors.get(cam.upper())
     fig.yaxis.axis_line_color = camcolors.get(cam.upper())
+    fig.yaxis.formatter = NumeralTickFormatter(format='0a')
     fig.xaxis.major_label_orientation = math.pi/4
     # fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
 
