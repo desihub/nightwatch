@@ -59,6 +59,18 @@ def write_lastexp_html(outfile, data, qprocdir):
         script, div = components(fn_camfiber_layout)
         html_components['RAWFLUX'] = dict(script=script, div=div)
 
+    #- Calib flux
+    if flavor.upper() in ['SCIENCE']:
+        cameras = ['B', 'R', 'Z']  #- TODO: derive from data
+        cds = camfiber.get_cds(data['PER_CAMFIBER'], ['INTEG_CALIB_FLUX',], cameras)
+        figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_CALIB_FLUX', cameras,
+            height=120, ymin=0, width=plot_width)
+        figs_list[0].title = bokeh.models.Title(text="Integrated Sky-sub Calib Flux Per Fiber")
+        fn_camfiber_layout = layout(figs_list)
+
+        script, div = components(fn_camfiber_layout)
+        html_components['CALIBFLUX'] = dict(script=script, div=div)
+
     #- Random Spectra
     if flavor.upper() in ['ARC', 'FLAT', 'SCIENCE'] and \
             'PER_CAMFIBER' in data and \
