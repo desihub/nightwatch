@@ -121,10 +121,10 @@ def main_monitor(options=None):
                 qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
 
                 print('Generating plots for {}/{}'.format(night, expid))
-                plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-                if not os.path.isdir(plotdir) :
-                    os.makedirs(plotdir)
-                run.make_plots(infile=qafile, outdir=plotdir, preprocdir=outdir, cameras=cameras)
+                expdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+                if not os.path.isdir(expdir) :
+                    os.makedirs(expdir)
+                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, cameras=cameras)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -236,7 +236,7 @@ def main_qa(options=None):
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input fits file name with qa outputs")
-    parser.add_argument("-o", "--outdir", type=str, help="output directory (including YEARMMDD/EXPID/)")
+    parser.add_argument("-o", "--outdir", type=str, help="output directory (not including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]
