@@ -173,7 +173,8 @@ def main_run(options=None):
     qaresults = run.run_qa(args.outdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=args.outdir, cameras=cameras)
+    basedir = os.path.dirname(os.path.dirname(os.path.abspath(args.outdir)))
+    run.make_plots(qafile, basedir, preprocdir=args.outdir, cameras=cameras)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
@@ -249,7 +250,7 @@ def main_plot(options=None):
         else:
             outdir = args.outdir
 
-        run.make_plots(infile, outdir, preprocdir=outdir)
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile))
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

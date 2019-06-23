@@ -16,7 +16,7 @@ import bokeh
 from bokeh.embed import components
 from bokeh.layouts import gridplot, layout
 
-def get_summary_plots(qadata, plotdir, qprocdir):
+def get_summary_plots(qadata, qprocdir=None):
     '''TODO: document'''
 
     header = qadata['HEADER']
@@ -77,7 +77,8 @@ def get_summary_plots(qadata, plotdir, qprocdir):
         fibers = sorted(np.random.choice(qadata['PER_CAMFIBER']['FIBER'], size=nfib, replace=False))
         fibers = ','.join([str(tmp) for tmp in fibers])
 
-        specfig = plot_spectra_input(os.path.dirname(qprocdir), expid, downsample,
+        nightdir = os.path.dirname(os.path.normpath(qprocdir))
+        specfig = plot_spectra_input(nightdir, expid, downsample,
             fibers, height=300, width=plot_width*2)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
@@ -93,8 +94,7 @@ def write_summary_html(outfile, qadata, qprocdir):
         qprocdir : directory containing qproc outputs (qframe*.fits, etc.)
     """
 
-    plotdir = os.path.dirname(outfile)
-    plot_components = get_summary_plots(qadata, plotdir, qprocdir)
+    plot_components = get_summary_plots(qadata, qprocdir)
     plot_components['qatype'] = 'summary'
 
     update_camfib_pc(plot_components, qadata)

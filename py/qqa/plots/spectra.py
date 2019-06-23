@@ -372,6 +372,10 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
     # fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
     # fig.add_layout(Title(text= select_string, text_font_size="12pt"), 'above')
 
+    if len(result_able) == 0:
+        print('ERROR: Unable to find any input spectra in {} for {}'.format(
+            data, select_string))
+
     title = 'Spectra {} downsampled {}x'.format(select_string, n)
     fig.add_layout(Title(text=title), 'above')
 
