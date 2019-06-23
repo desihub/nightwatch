@@ -38,11 +38,12 @@ def write_lastexp_html(outfile, data, qprocdir):
     #- Add a basic set of PER_AMP QA plots
     plot_components = dict()
 
-    plot_width = 700
+    plot_width = 500
 
     #- CCD Read Noise
     fig = plot_amp_qa(data['PER_AMP'], 'READNOISE', title='CCD Amplifier Read Noise',
-        qamin=1.5, qamax=4.0, ymin=0, ymax=5.0, plot_width=plot_width)
+        qamin=1.5, qamax=4.0, ymin=0, ymax=5.0,
+        plot_width=plot_width, plot_height=110)
     script, div = components(fig)
     html_components['READNOISE'] = dict(script=script, div=div)
 
@@ -52,7 +53,7 @@ def write_lastexp_html(outfile, data, qprocdir):
         cds = camfiber.get_cds(data['PER_CAMFIBER'], ['INTEG_RAW_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_RAW_FLUX', cameras,
             height=120, ymin=0, width=plot_width)
-        figs_list[0].title = bokeh.models.Title(text="Integrated raw flux per fiber")
+        figs_list[0].title = bokeh.models.Title(text="Integrated Raw Flux Per Fiber")
         fn_camfiber_layout = layout(figs_list)
 
         script, div = components(fn_camfiber_layout)
@@ -68,7 +69,7 @@ def write_lastexp_html(outfile, data, qprocdir):
         fibers = ','.join([str(tmp) for tmp in fibers])
 
         specfig = plot_spectra_input(os.path.dirname(qprocdir), expid, downsample,
-            fibers, height=350, width=plot_width)
+            fibers, height=300, width=plot_width*2)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
 

@@ -167,9 +167,12 @@ def plot_amp_qa(data, name, title=None, qamin=None, qamax=None,
     #     qamax = np.max(data[name])
     
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
-    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, ymin=ymin, ymax=ymax, title=title, plot_height=plot_height+25)
-    fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, ymin=ymin, ymax=ymax, title=title, plot_height=plot_height)
-    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, ymin=ymin, ymax=ymax, title=title, plot_height=plot_height)
+    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, ymin=ymin, ymax=ymax,
+        title=title, plot_height=plot_height+25, plot_width=plot_width)
+    fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, ymin=ymin, ymax=ymax,
+        title=title, plot_height=plot_height, plot_width=plot_width)
+    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, ymin=ymin, ymax=ymax,
+        title=title, plot_height=plot_height, plot_width=plot_width)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 

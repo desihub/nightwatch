@@ -1,7 +1,8 @@
 from astropy.io import fits
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool
+from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
+
 import numpy as np
 import random, os, sys, re
 
@@ -392,5 +393,6 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
     else:
         upper = int(np.percentile(flux_total, 99.99))
     fig.y_range = Range1d(int(-0.02*upper), upper)
+    fig.yaxis.formatter = NumeralTickFormatter(format='0a')
 
     return fig

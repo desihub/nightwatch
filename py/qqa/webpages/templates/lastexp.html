@@ -7,24 +7,24 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
+<div class="flex-container">
+
 {% if READNOISE %}
-    {# <h3>CCD Read Noise</h3> #}
     <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
 {% endif %}
 
 {% if RAWFLUX %}
-    {# <h3>Per-fiber integrated raw counts</h3> #}
     <div>{{ RAWFLUX.script }} {{ RAWFLUX.div }}</div>
 {% endif %}
 
 {% if CALIBFLUX %}
-    {# <h3>Per-fiber sky-subtracted flux-calibrated integrated flux</h3> #}
     <div>{{ CALIBFLUX.script }} {{ CALIBFLUX.div }}</div>
 {% endif %}
 
 {% if SPECTRA %}
-    {# <h3>Spectra {{ SPECTRA.fibers }}</h3> #}
     <div>{{ SPECTRA.script }} {{ SPECTRA.div }}</div>
 {% endif %}
+
+</div>
 
 {% endblock %}
