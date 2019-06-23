@@ -305,7 +305,7 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
         print('Wrote {}'.format(htmlfile))
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
-    web_summary.write_summary_html(htmlfile, qadata, plot_components)
+    web_summary.write_summary_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
 
     #- TODO: this shouldn't go in the per-exposure directory
