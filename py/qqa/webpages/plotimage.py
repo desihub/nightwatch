@@ -36,3 +36,30 @@ def write_image_html(input, output, downsample, night):
         fx.write(html)
 
     print('Wrote {}'.format(output))
+
+    
+def write_preproc_table_html(input_dir, night, expid, downsample, output):
+    '''TODO: document'''
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('preproc_nav.html')
+
+    available = []
+    preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]
+    for file in preproc_files:
+        available += [file.split("-")[1]]
+
+    html_components = dict(
+        version=bokeh.__version__, downsample=str(downsample),
+        preproc=True, night=night, available=available, 
+        current=None, expid=int(expid), zexpid=str(expid).zfill(8),
+    )
+
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(output, 'w') as fx:
+        fx.write(html)
+
+    print('Wrote {}'.format(output))
