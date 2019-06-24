@@ -98,6 +98,8 @@ def getspectra(night, expid, view, frame, downsample):
     data = os.path.abspath(data)
 
     if downsample is None:
+        if frame is None:
+            return redirect('{}/{}/spectra/{}/qframe/4x/'.format(night, expid, view), code=302)
         return redirect('{}/{}/spectra/{}/{}/4x/'.format(night, expid, view, frame), code=302)
 
     from qqa.webpages import spectra
