@@ -55,7 +55,8 @@ def write_camfiber_html(outfile, data, header):
     return dict({})
 
 
-def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
+def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
+        TITLESPERCAM, TOOLS='pan,box_select,reset'):
     '''
     Args:
         data : fits file of per_camfiber data
@@ -88,7 +89,9 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, T
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
 
 
-def write_focalplate_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS):    
+def write_focalplate_plots(data, template, outfile, header,
+        ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
+        TOOLS='pan,box_select,reset'):
     '''
     Args:
         data : fits file of per_camfiber data

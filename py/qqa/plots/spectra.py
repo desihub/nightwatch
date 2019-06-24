@@ -1,7 +1,8 @@
 from astropy.io import fits
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool
+from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
+
 import numpy as np
 import random, os, sys, re
 
@@ -366,10 +367,17 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
             else:
                 result_not += [group[spectro][i]]
 
-    fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= select_string, text_font_size="16pt"), 'above')
+    # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
+    # fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
+    # fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
+    # fig.add_layout(Title(text= select_string, text_font_size="12pt"), 'above')
+
+    if len(result_able) == 0:
+        print('ERROR: Unable to find any input spectra in {} for {}'.format(
+            data, select_string))
+
+    title = 'Spectra {} downsampled {}x'.format(select_string, n)
+    fig.add_layout(Title(text=title), 'above')
 
     tooltips = tooltips=[
         ("Fiber", "@fiber"),
@@ -389,5 +397,6 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
     else:
         upper = int(np.percentile(flux_total, 99.99))
     fig.y_range = Range1d(int(-0.02*upper), upper)
+    fig.yaxis.formatter = NumeralTickFormatter(format='0a')
 
     return fig

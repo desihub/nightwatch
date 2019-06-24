@@ -6,6 +6,7 @@
   <li><a id="next">next</a></li>
   <li><a id="prev">prev</a></li>
   <li><a href="../nights.html">calendar</a></li>
+  <li><a href="../qa-lastexp.html">latest</a></li>
 </ul>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
@@ -28,6 +29,12 @@
 </script>
 <script src="../nightlinks.js"></script>
 
+{#
+<p>
+<a href="../qa-lastexp.html">Summary of latest exposure</a> (auto-updating)
+</p>
+#}
+
 <table>
 <tr>
   <th colspan="4">Metadata</th>
@@ -45,7 +52,7 @@
   <th>Exp</th>
 </tr>
 
-{% for exp in exposures %}
+{% for exp in exposures|reverse %}
 <tr>
   <td>{{ exp.night }}</td>
   <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>

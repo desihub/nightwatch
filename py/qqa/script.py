@@ -6,7 +6,7 @@ import os, sys, time, glob
 import argparse
 import traceback
 from . import run, plots
-from .qa import QARunner
+from .qa.runner import QARunner
 from desiutil.log import get_logger
 
 def print_help():
@@ -121,10 +121,10 @@ def main_monitor(options=None):
                 qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
 
                 print('Generating plots for {}/{}'.format(night, expid))
-                plotdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-                if not os.path.isdir(plotdir) :
-                    os.makedirs(plotdir)
-                run.make_plots(infile=qafile, outdir=plotdir, preprocdir=outdir, cameras=cameras)
+                expdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+                if not os.path.isdir(expdir) :
+                    os.makedirs(expdir)
+                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, cameras=cameras)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -173,7 +173,8 @@ def main_run(options=None):
     qaresults = run.run_qa(args.outdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=args.outdir, cameras=cameras)
+    basedir = os.path.dirname(os.path.dirname(os.path.abspath(args.outdir)))
+    run.make_plots(qafile, basedir, preprocdir=args.outdir, cameras=cameras)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
@@ -236,7 +237,7 @@ def main_qa(options=None):
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input fits file name with qa outputs")
-    parser.add_argument("-o", "--outdir", type=str, help="output directory (including YEARMMDD/EXPID/)")
+    parser.add_argument("-o", "--outdir", type=str, help="output directory (not including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]
@@ -249,7 +250,7 @@ def main_plot(options=None):
         else:
             outdir = args.outdir
 
-        run.make_plots(infile, outdir, preprocdir=outdir)
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile))
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):
