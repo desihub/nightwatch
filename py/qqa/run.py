@@ -149,6 +149,8 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
             ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.map(desispec.scripts.preproc.main, arglist)
+        pool.close()
+        pool.join()
     else:
         log.info('Running preproc serially for {} cameras'.format(ncpu))
         for args in arglist:
@@ -218,6 +220,8 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
+        pool.close()
+        pool.join()
     else:
         log.info('Running qproc serially for {} cameras'.format(ncpu))
         for cmd, logfile in zip(cmdlist, loglist, msglist):
