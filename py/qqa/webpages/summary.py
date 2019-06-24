@@ -44,20 +44,22 @@ def get_summary_plots(qadata, qprocdir=None):
     )
 
     plot_width = 500
+    plot_height = 110
 
     #- CCD Read Noise
     fig = plot_amp_qa(qadata['PER_AMP'], 'READNOISE', title='CCD Amplifier Read Noise',
         qamin=1.5, qamax=4.0, ymin=0, ymax=5.0,
-        plot_width=plot_width, plot_height=110)
+        plot_width=plot_width, plot_height=plot_height)
     script, div = components(fig)
     html_components['READNOISE'] = dict(script=script, div=div)
 
+    
     #- Raw flux
     if flavor.upper() in ['ARC', 'FLAT']:
-        cameras = ['B', 'R', 'Z']  #- TODO: derive from data
+        cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_RAW_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_RAW_FLUX', cameras,
-            height=120, ymin=0, width=plot_width)
+            height=plot_height, ymin=0, width=plot_width)
         figs_list[0].title = bokeh.models.Title(text="Integrated Raw Flux Per Fiber")
         fn_camfiber_layout = layout(figs_list)
 
@@ -66,10 +68,10 @@ def get_summary_plots(qadata, qprocdir=None):
 
     #- Calib flux
     if flavor.upper() in ['SCIENCE']:
-        cameras = ['B', 'R', 'Z']  #- TODO: derive from data
+        cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_CALIB_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_CALIB_FLUX', cameras,
-            height=120, ymin=0, width=plot_width)
+            height=plot_height, ymin=0, width=plot_width)
         figs_list[0].title = bokeh.models.Title(text="Integrated Sky-sub Calib Flux Per Fiber")
         fn_camfiber_layout = layout(figs_list)
 
@@ -108,7 +110,7 @@ def write_summary_html(outfile, qadata, qprocdir):
     plot_components = get_summary_plots(qadata, qprocdir)
     plot_components['qatype'] = 'summary'
 
-    update_camfib_pc(plot_components, qadata)
+#     update_camfib_pc(plot_components, qadata)
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
@@ -122,32 +124,3 @@ def write_summary_html(outfile, qadata, qprocdir):
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
-
-
-def update_camfib_pc(pc, qadata,
-                     metrics=['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR'],
-                     cameras=['B', 'R', 'Z'],
-                     titlespercam={'B':{'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_SNR':'Median Raw S/N'}},
-                     tools='pan,box_zoom,reset',
-                    ):
-    '''
-    TODO: document
-    '''
-
-    if 'PER_CAMFIBER' not in qadata:
-        return
-
-    data = qadata['PER_CAMFIBER']
-    cds = camfiber.get_cds(data, metrics, cameras)
-
-    fibernum_gridlist = []
-    for attr in metrics:
-        if attr in list(cds.data.keys()):
-            figs_list = plot_per_fibernum(cds, attr, cameras, titles=titlespercam, tools=tools)
-
-            fibernum_gridlist.extend(figs_list)
-
-    camfiber_layout = layout(fibernum_gridlist)
-
-    script, div = components(camfiber_layout)
-    pc['CAMFIBER_METRICS'] = dict(script=script, div=div)

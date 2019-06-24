@@ -123,21 +123,16 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax,
     fig.circle(x='locations', y='data_val', line_color=None, 
                  fill_color='colors', size='sizes', source=source, name='circles')
 
+
+    plotmin = min(ymin, np.min(data_val) * 0.9) if ymin else np.min(data_val) * 0.9
+    plotmax = max(ymax, np.max(data_val) * 1.1) if ymax else np.max(data_val) * 1.1
+    fig.y_range = Range1d(plotmin, plotmax)
+    
+    #- style visual attributes
     fig.yaxis.axis_label = cam
-
-    if ymin is None:
-        ymin = np.min(data_val)*0.9
-    else:
-        ymin = min(ymin, np.min(data_val)*0.9)
-
-    if ymax is None:
-        ymax = np.max(data_val)*1.1
-    else:
-        ymax = max(ymax, np.max(data_val)*1.1)
-
-    fig.y_range = Range1d(ymin, ymax)
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color=None
+
     if cam == 'R':
         fig.outline_line_color='firebrick'
     if cam == 'B':
