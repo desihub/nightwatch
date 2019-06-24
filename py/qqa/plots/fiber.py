@@ -15,7 +15,7 @@ from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
 from bokeh.transform import transform
 from bokeh.transform import linear_cmap
 import bokeh.palettes as bp
-from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter
+from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter, TapTool
 import math
 from ..plots.core import get_colors, plot_histogram
 
@@ -26,7 +26,7 @@ def plot_fibers_focalplate(source, name, cam='',
                 percentile=None, title=None, hist_x_range=None,
                 fig_x_range=None, fig_y_range=None,
                 colorbar=False, palette=None, plot_hist=True,
-                tools='pan,box_select,reset', tooltips=None):
+                tools='pan,box_select,reset,tap', tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -112,6 +112,9 @@ def plot_fibers_focalplate(source, name, cam='',
     fig.xaxis.major_label_text_font_size = '0pt'
     fig.yaxis.major_label_text_font_size = '0pt'
 
+    taptool = fig.select(type=TapTool)
+    taptool.callback = OpenURL(url="spectra/input/@FIBER/4x/")
+
     #- Add colorbar
     if colorbar:
         fig.plot_width = fig.plot_width + 60
@@ -148,7 +151,7 @@ def plot_fibers_focalplate(source, name, cam='',
 def plot_fibernums(source, name, cam='',
                 camcolors=dict(B='steelblue', R='firebrick', Z='green'),
                 width=650, height=150, title=None, fig_x_range=None,
-                fig_y_range=None, tools='pan,box_select,reset',
+                fig_y_range=None, tools='pan,box_select,reset,tap',
                 toolbar_location=None, tooltips=None):
     '''
     ARGS:
@@ -204,5 +207,8 @@ def plot_fibernums(source, name, cam='',
     fig.yaxis.axis_line_color = camcolors.get(cam.upper())
     fig.xaxis.major_label_orientation = math.pi/4
     # fig.xaxis[0].formatter = NumeralTickFormatter(format='0.0a')
+
+    taptool = fig.select(type=TapTool)
+    taptool.callback = OpenURL(url="spectra/input/@FIBER/4x/")
 
     return fig
