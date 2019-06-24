@@ -145,8 +145,8 @@ def getfile(filepath):
         # assume qqa/py is in PYTHONPATH
         # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'qqa')))
         from qqa.webpages import plotimage
-
-        plotimage.write_image_html(fitsfilepath, os.path.join(stat, filepath), downsample)
+        night = filedir.split("/")[0]
+        plotimage.write_image_html(fitsfilepath, os.path.join(stat, filepath), downsample, night)
         return send_from_directory(stat, filepath)
 
     print("could NOT find " + fitsfilepath, file=sys.stderr)
