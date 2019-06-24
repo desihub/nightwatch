@@ -4,7 +4,7 @@ import jinja2
 import bokeh
 from bokeh.embed import components
 
-from ..plots.amp import plot_amp_qa
+from ..plots.amp import plot_amp_qa, get_thresholds
 
 def write_amp_html(outfile, data, header):
     '''TODO: document'''
@@ -33,8 +33,8 @@ def write_amp_html(outfile, data, header):
     plot_components = dict()
 
     #- Generate the bokeh figure
-    fig = plot_amp_qa(data, 'READNOISE', title='CCD Amplifier Read Noise',
-        qamin=1.5, qamax=4.0)
+    #lower, upper = get_thresholds('/global/cscratch1/sd/alyons18/desi/qqatest/READNOISE-20190307.json')
+    fig = plot_amp_qa(data, 'READNOISE', title='CCD Amplifier Read Noise')
     #- Convert that into the components to embed in the HTML
     script, div = components(fig)
     #- Save those in a dictionary to use later
@@ -49,8 +49,7 @@ def write_amp_html(outfile, data, header):
     #- Cosmics rate
     fig = plot_amp_qa(data, 'COSMICS_RATE',
         title='CCD Amplifier cosmics per minute',
-        palette=bokeh.palettes.all_palettes['RdYlGn'][11][1:-1],
-        qamin=0, qamax=50)
+        palette=bokeh.palettes.all_palettes['RdYlGn'][11][1:-1])
     script, div = components(fig)
     html_components['COSMICS_RATE'] = dict(script=script, div=div)
 
