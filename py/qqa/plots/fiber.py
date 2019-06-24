@@ -15,7 +15,7 @@ from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
 from bokeh.transform import transform
 from bokeh.transform import linear_cmap
 import bokeh.palettes as bp
-from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter, TapTool
+from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter, TapTool, OpenURL
 import math
 from ..plots.core import get_colors, plot_histogram
 
@@ -26,7 +26,7 @@ def plot_fibers_focalplate(source, name, cam='',
                 percentile=None, title=None, hist_x_range=None,
                 fig_x_range=None, fig_y_range=None,
                 colorbar=False, palette=None, plot_hist=True,
-                tools='pan,box_select,reset,tap', tooltips=None):
+                tools=['pan','box_select','reset','tap'], tooltips=None):
     '''
     ARGS:
         source :  ColumnDataSource object
@@ -151,7 +151,7 @@ def plot_fibers_focalplate(source, name, cam='',
 def plot_fibernums(source, name, cam='',
                 camcolors=dict(B='steelblue', R='firebrick', Z='green'),
                 width=650, height=150, title=None, fig_x_range=None,
-                fig_y_range=None, tools='pan,box_select,reset,tap',
+                fig_y_range=None, tools=['pan','box_select','reset','tap'],
                 toolbar_location=None, tooltips=None):
     '''
     ARGS:

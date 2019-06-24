@@ -34,7 +34,7 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = 'pan,box_zoom,reset'
+    TOOLS = 'pan,box_zoom,tap,reset'
 
     
     #- Sets environment to get get templates
