@@ -3,7 +3,7 @@ import bokeh, os, re, sys
 
 from ..plots.plotimage import main
 
-def write_image_html(input, output, downsample):
+def write_image_html(input, output, downsample, night):
     '''TODO: document'''
 
     env = jinja2.Environment(
@@ -24,9 +24,9 @@ def write_image_html(input, output, downsample):
 
     html_components = dict(
         plot_script = plot_script, plot_div = plot_div,
-        version=bokeh.__version__, downsample=str(downsample),
-        basename=os.path.splitext(os.path.basename(input))[0],
-        available=available, current=current, expid=expid
+        version=bokeh.__version__, downsample=str(downsample), preproc=True,
+        basename=os.path.splitext(os.path.basename(input))[0], night=night,
+        available=available, current=current, expid=int(str(expid)), zexpid=expid
     )
 
     html = template.render(**html_components)
