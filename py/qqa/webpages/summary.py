@@ -86,7 +86,7 @@ def get_summary_plots(qadata, qprocdir=None):
         fibers = ','.join([str(tmp) for tmp in fibers])
 
         nightdir = os.path.dirname(os.path.normpath(qprocdir))
-        specfig = plot_spectra_input(nightdir, expid, downsample,
+        specfig = plot_spectra_input(nightdir, expid, 'qframe', downsample,
             fibers, height=300, width=plot_width*2)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
@@ -114,20 +114,20 @@ def write_summary_html(outfile, qadata, qprocdir):
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('summary.html')
-        
+
     #- TODO: Add links to whatever detailed QA pages exist
-    
+
     html = template.render(**plot_components)
 
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
 
-        
-def update_camfib_pc(pc, qadata, 
-                     metrics=['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR'], 
-                     cameras=['B', 'R', 'Z'], 
-                     titlespercam={'B':{'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_SNR':'Median Raw S/N'}}, 
+
+def update_camfib_pc(pc, qadata,
+                     metrics=['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR'],
+                     cameras=['B', 'R', 'Z'],
+                     titlespercam={'B':{'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_SNR':'Median Raw S/N'}},
                      tools='pan,box_zoom,reset',
                     ):
     '''
@@ -136,7 +136,7 @@ def update_camfib_pc(pc, qadata,
 
     if 'PER_CAMFIBER' not in qadata:
         return
-    
+
     data = qadata['PER_CAMFIBER']
     cds = camfiber.get_cds(data, metrics, cameras)
 
@@ -148,7 +148,6 @@ def update_camfib_pc(pc, qadata,
             fibernum_gridlist.extend(figs_list)
 
     camfiber_layout = layout(fibernum_gridlist)
-    
+
     script, div = components(camfiber_layout)
     pc['CAMFIBER_METRICS'] = dict(script=script, div=div)
-
