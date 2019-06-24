@@ -17,7 +17,15 @@ from bokeh.embed import components
 from bokeh.layouts import gridplot, layout
 
 def get_summary_plots(qadata, qprocdir=None):
-    '''TODO: document'''
+    '''Get bokeh summary plots
+
+    Args:
+        qadata: dict of QA tables, keys PER_AMP, PER_CAMFIBER, etc.
+        qprocdir: directory with qproc output (qframe-*.fits etc)
+
+    Returns:
+        dict of html_components to embed in a summary webpage
+    '''
 
     header = qadata['HEADER']
     night = header['NIGHT']
@@ -92,6 +100,9 @@ def write_summary_html(outfile, qadata, qprocdir):
         outfile: output HTML file
         qadata : dict of QA tables, keys PER_AMP, PER_CAMFIBER, etc.
         qprocdir : directory containing qproc outputs (qframe*.fits, etc.)
+
+    Returns:
+        None
     """
 
     plot_components = get_summary_plots(qadata, qprocdir)
@@ -119,7 +130,10 @@ def update_camfib_pc(pc, qadata,
                      titlespercam={'B':{'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_SNR':'Median Raw S/N'}}, 
                      tools='pan,box_zoom,reset',
                     ):
-    
+    '''
+    TODO: document
+    '''
+
     if 'PER_CAMFIBER' not in qadata:
         return
     

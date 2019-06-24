@@ -7,7 +7,16 @@ from bokeh.embed import components
 from ..plots.amp import plot_amp_qa
 
 def write_amp_html(outfile, data, header):
-    '''TODO: document'''
+    '''Write CCD amp QA webpage
+
+    Args:
+        outfile: output HTML filename
+        data: PER_AMP QA table
+        header: dict-like data header with keys NIGHT, EXPID, PROGRAM
+
+    Returns:
+        html_components dict with keys 'script', 'div' from bokeh
+    '''
     
     night = header['NIGHT']
     expid = header['EXPID']

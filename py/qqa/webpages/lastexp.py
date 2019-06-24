@@ -12,7 +12,16 @@ from ..plots.spectra import plot_spectra_input
 from . import summary
 
 def write_lastexp_html(outfile, qadata, qprocdir):
-    '''TODO: document'''
+    '''Write summary webpage for the last exposure processed
+
+    Args:
+        outfile: output HTML filename
+        qadata: dict of QA tables, keys PER_AMP, PER_CAMFIBER, etc.
+        qprocdir: directory with qproc outputs
+
+    Returns:
+        html_components dict with keys 'script', 'div' from bokeh
+    '''
 
     plot_components = summary.get_summary_plots(qadata, qprocdir)
     plot_components['qatype'] = 'summary'
