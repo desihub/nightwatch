@@ -6,7 +6,7 @@ import os, sys, time, glob
 import argparse
 import traceback
 from . import run, plots
-from .qa import QARunner
+from .qa.runner import QARunner
 from desiutil.log import get_logger
 
 def print_help():
