@@ -45,18 +45,13 @@ table {
 <div class="container">
   <div class=flex-item>
     <div>{{plot_script}} {{plot_div}}</div>
-    <div>Downsample: <input size="4" type="number" id = "down" value={{downsample}}></div>
-    <button onclick='
-        var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
-        window.open(url, "_top")
-        '>Generate</button>
   </div>
   <div class=flex-item>
     <br>
     <table border="1" cellpadding="8">
-  {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
+  {% for c in ["b", "r", "z"] %}
   <tr>
-    {% for c in ["b", "r", "z"] %}
+    {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
     <td {% if c + i == current %} bgcolor="#6495ed" {% endif %}>
       {% if (c+i != current) and (c+i in available) %}
     <a href="preproc-{{c}}{{i}}-{{expid}}-{{downsample}}x.html">
@@ -72,6 +67,12 @@ table {
   </tr>
   {% endfor %}
 </table>
+<br>
+<div>Downsample: <input size="4" type="number" id = "down" value={{downsample}}></div>
+<button onclick='
+    var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
+    window.open(url, "_top")
+    '>Generate</button>
   </div>
 </div>
 
