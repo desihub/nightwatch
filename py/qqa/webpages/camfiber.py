@@ -21,26 +21,13 @@ def write_camfiber_html(outfile, data, header):
         data : fits file of per_camfiber data
         header : fits file header
 
-    Writes the generated plots to OUTFILE
+    Writes the default generated fibernum camfiber plots to OUTFILE
+    Also generates and writes an alternate view of focalplate camfiber plots
+    Returns a components dictionary of summary camfiber plots
     '''
-
-    night = header['NIGHT']
-    expid = header['EXPID']
-    flavor = header['FLAVOR'].rstrip()
-    if "PROGRAM" not in header :
-        program = "no program in header!"
-    else :
-        program = header['PROGRAM'].rstrip()
-    exptime = header['EXPTIME']
-
-    env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
-    )
-
-
+    #- Default plot options
     ATTRIBUTES = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_FLUX', 'MEDIAN_RAW_SNR', 'INTEG_CALIB_FLUX',
                  'MEDIAN_CALIB_FLUX', 'MEDIAN_CALIB_SNR']
-    #- Default cameras and percentile ranges for camfiber plots
     CAMERAS = ['B', 'R', 'Z']
     PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
@@ -49,21 +36,45 @@ def write_camfiber_html(outfile, data, header):
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,reset'
 
+    
+    #- Sets environment to get get templates
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+
+    #- FIBERNUM PLOTS (default camfiber page)
+    fn_template = env.get_template('fibernum.html')
+    write_fibernum_plots(data, fn_template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+
+    #- FOCALPLATE PLOTS
+    index_fp_file = outfile.index('.html')
+    fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
+    fp_template = env.get_template('focalplate.html')
+    write_focalplate_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+
+    return dict({})
+
+
+def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
+        TITLESPERCAM, TOOLS='pan,box_select,reset'):
+    '''
+    Args:
+        data : fits file of per_camfiber data
+        template : html template
+        outfile : output directory for generated html file
+        header : fits file header
+        ATTRIBUTES : list of attributes to plot
+        CAMERAS : list of camera filters to plot
+        TITLESPERCAM : titles for plots
+        TOOLS : supported features
+        
+    Writes the fibernum plots to OUTFILE
+    '''
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
-
-    '''FIBERNUM PLOTS'''
-    fibernum_components = dict(
-        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
-        night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program, qatype = 'camfiber',
-    )
-
-    fn_template = env.get_template('fibernum.html')
-    #- Gets the layout for the fibernum plots
+    #- Gets the plot list for each metric in ATTRIBUTES
     fibernum_gridlist = []
-    #- Gets the gridplots for each metric in ATTRIBUTES
     for attr in ATTRIBUTES:
         #- TODO: aggregation later (box and whisker) or binning
         if attr in list(cds.data.keys()):
@@ -72,27 +83,34 @@ def write_camfiber_html(outfile, data, header):
             fibernum_gridlist.extend(figs_list)
 
     #- Organizes the layout of the plots
-#    fn_camfiber_layout = gridplot(fibernum_gridlist, ncols=1, toolbar_location='above')
     fn_camfiber_layout = layout(fibernum_gridlist)
 
-    #- Gets the html components of the fibernum plots
-    fn_script, fn_div = components(fn_camfiber_layout)
-    fibernum_components['CAMFIBER_PLOTS'] = dict(script=fn_script, div=fn_div)
-    #- Combine template + components -> HTML
-    html_fibernum = fn_template.render(**fibernum_components)
+    #- Writes the htmlfile
+    write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
 
 
-    '''FOCAL PLATE PLOTS'''
-    focalplate_components = dict(
-        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
-        night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program, qatype = 'camfiber',
-    )
+def write_focalplate_plots(data, template, outfile, header,
+        ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
+        TOOLS='pan,box_select,reset'):
+    '''
+    Args:
+        data : fits file of per_camfiber data
+        template : html template
+        outfile : output directory for generated html file
+        header : fits file header
+        ATTRIBUTES : list of attributes to plot
+        CAMERAS : list of camera filters to plot
+        PERCENTILES : list of percentiles to clip histogram data per camera
+        TITLESPERCAM : titles for plots
+        TOOLS : supported features
+        
+    Writes the focalplate plots to OUTFILE
+    '''
+    #- Gets a shared ColumnDataSource of DATA
+    cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
-    focalplate_template = env.get_template('focalplate.html')
-    #- Gets the layout for the focal plate plots
+    #- Gets the plot list for each metric in ATTRIBUTES
     focalplate_gridlist = []
-    #- Gets the gridplots for each metric in ATTRIBUTES
     for attr in ATTRIBUTES:
         if attr in list(cds.data.keys()):
             figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
@@ -103,36 +121,9 @@ def write_camfiber_html(outfile, data, header):
     #- Organizes the layout of the plots
     fp_camfiber_layout = gridplot(focalplate_gridlist, toolbar_location='right')
 
-    #- Gets the html components of the focalplate plots
-    fp_script, fp_div = components(fp_camfiber_layout)
-    focalplate_components['CAMFIBER_PLOTS'] = dict(script=fp_script, div=fp_div)
-    #- Combine template + components -> HTML
-    html_focalplate = focalplate_template.render(**focalplate_components)
+    #- Writes the htmlfile
+    write_file = write_htmlfile(fp_camfiber_layout, template, outfile, header)
 
-
-    #- Write HTML text to the output files
-    #- fibernums
-    with open(outfile, 'w') as fx:
-        fx.write(html_fibernum)
-
-    #- focalplate plots
-    index_fp_file = outfile.index('.html')
-    fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
-    with open(fp_outfile, 'w') as fx:
-        fx.write(html_focalplate)
-
-
-    '''Summary plots'''
-    SUMMARY_CAMFIBER_METRICS = ['INTEG_RAW_FLUX', 'MEDIAN_RAW_SNR']
-    summary_components = dict({})
-    for attr in SUMMARY_CAMFIBER_METRICS:
-        if attr in list(cds.data.keys()):
-            fig_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
-            gplot = bk.gridplot(fig_list, ncols=1, toolbar_location='right')
-            script, div = components(gplot)
-            summary_components[attr] = dict(script=script, div=div)
-
-    return summary_components
 
 
 def get_cds(data, attributes, cameras):
@@ -184,5 +175,38 @@ def create_cds(data, attributes, bin_size=25):
             data_dict[colname] = data[colname]
 
     cds = ColumnDataSource(data=data_dict)
-
     return cds
+
+
+def write_htmlfile(layout, template, outfile, header):
+    '''
+    Args:
+        layout : bokeh layout object of plot figures
+        template : html template
+        outfile : outfile directory
+        header : fits file header
+    
+    Writes the LAYOUT of plots to OUTFILE
+    '''
+    night = header['NIGHT']
+    expid = header['EXPID']
+    flavor = header['FLAVOR'].rstrip()
+    if "PROGRAM" not in header :
+        program = "no program in header!"
+    else :
+        program = header['PROGRAM'].rstrip()
+    exptime = header['EXPTIME']
+
+    components_dict = dict(
+        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
+        night=night, expid=expid, zexpid='{:08d}'.format(expid),
+        flavor=flavor, program=program, qatype = 'camfiber',
+    )
+
+    script, div = components(layout)
+    components_dict['CAMFIBER_PLOTS'] = dict(script=script, div=div)
+    html_camfib = template.render(**components_dict)
+
+    #- Write HTML text to the output files
+    with open(outfile, 'w') as fx:
+        fx.write(html_camfib)

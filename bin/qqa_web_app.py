@@ -5,12 +5,15 @@ from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 stat = ""
 data = ""
 
 parser = argparse.ArgumentParser(usage = "{prog} [options]")
 parser.add_argument("-s", "--static", type=str, required=True, help="static file directory")
 parser.add_argument("-d", "--data", type=str, help="data/fits file directory")
+parser.add_argument("--host", type=str, default="localhost", help="hostname (e.g. localhost or 0.0.0.0")
+parser.add_argument("--port", type=int, default=8001, help="port number")
 args = parser.parse_args()
 
 stat = args.static
@@ -68,27 +71,32 @@ def test_timeseries(start_date, end_date, hdu, attribute):
         return error_message
     #html_attr["dropdown_hdu"] = dropdown
 
-    from qqa.plots.timeseries import generate_timeseries
+    from qqa.webpages.timeseries import generate_timeseries_html
 
-    env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
-    )
-    template = env.get_template('timeseries.html')
+    html = generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
 
-    html_components = dict(
-        bokeh_version=bokeh.__version__, attribute=attribute,
-        start=start_date, end=end_date, hdu=hdu,
-        dropdown_hdu=dropdown,
-    )
+    return html
 
-    fig = generate_timeseries(data, start_date, end_date, hdu, attribute)
-    if fig is None:
-        return "No data between {} and {}".format(start_date, end_date)
+@app.route('/<int:night>/<string:expid>/spectra/')
+def redirect_to_spectrograph_stectra(night, expid):
+    print('redirecting to spectrograph stectra')
+    return redirect('{}/{}/spectra/spectrograph/2x/'.format(night, expid), code=302)
 
-    script, div = components(fig)
-    html_components['timeseries'] = dict(script=script, div=div)
+@app.route('/<int:night>/<int:expid>/spectra/input/', defaults={'select_string': None, 'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:downsample>/')
+def getspectrainput(night, expid, select_string, downsample):
+    global data
+    data = os.path.abspath(data)
+    from qqa.webpages import spectra
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, "input", downsample, select_string)
 
-    return template.render(html_components)
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:downsample>/')
+def getspectra(night, expid, view, downsample):
+    global data
+    data = os.path.abspath(data)
+    from qqa.webpages import spectra
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, view, downsample)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
@@ -138,4 +146,4 @@ def getfile(filepath):
     return 'no data for ' + os.path.join(stat, filepath)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host=args.host, port=args.port)

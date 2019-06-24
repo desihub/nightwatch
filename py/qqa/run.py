@@ -31,7 +31,7 @@ def get_ncpu(ncpu):
 
 def find_unprocessed_expdir(datadir, outdir):
     '''
-    Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
+    Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
 
     Returns directory, of None if no unprocessed directories were found
@@ -242,12 +242,12 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, outdir, preprocdir=None, cameras=None):
+def make_plots(infile, basedir, preprocdir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
         infile: input QA fits file with HDUs like PER_AMP, PER_FIBER, ...
-        outdir: write output HTML files to this directory
+        basedir: write output HTML to basedir/NIGHT/EXPID/
 
     Options:
         preprocdir: directory to where the "preproc-*-*.fits" are located. If
@@ -259,13 +259,14 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
 
     '''
 
-    from . import webpages
+    from qqa.webpages import amp as web_amp
+    from qqa.webpages import camfiber as web_camfiber
+    from qqa.webpages import camera as web_camera
+    from qqa.webpages import summary as web_summary
+    from qqa.webpages import lastexp as web_lastexp
     from . import io
 
     log = desiutil.log.get_logger()
-    if not os.path.isdir(outdir):
-        log.info('Creating {}'.format(outdir))
-        os.makedirs(outdir, exist_ok=True)
 
     qadata = io.read_qa(infile)
     header = qadata['HEADER']
@@ -281,27 +282,38 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
         night = int(dirnight)
         header['NIGHT'] = night
 
+    #- Create output exposures plot directory if needed
+    expdir = os.path.join(basedir, str(night), '{:08d}'.format(expid))
+    if not os.path.isdir(expdir):
+        log.info('Creating {}'.format(expdir))
+        os.makedirs(expdir, exist_ok=True)
+
     plot_components = dict()
     if 'PER_AMP' in qadata:
-        htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
-        pc = webpages.amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
+        htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
+        pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMFIBER' in qadata:
-        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(outdir, expid)
-        pc = webpages.camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
+        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
+        pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMERA' in qadata:
-        htmlfile = '{}/qa-camera-{:08d}.html'.format(outdir, expid)
-        pc = webpages.camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
+        htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
+        pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
-    htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
-    webpages.summary.write_summary_html(htmlfile, plot_components)
+    htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
+    web_summary.write_summary_html(htmlfile, qadata, preprocdir)
+    print('Wrote {}'.format(htmlfile))
+
+    #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
+    htmlfile = '{}/qa-lastexp.html'.format(basedir)
+    web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
 
     from qqa.webpages import plotimage
@@ -313,13 +325,13 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
                 cameras += [os.path.basename(preprocfile).split('-')[1]]
         for camera in cameras:
             input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
-            output = os.path.join(outdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
+            output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
             plotimage.write_image_html(input, output, 4)
 
 def write_tables(indir, outdir):
     import re
     from astropy.table import Table
-    from . import webpages
+    from qqa.webpages import tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
 
@@ -355,9 +367,9 @@ def write_tables(indir, outdir):
             copyfile(infile, outfile)
 
     nightsfile = os.path.join(outdir, 'nights.html')
-    webpages.tables.write_nights_table(nightsfile, exposures)
+    web_tables.write_nights_table(nightsfile, exposures)
 
-    webpages.tables.write_exposures_tables(indir,outdir, exposures)
+    web_tables.write_exposures_tables(indir,outdir, exposures)
 
 def write_nights_summary(indir, last):
     '''
