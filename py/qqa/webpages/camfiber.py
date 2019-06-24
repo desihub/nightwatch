@@ -76,7 +76,6 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
     #- Gets the plot list for each metric in ATTRIBUTES
     fibernum_gridlist = []
     for attr in ATTRIBUTES:
-        #- TODO: aggregation later (box and whisker) or binning
         if attr in list(cds.data.keys()):
             figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
 

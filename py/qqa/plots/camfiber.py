@@ -6,7 +6,6 @@ from astropy.table import Table
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
-from bokeh.transform import linear_cmap
 
 from ..plots.fiber import plot_fibers_focalplate, plot_fibernums
 # from ..plots.core import get_colors
@@ -87,7 +86,7 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
 
 
 def plot_per_fibernum(cds, attribute, cameras, titles={},
-        tools='pan,box_zoom,reset', width=650, height=150,
+        tools='pan,box_zoom,reset', width=700, height=80,
         ymin=None, ymax=None):
     '''
     ARGS:
@@ -126,34 +125,37 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
         max_fiber = min(5000, max(list(cds.data['FIBER'])))
         first_x_range = bokeh.models.Range1d(min_fiber-1, max_fiber+1)
 
-        #- shared ranges to support linked features
-        if not figs_list:
+        #- shared ranges to support linked features, additional plot features
+        if i == 0:
             fig_x_range = first_x_range
             toolbar_location='above'
+            heightpad = 25 #- extra space for title & toolbar
         else:
             fig_x_range = figs_list[0].x_range
             toolbar_location=None
-
-        cam_metric = metric[cds.data.get('CAM') == c]
-        if ymin is None:
-            plotmin = np.min(cam_metric) * 0.9
+            heightpad = 0
+        
+        #- axis labels for the last camera
+        if i == (len(cameras) - 1):
+            xaxislabels = True
+            heightpad = 25
         else:
-            plotmin = min(ymin, np.min(cam_metric) * 0.9)
-
-        if ymax is None:
-            plotmax = np.max(cam_metric) * 1.1
-        else:
-            plotmax = max(ymax, np.max(cam_metric) * 1.1)
+            xaxislabels = False
+        
+        #- focused y-ranges unless outliers in data
+        cam_metric = metric[np.array(cds.data.get('CAM')) == c]
+        plotmin = min(ymin, np.min(cam_metric) * 0.9) if ymin else np.min(cam_metric) * 0.9
+        plotmax = max(ymax, nnp.max(cam_metric) * 1.1) if ymax else np.max(cam_metric) * 1.1
 
         fig_y_range = bokeh.models.Range1d(plotmin, plotmax)
 
-        heightpad = 25 if i==0 else 0  #- extra space for title and toolbar
+        
         fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
                              tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
                              fig_x_range=fig_x_range, fig_y_range=fig_y_range,
-                             width=width, height=height+heightpad,
+                             width=width, height=height+heightpad, xaxislabels=xaxislabels,
                             )
 
         figs_list.append(fig)
-
+        
     return figs_list
