@@ -5,7 +5,6 @@ import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation
-import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
 import json
@@ -16,12 +15,16 @@ def get_amp_colors(data, threshold):
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of colors to be put into a ColumnDataSource
     '''
-    colors = []
-    for i in range(len(data)):
-        if data[i] < threshold:
-            colors.append('black')
-        if data[i] >= threshold:
-            colors.append('red')
+    if threshold is None:
+        colors = ['black',] * len(data)
+    else:
+        colors = []
+        for i in range(len(data)):
+            if data[i] < threshold:
+                colors.append('black')
+            if data[i] >= threshold:
+                colors.append('red')
+
     return colors
 
 def get_amp_size(data, threshold):
@@ -30,12 +33,16 @@ def get_amp_size(data, threshold):
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of sizes for markers to be put into a ColumnDataSource
     '''
-    sizes = []
-    for i in range(len(data)):
-        if data[i] < threshold:
-            sizes.append(4)
-        if data[i] >= threshold:
-            sizes.append(6)
+    if threshold is None:
+        sizes = [4,] * len(data)
+    else:
+        sizes = []
+        for i in range(len(data)):
+            if data[i] < threshold:
+                sizes.append(4)
+            if data[i] >= threshold:
+                sizes.append(8)
+
     return sizes
 
 def isolate_spec_lines(data_locs, data):
@@ -54,9 +61,12 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="YlGn9", plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax,
+            ymin=None, ymax=None,
+            title=None, plot_height=80, plot_width=700):
     '''Plot a per-amp visualization of data[name]
-    qamin/qamax: min/max ranges for the color scale'''
+    qamin/qamax: min/max ranges for the color scale
+    ymin/ymax: y-axis ranges *unless* the data exceeds those ranges'''
     
     if title is None:
         title = name   
@@ -114,7 +124,18 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
                  fill_color='colors', size='sizes', source=source, name='circles')
 
     fig.yaxis.axis_label = cam
-    fig.y_range = Range1d(np.min(data_val)*0.9, np.max(data_val)*1.1)
+
+    if ymin is None:
+        ymin = np.min(data_val)*0.9
+    else:
+        ymin = min(ymin, np.min(data_val)*0.9)
+
+    if ymax is None:
+        ymax = np.max(data_val)*1.1
+    else:
+        ymax = max(ymax, np.max(data_val)*1.1)
+
+    fig.y_range = Range1d(ymin, ymax)
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color=None
     if cam == 'R':
@@ -126,8 +147,9 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
         fig.outline_line_color='grey'
     fig.outline_line_alpha=0.7
     
-    good_range = BoxAnnotation(bottom=qamin, top=qamax, fill_alpha=0.1, fill_color='green')
-    fig.add_layout(good_range)
+    if qamin is not None and qamax is not None:
+        good_range = BoxAnnotation(bottom=qamin, top=qamax, fill_alpha=0.1, fill_color='green')
+        fig.add_layout(good_range)
     
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
@@ -135,20 +157,24 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
 
     return fig
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
-                plot_width=700):
+def plot_amp_qa(data, name, title=None, qamin=None, qamax=None,
+         plot_height=80, plot_width=700,
+         ymin=None, ymax=None):
     
-    if qamin is None:
-        qamin = np.min(data[name])
-    if qamax is None:
-        qamax = np.max(data[name]) 
+    # if qamin is None:
+    #     qamin = np.min(data[name])
+    # if qamax is None:
+    #     qamax = np.max(data[name])
     
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
-    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height+25)
-    fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
-    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
+    fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, ymin=ymin, ymax=ymax,
+        title=title, plot_height=plot_height+25, plot_width=plot_width)
+    fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, ymin=ymin, ymax=ymax,
+        title=title, plot_height=plot_height, plot_width=plot_width)
+    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, ymin=ymin, ymax=ymax,
+        title=title, plot_height=plot_height, plot_width=plot_width)
     
-    #x-axis
+    # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
                      plot_height=50, plot_width=plot_width,
                      y_axis_location=None)         
