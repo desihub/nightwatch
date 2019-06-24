@@ -117,28 +117,40 @@ def main_monitor(options=None):
                 
                 run_batch_qproc=args.batch
                 if run_batch_qproc:
-                    print('Spawning qproc of {} to batch process'.format(rawfile))
+                    print('Spawning qproc of {} to batch processes'.format(rawfile))
                     
-                    script='"print(\'Hello world!\'); from qqa.run import run_qproc; run_qproc(\'{rawfile}\', \'{outdir}\', cameras={cameras});"'.format(rawfile=rawfile, outdir=outdir, cameras=cameras)
-                    
-                    print('script is ')
-                    print(script)
-                    
-                    batch_args = list(
-                        ['salloc', '-N', str(args.nodes), '-n', str(args.ntasks), '-C', str(args.constraint), '-q',
-                         str(args.qos), '-t', str(args.time), 'python', '-c', script,
-                        ])
+                    sep = os.path.sep
+                    dirfile = sep.join(['..', 'code', 'qqa', 'py', 'qqa', 'wrap_qproc.py'])
 
-                    print('calling subprocess')
-                    err = subprocess.call(batch_args)      
-                    print('ending subprocess')
-
+                    batch_dict = dict(
+                        nodes=args.nodes,
+                        ntasks=args.ntasks,
+                        constraint=args.constraint,
+                        qos=args.qos,
+                        time=args.time,
+                        dirfile=dirfile,
+                        rawfile=rawfile, 
+                        outdir=outdir,
+                        cameras=cameras,
+                    )
+                    
+                    batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
+                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} --cameras {cameras}'
+                    
+                    cmd = (batchcmd + runfile).format(**batch_dict)
+                    
+                    import IPython as ip
+                    ip.embed()
+                                        
+                    err = subprocess.call(cmd.split())
+                    
                     if err == 0:
                         print('SUCCESS {}'.format('running qproc as batch process'))
                     if err != 0:
                         print('ERROR {} while running {}'.format(err, 'qproc as batch process'))
                         print('Failed to run qproc as batch process, switching to run locally')
                         run_batch_qproc = False
+                    
                     
                 if not run_batch_qproc:
                     print('Running qproc on {}'.format(rawfile))
