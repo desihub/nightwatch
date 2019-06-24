@@ -11,6 +11,8 @@ import desiutil.log
 
 import desispec.scripts.preproc
 
+from .thresholds import get_prev_nights, write_threshold_json
+
 def get_ncpu(ncpu):
     """
     Get number of CPU cores to use, throttling to 8 for NERSC login nodes
@@ -443,3 +445,14 @@ def write_nights_summary(indir, last):
             with open(jsonfile, 'w') as out:
                 json.dump(data, out, indent=4)
             print('Wrote {}'.format(jsonfile))
+            
+def write_thresholds(indir, outdir, n):
+    '''Writes threshold files for each metric for the last possible night to the given outdir.
+    Input: 
+        indir: directory that contains nightly directories (which contain summary.json files)
+        outdir: directory to write threshold files
+        n: number of nights to be used in calculation'''
+    nights = np.sort(os.listdir(path=indir))
+    prev_nights = get_prev_nights(os.path.join(indir, nights[-1]), n)
+    for name in ['READNOISE', 'BIAS', 'COSMICS_RATES']:
+        write_threshold_json(indir, outdir, prev_nights, name)

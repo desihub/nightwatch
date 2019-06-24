@@ -30,7 +30,6 @@ def write_threshold_json(indir, outdir, prev_nights, name):
         writes a json file with thresholds for each amp to the specified directory
         (NOTE: if amp is not in previous nights summary files, the thresholds generated 
         will be None and will need to be manually input)'''
-    prev_nights = get_prev_nights(currentnightdir, n)
     datadict = dict()
     amps = []
     for night in prev_nights:
@@ -39,7 +38,6 @@ def write_threshold_json(indir, outdir, prev_nights, name):
         amps += data['PER_AMP'][name].keys()
         datadict[night] = data
     all_amps = [spec+cam+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
-    print(all_amps)
     rest_amps = np.setdiff1d(all_amps, amps)
     thresholds = dict()
     if name in ["READNOISE", "BIAS"]:
