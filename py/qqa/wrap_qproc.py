@@ -13,7 +13,7 @@ def run(options=None):
         options = sys.argv[2:]
 
     args = parser.parse_args(options)
-
+    
     if args.cameras is not None:
         cameras = args.cameras.split(',')
     else:

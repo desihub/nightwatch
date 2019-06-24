@@ -135,13 +135,11 @@ def main_monitor(options=None):
                     )
                     
                     batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
-                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} --cameras {cameras}'
+                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} '
+                    if cameras:
+                        runfile += '--cameras {cameras}'
                     
                     cmd = (batchcmd + runfile).format(**batch_dict)
-                    
-                    import IPython as ip
-                    ip.embed()
-                                        
                     err = subprocess.call(cmd.split())
                     
                     if err == 0:
