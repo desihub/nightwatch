@@ -28,7 +28,6 @@ def write_image_html(input, output, downsample):
         basename=os.path.splitext(os.path.basename(input))[0],
         available=available, current=current, expid=expid
     )
-    print(available, file=sys.stderr)
 
     html = template.render(**html_components)
 
