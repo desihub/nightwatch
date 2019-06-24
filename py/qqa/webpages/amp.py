@@ -7,7 +7,16 @@ from bokeh.embed import components
 from ..plots.amp import plot_amp_qa
 
 def write_amp_html(outfile, data, header):
-    '''TODO: document'''
+    '''Write CCD amp QA webpage
+
+    Args:
+        outfile: output HTML filename
+        data: PER_AMP QA table
+        header: dict-like data header with keys NIGHT, EXPID, PROGRAM
+
+    Returns:
+        html_components dict with keys 'script', 'div' from bokeh
+    '''
     
     night = header['NIGHT']
     expid = header['EXPID']
@@ -34,23 +43,21 @@ def write_amp_html(outfile, data, header):
 
     #- Generate the bokeh figure
     fig = plot_amp_qa(data, 'READNOISE', title='CCD Amplifier Read Noise',
-        qamin=1.5, qamax=4.0)
+        qamin=1.5, qamax=4.0, ymin=0, ymax=5.0)
     #- Convert that into the components to embed in the HTML
     script, div = components(fig)
     #- Save those in a dictionary to use later
     html_components['READNOISE'] = dict(script=script, div=div)
 
     #- Amplifier offset
-    fig = plot_amp_qa(data, 'BIAS', title='CCD Amplifier Overscan Bias Level',
-        palette=bokeh.palettes.all_palettes['GnBu'][6])
+    fig = plot_amp_qa(data, 'BIAS', title='CCD Amplifier Overscan Bias Level')
     script, div = components(fig)
     html_components['BIAS'] = dict(script=script, div=div)
 
     #- Cosmics rate
     fig = plot_amp_qa(data, 'COSMICS_RATE',
         title='CCD Amplifier cosmics per minute',
-        palette=bokeh.palettes.all_palettes['RdYlGn'][11][1:-1],
-        qamin=0, qamax=50)
+        qamin=10, qamax=50, ymin=0, ymax=60)
     script, div = components(fig)
     html_components['COSMICS_RATE'] = dict(script=script, div=div)
 
