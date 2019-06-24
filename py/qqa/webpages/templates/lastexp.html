@@ -1,10 +1,30 @@
 {% extends "base.html" %}
 
+{% block navigation %}
+<ul class="navigationbar">
+  <li style="float:left"><a>Last Exposure: {{ night }}/{{ expid }}</a></li>
+  <li class="dropdown"><a id="camfiber" href = "{{ night }}/{{ zexpid }}/qa-camfiber-{{ zexpid }}.html">camfiber</a>
+      <ul class="dropdown-content">
+        <a id="camfiber" href="{{ night }}/{{ zexpid }}/qa-camfiber-{{ zexpid }}.html">fibernum</a>
+        <a id="focalplate" href="{{ night }}/{{ zexpid }}/qa-camfiber-{{ zexpid }}-focalplate_plots.html">focalplate</a>
+      </ul>
+  </li>
+  <li><a id="camera" href="{{ night }}/{{ zexpid }}/qa-camera-{{ zexpid }}.html">camera</a></li>
+  <li><a id="amp" href="{{ night }}/{{ zexpid }}/qa-amp-{{ zexpid }}.html">amp</a></li>
+  <li><a id="summary" href="{{ night }}/{{ zexpid }}/qa-summary-{{ zexpid }}.html">summary</a></li>
+  <li><a id="exposures" href="{{ night }}/exposures.html">exposures</a></li>
+  <li><a id="nights" href = "nights.html">nights</a></li>
+</ul>
+<p>{{ exptime }} second {{ flavor }} ({{ program }})</p>
+{% endblock %}
+
 {% block body %}
 
+{#
 <p>
 Last exposure {{ night }}/{{ expid }}: {{ exptime }} sec {{ flavor }} ({{ program }})
 </p>
+#}
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
