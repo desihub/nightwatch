@@ -2,6 +2,7 @@
 
 {% block navigation %}
 <ul class="navigationbar">
+  <li style="float:left"><a id="nights" href = "../../nights.html">nights</a></li>
   <li style="float:left"><a>QA {{ night }}/{{ expid }}</a></li>
   <li style="float:left"><a id="prev">prev</a></li>
   <li style="float:left"><a id="next">next</a></li>
@@ -24,7 +25,6 @@
   </li>
   <li><a id="summary" href="qa-summary-{{ zexpid }}.html">summary</a></li>
   <li><a id="exposures" href="../exposures.html">exposures</a></li>
-  <li><a id="nights" href = "../../nights.html">nights</a></li>
 </ul>
 {% if exptime %}
 <p>{{ exptime }} second {{ flavor }} ({{ program }})</p>
