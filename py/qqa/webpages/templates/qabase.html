@@ -34,6 +34,7 @@
 /* this works, but why?  get_explinks is also defined in explinks*.js */
 function get_explinks(links) {
     var next_prev = links["{{ zexpid }}"]
+    var path = require('path');
 
     var next_item = next_prev.next;
     if (next_item == null) {

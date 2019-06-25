@@ -53,7 +53,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     html_components = dict(
         version=bokeh.__version__, downsample=str(downsample),
         preproc=True, night=night, available=available, 
-        current=None, expid=int(expid), zexpid=str(expid).zfill(8),
+        current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
     )
 
     html = template.render(**html_components)
