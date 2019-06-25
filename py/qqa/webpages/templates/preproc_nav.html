@@ -28,16 +28,30 @@ table {
 .flex-item{
   flex-grow: 1;
 }
+
+header {
+  font-weight:bold;
+  font-size: 25px;
+}
 </style>
+<header>
+  <font face="arial">
+  Preproc Image Generator:
+  </font>
+</header>
 <div class="container">
-  <div class=flex-item>
-    <div>{{plot_script}} {{plot_div}}</div>
-  </div>
   <div class=flex-item>
     <br>
     <table border="1" cellpadding="8">
+      <tr>
+        <td colspan="1"></td>
+        <td colspan="10" >  <text style="font-weight:bold" >Spectrograph<text></td>
+      </tr>
   {% for c in ["b", "r", "z"] %}
   <tr>
+    {% if c == "b" %}
+      <td rowspan=3>  <text  style="font-weight:bold" >Cam<text></td>
+    {% endif %}
     {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
     <td {% if c + i == current %} bgcolor="#6495ed" {% endif %}>
       {% if (c+i != current) and (c+i in available) %}
@@ -55,11 +69,5 @@ table {
   {% endfor %}
 </table>
 <br>
-<div>Downsample: <input size="4" type="number" id = "down" value={{downsample}}></div>
-<button onclick='
-    var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
-    window.open(url, "_top")
-    '>Generate</button>
-  </div>
-</div>
+
 {% endblock %}

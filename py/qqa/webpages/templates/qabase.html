@@ -12,15 +12,23 @@
         <a id="camfiber" href="qa-camfiber-{{ zexpid }}.html">fibernum</a>
         <a id="focalplate" href="qa-camfiber-{{ zexpid }}-focalplate_plots.html">focalplate</a>
       </ul>
-  </li>   
+  </li>
   <li><a id="fiber">fiber</a></li>
   <li><a id="camera" href="qa-camera-{{ zexpid }}.html">camera</a></li>
-  <li><a id="amp" href="qa-amp-{{ zexpid }}.html">amp</a></li>
+
+  <li class="dropdown"><a id="amp" href = "qa-amp-{{ zexpid }}.html">amp</a>
+      <ul class="dropdown-content">
+        <a id="amp" href="qa-amp-{{ zexpid }}.html">amp</a>
+        <a id="preproc_table" href="qa-amp-{{ zexpid }}-preproc_table.html">preproc</a>
+      </ul>
+  </li>
   <li><a id="summary" href="qa-summary-{{ zexpid }}.html">summary</a></li>
   <li><a id="exposures" href="../exposures.html">exposures</a></li>
   <li><a id="nights" href = "../../nights.html">nights</a></li>
 </ul>
+{% if exptime %}
 <p>{{ exptime }} second {{ flavor }} ({{ program }})</p>
+{% endif %}
 
 <script>
 /* this works, but why?  get_explinks is also defined in explinks*.js */
@@ -32,7 +40,11 @@ function get_explinks(links) {
         document.getElementById("next").className = "noHover";
     } else {
         document.getElementById("next").href =
-            "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
+        {% if preproc %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/preproc-{{current}}-"+next_item.zexpid+"-{{downsample}}x.html";
+        {% else %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
+        {% endif %}
     }
 
     var prev_item = next_prev.prev;
@@ -40,7 +52,11 @@ function get_explinks(links) {
         document.getElementById("prev").className = "noHover";
     } else {
         document.getElementById("prev").href =
-            "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+".html";
+        {% if preproc %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/preproc-{{current}}-"+prev_item.zexpid+"-{{downsample}}x.html";
+        {% else %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+".html";
+        {% endif %}
     }
 }
 </script>

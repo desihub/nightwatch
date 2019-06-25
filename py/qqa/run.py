@@ -320,8 +320,11 @@ def make_plots(infile, basedir, preprocdir=None, cameras=None):
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
 
-    from qqa.webpages import plotimage
+    from qqa.webpages import plotimage as web_plotimage
     if (preprocdir is not None):
+        #- plot preprocessed images
+        downsample = 4
+
         if cameras is None:
             cameras = []
             import glob
@@ -330,7 +333,12 @@ def make_plots(infile, basedir, preprocdir=None, cameras=None):
         for camera in cameras:
             input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
             output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
-            plotimage.write_image_html(input, output, 4)
+            web_plotimage.write_image_html(input, output, downsample, night)
+
+        #- plot preproc nav table
+        navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
+        web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
+
 
 def write_tables(indir, outdir):
     import re
