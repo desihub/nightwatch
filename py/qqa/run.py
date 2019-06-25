@@ -428,8 +428,8 @@ def write_nights_summary(indir, last):
                             bias_sca[str(s) + c + a] = bias_sca_dict
 
             cosmics_rates = dict(
+                p10=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 10),
                 p90=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 90),
-                p95=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 95),
                 num_exp=len(qadata_stacked)
             )
 

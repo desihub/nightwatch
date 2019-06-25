@@ -63,16 +63,16 @@ def write_threshold_json(indir, outdir, prev_nights, name):
                 thresholds[amp] = dict(upper=None, lower=None)
     if name in ['COSMICS_RATES']:
         num_exps = []
-        p95 = []
+        p10 = []
         p90 = []
         for night in prev_nights:
-            p95.append(datadict[night]['PER_AMP'][name]['p95'])
+            p10.append(datadict[night]['PER_AMP'][name]['p10'])
             p90.append(datadict[night]['PER_AMP'][name]['p90'])
             num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
         weights = np.array(num_exps)/np.sum(num_exps)
-        p95_avg = np.average(p95, weights=weights)
+        p10_avg = np.average(p10, weights=weights)
         p90_avg = np.average(p90, weights=weights)
-        thresholds = dict(p95=p95_avg, p90=p90_avg)
+        thresholds = dict(p10=p10_avg, p90=p90_avg)
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=prev_nights[-1]))
     with open(threshold_file, 'w') as out:
         json.dump(thresholds, out, indent=4)

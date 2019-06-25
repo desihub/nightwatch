@@ -17,7 +17,6 @@ def get_thresholds(infile, cam):
     keys = threshold_data.keys()
     for key in keys:
         if key[1] == cam:  
-            print(key)
             lower = [threshold_data[key]['lower'] for key in threshold_data.keys()]
             upper = [threshold_data[key]['upper'] for key in threshold_data.keys()]
         else:
