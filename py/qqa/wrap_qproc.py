@@ -22,8 +22,5 @@ def run(options=None):
 
     run_qproc(args.rawfile, args.outdir, cameras=cameras)
 
-if __name__ == '__main__':
-    #- TODO: delete
-    print('running wrap_qproc file')
-    
+if __name__ == '__main__':   
     run()
