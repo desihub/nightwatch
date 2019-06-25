@@ -67,21 +67,17 @@ def find_latest_expdir(basedir, processed):
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
         if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
-            break
+            for dirname in sorted(os.listdir(nightdir)):
+                expdir = os.path.join(nightdir, dirname)
+                if expdir in processed:
+                    continue
+                fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
+                if re.match('\d{8}', dirname) and os.path.isdir(expdir) and fits_fz_exists:
+                    return expdir
+            else:
+                return None  #- no basename/YEARMMDD/EXPID directory was found
     else:
         return None  #- no basename/YEARMMDD directory was found
-
-    for dirname in sorted(os.listdir(nightdir)):
-        expdir = os.path.join(nightdir, dirname)
-        if expdir in processed:
-            continue
-        fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
-        if re.match('\d{8}', dirname) and os.path.isdir(expdir) and fits_fz_exists:
-            break
-    else:
-        return None  #- no basename/YEARMMDD/EXPID directory was found
-
-    return expdir
 
 def which_cameras(rawfile):
     '''
