@@ -1,35 +1,7 @@
-{% extends "base.html" %}
+{% extends "qabase.html" %}
 
 
 {% block body %}
-<ul class="navigationbar">
-  <li style="float:left"><a>Spectra on night {{ night }}</a></li>
-  <li><a id="next">next</a></li>
-  <li><a id="prev">prev</a></li>
-  <li><a href="../../../../../{% for i in range(num_options) %}../{% endfor %}{{ night }}/{{ zexpid }}/spectra/input">spectra</a></li>
-  <li><a href="../../../../../{% for i in range(num_options) %}../{% endfor %}{{ night }}/exposures.html">exposures</a></li>
-  <li><a href="../../../../../{% for i in range(num_options) %}../{% endfor %}nights.html">nights</a></li>
-</ul>
-
-<script>
-    function get_nightlinks(dict) {
-        var next_prev = dict["{{night}}"];
-        var next_item = next_prev.next_n;
-        if (next_item==null) {
-            document.getElementById("next").className = "noHover";
-        } else {
-            document.getElementById("next").href = next_item;
-        }
-        var prev_item = next_prev.prev_n;
-        if (prev_item==null) {
-            document.getElementById("prev").className = "noHover";
-        } else {
-            document.getElementById("prev").href = prev_item;
-        }
-    }
-</script>
-<script src="../nightlinks.js"></script>
-
 {# Rendering arguments: spectra(.script, .div) #}
 <style>
 label {
