@@ -88,7 +88,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         group_by_list.remove("CAM")
         for cam in ["B", "R", "Z"]:
             cam_table = table_by_amp[table_by_amp["CAM"] == cam]
-            fig = bk.figure(title="CAM "+cam, toolbar_location="above", plot_height = 200, plot_width = 500)
+            fig = bk.figure(title="CAM "+cam, toolbar_location="above", plot_height = 200, plot_width = 700)
             max_y=None
             min_y=None
             for row in cam_table:
@@ -147,7 +147,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         fig = gridplot([[i] for i in cam_figs], sizing_mode="fixed")
 
     else:
-        fig = bk.figure(toolbar_location="above", plot_height = 300, plot_width = 750)
+        fig = bk.figure(toolbar_location="above", plot_height = 300, plot_width = 800)
         for row in table_by_amp:
             length = len(row["EXPID"])
             data=dict(
