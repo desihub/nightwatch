@@ -33,6 +33,12 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
     for cam in ["B", "R", "Z"]:
         
         cam_table = astrotable[astrotable["CAM"]==cam]
+
+        if len(cam_table) == 0:
+            #- Create placeholder fig if not data for this camera
+            fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
+            continue
+
         fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam)
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],
@@ -54,7 +60,11 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         fig.yaxis.axis_label = attribute
         if minmax is not None:
             ymin, ymax = minmax
-            attrmin = np.min(cam_table["MIN"+attribute])
+            try:
+                attrmin = np.min(cam_table["MIN"+attribute])
+            except:
+                import IPython; IPython.embed()
+
             attrmax = np.max(cam_table["MAX"+attribute])
 
             #- Data ranges are within minmax

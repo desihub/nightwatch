@@ -72,11 +72,12 @@ def get_summary_plots(qadata, qprocdir=None):
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_CALIB_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_CALIB_FLUX', cameras,
             height=plot_height, ymin=0, width=plot_width)
-        figs_list[0].title = bokeh.models.Title(text="Integrated Sky-sub Calib Flux Per Fiber")
-        fn_camfiber_layout = layout(figs_list)
 
-        script, div = components(fn_camfiber_layout)
-        html_components['CALIBFLUX'] = dict(script=script, div=div)
+        if figs_list is not None:
+            figs_list[0].title = bokeh.models.Title(text="Integrated Sky-sub Calib Flux Per Fiber")
+            fn_camfiber_layout = layout(figs_list)
+            script, div = components(fn_camfiber_layout)
+            html_components['CALIBFLUX'] = dict(script=script, div=div)
 
     #- Random Spectra
     if flavor.upper() in ['ARC', 'FLAT', 'SCIENCE'] and \
