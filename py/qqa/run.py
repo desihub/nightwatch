@@ -46,9 +46,11 @@ def find_unprocessed_expdir(datadir, outdir):
             for expid in sorted(os.listdir(nightdir)):
                 expdir = os.path.join(nightdir, expid)
                 if re.match('\d{8}', expid) and os.path.isdir(expdir):
-                    qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
-                    if not os.path.exists(qafile):
-                        return expdir
+                    fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
+                    if fits_fz_exists:
+                        qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
+                        if not os.path.exists(qafile):
+                            return expdir
 
     return None
 
@@ -73,7 +75,8 @@ def find_latest_expdir(basedir, processed):
         expdir = os.path.join(nightdir, dirname)
         if expdir in processed:
             continue
-        if re.match('\d{8}', dirname) and os.path.isdir(expdir):
+        fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
+        if re.match('\d{8}', dirname) and os.path.isdir(expdir) and fits_fz_exists:
             break
     else:
         return None  #- no basename/YEARMMDD/EXPID directory was found
