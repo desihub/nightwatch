@@ -6,12 +6,11 @@
   <li style="float:left"><a>Spectra on night {{ night }}</a></li>
   <li><a id="next">next</a></li>
   <li><a id="prev">prev</a></li>
-  <li><a href="/{{ night }}/{{ zexpid }}/spectra/input">spectra</a></li>  
-  <li><a href="/{{ night }}/exposures.html">exposures</a></li>
-  <li><a href="/nights.html">calendar</a></li>
+  <li><a href="../../../../../{% for i in range(num_options) %}../{% endfor %}{{ night }}/{{ zexpid }}/spectra/input">spectra</a></li>
+  <li><a href="../../../../../{% for i in range(num_options) %}../{% endfor %}{{ night }}/exposures.html">exposures</a></li>
+  <li><a href="../../../../../{% for i in range(num_options) %}../{% endfor %}nights.html">calendar</a></li>
 </ul>
 
-{# Each plot is wrapped in if/endif for robustness against missing plots #}
 <script>
     function get_nightlinks(dict) {
         var next_prev = dict["{{night}}"];
