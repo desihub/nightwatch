@@ -19,14 +19,6 @@ args = parser.parse_args()
 stat = args.static
 data = args.data
 
-import sys
-sys.path.append("C:\\Users\\ruhi\\Desktop\\desi\\qqa\\py")
-sys.path.append("C:\\Users\\ruhi\\Desktop\\desi\\qqa\\py\\qqa")
-sys.path.append("C:\\Users\\ruhi\\Desktop\\desi\\desimodel\\py")
-sys.path.append("C:\\Users\\ruhi\\Desktop\\desi\\desiutil\\py")
-print(sys.path, file=sys.stderr)
-
-
 @app.route('/')
 def redict_to_cal():
     print('redirecting to nights.html')
