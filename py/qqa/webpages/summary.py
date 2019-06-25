@@ -88,7 +88,7 @@ def get_summary_plots(qadata, qprocdir=None):
         fibers = ','.join([str(tmp) for tmp in fibers])
 
         nightdir = os.path.dirname(os.path.normpath(qprocdir))
-        specfig = plot_spectra_input(nightdir, expid, downsample,
+        specfig = plot_spectra_input(nightdir, expid, 'qframe', downsample,
             fibers, height=300, width=plot_width*2)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
@@ -116,9 +116,9 @@ def write_summary_html(outfile, qadata, qprocdir):
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('summary.html')
-        
+
     #- TODO: Add links to whatever detailed QA pages exist
-    
+
     html = template.render(**plot_components)
 
     #- Write HTML text to the output file

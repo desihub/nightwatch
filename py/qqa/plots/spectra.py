@@ -30,7 +30,7 @@ def downsample(data, n, agg=np.mean):
             resultx += [agg(samplex)]
     return resultx
 
-def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
+def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
     '''
     Produces a gridplot of 10 different spectra plots, each displaying a number of randomly
     selected fibers that correspond to the 10 different spectrographs.
@@ -38,6 +38,7 @@ def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
     Args:
         data: night directory that contains the expid we want to process spectra for
         expid_num: string or int of the expid we want to process spectra for
+        frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
 
     Options:
@@ -51,24 +52,29 @@ def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
     p2 = []
     first = None
     expid = str(expid_num).zfill(8)
-    for spectro in range(0, 10, 1):
+    spectrorange = range(0, 10, 1)
+    for spectro in spectrorange:
         colors = {}
         fib = []
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, 'qframe-r{}-{}.fits'.format(spectro, expid)), 5)["FIBER"])]
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
             colors["R"] = "red"
         except:
-            print("could not find {}".format(os.path.join(data, expid, 'qframe-r{}-{}.fits'.format(spectro, expid))), file=sys.stderr)
+            print("could not find {}".format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, 'qframe-b{}-{}.fits'.format(spectro, expid)), 5)["FIBER"])]
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
             colors["B"] = "blue"
         except:
-            print("could not find {}".format(os.path.join(data, expid, 'qframe-b{}-{}.fits'.format(spectro, expid))), file=sys.stderr)
+            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, 'qframe-z{}-{}.fits'.format(spectro, expid)), 5)["FIBER"])]
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
             colors["Z"] = "green"
         except:
-            print("could not find {}".format(os.path.join(data, expid, 'qframe-b{}-{}.fits'.format(spectro, expid))), file=sys.stderr)
+            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+
+        if (len(colors) == 0 and spectro == np.max(spectrorange) and first is None):
+            print("no supported {}-*.fits files".format(frame))
+            return None
 
         common = []
         for fiber in fib:
@@ -104,8 +110,8 @@ def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
 
         flux_total = []
         for cam in colors:
-            wavelength = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "WAVELENGTH")
-            flux = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "FLUX")
+            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
+            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
@@ -146,7 +152,7 @@ def plot_spectra_spectro(data, expid_num, n, num_fibs=3, height=220, width=240):
     grid = gridplot([p1, p2], sizing_mode="fixed")
     return grid
 
-def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000):
+def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, width=1000):
     '''
     Produces a gridplot of different spectra plots, each displaying a number of randomly
     selected fibers that correspond to each unique OBJTYPE.
@@ -154,6 +160,7 @@ def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000)
     Args:
         data: night directory that contains the expid we want to process spectra for
         expid_num: string or int of the expid we want to process spectra for
+        frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
 
     Options:
@@ -167,7 +174,10 @@ def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000)
     expid = str(expid_num).zfill(8)
 
     onlyfiles = [f for f in os.listdir(os.path.join(data, expid)) if os.path.isfile(os.path.join(data, expid, f))]
-    qframes = [i for i in onlyfiles if re.match(r'qframe.*', i)]
+    qframes = [i for i in onlyfiles if re.match(r'{}.*'.format(frame), i)]
+    if len(qframes) == 0:
+        print("no supported {}-*.fits files".format(frame))
+        return None
     spectr = [int(i.split("-")[1][1]) for i in qframes]
     spectros = random.choices(list(set(spectr)), k=num_fibs)
 
@@ -179,15 +189,15 @@ def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000)
         com = []
         first = True
         for spectro in spectros:
-            r_fib = fits.getdata(os.path.join(data, expid, 'qframe-r{}-{}.fits'.format(spectro, expid)), 5)
+            r_fib = fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)
             bool_array = r_fib["OBJTYPE"] == obj
             r_fib = r_fib["FIBER"]
             r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
-            b_fib = fits.getdata(os.path.join(data, expid, 'qframe-b{}-{}.fits'.format(spectro, expid)), 5)
+            b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)
             b_fib = b_fib[b_fib["OBJTYPE"] == obj]["FIBER"]
 
-            z_fib = fits.getdata(os.path.join(data, expid, 'qframe-z{}-{}.fits'.format(spectro, expid)), 5)
+            z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)
             z_fib = z_fib[z_fib["OBJTYPE"] == obj]["FIBER"]
 
             common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
@@ -200,8 +210,8 @@ def plot_spectra_objtype(data, expid_num, n, num_fibs=5, height=500, width=1000)
             for cam in colors:
                 if indexes == []:
                     continue
-                wavelength = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "WAVELENGTH")
-                flux = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "FLUX")
+                wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
+                flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
                 for i in indexes:
                     dwavelength = downsample(wavelength[i], n)
                     dflux = downsample(flux[i], n)
@@ -285,13 +295,14 @@ def grouper(lst):
         lst = [j for j in lst if j >= i]
     return result
 
-def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000):
+def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, width=1000):
     '''
     Produces plot displaying the specific fibers requested.
 
     Args:
         data: night directory that contains the expid we want to process spectra for
         expid_num: string or int of the expid we want to process spectra for
+        frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
         select_string: string that requests specific fibers ("1, 3-5" corresponds
             to fibers 1, 3, 5)
@@ -319,9 +330,9 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
 
     for spectro in group:
 
-        exists = os.path.isfile(os.path.join(data, expid, 'qframe-r{}-{}.fits'.format(spectro, expid))) or \
-        os.path.isfile(os.path.join(data, expid, 'qframe-b{}-{}.fits'.format(spectro, expid))) or \
-        os.path.isfile(os.path.join(data, expid, 'qframe-z{}-{}.fits'.format(spectro, expid)))
+        exists = os.path.isfile(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))) or \
+        os.path.isfile(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))) or \
+        os.path.isfile(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)))
 
         if not exists:
             result_not += group[spectro]
@@ -330,9 +341,9 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
         rbz_none = [False]*len(group[spectro])
 
         for cam in colors:
-            if not os.path.isfile(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid))):
+            if not os.path.isfile(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid))):
                 continue
-            fibs = list(fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), 5)["FIBER"])
+            fibs = list(fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), 5)["FIBER"])
 
             fib = []
             for f in fibs:
@@ -345,8 +356,8 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
             rbz_none = np.any([rbz_none, c_none], axis=0)
             indexes = np.nonzero(fib)[0]
 
-            wavelength = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "WAVELENGTH")
-            flux = fits.getdata(os.path.join(data, expid, 'qframe-{}{}-{}.fits'.format(cam.lower(), spectro, expid)), "FLUX")
+            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
+            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
@@ -367,17 +378,14 @@ def plot_spectra_input(data, expid_num, n, select_string, height=500, width=1000
             else:
                 result_not += [group[spectro][i]]
 
-    # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-    # fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
-    # fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
-    # fig.add_layout(Title(text= select_string, text_font_size="12pt"), 'above')
+    fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
+    fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
+    fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
+    fig.add_layout(Title(text= "Input: {}".format(select_string), text_font_size="16pt"), 'above')
 
     if len(result_able) == 0:
         print('ERROR: Unable to find any input spectra in {} for {}'.format(
             data, select_string))
-
-    title = 'Spectra {} downsampled {}x'.format(select_string, n)
-    fig.add_layout(Title(text=title), 'above')
 
     tooltips = tooltips=[
         ("Fiber", "@fiber"),
