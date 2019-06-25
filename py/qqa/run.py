@@ -94,12 +94,6 @@ def which_cameras(rawfile):
     return sorted(cameras)
 
 def runcmd(command, logfile, msg):
-#     #- TODO: check if qproc ouptut already generated
-#     if msg == 'qproc':
-#         output_dir = re.match('(?<=output-dir ).*(?= --cam)', command).string
-#         camera = re.match('(?<=--cam ).*', command).string
-#         file_dir = 
-
     args = command.split()
     print('Logging {} to {}'.format(msg, logfile))
     with open(logfile, 'w') as logfx:
@@ -170,10 +164,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     returns header of HDU 0 of the input rawfile
     '''
-    #- TODO: DELETE
-    print('entering run qproc')
-    
-    
     log = desiutil.log.get_logger()
 
     if not os.path.isdir(outdir):
