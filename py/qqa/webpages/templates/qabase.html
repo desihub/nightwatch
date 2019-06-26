@@ -52,7 +52,7 @@ function get_explinks(links) {
         {% if preproc %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/preproc-{{current}}-"+next_item.zexpid+"-{{downsample}}x.html";
         {% elif spectra and input %}
-        "../../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{frame}}/{{select_str}}/{{downsample}}x/".toLowerCase();;
+        "../../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{select_str}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif spectra %}
         "../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
@@ -70,7 +70,7 @@ function get_explinks(links) {
         {% if preproc %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/preproc-{{current}}-"+prev_item.zexpid+"-{{downsample}}x.html";
         {% elif spectra and input %}
-        "../../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{frame}}/{{select_str}}/{{downsample}}x/".toLowerCase();;
+        "../../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{select_str}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif spectra %}
         "../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
