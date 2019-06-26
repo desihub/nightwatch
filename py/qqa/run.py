@@ -191,6 +191,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     cmdlist = list()
+    batchcmdlist = list()
     loglist = list()
     msglist = list()
     rawcameras = which_cameras(rawfile)
@@ -211,15 +212,17 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             outdir = outdir,
             camera = camera
         )
-
+        
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
-
+        
+        
         cmdlist.append(cmd)
+
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
-
+    
     if ncpu > 1:
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(
             ncpu, len(cameras) ))

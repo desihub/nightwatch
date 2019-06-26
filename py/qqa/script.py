@@ -5,6 +5,7 @@ qqa command line script
 import os, sys, time, glob
 import argparse
 import traceback
+import subprocess
 from . import run, plots
 from .qa.runner import QARunner
 from desiutil.log import get_logger
@@ -61,6 +62,12 @@ def main_monitor(options=None):
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
+    parser.add_argument("--batch", "-b", type=bool, default=False, help="True if you want qproc data processing to spawn a batch job")
+    parser.add_argument("--nodes", "-N", type=int, default=1, help="Number of nodes for qproc batch job")
+    parser.add_argument("--ntasks", "-n", type=int, default=1, help="Number of tasks per node for qproc batch job")
+    parser.add_argument("--constraint", "-C", type=str, default="haswell", help="Constraint for qproc batch job")
+    parser.add_argument("--qos", "-q", type=str, default="interactive", help="Qos for qproc batch job")
+    parser.add_argument("--time", "-t", type=int, default=5, help="time for qproc batch job")
 
     if options is None:
         options = sys.argv[2:]
@@ -107,8 +114,45 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
-                print('Running qproc on {}'.format(rawfile))
-                header = run.run_qproc(rawfile, outdir, cameras=cameras)
+                
+                run_batch_qproc=args.batch
+                if run_batch_qproc:
+                    print('Spawning qproc of {} to batch processes'.format(rawfile))
+                    
+                    sep = os.path.sep
+                    dirfile = sep.join(['..', 'code', 'qqa', 'py', 'qqa', 'wrap_qproc.py'])
+
+                    batch_dict = dict(
+                        nodes=args.nodes,
+                        ntasks=args.ntasks,
+                        constraint=args.constraint,
+                        qos=args.qos,
+                        time=args.time,
+                        dirfile=dirfile,
+                        rawfile=rawfile, 
+                        outdir=outdir,
+                        cameras=cameras,
+                    )
+                    
+                    batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
+                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} '
+                    if cameras:
+                        runfile += '--cameras {cameras}'
+                    
+                    cmd = (batchcmd + runfile).format(**batch_dict)
+                    err = subprocess.call(cmd.split())
+                    
+                    if err == 0:
+                        print('SUCCESS {}'.format('running qproc as batch process'))
+                    if err != 0:
+                        print('ERROR {} while running {}'.format(err, 'qproc as batch process'))
+                        print('Failed to run qproc as batch process, switching to run locally')
+                        run_batch_qproc = False
+                    
+                    
+                if not run_batch_qproc:
+                    print('Running qproc on {}'.format(rawfile))
+                    header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
