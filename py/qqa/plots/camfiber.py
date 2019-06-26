@@ -7,11 +7,11 @@ import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
 
-from ..plots.fiber import plot_fibers_focalplate, plot_fibernums
+from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
 # from ..plots.core import get_colors
 
 
-def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
+def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
                       zmaxs={}, zmins={}, titles={},
                       tools='pan,box_zoom,reset'):
     '''
@@ -70,7 +70,7 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
         else:
             colorbar = False
 
-        fig, hfig = plot_fibers_focalplate(cds, attribute, cam=c,
+        fig, hfig = plot_fibers_focalplane(cds, attribute, cam=c,
                         percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute),

@@ -19,7 +19,7 @@ import math
 from ..plots.core import get_colors, plot_histogram
 
 
-def plot_fibers_focalplate(source, name, cam='',
+def plot_fibers_focalplane(source, name, cam='',
                 camcolors=dict(B='steelblue', R='firebrick', Z='green'),
                 width=250, height=270, zmin=None, zmax=None,
                 percentile=None, title=None, hist_x_range=None,
