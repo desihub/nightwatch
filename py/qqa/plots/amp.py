@@ -9,18 +9,52 @@ import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
 import json
+import os
 
-def get_thresholds(infile, cam):
+def get_thresholds(name, night):
     '''TO DO: DOCUMENT'''
-    with open(infile, 'r') as json_file:
+    file = '{name}-{night}.json'.format(name=name, night=night)
+    startdir = os.getcwd()
+    filepath = ''
+    for i, j, k in os.walk(startdir):
+        if file in k:
+            filepath += os.path.join(i, file)
+    with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
     keys = threshold_data.keys()
-    for key in keys:
-        if key[1] == cam:  
-            lower = [threshold_data[key]['lower'] for key in threshold_data.keys()]
-            upper = [threshold_data[key]['upper'] for key in threshold_data.keys()]
-        else:
-            continue
+    if name in ['READNOISE', 'BIAS']:
+        lowerB = []
+        upperB = []
+        lowerZ = []
+        upperZ = []
+        lowerR = []
+        upperR = []
+        for key in keys:
+            if key[1] == 'B':
+                if threshold_data[key]['lower'] == None:
+                    continue
+                else:
+                    lowerB.append(threshold_data[key]['lower'])
+                    upperB.append(threshold_data[key]['upper'])
+            if key[1] == 'Z': 
+                if threshold_data[key]['lower'] == None:
+                    continue
+                else:
+                    lowerZ.append(threshold_data[key]['lower'])
+                    upperZ.append(threshold_data[key]['upper'])
+            if key[1] == 'R':
+                if threshold_data[key]['lower'] == None:
+                    continue
+                else:
+                    lowerR.append(threshold_data[key]['lower'])
+                    upperR.append(threshold_data[key]['upper'])
+            else:
+                continue
+        lower = [lowerB, lowerR, lowerZ]
+        upper = [upperB, upperR, upperZ]
+    if name in ['COSMICS_RATES']:
+        lower = threshold_data['p10']
+        upper = threshold_data['p90']
     return lower, upper
 
 def get_amp_colors(data, lower, upper):
@@ -29,9 +63,14 @@ def get_amp_colors(data, lower, upper):
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of colors to be put into a ColumnDataSource
     '''
+    if type(lower) == float:
+        lower = [lower]
+        lower*=len(data)
+    if type(upper) == float:
+        upper = [upper]
+        upper*=len(data)
     colors = []
     for i in range(len(data)):
-        #print(type(lower[i]))
         if lower[i] == None or upper[i] == None:
             continue
         if data[i] < lower[i]:
@@ -40,7 +79,6 @@ def get_amp_colors(data, lower, upper):
             colors.append('black')
         if data[i] >= upper[i]:
             colors.append('red')
-    print(colors )
     return colors
 
 def get_amp_size(data, lower, upper):
@@ -49,6 +87,12 @@ def get_amp_size(data, lower, upper):
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of sizes for markers to be put into a ColumnDataSource
     '''
+    if type(lower) == float:
+        lower = [lower]
+        lower*=len(data)
+    if type(upper) == float:
+        upper = [upper]
+        upper*=len(data)
     sizes = []
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
@@ -77,7 +121,7 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, title=None, palette="YlGn9", plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80, plot_width=700):
     '''Plot a per-amp visualization of data[name]
     qamin/qamax: min/max ranges for the color scale'''
     
@@ -104,8 +148,6 @@ def plot_amp_cam_qa(data, name, cam, labels, title=None, palette="YlGn9", plot_h
     amp_loc = np.array(amp_loc)[np.sort(ids)]
     
     locations = [(spec, amp) for spec in spec_loc for amp in amp_loc]
-    
-    lower, upper = get_thresholds('/global/cscratch1/sd/alyons18/desi/qqatest/READNOISE-20190307.json', cam)
     colors = get_amp_colors(data_val, lower, upper)
     sizes = get_amp_size(data_val, lower, upper)
 
@@ -159,18 +201,20 @@ def plot_amp_cam_qa(data, name, cam, labels, title=None, palette="YlGn9", plot_h
 
     return fig
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", lower=None, upper=None, plot_height=80, 
-                plot_width=700):
-    
-    #if qamin is None:
-#         qamin = np.min(data[name])
-#     if qamax is None:
-#         qamax = np.max(data[name]) 
-    
+def plot_amp_qa(data, name, lower, upper, title=None, plot_height=80, plot_width=700):
+
+    if title == None:
+        title = name
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
-    fig_B = plot_amp_cam_qa(data, name, 'B', labels, title=title, palette=palette, plot_height=plot_height)
-    fig_R = plot_amp_cam_qa(data, name, 'R', labels, title=title, palette=palette, plot_height=plot_height)
-    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, title=title, palette=palette, plot_height=plot_height)
+    
+    if name in ['READNOISE', 'BIAS']:
+        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0], upper[0], title, plot_height=plot_height+25, plot_width=plot_width)
+        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1], upper[1], title, plot_height=plot_height, plot_width=plot_width)
+        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2], upper[2], title, plot_height=plot_height, plot_width=plot_width)
+    if name in ['COSMICS_RATE']:
+        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower, upper, title, plot_height=plot_height+25, plot_width=plot_width)
+        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower, upper, title, plot_height=plot_height, plot_width=plot_width)
+        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower, upper, title, plot_height=plot_height, plot_width=plot_width)
     
     #x-axis
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 

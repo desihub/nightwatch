@@ -291,14 +291,12 @@ def main_threshold(options=None):
     parser = argparse.ArgumentParser(usage = '{prog} [options]')
     parser.add_argument('-i', '--indir', type=str, required=True, help='directory of night directories; where summary.json files can be found')
     parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold file should be written to')
-    parser.add_argument('-n', '--number', type=float, help='number of nights that should be used in calculation')
+    parser.add_argument('-s', '--start', type=float, required=True, help='start date for calculation range')
+    parser.add_argument('-e', '--end', type=float, required=True, help='end date for calculation range')
     
     if options is None:
         options = sys.argv[2:]
     args = parser.parse_args(options)
-    n = args.number
-    if n is None:
-        n = 2
     
-    run.write_thresholds(args.indir, args.outdir, n)
+    run.write_thresholds(args.indir, args.outdir, args.start, args.end)
     print('Wrote threshold jsons for each night to {}'.format(args.outdir))
