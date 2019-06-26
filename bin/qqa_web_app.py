@@ -80,7 +80,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
 @app.route('/<int:night>/<string:expid>/spectra/')
 def redirect_to_spectrograph_stectra(night, expid):
     print('redirecting to spectrograph stectra')
-    return redirect('{}/{}/spectra/spectrograph/qframe/4x/'.format(night, expid), code=302)
+    return redirect('/{}/{}/spectra/spectrograph/qframe/4x/'.format(night, expid), code=302)
 
 @app.route('/<int:night>/<int:expid>/spectra/input/', defaults={'frame': None, 'select_string': None, 'downsample': None})
 @app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:frame>/<string:downsample>/')
@@ -99,8 +99,8 @@ def getspectra(night, expid, view, frame, downsample):
 
     if downsample is None:
         if frame is None:
-            return redirect('{}/{}/spectra/{}/qframe/4x/'.format(night, expid, view), code=302)
-        return redirect('{}/{}/spectra/{}/{}/4x/'.format(night, expid, view, frame), code=302)
+            return redirect('/{}/{}/spectra/{}/qframe/4x/'.format(night, expid, view), code=302)
+        return redirect('/{}/{}/spectra/{}/{}/4x/'.format(night, expid, view, frame), code=302)
 
     from qqa.webpages import spectra
     return spectra.get_spectra_html(os.path.join(data, str(night)), night, expid, view, frame, downsample)
