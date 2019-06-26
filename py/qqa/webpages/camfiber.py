@@ -34,7 +34,7 @@ def write_camfiber_html(outfile, data, header):
               'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
               'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':'Median Calibration S/N'}
     TITLESPERCAM = {'B':TITLES}
-    TOOLS = 'pan,box_zoom,reset'
+    TOOLS = 'pan,box_zoom,tap,reset'
 
     
     #- Sets environment to get get templates
@@ -55,7 +55,8 @@ def write_camfiber_html(outfile, data, header):
     return dict({})
 
 
-def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS):
+def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
+        TITLESPERCAM, TOOLS='pan,box_select,reset'):
     '''
     Args:
         data : fits file of per_camfiber data
@@ -75,7 +76,6 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, T
     #- Gets the plot list for each metric in ATTRIBUTES
     fibernum_gridlist = []
     for attr in ATTRIBUTES:
-        #- TODO: aggregation later (box and whisker) or binning
         if attr in list(cds.data.keys()):
             figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
 
@@ -88,7 +88,9 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, T
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
 
 
-def write_focalplate_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS):    
+def write_focalplate_plots(data, template, outfile, header,
+        ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
+        TOOLS='pan,box_select,reset'):
     '''
     Args:
         data : fits file of per_camfiber data

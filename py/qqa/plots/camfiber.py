@@ -3,9 +3,9 @@ import jinja2
 import bokeh
 
 from astropy.table import Table
+import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
-from bokeh.transform import linear_cmap
 
 from ..plots.fiber import plot_fibers_focalplate, plot_fibernums
 # from ..plots.core import get_colors
@@ -13,7 +13,7 @@ from ..plots.fiber import plot_fibers_focalplate, plot_fibernums
 
 def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
                       zmaxs={}, zmins={}, titles={},
-                      tools='pan,box_select,reset'):
+                      tools='pan,box_zoom,reset'):
     '''
     ARGS:
         cds : ColumnDataSource of data
@@ -85,8 +85,9 @@ def plot_camfib_focalplate(cds, attribute, cameras, percentiles={},
 
 
 
-def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None,
-        width=650, height=150):
+def plot_per_fibernum(cds, attribute, cameras, titles={},
+        tools='pan,box_zoom,reset', width=700, height=80,
+        ymin=None, ymax=None):
     '''
     ARGS:
         cds : ColumnDataSource of data
@@ -94,6 +95,7 @@ def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None,
         cameras : list of string representing unique camera values
         width : width of individual camera plots in pixels
         height : height of individual camera plots in pixels
+        ymin/ymax : y-axis ranges unless data exceed those ranges
 
     Options:
         titles : dictionary of titles per camera for a group of camfiber plots
@@ -122,24 +124,38 @@ def plot_per_fibernum(cds, attribute, cameras, titles={}, tools=None,
         min_fiber = max(0, min(list(cds.data['FIBER'])))
         max_fiber = min(5000, max(list(cds.data['FIBER'])))
         first_x_range = bokeh.models.Range1d(min_fiber-1, max_fiber+1)
-        # first_y_range = None
 
-        #- shared ranges to support linked features
-        if not figs_list:
+        #- shared ranges to support linked features, additional plot features
+        if i == 0:
             fig_x_range = first_x_range
-            # fig_y_range = first_y_range
             toolbar_location='above'
+            heightpad = 25 #- extra space for title & toolbar
         else:
             fig_x_range = figs_list[0].x_range
-            # fig_y_range = figs_list[0].y_range
             toolbar_location=None
+            heightpad = 0
+        
+        #- axis labels for the last camera
+        if i == (len(cameras) - 1):
+            xaxislabels = True
+            heightpad = 25
+        else:
+            xaxislabels = False
+        
+        #- focused y-ranges unless outliers in data
+        cam_metric = metric[np.array(cds.data.get('CAM')) == c]
+        plotmin = min(ymin, np.min(cam_metric) * 0.9) if ymin else np.min(cam_metric) * 0.9
+        plotmax = max(ymax, nnp.max(cam_metric) * 1.1) if ymax else np.max(cam_metric) * 1.1
 
-        heightpad = 25 if i==0 else 0  #- extra space for title and toolbar
+        fig_y_range = bokeh.models.Range1d(plotmin, plotmax)
+
+        
         fig = plot_fibernums(cds, attribute, cam=c, title=titles.get(c, {}).get(attribute),
                              tools=tools,tooltips=tooltips, toolbar_location=toolbar_location,
-                             fig_x_range=fig_x_range, width=width, height=height+heightpad
+                             fig_x_range=fig_x_range, fig_y_range=fig_y_range,
+                             width=width, height=height+heightpad, xaxislabels=xaxislabels,
                             )
 
         figs_list.append(fig)
-
+        
     return figs_list

@@ -15,7 +15,7 @@
 {% endif %}
 
 {% if autoreload %}
-<script type="text/javascript" src="../cal_files/live.js#html"></script>
+<script type="text/javascript" src="{{ staticdir }}/live.js#html"></script>
 {% endif %}
 
 <head>
@@ -113,6 +113,11 @@ ul.navigationbar li a.noHover {
 ul.navigationbar li a.current_page {
   pointer-events: none;
   background-color: DarkSlateBlue;
+}
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 </style>

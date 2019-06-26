@@ -3,7 +3,7 @@ import numpy as np
 import os, re, sys
 import fitsio
 import bokeh.plotting as bk
-from bokeh.layouts import column
+from bokeh.layouts import gridplot
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
 from qqa.qa.base import QA
@@ -82,12 +82,13 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         table_by_amp = table.group_by(group_by_list).groups.aggregate(list)
 
     cam_figs = []
+    first = None
     if "CAM" in table_by_amp.colnames:
         colors = {"B":"blue", "R":"red", "Z":"green"}
         group_by_list.remove("CAM")
         for cam in ["B", "R", "Z"]:
             cam_table = table_by_amp[table_by_amp["CAM"] == cam]
-            fig = bk.figure(title="CAM "+cam, toolbar_location="above", plot_height = 200, plot_width = 500)
+            fig = bk.figure(title="CAM "+cam, toolbar_location="above", plot_height = 200, plot_width = 700)
             max_y=None
             min_y=None
             for row in cam_table:
@@ -110,8 +111,8 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
 
                 if min(row[aspect]) < min_y:
                     min_y = min(row[aspect])
-                fig.line("EXPID", "aspect_values", source=source, alpha=0.5, color=colors[cam], name="lines", nonselection_alpha=1, selection_alpha=1)
-                fig.circle("EXPID", "aspect_values", size=7.5, source=source, alpha=0.5, color=colors[cam], name="dots", nonselection_fill_alpha=1,)
+                fig.line("EXPID", "aspect_values", source=source, alpha=0.5, color=colors[cam], name="lines", nonselection_alpha=1, selection_alpha=0.5)
+                fig.circle("EXPID", "aspect_values", source=source, alpha=0.5, color=colors[cam], name="dots", nonselection_fill_alpha=1,)
 
             tooltips = tooltips=[
                 ("NIGHT", "@NIGHT"),
@@ -131,18 +132,23 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
                 names = ["dots"],
                 callback = OpenURL(url="../../../../../@NIGHT/@EXPIDZ/qa-{}-@EXPIDZ.html".format(hdu[4:].lower()))
             )
-            fig.toolbar.autohide = True
+            if hasattr(fig.toolbar, 'autohide'):
+                fig.toolbar.autohide = True
 
             fig.segment(x0='x', y0=min_y, x1='x', y1=max_y, color='grey', line_width=1, source=line_source)
             fig.add_tools(hover)
             fig.add_tools(tap)
             fig.add_tools(hover_follow)
             cam_figs += [fig]
+            if first is None:
+                first = fig
+            else:
+                fig.x_range=first.x_range
 
-        fig = column(cam_figs)
+        fig = gridplot([[i] for i in cam_figs], sizing_mode="fixed")
 
     else:
-        fig = bk.figure(toolbar_location="above", plot_height = 300, plot_width = 750)
+        fig = bk.figure(toolbar_location="above", plot_height = 300, plot_width = 800)
         for row in table_by_amp:
             length = len(row["EXPID"])
             data=dict(

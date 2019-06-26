@@ -80,23 +80,30 @@ def test_timeseries(start_date, end_date, hdu, attribute):
 @app.route('/<int:night>/<string:expid>/spectra/')
 def redirect_to_spectrograph_stectra(night, expid):
     print('redirecting to spectrograph stectra')
-    return redirect('{}/{}/spectra/spectrograph/2x/'.format(night, expid), code=302)
+    return redirect('{}/{}/spectra/spectrograph/qframe/4x/'.format(night, expid), code=302)
 
-@app.route('/<int:night>/<int:expid>/spectra/input/', defaults={'select_string': None, 'downsample': None})
-@app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:downsample>/')
-def getspectrainput(night, expid, select_string, downsample):
+@app.route('/<int:night>/<int:expid>/spectra/input/', defaults={'frame': None, 'select_string': None, 'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:frame>/<string:downsample>/')
+def getspectrainput(night, expid, select_string, frame, downsample):
     global data
     data = os.path.abspath(data)
     from qqa.webpages import spectra
-    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, "input", downsample, select_string)
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, "input", frame, downsample, select_string)
 
-@app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'downsample': None})
-@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:downsample>/')
-def getspectra(night, expid, view, downsample):
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'frame': None, 'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:frame>/', defaults={'downsample': None})
+@app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:frame>/<string:downsample>/')
+def getspectra(night, expid, view, frame, downsample):
     global data
     data = os.path.abspath(data)
+
+    if downsample is None:
+        if frame is None:
+            return redirect('{}/{}/spectra/{}/qframe/4x/'.format(night, expid, view), code=302)
+        return redirect('{}/{}/spectra/{}/{}/4x/'.format(night, expid, view, frame), code=302)
+
     from qqa.webpages import spectra
-    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, view, downsample)
+    return spectra.get_spectra_html(os.path.join(data, str(night)), expid, view, frame, downsample)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
@@ -138,8 +145,8 @@ def getfile(filepath):
         # assume qqa/py is in PYTHONPATH
         # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'qqa')))
         from qqa.webpages import plotimage
-
-        plotimage.write_image_html(fitsfilepath, os.path.join(stat, filepath), downsample)
+        night = filedir.split("/")[0]
+        plotimage.write_image_html(fitsfilepath, os.path.join(stat, filepath), downsample, night)
         return send_from_directory(stat, filepath)
 
     print("could NOT find " + fitsfilepath, file=sys.stderr)
