@@ -41,7 +41,7 @@ def get_summary_plots(qadata, qprocdir=None):
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
         flavor=flavor, program=program,
-        num_dirs=3,
+        num_dirs=2,
    )
 
     plot_width = 500
