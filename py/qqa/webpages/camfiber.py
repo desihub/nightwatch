@@ -200,6 +200,7 @@ def write_htmlfile(layout, template, outfile, header):
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
         flavor=flavor, program=program, qatype = 'camfiber',
+        num_dirs=2,        
     )
 
     script, div = components(layout)

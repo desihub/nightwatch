@@ -26,7 +26,8 @@ def write_image_html(input, output, downsample, night):
         plot_script = plot_script, plot_div = plot_div,
         bokeh_version=bokeh.__version__, downsample=str(downsample), preproc=True,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
-        available=available, current=current, expid=int(str(expid)), zexpid=expid
+        available=available, current=current, expid=int(str(expid)), zexpid=expid,
+        num_dirs=2,
     )
 
     html = template.render(**html_components)
@@ -54,6 +55,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
         version=bokeh.__version__, downsample=str(downsample),
         preproc=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
+        num_dirs=2,
     )
 
     html = template.render(**html_components)
