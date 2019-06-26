@@ -48,15 +48,16 @@ def get_summary_plots(qadata, qprocdir=None):
     plot_height = 110
 
     #- CCD Read Noise
-    fig = plot_amp_qa(qadata['PER_AMP'], 'READNOISE', title='CCD Amplifier Read Noise',
-        qamin=1.5, qamax=4.0, ymin=0, ymax=5.0,
-        plot_width=plot_width, plot_height=plot_height)
-    script, div = components(fig)
-    html_components['READNOISE'] = dict(script=script, div=div)
-
+    if 'PER_AMP' in qadata:
+        fig = plot_amp_qa(qadata['PER_AMP'], 'READNOISE',
+                title='CCD Amplifier Read Noise',
+                qamin=1.5, qamax=4.0, ymin=0, ymax=5.0,
+                plot_width=plot_width, plot_height=plot_height)
+        script, div = components(fig)
+        html_components['READNOISE'] = dict(script=script, div=div)
     
     #- Raw flux
-    if flavor.upper() in ['ARC', 'FLAT']:
+    if flavor.upper() in ['ARC', 'FLAT'] and 'PER_CAMFIBER' in qadata:
         cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_RAW_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_RAW_FLUX', cameras,
@@ -68,7 +69,7 @@ def get_summary_plots(qadata, qprocdir=None):
         html_components['RAWFLUX'] = dict(script=script, div=div)
 
     #- Calib flux
-    if flavor.upper() in ['SCIENCE']:
+    if flavor.upper() in ['SCIENCE'] and 'PER_CAMFIBER' in qadata:
         cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_CALIB_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_CALIB_FLUX', cameras,

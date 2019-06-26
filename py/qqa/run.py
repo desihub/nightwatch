@@ -80,28 +80,39 @@ def find_latest_expdir(basedir, processed, startdate=None):
         startdate : the earliest night to consider processing YYYYMMDD
 
     Returns directory, or None if no matching directories are found
+
+    Note: if you want the first unprocessed directory, use
+    `find_unprocessed_expdir` instead
     '''
     if startdate:
         startdate = str(startdate)
     else:
         startdate = ''
+
     #- Search for most recent basedir/YEARMMDD
+    nightdir = None
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
-        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir) and dirname >= startdate:
-            night = dirname
-            for dirname in sorted(os.listdir(nightdir)):
-                expid = dirname
-                expdir = os.path.join(nightdir, dirname)
-                if expdir in processed:
-                    continue
-                fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
-                if re.match('\d{8}', dirname) and os.path.isdir(expdir) and fits_fz_exists:
-                    return expdir
-                else:
-                    print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
-            #else:
-            #    return None  #- no basename/YEARMMDD/EXPID directory was found
+        if re.match('20\d{6}', dirname) and dirname >= startdate and \
+                os.path.isdir(nightdir):
+            break
+    #- if for loop completes without finding nightdir to break, run this else
+    else:
+        return None
+
+    night = dirname
+    for dirname in sorted(os.listdir(nightdir)):
+        expdir = os.path.join(nightdir, dirname)
+        if expdir in processed:
+            continue
+
+        expid = dirname
+        datafilename = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
+        if os.path.isfile(datafilename):
+            return expdir
+        else:
+            print('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
+            processed.add(expdir)  #- so that we won't check again
     else:
         return None  #- no basename/YEARMMDD directory was found
 
