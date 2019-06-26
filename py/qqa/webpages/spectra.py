@@ -6,13 +6,14 @@ from bokeh.embed import components
 
 from ..plots import spectra
 
-def get_spectra_html(data, expid, view, frame, downsample_str, select_string = None):
+def get_spectra_html(data, night, expid, view, frame, downsample_str, select_string = None):
     '''
     Generates the html for the page conatining spectra plots. The format of
     the page depends on the provided view.
 
     Args:
         data: night directory that contains the expid we want to process spectra for
+        night : string or int of the night we want to process spectra for
         expid: string or int of the expid we want to process spectra for
         view: must be either "spectrograph", "objtype", "input".
             "spectrograph":
@@ -46,8 +47,15 @@ def get_spectra_html(data, expid, view, frame, downsample_str, select_string = N
     template = env.get_template('spectra.html')
 
     html_components = dict(
-        bokeh_version=bokeh.__version__
+        bokeh_version=bokeh.__version__, night=night, expid=int(expid),
+        zexpid='{:08d}'.format(expid), downsample=downsample_str, # spectra=True,
     )
+    
+    num_dirs = 6 #night/expid/spectra/view/.../frame/downsample-x
+    add_dirs = len(select_string.split("/")) if select_string else 0
+    html_components['num_dirs'] = num_dirs + add_dirs
+    
+    
     if downsample_str is None:
         downsample = 4
     else:

@@ -338,6 +338,7 @@ def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, wid
             result_not += group[spectro]
             continue
 
+
         rbz_none = [False]*len(group[spectro])
 
         for cam in colors:
