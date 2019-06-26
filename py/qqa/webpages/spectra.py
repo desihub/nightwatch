@@ -48,10 +48,10 @@ def get_spectra_html(data, night, expid, view, frame, downsample_str, select_str
 
     html_components = dict(
         bokeh_version=bokeh.__version__, night=night, expid=int(expid),
-        zexpid='{:08d}'.format(expid), downsample=downsample_str, spectra=True,
+        zexpid='{:08d}'.format(expid), downsample=downsample_str, # spectra=True,
     )
     
-    num_dirs = 6 #night/expid/spectra/view/frame/.../downsample-x
+    num_dirs = 6 #night/expid/spectra/view/.../frame/downsample-x
     add_dirs = len(select_string.split("/")) if select_string else 0
     html_components['num_dirs'] = num_dirs + add_dirs
     
