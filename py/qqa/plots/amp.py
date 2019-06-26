@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation
+from bokeh.models import LinearColorMapper, ColorBar, CustomJS, ColumnDataSource, TapTool, Div, HoverTool, Range1d, BoxAnnotation
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
@@ -97,7 +97,7 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
                      plot_height=50, plot_width=plot_width,
                      y_axis_location=None)
     #plotting
-    hover= HoverTool(tooltips = [
+    hover= HoverTool(names=["circles"], tooltips = [
         ('(spec, amp)', '@locations'),
         ('{}'.format(name), '@data_val')],
                       line_policy='nearest')
@@ -108,7 +108,7 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
 
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
-        fig.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
+        fig.line(x=spec_groups[i], name='lines', y=data_groups[i], line_color='black', alpha=0.25)
 
     fig.circle(x='locations', y='data_val', line_color=None,
                  fill_color='colors', size='sizes', source=source, name='circles')
@@ -131,8 +131,8 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
 
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
-    taptool.callback = CustomJS(source=source, code="""
-    window.open("@name-4x.html" ,"_self");
+    taptool.callback = CustomJS(args=dict(source=source), code="""
+    window.open(((source.data.name)[0])+"-4x.html", "_self");
     """)
     return fig
 
