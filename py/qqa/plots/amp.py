@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
@@ -63,12 +63,6 @@ def get_amp_colors(data, lower, upper):
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of colors to be put into a ColumnDataSource
     '''
-    if type(lower) == float:
-        lower = [lower]
-        lower*=len(data)
-    if type(upper) == float:
-        upper = [upper]
-        upper*=len(data)
     colors = []
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
@@ -87,12 +81,6 @@ def get_amp_size(data, lower, upper):
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of sizes for markers to be put into a ColumnDataSource
     '''
-    if type(lower) == float:
-        lower = [lower]
-        lower*=len(data)
-    if type(upper) == float:
-        upper = [upper]
-        upper*=len(data)
     sizes = []
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
@@ -147,16 +135,22 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
     _, ids = np.unique(amp_loc, return_index=True)
     amp_loc = np.array(amp_loc)[np.sort(ids)]
     
+    if name in ['COSMICS_RATE']:
+        lower = [lower]*len(data_val)
+        upper = [upper]*len(data_val)
+    
     locations = [(spec, amp) for spec in spec_loc for amp in amp_loc]
     colors = get_amp_colors(data_val, lower, upper)
     sizes = get_amp_size(data_val, lower, upper)
-
+    
     source = ColumnDataSource(data=dict(
         data_val=data_val,
         locations=locations,
         colors=colors,
         sizes=sizes,
         name=name_data,
+        lower=lower,
+        upper=upper,
     ))
     
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
@@ -192,8 +186,10 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
         fig.outline_line_color='grey'
     fig.outline_line_alpha=0.7
     
-    #good_range = BoxAnnotation(bottom=qamin, top=qamax, fill_alpha=0.1, fill_color='green')
-    #fig.add_layout(good_range)
+    if name in ['READNOISE', 'BIAS']:
+        fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower'))
+    if name in ['COSMICS_RATE']:
+        fig.add_layout(BoxAnnotation(bottom=lower[0], top=upper[0], fill_alpha=0.1, fill_color='green'))
     
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
