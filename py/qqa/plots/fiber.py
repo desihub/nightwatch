@@ -111,7 +111,7 @@ def plot_fibers_focalplate(source, name, cam='',
     fig.yaxis.major_label_text_font_size = '0pt'
 
     taptool = fig.select(type=TapTool)
-    taptool.callback = OpenURL(url="spectra/input/@FIBER/4x/")
+    taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
 
     #- Add colorbar
     if colorbar:
@@ -195,8 +195,8 @@ def plot_fibernums(source, name, cam='',
         tooltips = [("FIBER", "@FIBER"), (name, "@" + name + '{(0.00 a)}')]
     hover = HoverTool(renderers = [s], tooltips=tooltips)
     fig.add_tools(hover)
-    
-    #- style visual attributes of the figure    
+
+    #- style visual attributes of the figure
     if not xaxislabels:
         fig.xaxis.axis_label = None
         fig.xaxis.major_tick_line_color = None
@@ -213,9 +213,9 @@ def plot_fibernums(source, name, cam='',
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color = None
     fig.yaxis.formatter = NumeralTickFormatter(format='0a')
-    
+
 
     taptool = fig.select(type=TapTool)
-    taptool.callback = OpenURL(url="spectra/input/@FIBER/4x/")
+    taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
 
     return fig
