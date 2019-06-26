@@ -29,7 +29,7 @@ def get_ncpu(ncpu):
 
     return ncpu
 
-def find_unprocessed_expdir(datadir, outdir):
+def find_unprocessed_expdir(datadir, outdir, startdate=None):
     '''
     Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
@@ -40,6 +40,9 @@ def find_unprocessed_expdir(datadir, outdir):
     Warning: traverses the whole tree every time.
     TODO: cache previously identified already-processed data and don't rescan.
     '''
+    all_nights = sorted(os.listdir(datadir))
+#     if startdate:
+#         all_nights = all_nights[:]
     for night in sorted(os.listdir(datadir)):
         nightdir = os.path.join(datadir, night)
         if re.match('20\d{6}', night) and os.path.isdir(nightdir):
@@ -191,7 +194,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     cmdlist = list()
-    batchcmdlist = list()
     loglist = list()
     msglist = list()
     rawcameras = which_cameras(rawfile)
@@ -212,17 +214,15 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             outdir = outdir,
             camera = camera
         )
-        
-        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
-        
-        
-        cmdlist.append(cmd)
 
+        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+
+        cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
-    
+
     if ncpu > 1:
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(
             ncpu, len(cameras) ))
