@@ -11,7 +11,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.models import Panel, Tabs
 from astropy.table import Table, join, vstack, hstack
 
-from ..plots.camfiber import plot_camfib_focalplate, plot_per_fibernum
+from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum
 
 
 def write_camfiber_html(outfile, data, header):
@@ -22,7 +22,7 @@ def write_camfiber_html(outfile, data, header):
         header : fits file header
 
     Writes the default generated fibernum camfiber plots to OUTFILE
-    Also generates and writes an alternate view of focalplate camfiber plots
+    Also generates and writes an alternate view of focalplane camfiber plots
     Returns a components dictionary of summary camfiber plots
     '''
     #- Default plot options
@@ -46,11 +46,11 @@ def write_camfiber_html(outfile, data, header):
     fn_template = env.get_template('fibernum.html')
     write_fibernum_plots(data, fn_template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
 
-    #- FOCALPLATE PLOTS
+    #- FOCALPLANE PLOTS
     index_fp_file = outfile.index('.html')
-    fp_outfile = outfile[:index_fp_file] + '-focalplate_plots.html'
-    fp_template = env.get_template('focalplate.html')
-    write_focalplate_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+    fp_outfile = outfile[:index_fp_file] + '-focalplane_plots.html'
+    fp_template = env.get_template('focalplane.html')
+    write_focalplane_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
 
     return dict({})
 
@@ -88,7 +88,7 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
 
 
-def write_focalplate_plots(data, template, outfile, header,
+def write_focalplane_plots(data, template, outfile, header,
         ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
         TOOLS='pan,box_select,reset'):
     '''
@@ -103,22 +103,22 @@ def write_focalplate_plots(data, template, outfile, header,
         TITLESPERCAM : titles for plots
         TOOLS : supported features
         
-    Writes the focalplate plots to OUTFILE
+    Writes the focalplane plots to OUTFILE
     '''
     #- Gets a shared ColumnDataSource of DATA
     cds = get_cds(data, ATTRIBUTES, CAMERAS)
 
     #- Gets the plot list for each metric in ATTRIBUTES
-    focalplate_gridlist = []
+    focalplane_gridlist = []
     for attr in ATTRIBUTES:
         if attr in list(cds.data.keys()):
-            figs_list, hfigs_list = plot_camfib_focalplate(cds, attr, CAMERAS, percentiles=PERCENTILES,
+            figs_list, hfigs_list = plot_camfib_focalplane(cds, attr, CAMERAS, percentiles=PERCENTILES,
                                      titles=TITLESPERCAM, tools=TOOLS)
 
-            focalplate_gridlist.extend([figs_list, hfigs_list])
+            focalplane_gridlist.extend([figs_list, hfigs_list])
 
     #- Organizes the layout of the plots
-    fp_camfiber_layout = gridplot(focalplate_gridlist, toolbar_location='right')
+    fp_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fp_camfiber_layout, template, outfile, header)
@@ -135,7 +135,7 @@ def get_cds(data, attributes, cameras):
     Options:
     	agg : get an aggregated column data source
     		to plot per fiber number instead of
-    		focal plate
+    		focal plane
 
     Returns a bokeh ColumnDataSource object
     '''
