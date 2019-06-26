@@ -57,10 +57,10 @@ def isolate_spec_lines(data_locs, data):
 def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="YlGn9", plot_height=80, plot_width=700):
     '''Plot a per-amp visualization of data[name]
     qamin/qamax: min/max ranges for the color scale'''
-    
+
     if title is None:
-        title = name   
-    
+        title = name
+
     #unpacking data
     spec_loc = []
     amp_loc = []
@@ -79,9 +79,9 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     spec_loc = np.array(spec_loc)[np.sort(ids)]
     _, ids = np.unique(amp_loc, return_index=True)
     amp_loc = np.array(amp_loc)[np.sort(ids)]
-    
+
     locations = [(spec, amp) for spec in spec_loc for amp in amp_loc]
-    
+
     colors = get_amp_colors(data_val, qamax)
     sizes = get_amp_size(data_val, qamax)
 
@@ -92,25 +92,25 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
         sizes=sizes,
         name=name_data,
     ))
-    
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
                      plot_height=50, plot_width=plot_width,
-                     y_axis_location=None)      
+                     y_axis_location=None)
     #plotting
     hover= HoverTool(tooltips = [
         ('(spec, amp)', '@locations'),
         ('{}'.format(name), '@data_val')],
                       line_policy='nearest')
-    
-    fig = bk.figure(x_range=axis.x_range, 
-                      toolbar_location=None, plot_height=plot_height, 
+
+    fig = bk.figure(x_range=axis.x_range,
+                      toolbar_location=None, plot_height=plot_height,
                       plot_width=plot_width, x_axis_location=None, tools=[hover, 'tap'])
-    
+
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
         fig.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
-        
-    fig.circle(x='locations', y='data_val', line_color=None, 
+
+    fig.circle(x='locations', y='data_val', line_color=None,
                  fill_color='colors', size='sizes', source=source, name='circles')
 
     fig.yaxis.axis_label = cam
@@ -125,39 +125,38 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax, title=None, palette="
     if cam =='Z':
         fig.outline_line_color='grey'
     fig.outline_line_alpha=0.7
-    
+
     good_range = BoxAnnotation(bottom=qamin, top=qamax, fill_alpha=0.1, fill_color='green')
     fig.add_layout(good_range)
-    
+
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
-    taptool.callback = OpenURL(url='@name-4x.html')
-
+    taptool.callback = CustomJS(source=source, code="""
+    window.open("@name-4x.html" ,"_self");
+    """)
     return fig
 
-def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80, 
+def plot_amp_qa(data, name, title=None, palette="YlGn9", qamin=None, qamax=None, plot_height=80,
                 plot_width=700):
-    
+
     if qamin is None:
         qamin = np.min(data[name])
     if qamax is None:
-        qamax = np.max(data[name]) 
-    
+        qamax = np.max(data[name])
+
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
     fig_B = plot_amp_cam_qa(data, name, 'B', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height+25)
     fig_R = plot_amp_cam_qa(data, name, 'R', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
     fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, qamin, qamax, title=title, palette=palette, plot_height=plot_height)
-    
+
     #x-axis
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
                      plot_height=50, plot_width=plot_width,
-                     y_axis_location=None)         
+                     y_axis_location=None)
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
     axis.outline_line_color=None
-    
+
     fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location=None)
-    
+
     return fig
-        
-        
