@@ -3,36 +3,36 @@
 {% block navigation %}
 <ul class="navigationbar">
   <li style="float:left"><a id="nights" href =
-    "/nights.html">nights</a></li>
+    "{% for i in range(num_dirs) %}../{% endfor %}/nights.html">nights</a></li>
   <li style="float:left"><a>QA {{ night }}/{{ expid }}</a></li>
   <li style="float:left"><a id="prev">prev</a></li>
   <li style="float:left"><a id="next">next</a></li>
-  <li style="float:left"><a href="../../qa-lastexp.html">last</a></li>
+  <li style="float:left"><a href="{% for i in range(num_dirs) %}../{% endfor %}qa-lastexp.html">last</a></li>
   <li><a id="spectro">spectro</a></li>
-  <li class="dropdown"><a id="camfiber" href = "/{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">camfiber</a>
+  <li class="dropdown"><a id="camfiber" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">camfiber</a>
       <ul class="dropdown-content">
-        <a id="camfiber" href="/{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">fibernum</a>
-        <a id="focalplane" href="/{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-focalplane_plots.html">focalplane</a>
+        <a id="camfiber" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">fibernum</a>
+        <a id="focalplane" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-focalplane_plots.html">focalplane</a>
       </ul>
   </li>
   <li><a id="fiber">fiber</a></li>
-  <li><a id="camera" href="/{{night}}/{{zexpid}}/qa-camera-{{ zexpid }}.html">camera</a></li>
+  <li><a id="camera" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camera-{{ zexpid }}.html">camera</a></li>
 
-  <li class="dropdown"><a id="amp" href = "/{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">amp</a>
+  <li class="dropdown"><a id="amp" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">amp</a>
       <ul class="dropdown-content">
-        <a id="amp" href="/{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">amp</a>
-        <a id="preproc_table" href="/{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}-preproc_table.html">preproc</a>
+        <a id="amp" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">amp</a>
+        <a id="preproc_table" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}-preproc_table.html">preproc</a>
       </ul>
   </li>
-  <li><a id="summary" href="/{{night}}/{{zexpid}}/qa-summary-{{ zexpid }}.html">summary</a></li>
-  <li class="dropdown"><a id="spectra" href = "/{{night}}/{{zexpid}}/spectra/input">spectra</a>
+  <li><a id="summary" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-summary-{{ zexpid }}.html">summary</a></li>
+  <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">spectra</a>
       <ul class="dropdown-content">
-        <a id="input" href="/{{night}}/{{zexpid}}/spectra/input">input</a>
-        <a id="spectrograph" href="/{{night}}/{{zexpid}}/spectra/spectrograph">spectrograph</a>
-        <a id="objtype" href="/{{night}}/{{zexpid}}/spectra/objtype">objtype</a>
+        <a id="input" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">input</a>
+        <a id="spectrograph" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/spectrograph">spectrograph</a>
+        <a id="objtype" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/objtype">objtype</a>
       </ul>
   </li>
-  <li><a id="exposures" href="/{{night}}/exposures.html">exposures</a></li>
+  <li><a id="exposures" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/exposures.html">exposures</a></li>
 </ul>
 {% if exptime %}
 <p>{{ exptime }} second {{ flavor }} ({{ program }})</p>
