@@ -29,10 +29,17 @@ def get_ncpu(ncpu):
 
     return ncpu
 
-def find_unprocessed_expdir(datadir, outdir):
+
+def find_unprocessed_expdir(datadir, outdir, startdate=None):
     '''
     Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
+
+    Args:
+        datadir : a directory of nights with exposures
+        outdir : TODO DOCUMENTATION
+    Options:
+        startdate : the earliest night to consider processing YYYYMMDD
 
     Returns directory, of None if no unprocessed directories were found
     (either because no inputs exist, or because all inputs have been processed)
@@ -40,9 +47,15 @@ def find_unprocessed_expdir(datadir, outdir):
     Warning: traverses the whole tree every time.
     TODO: cache previously identified already-processed data and don't rescan.
     '''
-    for night in sorted(os.listdir(datadir)):
+    if startdate:
+        startdate = str(startdate)
+    else:
+        startdate = ''
+    all_nights = sorted(os.listdir(datadir))
+    #- Search for the earliest unprocessed datadir/YYYYMMDD
+    for night in list_nights:
         nightdir = os.path.join(datadir, night)
-        if re.match('20\d{6}', night) and os.path.isdir(nightdir):
+        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and dirname >= startdate:
             for expid in sorted(os.listdir(nightdir)):
                 expdir = os.path.join(nightdir, expid)
                 if re.match('\d{8}', expid) and os.path.isdir(expdir):
@@ -56,19 +69,26 @@ def find_unprocessed_expdir(datadir, outdir):
 
     return None
 
-def find_latest_expdir(basedir, processed):
+def find_latest_expdir(basedir, processed, startdate=None):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
-
-    processed: set of exposure directories already processed
+    Args:
+        basedir : a directory of nights with exposures
+        processed : set of exposure directories already processed
+    Options:
+        startdate : the earliest night to consider processing YYYYMMDD
 
     Returns directory, or None if no matching directories are found
     '''
+    if startdate:
+        startdate = str(startdate)
+    else:
+        startdate = ''
     #- Search for most recent basedir/YEARMMDD
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
-        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
+        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir) and dirname >= startdate:
             night = dirname
             for dirname in sorted(os.listdir(nightdir)):
                 expid = dirname
@@ -191,7 +211,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     cmdlist = list()
-    batchcmdlist = list()
     loglist = list()
     msglist = list()
     rawcameras = which_cameras(rawfile)
@@ -212,17 +231,15 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             outdir = outdir,
             camera = camera
         )
-        
-        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
-        
-        
-        cmdlist.append(cmd)
 
+        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+
+        cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
-    
+
     if ncpu > 1:
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(
             ncpu, len(cameras) ))
