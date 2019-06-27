@@ -29,22 +29,16 @@ def get_ncpu(ncpu):
 
     return ncpu
 
-def limit_startdate(datadir, startdate):
-    all_nights = sorted(os.listdir(datadir))
-    #- only checks dates after startdate
-    if startdate:
-        #- TODO: add user error checks for startdate input format
-        startdate = str(startdate)
-        idx = np.searchsorted(all_nights, int(startdate))
-        all_nights = all_nights[idx:]
-    
-    return all_nights
 
-
-def find_unprocessed_expdir(datadir, outdir, startdate=None):
+def find_unprocessed_expdir(datadir, outdir, list_nights):
     '''
     Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
+
+    Args:
+        datadir : a directory of nights with exposures
+        outdir : TODO DOCUMENTATION
+        list_nights : a list of nights to look at in DATADIR
 
     Returns directory, of None if no unprocessed directories were found
     (either because no inputs exist, or because all inputs have been processed)
@@ -52,9 +46,8 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
     Warning: traverses the whole tree every time.
     TODO: cache previously identified already-processed data and don't rescan.
     '''
-    all_nights = limit_startdate(datadir, startdate)
     #- Search for the earliest unprocessed datadir/YYYYMMDD
-    for night in all_nights:
+    for night in list_nights:
         nightdir = os.path.join(datadir, night)
         if re.match('20\d{6}', night) and os.path.isdir(nightdir):
             for expid in sorted(os.listdir(nightdir)):
@@ -70,19 +63,19 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
 
     return None
 
-def find_latest_expdir(basedir, processed, startdate=None):
+def find_latest_expdir(basedir, processed, list_nights):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
     Args:
-        basedir : 
+        basedir : a directory of nights with exposures
         processed : set of exposure directories already processed
+        list_nights : a list of nights to look at in BASEDIR
 
     Returns directory, or None if no matching directories are found
     '''
-    all_nights = limit_startdate(basedir, startdate)    
     #- Search for most recent basedir/YEARMMDD
-    for dirname in all_nights[::-1]: #sorted(os.listdir(basedir), reverse=True):
+    for dirname in list_nights[::-1]: #sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
         if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
             night = dirname
