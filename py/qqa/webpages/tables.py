@@ -168,9 +168,12 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
             exptime = qadata['HEADER']['EXPTIME']
             
             from ..plots.core import parse_numlist
-            str_specs = qadata['HEADER'].get('SPECGRPH', '').strip(" ")
-            list_specs = re.findall('\d+', str_specs)
-            spectros = parse_numlist(list_specs)
+            peramp = status.get('PER_AMP')
+            if peramp:
+                list_specs = list(set(peramp['SPECTRO']))
+                spectros = parse_numlist(list_specs)
+            else:
+                spectros = '???'
             
             link = '{expid:08d}/qa-summary-{expid:08d}.html'.format(
                 night=night, expid=expid)
