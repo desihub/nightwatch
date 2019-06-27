@@ -168,7 +168,8 @@ def main_monitor(options=None):
                 expdir = '{}/{}/{}'.format(args.plotdir, night, expid)
                 if not os.path.isdir(expdir) :
                     os.makedirs(expdir)
-                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, cameras=cameras)
+                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
+                               cameras=cameras)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -218,7 +219,7 @@ def main_run(options=None):
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
     basedir = os.path.dirname(os.path.dirname(os.path.abspath(args.outdir)))
-    run.make_plots(qafile, basedir, preprocdir=args.outdir, cameras=cameras)
+    run.make_plots(qafile, basedir, preprocdir=args.outdir, logdir=args.outdir, cameras=cameras)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
@@ -294,7 +295,7 @@ def main_plot(options=None):
         else:
             outdir = args.outdir
 
-        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile))
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile))
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

@@ -2,7 +2,7 @@
 Pages summarizing QA results
 """
 
-import os
+import os, re
 import numpy as np
 import jinja2
 
@@ -107,7 +107,6 @@ def write_summary_html(outfile, qadata, qprocdir):
     Returns:
         None
     """
-
     plot_components = get_summary_plots(qadata, qprocdir)
     plot_components['qatype'] = 'summary'
 
@@ -125,3 +124,87 @@ def write_summary_html(outfile, qadata, qprocdir):
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
+
+
+
+def write_logtable_html(outfile, logdir, night, expid):
+    """Write a table of logfiles to outfile
+
+    Args:
+        outfile : output HTML file
+        logdir : directory containing log outputs
+        night : YYYYMMDD night of logdir
+        expid : exposure ID of logdir
+
+    Returns:
+        None
+    """
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('logtable.html')
+    
+    if not logdir:
+        logdir = ''
+    
+    available = []
+    logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
+    for file in logfiles:
+        available += [file.split("-")[1]]
+
+    html_components = dict(
+        version=bokeh.__version__, logfile=True, night=night, available=available,
+        current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
+        num_dirs=2,
+    )
+
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(outfile, 'w') as fx:
+        fx.write(html)
+
+    
+def write_logfile_html(input, output, night):
+    '''TODO: document'''
+
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+    )
+    template = env.get_template('logfile.html')
+
+    input_dir = os.path.dirname(input)
+    available = []
+    logfiles = [i for i in os.listdir(input_dir) if re.match(r'.*\.log', i)]
+    for file in logfiles:
+        available += [file.split("-")[1]]
+
+    current = os.path.basename(input).split("-")[1]
+    expid = os.path.basename(input).split("-")[2].split(".")[0]
+
+    with open(input, "rb") as f:
+        lines = f.read()
+    f.close()
+    
+    #- byte to str
+    lines = lines.decode("utf-8")
+#     lines = lines.split("\n")
+#     import IPython as ip
+#     ip.embed()    
+    
+    html_components = dict(        
+        bokeh_version=bokeh.__version__, logfile=lines, file_url=output,
+        basename=os.path.splitext(os.path.basename(input))[0], night=night,
+        available=available, current=current, expid=int(str(expid)), zexpid=expid,
+        num_dirs=2,
+    )
+
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(output, 'w') as fx:
+        fx.write(html)
+
+    fx.close()
+        
+    print('Wrote {}'.format(output))

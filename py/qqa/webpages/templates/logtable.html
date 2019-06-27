@@ -1,0 +1,75 @@
+{% extends "qabase.html" %}
+{% block body %}
+
+<style>
+label {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  text-align: right;
+  width: 400px;
+  line-height: 26px;
+  margin-bottom: 10px;
+}
+
+input {
+  height: 20px;
+  flex: 0 0 200px;
+  margin-left: 10px;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.container{
+  display: flex;
+}
+.flex-item{
+  flex-grow: 1;
+}
+
+header {
+  font-weight:bold;
+  font-size: 25px;
+}
+</style>
+<header>
+  <font face="arial">
+  Logfiles Table:
+  </font>
+</header>
+
+<div class="container">
+  <div class=flex-item>
+    <br>
+    <table border="1" cellpadding="8">
+      <tr>
+        <td colspan="1"></td>
+        <td colspan="10" >  <text style="font-weight:bold" >Spectrograph<text></td>
+      </tr>
+  {% for c in ["b", "r", "z"] %}
+  <tr>
+    {% if c == "b" %}
+      <td rowspan=3>  <text  style="font-weight:bold" >Cam<text></td>
+    {% endif %}
+    {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
+    <td {% if c + i == current %} bgcolor="#6495ed" {% endif %}>
+      {% if (c+i != current) and (c+i in available) %}
+    <a href="qproc-{{c}}{{i}}-{{zexpid}}-logfile.html">
+      {% endif %}
+      <font size="6">
+        <text {% if c + i in available %} style="font-weight:bold" {% endif %}>{{c}}{{i}}<text>
+      </font>
+      {% if (c+i != current) and (c+i in available) %}
+    </a>
+      {% endif %}
+    </td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+
+
+
+{% endblock %}

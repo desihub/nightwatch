@@ -254,7 +254,7 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, basedir, preprocdir=None, cameras=None):
+def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
@@ -265,6 +265,8 @@ def make_plots(infile, basedir, preprocdir=None, cameras=None):
         preprocdir: directory to where the "preproc-*-*.fits" are located. If
             not provided, function will NOT generate any image files from any
             preproc fits file.
+        logdir: directory to where the "qproc-*-*.log" are located. If
+            not provided, function will NOT display any logfiles.
         cameras: list of cameras (strings) to generate image files of. If not
             provided, will generate a cameras list from parcing through the
             preproc fits files in the preprocdir
@@ -322,7 +324,7 @@ def make_plots(infile, basedir, preprocdir=None, cameras=None):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
-
+    
     #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
     htmlfile = '{}/qa-lastexp.html'.format(basedir)
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
@@ -346,6 +348,22 @@ def make_plots(infile, basedir, preprocdir=None, cameras=None):
         #- plot preproc nav table
         navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
         web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
+
+    if (logdir is not None):
+        #- plot logfiles
+        if cameras is None:
+            cameras = []
+            import glob
+            for logfile in glob.glob(os.path.join(logdir, 'qproc-*-*.log')):
+                cameras += [os.path.basename(logfile).split('-')[1]]
+        for camera in cameras:
+            input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(camera, expid))
+            output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(camera, expid))
+            web_summary.write_logfile_html(input, output, night)
+
+        #- plot logfile nav table
+        htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
+        web_summary.write_logtable_html(htmlfile, logdir, night, expid)
 
 
 def write_tables(indir, outdir):
