@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
@@ -90,7 +90,12 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
         lower = [lower]*len(data_val)
         upper = [upper]*len(data_val)
     
-    locations = [(spec, amp) for spec in spec_loc for amp in amp_loc]
+    locations_to_sort = [str(spec+amp) for spec in spec_loc for amp in amp_loc]
+    sorted_ids = np.argsort(locations_to_sort)
+    name_data = np.array(name_data)[sorted_ids]
+    data_val = np.array(data_val)[sorted_ids]
+    locations = [(spec, amp) for spec in np.sort(spec_loc) for amp in np.sort(amp_loc)]
+    
     colors = get_amp_colors(data_val, lower, upper)
     sizes = get_amp_size(data_val, lower, upper)
     
@@ -138,7 +143,9 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
     fig.outline_line_alpha=0.7
     
     if name in ['READNOISE', 'BIAS']:
-        fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower'))
+        #fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower', line_alpha=0.3))
+        fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
+            fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
     if name in ['COSMICS_RATE']:
         fig.add_layout(BoxAnnotation(bottom=lower[0], top=upper[0], fill_alpha=0.1, fill_color='green'))
     
