@@ -89,29 +89,14 @@ def main_monitor(options=None):
     log.info('Monitoring {}/ for new raw data'.format(tmp))
 
     qarunner = QARunner()
-
     processed = set()
-
-    all_nights = sorted(os.listdir(args.indir))
     
-    #- only checks nights after startdate
-    if args.startdate:
-        #- TODO: add user error checks for startdate input format
-        #- finds the index of the earliest night to consider processing
-        startdate = str(args.startdate)
-        idx = np.searchsorted(all_nights, startdate)
-        #- counts number of skipped nights
-        skipped = len(all_nights[:idx])
-        #- subselects only nights after startdate
-        all_nights = all_nights[idx:]
-        print('Skipped {} night{} before {}'.format(skipped, 's' if skipped > 1 else '', 
-                                                         startdate))    
-    
+    #- TODO: figure out a way to print how many nights are being skipped before startdate
     while True:
         if args.catchup:
-            expdir = run.find_unprocessed_expdir(args.indir, args.outdir, all_nights)
+            expdir = run.find_unprocessed_expdir(args.indir, args.outdir, startdate=args.startdate)
         else:
-            expdir = run.find_latest_expdir(args.indir, processed, all_nights)
+            expdir = run.find_latest_expdir(args.indir, processed, startdate=args.startdate)
 
         if expdir is None:
             time.sleep(args.waittime)
