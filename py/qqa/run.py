@@ -41,9 +41,15 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
     TODO: cache previously identified already-processed data and don't rescan.
     '''
     all_nights = sorted(os.listdir(datadir))
-#     if startdate:
-#         all_nights = all_nights[:]
-    for night in sorted(os.listdir(datadir)):
+    #- only checks dates after startdate
+    if startdate:
+        #- TODO: add user error checks for startdate input format
+        startdate = int(startdate)
+        idx = np.searchsorted(all_nights, int(startdate))
+        all_nights = all_nights[idx:]
+    
+    #- Search for the earliest unprocessed datadir/YYYYMMDD
+    for night in all_nights:
         nightdir = os.path.join(datadir, night)
         if re.match('20\d{6}', night) and os.path.isdir(nightdir):
             for expid in sorted(os.listdir(nightdir)):
@@ -59,17 +65,26 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
 
     return None
 
-def find_latest_expdir(basedir, processed):
+def find_latest_expdir(basedir, processed, startdate=None):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
-
-    processed: set of exposure directories already processed
+    Args:
+        basedir : 
+        processed : set of exposure directories already processed
 
     Returns directory, or None if no matching directories are found
     '''
+    all_nights = sorted(os.listdir(basedir))
+    #- only checks dates after startdate
+    if startdate:
+        #- TODO: add user error checks for startdate input format
+        startdate = int(startdate)
+        idx = np.searchsorted(all_nights, int(startdate))
+        all_nights = all_nights[idx:]
+    
     #- Search for most recent basedir/YEARMMDD
-    for dirname in sorted(os.listdir(basedir), reverse=True):
+    for dirname in all_nights[::-1]: #sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
         if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
             night = dirname
