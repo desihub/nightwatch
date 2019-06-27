@@ -224,6 +224,16 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
 
+    #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
+    if night == '        ':
+        log.error('Correcting blank NIGHT keyword based upon directory structure')
+        #- /path/to/NIGHT/EXPID/rawfile.fits
+        night = os.path.basename(os.path.dirname(os.path.dirname(os.path.abspath(rawfile))))
+        if re.match('20\d{6}', night):
+            log.info('Setting NIGHT to {}'.format(night))
+        else:
+            raise RuntimeError('Unable to derive NIGHT for {}'.format(rawfile))
+
     cmdlist = list()
     loglist = list()
     msglist = list()
@@ -386,6 +396,8 @@ def write_tables(indir, outdir):
     from pkg_resources import resource_filename
     from shutil import copyfile
 
+    log = desiutil.log.get_logger()
+
     #- Hack: parse the directory structure to learn nights
     rows = list()
     for dirname in sorted(os.listdir(indir)):
@@ -394,9 +406,13 @@ def write_tables(indir, outdir):
             night = int(dirname)
             for dirname in sorted(os.listdir(nightdir), reverse=True):
                 expdir = os.path.join(nightdir, dirname)
-                if re.match('\d{8}', dirname) and os.path.isdir(expdir):
+                if re.match('\d{8}', dirname):
                     expid = int(dirname)
-                    rows.append(dict(NIGHT=night, EXPID=expid))
+                    qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
+                    if os.path.exists(qafile):
+                        rows.append(dict(NIGHT=night, EXPID=expid))
+                    else:
+                        log.error('Missing {}'.format(qafile))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
