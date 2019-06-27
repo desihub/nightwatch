@@ -453,5 +453,5 @@ def write_thresholds(indir, start_date, end_date):
         outdir: directory to write threshold files
         start_date: beginning of date range
         end_date: end of date range'''
-    for name in ['READNOISE', 'BIAS', 'COSMICS_RATES']:
+    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         write_threshold_json(indir, start_date, end_date, name)

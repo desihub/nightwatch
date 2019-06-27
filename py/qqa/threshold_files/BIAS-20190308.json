@@ -1,481 +1,481 @@
 {
-    "0BA": {
+    "B0A": {
         "upper": 1144.4258230060775,
         "lower": 1144.4186555811177
     },
-    "0BB": {
+    "B0B": {
         "upper": 1148.1133791496197,
         "lower": 1148.104774750533
     },
-    "0BC": {
+    "B0C": {
         "upper": 1136.8410815171314,
         "lower": 1136.826277223889
     },
-    "0BD": {
+    "B0D": {
         "upper": 1113.433673765353,
         "lower": 1113.4273352878854
     },
-    "0RA": {
+    "R0A": {
         "upper": 2006.8169303817301,
         "lower": 2006.8137641856008
     },
-    "0RB": {
+    "R0B": {
         "upper": 2003.934755273396,
         "lower": 2003.9311908903912
     },
-    "0RC": {
+    "R0C": {
         "upper": 1999.356750314408,
         "lower": 1999.3409461815697
     },
-    "0RD": {
+    "R0D": {
         "upper": 2008.9120385890951,
         "lower": 2008.9060573053007
     },
-    "0ZA": {
+    "Z0A": {
         "upper": 2005.333369693539,
         "lower": 2005.3140908099301
     },
-    "0ZB": {
+    "Z0B": {
         "upper": 2007.2378406556318,
         "lower": 2007.2364470185112
     },
-    "0ZC": {
+    "Z0C": {
         "upper": 2005.921610429732,
         "lower": 2005.9149862753534
     },
-    "0ZD": {
+    "Z0D": {
         "upper": 2001.0062670113846,
         "lower": 2001.0054846061614
     },
-    "1BA": {
+    "B1A": {
         "upper": null,
         "lower": null
     },
-    "1BB": {
+    "B1B": {
         "upper": null,
         "lower": null
     },
-    "1BC": {
+    "B1C": {
         "upper": null,
         "lower": null
     },
-    "1BD": {
+    "B1D": {
         "upper": null,
         "lower": null
     },
-    "1RA": {
+    "R1A": {
         "upper": null,
         "lower": null
     },
-    "1RB": {
+    "R1B": {
         "upper": null,
         "lower": null
     },
-    "1RC": {
+    "R1C": {
         "upper": null,
         "lower": null
     },
-    "1RD": {
+    "R1D": {
         "upper": null,
         "lower": null
     },
-    "1ZA": {
+    "Z1A": {
         "upper": null,
         "lower": null
     },
-    "1ZB": {
+    "Z1B": {
         "upper": null,
         "lower": null
     },
-    "1ZC": {
+    "Z1C": {
         "upper": null,
         "lower": null
     },
-    "1ZD": {
+    "Z1D": {
         "upper": null,
         "lower": null
     },
-    "2BA": {
+    "B2A": {
         "upper": 1201.8557716801236,
         "lower": 1201.7367114154733
     },
-    "2BB": {
+    "B2B": {
         "upper": 1210.5634881972348,
         "lower": 1210.4369394705316
     },
-    "2BC": {
+    "B2C": {
         "upper": 1188.2413793467877,
         "lower": 1188.1529716824302
     },
-    "2BD": {
+    "B2D": {
         "upper": 1174.8735034282836,
         "lower": 1174.7817492299541
     },
-    "2RA": {
+    "R2A": {
         "upper": 2000.0514232562289,
         "lower": 2000.0126674459395
     },
-    "2RB": {
+    "R2B": {
         "upper": 1994.8524421081534,
         "lower": 1994.8392001041084
     },
-    "2RC": {
+    "R2C": {
         "upper": 2000.8329073840932,
         "lower": 2000.796272728248
     },
-    "2RD": {
+    "R2D": {
         "upper": 1998.0614911416856,
         "lower": 1998.0483104287619
     },
-    "2ZA": {
+    "Z2A": {
         "upper": 2005.8648966236378,
         "lower": 2005.5976137384564
     },
-    "2ZB": {
+    "Z2B": {
         "upper": 2006.9618484063913,
         "lower": 2006.9179693794867
     },
-    "2ZC": {
+    "Z2C": {
         "upper": 2008.9174116254121,
         "lower": 2008.8660631085618
     },
-    "2ZD": {
+    "Z2D": {
         "upper": 2003.51605764441,
         "lower": 2003.4839671832888
     },
-    "3BA": {
+    "B3A": {
         "upper": null,
         "lower": null
     },
-    "3BB": {
+    "B3B": {
         "upper": null,
         "lower": null
     },
-    "3BC": {
+    "B3C": {
         "upper": null,
         "lower": null
     },
-    "3BD": {
+    "B3D": {
         "upper": null,
         "lower": null
     },
-    "3RA": {
+    "R3A": {
         "upper": null,
         "lower": null
     },
-    "3RB": {
+    "R3B": {
         "upper": null,
         "lower": null
     },
-    "3RC": {
+    "R3C": {
         "upper": null,
         "lower": null
     },
-    "3RD": {
+    "R3D": {
         "upper": null,
         "lower": null
     },
-    "3ZA": {
+    "Z3A": {
         "upper": null,
         "lower": null
     },
-    "3ZB": {
+    "Z3B": {
         "upper": null,
         "lower": null
     },
-    "3ZC": {
+    "Z3C": {
         "upper": null,
         "lower": null
     },
-    "3ZD": {
+    "Z3D": {
         "upper": null,
         "lower": null
     },
-    "4BA": {
+    "B4A": {
         "upper": null,
         "lower": null
     },
-    "4BB": {
+    "B4B": {
         "upper": null,
         "lower": null
     },
-    "4BC": {
+    "B4C": {
         "upper": null,
         "lower": null
     },
-    "4BD": {
+    "B4D": {
         "upper": null,
         "lower": null
     },
-    "4RA": {
+    "R4A": {
         "upper": null,
         "lower": null
     },
-    "4RB": {
+    "R4B": {
         "upper": null,
         "lower": null
     },
-    "4RC": {
+    "R4C": {
         "upper": null,
         "lower": null
     },
-    "4RD": {
+    "R4D": {
         "upper": null,
         "lower": null
     },
-    "4ZA": {
+    "Z4A": {
         "upper": null,
         "lower": null
     },
-    "4ZB": {
+    "Z4B": {
         "upper": null,
         "lower": null
     },
-    "4ZC": {
+    "Z4C": {
         "upper": null,
         "lower": null
     },
-    "4ZD": {
+    "Z4D": {
         "upper": null,
         "lower": null
     },
-    "5BA": {
+    "B5A": {
         "upper": null,
         "lower": null
     },
-    "5BB": {
+    "B5B": {
         "upper": null,
         "lower": null
     },
-    "5BC": {
+    "B5C": {
         "upper": null,
         "lower": null
     },
-    "5BD": {
+    "B5D": {
         "upper": null,
         "lower": null
     },
-    "5RA": {
+    "R5A": {
         "upper": null,
         "lower": null
     },
-    "5RB": {
+    "R5B": {
         "upper": null,
         "lower": null
     },
-    "5RC": {
+    "R5C": {
         "upper": null,
         "lower": null
     },
-    "5RD": {
+    "R5D": {
         "upper": null,
         "lower": null
     },
-    "5ZA": {
+    "Z5A": {
         "upper": null,
         "lower": null
     },
-    "5ZB": {
+    "Z5B": {
         "upper": null,
         "lower": null
     },
-    "5ZC": {
+    "Z5C": {
         "upper": null,
         "lower": null
     },
-    "5ZD": {
+    "Z5D": {
         "upper": null,
         "lower": null
     },
-    "6BA": {
+    "B6A": {
         "upper": null,
         "lower": null
     },
-    "6BB": {
+    "B6B": {
         "upper": null,
         "lower": null
     },
-    "6BC": {
+    "B6C": {
         "upper": null,
         "lower": null
     },
-    "6BD": {
+    "B6D": {
         "upper": null,
         "lower": null
     },
-    "6RA": {
+    "R6A": {
         "upper": null,
         "lower": null
     },
-    "6RB": {
+    "R6B": {
         "upper": null,
         "lower": null
     },
-    "6RC": {
+    "R6C": {
         "upper": null,
         "lower": null
     },
-    "6RD": {
+    "R6D": {
         "upper": null,
         "lower": null
     },
-    "6ZA": {
+    "Z6A": {
         "upper": null,
         "lower": null
     },
-    "6ZB": {
+    "Z6B": {
         "upper": null,
         "lower": null
     },
-    "6ZC": {
+    "Z6C": {
         "upper": null,
         "lower": null
     },
-    "6ZD": {
+    "Z6D": {
         "upper": null,
         "lower": null
     },
-    "7BA": {
+    "B7A": {
         "upper": null,
         "lower": null
     },
-    "7BB": {
+    "B7B": {
         "upper": null,
         "lower": null
     },
-    "7BC": {
+    "B7C": {
         "upper": null,
         "lower": null
     },
-    "7BD": {
+    "B7D": {
         "upper": null,
         "lower": null
     },
-    "7RA": {
+    "R7A": {
         "upper": null,
         "lower": null
     },
-    "7RB": {
+    "R7B": {
         "upper": null,
         "lower": null
     },
-    "7RC": {
+    "R7C": {
         "upper": null,
         "lower": null
     },
-    "7RD": {
+    "R7D": {
         "upper": null,
         "lower": null
     },
-    "7ZA": {
+    "Z7A": {
         "upper": null,
         "lower": null
     },
-    "7ZB": {
+    "Z7B": {
         "upper": null,
         "lower": null
     },
-    "7ZC": {
+    "Z7C": {
         "upper": null,
         "lower": null
     },
-    "7ZD": {
+    "Z7D": {
         "upper": null,
         "lower": null
     },
-    "8BA": {
+    "B8A": {
         "upper": null,
         "lower": null
     },
-    "8BB": {
+    "B8B": {
         "upper": null,
         "lower": null
     },
-    "8BC": {
+    "B8C": {
         "upper": null,
         "lower": null
     },
-    "8BD": {
+    "B8D": {
         "upper": null,
         "lower": null
     },
-    "8RA": {
+    "R8A": {
         "upper": null,
         "lower": null
     },
-    "8RB": {
+    "R8B": {
         "upper": null,
         "lower": null
     },
-    "8RC": {
+    "R8C": {
         "upper": null,
         "lower": null
     },
-    "8RD": {
+    "R8D": {
         "upper": null,
         "lower": null
     },
-    "8ZA": {
+    "Z8A": {
         "upper": null,
         "lower": null
     },
-    "8ZB": {
+    "Z8B": {
         "upper": null,
         "lower": null
     },
-    "8ZC": {
+    "Z8C": {
         "upper": null,
         "lower": null
     },
-    "8ZD": {
+    "Z8D": {
         "upper": null,
         "lower": null
     },
-    "9BA": {
+    "B9A": {
         "upper": null,
         "lower": null
     },
-    "9BB": {
+    "B9B": {
         "upper": null,
         "lower": null
     },
-    "9BC": {
+    "B9C": {
         "upper": null,
         "lower": null
     },
-    "9BD": {
+    "B9D": {
         "upper": null,
         "lower": null
     },
-    "9RA": {
+    "R9A": {
         "upper": null,
         "lower": null
     },
-    "9RB": {
+    "R9B": {
         "upper": null,
         "lower": null
     },
-    "9RC": {
+    "R9C": {
         "upper": null,
         "lower": null
     },
-    "9RD": {
+    "R9D": {
         "upper": null,
         "lower": null
     },
-    "9ZA": {
+    "Z9A": {
         "upper": null,
         "lower": null
     },
-    "9ZB": {
+    "Z9B": {
         "upper": null,
         "lower": null
     },
-    "9ZC": {
+    "Z9C": {
         "upper": null,
         "lower": null
     },
-    "9ZD": {
+    "Z9D": {
         "upper": null,
         "lower": null
     }

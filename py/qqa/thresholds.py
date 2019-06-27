@@ -26,12 +26,10 @@ def write_threshold_json(indir, start_date, end_date, name):
     datadict = dict()
     amps = []
     nights = np.arange(start_date, end_date+1)
-    for night in nights:
-        if os.path.isfile(os.path.join(indir, '{night}/summary.json'.format(night=night))):
-            with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
-                data = json.load(json_file)
-        else:
-            continue
+    nights_real = [night for night in nights if os.path.isfile(os.path.join(indir, '{night}/summary.json'.format(night=night)))]
+    for night in nights_real:
+        with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
+            data = json.load(json_file)
         amps += data['PER_AMP'][name].keys()
         datadict[night] = data
     all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
@@ -43,7 +41,7 @@ def write_threshold_json(indir, start_date, end_date, name):
             meds = []
             stds = []
             if amp in amps:
-                for night in nights:
+                for night in nights_real:
                     if amp in list(datadict[night]['PER_AMP'][name].keys()):
                         meds.append(datadict[night]['PER_AMP'][name][amp]['median'])
                         stds.append(datadict[night]['PER_AMP'][name][amp]['std'])
@@ -58,11 +56,11 @@ def write_threshold_json(indir, start_date, end_date, name):
                 thresholds[amp] = dict(upper=upper, lower=lower)
             if amp in rest_amps:
                 thresholds[amp] = dict(upper=None, lower=None)
-    if name in ['COSMICS_RATES']:
+    if name in ['COSMICS_RATE']:
         num_exps = []
         p10 = []
         p90 = []
-        for night in nights:
+        for night in nights_real:
             p10.append(datadict[night]['PER_AMP'][name]['p10'])
             p90.append(datadict[night]['PER_AMP'][name]['p90'])
             num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
@@ -124,7 +122,7 @@ def get_thresholds(filepath):
                 continue
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
-    if 'COSMICS_RATES' in filepath:
+    if 'COSMICS_RATE' in filepath:
         lower = threshold_data['p10']
         upper = threshold_data['p90']
     return lower, upper
