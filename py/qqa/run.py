@@ -89,8 +89,8 @@ def find_latest_expdir(basedir, processed, startdate=None):
     else:
         startdate = ''
 
+    log = desiutil.log.get_logger()
     #- Search for most recent basedir/YEARMMDD
-    nightdir = None
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
         if re.match('20\d{6}', dirname) and dirname >= startdate and \
@@ -98,6 +98,7 @@ def find_latest_expdir(basedir, processed, startdate=None):
             break
     #- if for loop completes without finding nightdir to break, run this else
     else:
+        log.debug('No YEARMMDD dirs found in {}'.format(basedir))
         return None
 
     night = dirname
@@ -109,11 +110,13 @@ def find_latest_expdir(basedir, processed, startdate=None):
         expid = dirname
         datafilename = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if os.path.isfile(datafilename):
+            log.debug('Found {}'.format(datafilename))
             return expdir
         else:
-            print('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
+            log.debug('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
             processed.add(expdir)  #- so that we won't check again
     else:
+        log.debug('No new exposures found')
         return None  #- no basename/YEARMMDD directory was found
 
 def which_cameras(rawfile):
