@@ -9,6 +9,7 @@ def get_outdir():
     for path in user_paths:
         if 'qqa' in path:
             qqa_path += path
+    qqa_path += '/qqa/threshold_files'
     return qqa_path
 
 def write_threshold_json(indir, start_date, end_date, name):
@@ -71,11 +72,61 @@ def write_threshold_json(indir, start_date, end_date, name):
         thresholds = dict(p10=p10_avg, p90=p90_avg) 
         
     outdir = get_outdir()
-    outdir += '/qqa/threshold_files'
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
     with open(threshold_file, 'w') as json_file:
          json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(threshold_file))
 
+def pick_threshold_file(name, night):
+    file = '{name}-{night}.json'.format(name=name, night=night)
+    threshold_dir = get_outdir()
+    filepath = ''
+    files = [f for f in np.sort(os.listdir(threshold_dir)) if name in f]
+    for f in files:
+        if str(night) in f:
+            filepath += os.path.join(threshold_dir, file)    
+    if filepath == '':
+        filepath += os.path.join(threshold_dir, files[-1])
+    return filepath
+
+def get_thresholds(filepath):
+    '''Unpack threshold values to use in plotting amp graphs'''
+    with open(filepath, 'r') as json_file:
+        threshold_data = json.load(json_file)
+    keys = threshold_data.keys()
+    if 'READNOISE' or 'BIAS' in filepath:
+        lowerB = []
+        upperB = []
+        lowerZ = []
+        upperZ = []
+        lowerR = []
+        upperR = []
+        for key in keys:
+            if key[1] == 'B':
+                if threshold_data[key]['lower'] == None:
+                    continue
+                else:
+                    lowerB.append(threshold_data[key]['lower'])
+                    upperB.append(threshold_data[key]['upper'])
+            if key[1] == 'Z': 
+                if threshold_data[key]['lower'] == None:
+                    continue
+                else:
+                    lowerZ.append(threshold_data[key]['lower'])
+                    upperZ.append(threshold_data[key]['upper'])
+            if key[1] == 'R':
+                if threshold_data[key]['lower'] == None:
+                    continue
+                else:
+                    lowerR.append(threshold_data[key]['lower'])
+                    upperR.append(threshold_data[key]['upper'])
+            else:
+                continue
+        lower = [lowerB, lowerR, lowerZ]
+        upper = [upperB, upperR, upperZ]
+    if 'COSMICS_RATES' in filepath:
+        lower = threshold_data['p10']
+        upper = threshold_data['p90']
+    return lower, upper
 
         

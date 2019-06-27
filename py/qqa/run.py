@@ -437,7 +437,7 @@ def write_nights_summary(indir, last):
                 PER_AMP=dict(
                     READNOISE=readnoise_sca,
                     BIAS=bias_sca,
-                    COSMICS_RATES=cosmics_rates
+                    COSMICS_RATE=cosmics_rates
                 )
             )
 

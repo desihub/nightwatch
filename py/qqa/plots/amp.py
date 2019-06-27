@@ -8,55 +8,6 @@ from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL,
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
-import json
-import os
-
-def get_thresholds(name, night):
-    '''TO DO: DOCUMENT'''
-    file = '{name}-{night}.json'.format(name=name, night=night)
-    startdir = os.getcwd()
-    filepath = ''
-    for i, j, k in os.walk(startdir):
-        if file in k:
-            filepath += os.path.join(i, file)
-    with open(filepath, 'r') as json_file:
-        threshold_data = json.load(json_file)
-    keys = threshold_data.keys()
-    if name in ['READNOISE', 'BIAS']:
-        lowerB = []
-        upperB = []
-        lowerZ = []
-        upperZ = []
-        lowerR = []
-        upperR = []
-        for key in keys:
-            if key[1] == 'B':
-                if threshold_data[key]['lower'] == None:
-                    continue
-                else:
-                    lowerB.append(threshold_data[key]['lower'])
-                    upperB.append(threshold_data[key]['upper'])
-            if key[1] == 'Z': 
-                if threshold_data[key]['lower'] == None:
-                    continue
-                else:
-                    lowerZ.append(threshold_data[key]['lower'])
-                    upperZ.append(threshold_data[key]['upper'])
-            if key[1] == 'R':
-                if threshold_data[key]['lower'] == None:
-                    continue
-                else:
-                    lowerR.append(threshold_data[key]['lower'])
-                    upperR.append(threshold_data[key]['upper'])
-            else:
-                continue
-        lower = [lowerB, lowerR, lowerZ]
-        upper = [upperB, upperR, upperZ]
-    if name in ['COSMICS_RATES']:
-        lower = threshold_data['p10']
-        upper = threshold_data['p90']
-    return lower, upper
-
 def get_amp_colors(data, lower, upper):
     '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
     we allow for individual amplifiers to have different thresholds).
