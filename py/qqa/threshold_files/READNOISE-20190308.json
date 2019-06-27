@@ -1,0 +1,482 @@
+{
+    "0BA": {
+        "upper": 4.271241535716351,
+        "lower": 4.262444429313222
+    },
+    "0BB": {
+        "upper": 2.9859506315523436,
+        "lower": 2.9800734721081783
+    },
+    "0BC": {
+        "upper": 3.6032564147407666,
+        "lower": 3.596800462194777
+    },
+    "0BD": {
+        "upper": 3.0109373416328484,
+        "lower": 3.0072722609467535
+    },
+    "0RA": {
+        "upper": 2.6354899826251703,
+        "lower": 2.6302025477624067
+    },
+    "0RB": {
+        "upper": 2.6325829418566222,
+        "lower": 2.631189954883828
+    },
+    "0RC": {
+        "upper": 2.4638521112848704,
+        "lower": 2.459348251203222
+    },
+    "0RD": {
+        "upper": 2.3544442215510313,
+        "lower": 2.3528168151720554
+    },
+    "0ZA": {
+        "upper": 2.3241572467206795,
+        "lower": 2.323376928694397
+    },
+    "0ZB": {
+        "upper": 2.166056136030331,
+        "lower": 2.1634255281969272
+    },
+    "0ZC": {
+        "upper": 2.6176939564364545,
+        "lower": 2.613961113658733
+    },
+    "0ZD": {
+        "upper": 2.4899489211245185,
+        "lower": 2.4842428604293567
+    },
+    "1BA": {
+        "upper": null,
+        "lower": null
+    },
+    "1BB": {
+        "upper": null,
+        "lower": null
+    },
+    "1BC": {
+        "upper": null,
+        "lower": null
+    },
+    "1BD": {
+        "upper": null,
+        "lower": null
+    },
+    "1RA": {
+        "upper": null,
+        "lower": null
+    },
+    "1RB": {
+        "upper": null,
+        "lower": null
+    },
+    "1RC": {
+        "upper": null,
+        "lower": null
+    },
+    "1RD": {
+        "upper": null,
+        "lower": null
+    },
+    "1ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "1ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "1ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "1ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "2BA": {
+        "upper": 4.859590108699857,
+        "lower": 4.8082886728364755
+    },
+    "2BB": {
+        "upper": 2.9342190640078663,
+        "lower": 2.863976788118669
+    },
+    "2BC": {
+        "upper": 3.415374367399829,
+        "lower": 3.3485916302354126
+    },
+    "2BD": {
+        "upper": 3.1548582872267943,
+        "lower": 3.083645268339543
+    },
+    "2RA": {
+        "upper": 2.9909536132280765,
+        "lower": 2.984680857645075
+    },
+    "2RB": {
+        "upper": 2.765696855007802,
+        "lower": 2.7606532160147537
+    },
+    "2RC": {
+        "upper": 2.584530132590312,
+        "lower": 2.5744214562726
+    },
+    "2RD": {
+        "upper": 2.4566609040716805,
+        "lower": 2.452284738027877
+    },
+    "2ZA": {
+        "upper": 2.2827705061802033,
+        "lower": 2.2577358918882555
+    },
+    "2ZB": {
+        "upper": 2.266541614235943,
+        "lower": 2.2395005510003685
+    },
+    "2ZC": {
+        "upper": 2.6992074873115404,
+        "lower": 2.6864348944931
+    },
+    "2ZD": {
+        "upper": 2.4639058860894334,
+        "lower": 2.451620874095229
+    },
+    "3BA": {
+        "upper": null,
+        "lower": null
+    },
+    "3BB": {
+        "upper": null,
+        "lower": null
+    },
+    "3BC": {
+        "upper": null,
+        "lower": null
+    },
+    "3BD": {
+        "upper": null,
+        "lower": null
+    },
+    "3RA": {
+        "upper": null,
+        "lower": null
+    },
+    "3RB": {
+        "upper": null,
+        "lower": null
+    },
+    "3RC": {
+        "upper": null,
+        "lower": null
+    },
+    "3RD": {
+        "upper": null,
+        "lower": null
+    },
+    "3ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "3ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "3ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "3ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "4BA": {
+        "upper": null,
+        "lower": null
+    },
+    "4BB": {
+        "upper": null,
+        "lower": null
+    },
+    "4BC": {
+        "upper": null,
+        "lower": null
+    },
+    "4BD": {
+        "upper": null,
+        "lower": null
+    },
+    "4RA": {
+        "upper": null,
+        "lower": null
+    },
+    "4RB": {
+        "upper": null,
+        "lower": null
+    },
+    "4RC": {
+        "upper": null,
+        "lower": null
+    },
+    "4RD": {
+        "upper": null,
+        "lower": null
+    },
+    "4ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "4ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "4ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "4ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "5BA": {
+        "upper": null,
+        "lower": null
+    },
+    "5BB": {
+        "upper": null,
+        "lower": null
+    },
+    "5BC": {
+        "upper": null,
+        "lower": null
+    },
+    "5BD": {
+        "upper": null,
+        "lower": null
+    },
+    "5RA": {
+        "upper": null,
+        "lower": null
+    },
+    "5RB": {
+        "upper": null,
+        "lower": null
+    },
+    "5RC": {
+        "upper": null,
+        "lower": null
+    },
+    "5RD": {
+        "upper": null,
+        "lower": null
+    },
+    "5ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "5ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "5ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "5ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "6BA": {
+        "upper": null,
+        "lower": null
+    },
+    "6BB": {
+        "upper": null,
+        "lower": null
+    },
+    "6BC": {
+        "upper": null,
+        "lower": null
+    },
+    "6BD": {
+        "upper": null,
+        "lower": null
+    },
+    "6RA": {
+        "upper": null,
+        "lower": null
+    },
+    "6RB": {
+        "upper": null,
+        "lower": null
+    },
+    "6RC": {
+        "upper": null,
+        "lower": null
+    },
+    "6RD": {
+        "upper": null,
+        "lower": null
+    },
+    "6ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "6ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "6ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "6ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "7BA": {
+        "upper": null,
+        "lower": null
+    },
+    "7BB": {
+        "upper": null,
+        "lower": null
+    },
+    "7BC": {
+        "upper": null,
+        "lower": null
+    },
+    "7BD": {
+        "upper": null,
+        "lower": null
+    },
+    "7RA": {
+        "upper": null,
+        "lower": null
+    },
+    "7RB": {
+        "upper": null,
+        "lower": null
+    },
+    "7RC": {
+        "upper": null,
+        "lower": null
+    },
+    "7RD": {
+        "upper": null,
+        "lower": null
+    },
+    "7ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "7ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "7ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "7ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "8BA": {
+        "upper": null,
+        "lower": null
+    },
+    "8BB": {
+        "upper": null,
+        "lower": null
+    },
+    "8BC": {
+        "upper": null,
+        "lower": null
+    },
+    "8BD": {
+        "upper": null,
+        "lower": null
+    },
+    "8RA": {
+        "upper": null,
+        "lower": null
+    },
+    "8RB": {
+        "upper": null,
+        "lower": null
+    },
+    "8RC": {
+        "upper": null,
+        "lower": null
+    },
+    "8RD": {
+        "upper": null,
+        "lower": null
+    },
+    "8ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "8ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "8ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "8ZD": {
+        "upper": null,
+        "lower": null
+    },
+    "9BA": {
+        "upper": null,
+        "lower": null
+    },
+    "9BB": {
+        "upper": null,
+        "lower": null
+    },
+    "9BC": {
+        "upper": null,
+        "lower": null
+    },
+    "9BD": {
+        "upper": null,
+        "lower": null
+    },
+    "9RA": {
+        "upper": null,
+        "lower": null
+    },
+    "9RB": {
+        "upper": null,
+        "lower": null
+    },
+    "9RC": {
+        "upper": null,
+        "lower": null
+    },
+    "9RD": {
+        "upper": null,
+        "lower": null
+    },
+    "9ZA": {
+        "upper": null,
+        "lower": null
+    },
+    "9ZB": {
+        "upper": null,
+        "lower": null
+    },
+    "9ZC": {
+        "upper": null,
+        "lower": null
+    },
+    "9ZD": {
+        "upper": null,
+        "lower": null
+    }
+}

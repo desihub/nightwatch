@@ -11,7 +11,7 @@ import desiutil.log
 
 import desispec.scripts.preproc
 
-from .thresholds import get_prev_nights, write_threshold_json
+from .thresholds import write_threshold_json
 
 def get_ncpu(ncpu):
     """
@@ -446,7 +446,7 @@ def write_nights_summary(indir, last):
                 json.dump(data, out, indent=4)
             print('Wrote {}'.format(jsonfile))
             
-def write_thresholds(indir, outdir, start_date, end_date):
+def write_thresholds(indir, start_date, end_date):
     '''Writes threshold files for each metric over a given date range.
     Input: 
         indir: directory that contains nightly directories (which contain summary.json files)
@@ -454,4 +454,4 @@ def write_thresholds(indir, outdir, start_date, end_date):
         start_date: beginning of date range
         end_date: end of date range'''
     for name in ['READNOISE', 'BIAS', 'COSMICS_RATES']:
-        write_threshold_json(indir, outdir, start_date, end_date, name)
+        write_threshold_json(indir, start_date, end_date, name)

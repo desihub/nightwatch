@@ -3,23 +3,15 @@ import numpy as np
 import json
 import csv
 
-def get_prev_nights(currentnightdir, n):
-    '''returns n previously processed nights given the path to the current night directory. 
-    If there is only one night, or not enough nights with the given n, returns maximum number 
-    of nights possible. If there is only one night, returns that night.'''
-    nightsdir, currentnight = os.path.split(currentnightdir)
-    nights = np.sort(os.listdir(path=nightsdir))
-    current_id = list(nights).index(currentnight)
-    prev_nights = []
-    if current_id == 0:
-        prev_nights += [currentnight]
-    if current_id <= n:
-        prev_nights += list(nights[0:current_id])
-    if current_id > n:
-        prev_nights += list(nights[(current_id-n):current_id])
-    return prev_nights
+def get_outdir():
+    qqa_path = ''
+    user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
+    for path in user_paths:
+        if 'qqa' in path:
+            qqa_path += path
+    return qqa_path
 
-def write_threshold_json(indir, outdir, start_date, end_date, name):
+def write_threshold_json(indir, start_date, end_date, name):
     '''
     Inputs:
         indir: contains summary.json files, 
@@ -34,8 +26,11 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
     amps = []
     nights = np.arange(start_date, end_date+1)
     for night in nights:
-        with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
-            data = json.load(json_file)
+        if os.path.isfile(os.path.join(indir, '{night}/summary.json'.format(night=night))):
+            with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
+                data = json.load(json_file)
+        else:
+            continue
         amps += data['PER_AMP'][name].keys()
         datadict[night] = data
     all_amps = [spec+cam+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
@@ -73,10 +68,13 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
         weights = np.array(num_exps)/np.sum(num_exps)
         p10_avg = np.average(p10, weights=weights)
         p90_avg = np.average(p90, weights=weights)
-        thresholds = dict(p10=p10_avg, p90=p90_avg)
-    threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_night+1))
+        thresholds = dict(p10=p10_avg, p90=p90_avg) 
+        
+    outdir = get_outdir()
+    outdir += '/qqa/threshold_files'
+    threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
     with open(threshold_file, 'w') as json_file:
-         json.dump(thresholds, out, indent=4)
+         json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(threshold_file))
 
 
