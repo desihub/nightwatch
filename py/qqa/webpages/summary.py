@@ -155,7 +155,7 @@ def write_logtable_html(outfile, logdir, night, expid):
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
-        num_dirs=2,
+        num_dirs=2, qatype='summary',
     )
 
     html = template.render(**html_components)
@@ -196,7 +196,7 @@ def write_logfile_html(input, output, night):
         bokeh_version=bokeh.__version__, logfile=lines, file_url=output,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
         available=available, current=current, expid=int(str(expid)), zexpid=expid,
-        num_dirs=2,
+        num_dirs=2, qatype='summary'
     )
 
     html = template.render(**html_components)
