@@ -165,9 +165,7 @@ def parse_numlist(x):
     #- collects runs of consecutive elements in x
     start = x[0]
     r = str(start)
-    for i in range(1, len(x)+1):
-        print(consecs)
-        
+    for i in range(1, len(x)+1):        
         if i < len(x) and x[i] == x[i-1]+1:
             r = "{}-{}".format(start, x[i])
             continue
