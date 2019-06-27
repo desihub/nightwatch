@@ -187,6 +187,7 @@ def main_monitor(options=None):
 
             processed.add(expdir)
 
+        sys.stdout.flush()
         time.sleep(args.waittime)
 
 def main_run(options=None):
