@@ -143,3 +143,40 @@ def boxplot(q1, q2, q3, upper, lower, outliers, xpos, color='gray',
     fig.ygrid.grid_line_color = None
     fig.grid.grid_line_width = 2
     fig.xaxis.major_label_text_font_size="12pt"
+
+    
+    
+def parse_numlist(x):
+    '''
+    Generates a concise string output of the integers contained in x
+    by parsing the runs of consecutive elements
+    
+    Args:
+        x : a 1D list of numbers
+    '''
+    if not x:
+        return ''
+    #- gets sorted int array of distinct values in x
+    x = np.asarray(x).astype(int)
+    x = np.unique(x)
+    
+    #- TODO: is joining to a string faster or joining an array of strings
+    consecs = []
+    #- collects runs of consecutive elements in x
+    start = x[0]
+    r = str(start)
+    for i in range(1, len(x)+1):
+        print(consecs)
+        
+        if i < len(x) and x[i] == x[i-1]+1:
+            r = "{}-{}".format(start, x[i])
+            continue
+        
+        consecs.append(r)
+        
+        if i < len(x):
+            start = x[i]
+            r = str(start)
+
+    s = ','.join(consecs)
+    return s

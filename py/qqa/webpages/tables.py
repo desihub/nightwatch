@@ -16,8 +16,7 @@ def write_nights_table(outfile, exposures):
     """
     outfile: output HTML file
     exposures: table with columns NIGHT, EXPID
-    """
-
+    """    
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
@@ -162,16 +161,22 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
         ii = (exposures['NIGHT'] == night)
         explist = list()
         for expid in sorted(exposures['EXPID'][ii]):
-
             qafile = io.findfile('qa', night, expid, basedir=indir)
             qadata = io.read_qa(qafile)
             status = get_status(qadata)
             flavor = qadata['HEADER']['FLAVOR'].rstrip()
             exptime = qadata['HEADER']['EXPTIME']
+            
+            from ..plots.core import parse_numlist
+            str_specs = qadata['HEADER'].get('SPECGRPH', '').strip(" ")
+            list_specs = re.findall('\d+', str_specs)
+            spectros = parse_numlist(list_specs)
+            
             link = '{expid:08d}/qa-summary-{expid:08d}.html'.format(
                 night=night, expid=expid)
 
-            expinfo = dict(night=night, expid=expid, flavor=flavor, link=link, exptime=exptime)
+            expinfo = dict(night=night, expid=expid, flavor=flavor, link=link, 
+                           exptime=exptime, spectros=spectros)
 
             #- TODO: have actual thresholds
             for i, qatype in enumerate(['PER_AMP', 'PER_CAMERA', 'PER_FIBER',
