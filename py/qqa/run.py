@@ -408,24 +408,24 @@ def write_nights_summary(indir, last):
             readnoise_sca = dict()
             bias_sca = dict()
 
-            for s in range(0, 10, 1):
-                for c in ["R", "B", "Z"]:
+            for c in ["R", "B", "Z"]:
+                for s in range(0, 10, 1):
                     for a in ["A", "B", "C", "D"]:
-                        specific = qadata_stacked[(qadata_stacked["SPECTRO"]==s) & (qadata_stacked["CAM"]==c) & (qadata_stacked["AMP"]==a)]
+                        specific = qadata_stacked[(qadata_stacked["CAM"]==c) & (qadata_stacked["SPECTRO"]==s) & (qadata_stacked["AMP"]==a)]
                         if len(specific) > 0:
                             readnoise_sca_dict = dict(
                                 median=np.median(list(specific["READNOISE"])),
                                 std=np.std(list(specific["READNOISE"])),
                                 num_exp=len(specific)
                             )
-                            readnoise_sca[str(s) + c + a] = readnoise_sca_dict
+                            readnoise_sca[c + str(s) + a] = readnoise_sca_dict
 
                             bias_sca_dict = dict(
                                 median=np.median(list(specific["BIAS"])),
                                 std=np.std(list(specific["BIAS"])),
                                 num_exp=len(specific)
                             )
-                            bias_sca[str(s) + c + a] = bias_sca_dict
+                            bias_sca[c + str(s) + a] = bias_sca_dict
 
             cosmics_rates = dict(
                 p10=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 10),

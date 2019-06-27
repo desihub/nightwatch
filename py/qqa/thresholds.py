@@ -34,7 +34,7 @@ def write_threshold_json(indir, start_date, end_date, name):
             continue
         amps += data['PER_AMP'][name].keys()
         datadict[night] = data
-    all_amps = [spec+cam+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
+    all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
     rest_amps = np.setdiff1d(all_amps, amps)
     thresholds = dict()
     if name in ["READNOISE", "BIAS"]:
@@ -102,19 +102,19 @@ def get_thresholds(filepath):
         lowerR = []
         upperR = []
         for key in keys:
-            if key[1] == 'B':
+            if key[0] == 'B':
                 if threshold_data[key]['lower'] == None:
                     continue
                 else:
                     lowerB.append(threshold_data[key]['lower'])
                     upperB.append(threshold_data[key]['upper'])
-            if key[1] == 'Z': 
+            if key[0] == 'Z': 
                 if threshold_data[key]['lower'] == None:
                     continue
                 else:
                     lowerZ.append(threshold_data[key]['lower'])
                     upperZ.append(threshold_data[key]['upper'])
-            if key[1] == 'R':
+            if key[0] == 'R':
                 if threshold_data[key]['lower'] == None:
                     continue
                 else:
