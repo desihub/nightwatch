@@ -52,7 +52,7 @@ def write_amp_html(outfile, data, header):
     html_components['BIAS'] = dict(script=script, div=div)
 
     #- Cosmics rate
-    cosmics_file = pick_threshold_file('COSMICS_RATES', night)
+    cosmics_file = pick_threshold_file('COSMICS_RATE', night)
     lower_cosmics, upper_cosmics = get_thresholds(cosmics_file)
     fig = plot_amp_qa(data, 'COSMICS_RATE', lower_cosmics, upper_cosmics, title='CCD Amplifier cosmics per minute')
     script, div = components(fig)

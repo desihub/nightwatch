@@ -58,16 +58,16 @@ def write_threshold_json(indir, start_date, end_date, name):
                 thresholds[amp] = dict(upper=None, lower=None)
     if name in ['COSMICS_RATE']:
         num_exps = []
-        p10 = []
-        p90 = []
+        lower = []
+        upper = []
         for night in nights_real:
-            p10.append(datadict[night]['PER_AMP'][name]['p10'])
-            p90.append(datadict[night]['PER_AMP'][name]['p90'])
+            lower.append(datadict[night]['PER_AMP'][name]['lower'])
+            upper.append(datadict[night]['PER_AMP'][name]['upper'])
             num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
         weights = np.array(num_exps)/np.sum(num_exps)
-        p10_avg = np.average(p10, weights=weights)
-        p90_avg = np.average(p90, weights=weights)
-        thresholds = dict(p10=p10_avg, p90=p90_avg) 
+        lower_avg = np.average(lower, weights=weights)
+        upper_avg = np.average(upper, weights=weights)
+        thresholds = dict(lower=lower_avg, upper=upper_avg) 
         
     outdir = get_outdir()
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
@@ -123,8 +123,9 @@ def get_thresholds(filepath):
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
     if 'COSMICS_RATE' in filepath:
-        lower = threshold_data['p10']
-        upper = threshold_data['p90']
+        print(threshold_data)
+        lower = threshold_data['lower']
+        upper = threshold_data['upper']
     return lower, upper
 
         
