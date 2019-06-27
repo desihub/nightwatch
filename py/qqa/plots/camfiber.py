@@ -152,7 +152,6 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
             continue
 
         plotmin = min(ymin, np.min(cam_metric) * 0.9) if ymin else np.min(cam_metric) * 0.9
-
         plotmax = max(ymax, nnp.max(cam_metric) * 1.1) if ymax else np.max(cam_metric) * 1.1
 
         fig_y_range = bokeh.models.Range1d(plotmin, plotmax)

@@ -60,11 +60,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         fig.yaxis.axis_label = attribute
         if minmax is not None:
             ymin, ymax = minmax
-            try:
-                attrmin = np.min(cam_table["MIN"+attribute])
-            except:
-                import IPython; IPython.embed()
-
+            attrmin = np.min(cam_table["MIN"+attribute])
             attrmax = np.max(cam_table["MAX"+attribute])
 
             #- Data ranges are within minmax
