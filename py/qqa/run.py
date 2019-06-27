@@ -44,7 +44,7 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
     #- only checks dates after startdate
     if startdate:
         #- TODO: add user error checks for startdate input format
-        startdate = int(startdate)
+        startdate = str(startdate)
         idx = np.searchsorted(all_nights, int(startdate))
         all_nights = all_nights[idx:]
     
