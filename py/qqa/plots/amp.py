@@ -139,7 +139,7 @@ def plot_amp_cam_qa(data, name, cam, labels, qamin, qamax,
         fig.outline_line_color='steelblue'
         fig.title.text = title
     if cam =='Z':
-        fig.outline_line_color='grey'
+        fig.outline_line_color='green'
     fig.outline_line_alpha=0.7
     
     if qamin is not None and qamax is not None:
