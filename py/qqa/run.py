@@ -53,9 +53,10 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
         startdate = ''
     all_nights = sorted(os.listdir(datadir))
     #- Search for the earliest unprocessed datadir/YYYYMMDD
-    for night in list_nights:
+    for night in all_nights:
         nightdir = os.path.join(datadir, night)
-        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and dirname >= startdate:
+        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and \
+                night >= startdate:
             for expid in sorted(os.listdir(nightdir)):
                 expdir = os.path.join(nightdir, expid)
                 if re.match('\d{8}', expid) and os.path.isdir(expdir):
