@@ -189,7 +189,6 @@ def write_logfile_html(input, output, night):
     for line in f.readlines():
         #- byte to str
         line = line.decode("utf-8")
-#         line = line.strip("\n")
         if 'WARNING' in line:
             line = '<span style="color:orange">;' + line + '</span>'
         elif 'ERROR' in line:
