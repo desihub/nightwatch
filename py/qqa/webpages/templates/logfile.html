@@ -20,6 +20,7 @@ input {
 
 table {
   border-collapse: collapse;
+  position: fixed;
 }
 
 .container{
@@ -27,6 +28,13 @@ table {
 }
 .flex-item{
   flex-grow: 1;
+}
+
+#logfile{
+    max-width: 65%;
+    overflow: auto;
+    height: 100%;
+    padding-right:10px;
 }
 
 </style>
@@ -39,9 +47,9 @@ table {
 
 <div class="container">
     {% if current %}
-  <div class=flex-item>
+  <div class=flex-item id="logfile">
       {% for line in logfile %}
-      <pre style="white-space:pre-line;overflow-wrap:break-word;padding-right:10px">{{ line }}</pre>
+      <pre style="white-space:pre-line;overflow-wrap:break-word;">{{ line }}</pre>
       {% endfor %}
   </div>
     {% endif %}
