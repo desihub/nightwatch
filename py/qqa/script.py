@@ -62,13 +62,13 @@ def main_monitor(options=None):
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
-    parser.add_argument("--startdate", type=int, default=None, help="Earliest int startdate to check for unprocessed nights (YYYYMMDD)")
-    parser.add_argument("--batch", "-b", type=bool, default=False, help="True if you want qproc data processing to spawn a batch job")
-    parser.add_argument("--nodes", "-N", type=int, default=1, help="Number of nodes for qproc batch job \n batch must equal True")
-    parser.add_argument("--ntasks", "-n", type=int, default=1, help="Number of tasks per node for qproc batch job \n batch must equal True")
-    parser.add_argument("--constraint", "-C", type=str, default="haswell", help="Constraint for qproc batch job \n batch must equal True")
-    parser.add_argument("--qos", "-q", type=str, default="interactive", help="Qos for qproc batch job \n batch must equal True")
-    parser.add_argument("--time", "-t", type=int, default=5, help="time for qproc batch job \n batch must equal True")
+    parser.add_argument("--startdate", type=int, default=None, help="Earliest startdate to check for unprocessed nights (YYYYMMDD)")
+    parser.add_argument("--batch", "-b", type=bool, default=False, help="Bool, qproc data processing to batch job")
+    parser.add_argument("--nodes", "-N", type=int, default=1, help="Number of nodes for qproc batch job, batch=True")
+    parser.add_argument("--ntasks", "-n", type=int, default=1, help="Number of tasks per node for qproc batch job, batch=True")
+    parser.add_argument("--constraint", "-C", type=str, default="haswell", help="Constraint for qproc batch job, batch=True")
+    parser.add_argument("--qos", "-q", type=str, default="interactive", help="Qos for qproc batch job, batch=True")
+    parser.add_argument("--time", "-t", type=int, default=5, help="time for qproc batch job, batch=True")
 
     if options is None:
         options = sys.argv[2:]
@@ -88,13 +88,14 @@ def main_monitor(options=None):
     log.info('Monitoring {}/ for new raw data'.format(tmp))
 
     qarunner = QARunner()
-
     processed = set()
+    
+    #- TODO: figure out a way to print how many nights are being skipped before startdate
     while True:
         if args.catchup:
             expdir = run.find_unprocessed_expdir(args.indir, args.outdir, startdate=args.startdate)
         else:
-            expdir = run.find_latest_expdir(args.indir, processed)
+            expdir = run.find_latest_expdir(args.indir, processed, startdate=args.startdate)
 
         if expdir is None:
             time.sleep(args.waittime)
