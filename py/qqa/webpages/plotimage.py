@@ -9,7 +9,7 @@ def write_image_html(input, output, downsample, night):
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('plotimage.html')
+    template = env.get_template('preproc.html')
 
     plot_script, plot_div = main(input, None, downsample)
 
@@ -44,7 +44,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('preproc_nav.html')
+    template = env.get_template('preproc.html')
 
     available = []
     preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]

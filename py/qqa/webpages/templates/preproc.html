@@ -28,7 +28,19 @@ table {
 .flex-item{
   flex-grow: 1;
 }
+header {
+  font-weight:bold;
+  font-size: 25px;
+}
 </style>
+
+{% if preproc and not current %}
+<header>
+  <font face="arial">
+  Preproc Image Generator:
+  </font>
+</header>
+{% endif %}
 <div class="container">
   <div class=flex-item>
     <div>{{plot_script}} {{plot_div}}</div>

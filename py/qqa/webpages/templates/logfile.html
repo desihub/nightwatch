@@ -28,7 +28,28 @@ table {
 .flex-item{
   flex-grow: 1;
 }
+header {
+  font-weight:bold;
+  font-size: 25px;
+}
+
 </style>
+
+{% if logfile and not current %}
+<h4>
+  <font face="arial">
+  Logfiles Table:
+  </font>
+</h4>
+{% else %}
+<h4>
+  <font face="arial">
+  Logfile:
+  </font>
+</h4>
+
+{% endif %}
+
 <div class="container">
   <div class=flex-item>
       <h4>Logfile</h4>
@@ -55,5 +76,7 @@ table {
   </tr>
   {% endfor %}
 </table>
+</div>
+</div>
 
 {% endblock %}

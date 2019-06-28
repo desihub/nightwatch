@@ -142,7 +142,7 @@ def write_logtable_html(outfile, logdir, night, expid):
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('logtable.html')
+    template = env.get_template('logfile.html')
     
     if not logdir:
         logdir = ''
@@ -163,6 +163,8 @@ def write_logtable_html(outfile, logdir, night, expid):
     #- Write HTML text to the output file
     with open(outfile, 'w') as fx:
         fx.write(html)
+    print('Wrote {}'.format(outfile))
+
 
     
 def write_logfile_html(input, output, night):
@@ -187,24 +189,19 @@ def write_logfile_html(input, output, night):
     for line in f.readlines():
         #- byte to str
         line = line.decode("utf-8")
-        line = line.strip("\n")
+#         line = line.strip("\n")
         if 'WARNING' in line:
-            front = '<p style="color:orange;'
+            line = '<span style="color:orange">;' + line + '</span>'
         elif 'ERROR' in line:
-            front = '<p style="color:red;'
-        else:
-            front = '<p style="'
-        front += 'max-width:500px;overflow-wrap:break-word;padding:10px">'
-        back = '</p>'
-        lines.append(front + line + back)
-
-    lines = ''.join(lines)
+            line = '<span style="color:red">;' + line + '</span>'
+        
+        lines.append(line)
         
     html_components = dict(        
-        bokeh_version=bokeh.__version__, logfile=lines, file_url=output,
+        bokeh_version=bokeh.__version__, log=True, logfile=lines, file_url=output,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
         available=available, current=current, expid=int(str(expid)), zexpid=expid,
-        num_dirs=2, qatype='summary'
+        num_dirs=2, qatype='summary',
     )
 
     html = template.render(**html_components)
