@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "qabase.html" %}
+
 
 {% block body %}
-
 {# Rendering arguments: spectra(.script, .div) #}
 <style>
 label {
@@ -9,8 +9,19 @@ label {
   flex-direction: row;
   margin-bottom: 5px;
 }
+header {
+  font-weight:bold;
+  font-size: 25px;
+}
 </style>
+
 {% if spectra %}
+<header>
+  <font face="arial">
+  {{view}} spectra plot of {{frame}}-*-{{expid}}.fits files
+  </font>
+</header>
+
     <div class=flex-item>{{ spectra.script }} {{ spectra.div }}</div>
 {% endif %}
 <br>
@@ -19,15 +30,40 @@ label {
     <input type="text" id="fibs" size=40 {% if select_str %} value="{{select_str}}" {% endif %} >
 </label>
 
+<label> Frame:
+  <form id="frame">
+    <input type="radio" name="frame" value="qframe" {% if frame=="qframe"%} checked="yes" {% endif%}/> qframe<br />
+    <input type="radio" name="frame" value="qcframe"  {% if frame=="qcframe"%} checked="yes" {% endif%}/> qcframe<br />
+  </form>
+</label>
+
 <label> Downsample:
     <input type="int" id="down" size=4 {% if downsample %} value="{{downsample}}" {% endif %} >
 </label>
 
 <button onclick='
 {% if select_str %}
-  var url = "../../" + document.getElementById("fibs").value + "/" + document.getElementById("down").value + "x"
+  var radios = document.getElementsByName("frame");
+
+  for (var i = 0, length = radios.length; i < length; i++)
+  {
+   if (radios[i].checked)
+   {
+    var url = "../../../" + document.getElementById("fibs").value + "/" +  radios[i].value + "/" + document.getElementById("down").value + "x"
+    break;
+   }
+  }
 {% else %}
-  var url = document.getElementById("fibs").value + "/" + document.getElementById("down").value + "x"
+var radios = document.getElementsByName("frame");
+
+for (var i = 0, length = radios.length; i < length; i++)
+{
+ if (radios[i].checked)
+ {
+  var url = document.getElementById("fibs").value + "/" +  radios[i].value + "/" + document.getElementById("down").value + "x"
+  break;
+ }
+}
 {% endif %}
   window.open(url, "_top")
 '>Generate Spectra

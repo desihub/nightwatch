@@ -5,7 +5,6 @@ import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band
-import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
 def get_amp_colors(data, lower, upper):
@@ -62,7 +61,8 @@ def isolate_spec_lines(data_locs, data):
 
 def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80, plot_width=700):
     '''Plot a per-amp visualization of data[name]
-    qamin/qamax: min/max ranges for the color scale'''
+    qamin/qamax: min/max ranges for the color scale
+    ymin/ymax: y-axis ranges *unless* the data exceeds those ranges'''
     
     if title is None:
         title = name   
@@ -129,10 +129,16 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
     fig.circle(x='locations', y='data_val', line_color=None, 
                  fill_color='colors', size='sizes', source=source, name='circles')
 
+
+    plotmin = min(ymin, np.min(data_val) * 0.9) if ymin else np.min(data_val) * 0.9
+    plotmax = max(ymax, np.max(data_val) * 1.1) if ymax else np.max(data_val) * 1.1
+    fig.y_range = Range1d(plotmin, plotmax)
+    
+    #- style visual attributes
     fig.yaxis.axis_label = cam
-    fig.y_range = Range1d(np.min(data_val)*0.9, np.max(data_val)*1.1)
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color=None
+
     if cam == 'R':
         fig.outline_line_color='firebrick'
     if cam == 'B':
@@ -170,7 +176,7 @@ def plot_amp_qa(data, name, lower, upper, title=None, plot_height=80, plot_width
         fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower, upper, title, plot_height=plot_height, plot_width=plot_width)
         fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower, upper, title, plot_height=plot_height, plot_width=plot_width)
     
-    #x-axis
+    # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
                      plot_height=50, plot_width=plot_width,
                      y_axis_location=None)         

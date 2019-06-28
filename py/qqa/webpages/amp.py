@@ -10,7 +10,16 @@ from ..thresholds import pick_threshold_file, get_thresholds
 import os 
 
 def write_amp_html(outfile, data, header):
-    '''TODO: document'''
+    '''Write CCD amp QA webpage
+
+    Args:
+        outfile: output HTML filename
+        data: PER_AMP QA table
+        header: dict-like data header with keys NIGHT, EXPID, PROGRAM
+
+    Returns:
+        html_components dict with keys 'script', 'div' from bokeh
+    '''
     
     night = header['NIGHT']
     expid = header['EXPID']
@@ -30,6 +39,7 @@ def write_amp_html(outfile, data, header):
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
         flavor=flavor, program=program, qatype='amp',
+        num_dirs=2,
     )
     
     #- Add a basic set of PER_AMP QA plots

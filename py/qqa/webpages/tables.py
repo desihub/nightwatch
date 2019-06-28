@@ -188,7 +188,8 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
 
             explist.append(expinfo)
 
-        html = template.render(night=night, exposures=explist, autoreload=True)
+        html = template.render(night=night, exposures=explist, autoreload=True,
+            staticdir='../cal_files')
         outfile = os.path.join(outdir, str(night), 'exposures.html')
         with open(outfile, 'w') as fx:
             fx.write(html)

@@ -1,4 +1,16 @@
-<html>
+{% extends "base.html" %}
+
+{% block navigation %}
+
+<ul class="navigationbar">
+  <li style="float:left"><a id="nights" href = "../nights.html">nights</a></li>
+  <li style="float:left"><a>Timeseries Generator</a></li>
+</ul>
+
+{% endblock %}
+
+{% block body %}
+<br>
 <script src="../../../../cal_files/jquery_min.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -25,12 +37,6 @@ input {
   margin-left: 10px;
 }
 </style>
-
-<button onclick='
-  var url = "../nights.html"
-
-  window.open(url, "_top")
-'>Nights</button>
 
 <label>start date: <input type="number" id = "start"></label>
 <label>end date: <input type="number" id = "end"></label>
@@ -68,3 +74,5 @@ function changed(new_val) {
   {% endfor %}
 }
 </script>
+
+{% endblock %}
