@@ -182,16 +182,24 @@ def write_logfile_html(input, output, night):
     current = os.path.basename(input).split("-")[1]
     expid = os.path.basename(input).split("-")[2].split(".")[0]
 
-    with open(input, "rb") as f:
-        lines = f.read()
-    f.close()
-    
-    #- byte to str
-    lines = lines.decode("utf-8")
-#     lines = lines.split("\n")
-#     import IPython as ip
-#     ip.embed()    
-    
+    lines = []
+    f = open(input, "rb")
+    for line in f.readlines():
+        #- byte to str
+        line = line.decode("utf-8")
+        line = line.strip("\n")
+        if 'WARNING' in line:
+            front = '<p style="color:orange;'
+        elif 'ERROR' in line:
+            front = '<p style="color:red;'
+        else:
+            front = '<p style="'
+        front += 'max-width:500px;overflow-wrap:break-word;padding:10px">'
+        back = '</p>'
+        lines.append(front + line + back)
+
+    lines = ''.join(lines)
+        
     html_components = dict(        
         bokeh_version=bokeh.__version__, logfile=lines, file_url=output,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
@@ -204,7 +212,5 @@ def write_logfile_html(input, output, night):
     #- Write HTML text to the output file
     with open(output, 'w') as fx:
         fx.write(html)
-
-    fx.close()
-        
+    
     print('Wrote {}'.format(output))
