@@ -190,9 +190,9 @@ def write_logfile_html(input, output, night):
         #- byte to str
         line = line.decode("utf-8")
         if 'WARNING' in line:
-            line = '<span style="color:orange">;' + line + '</span>'
+            line = '<span style="color:orange;">' + line + '</span>'
         elif 'ERROR' in line:
-            line = '<span style="color:red">;' + line + '</span>'
+            line = '<span style="color:red;">' + line + '</span>'
         
         lines.append(line)
         

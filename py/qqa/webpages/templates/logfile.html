@@ -28,36 +28,24 @@ table {
 .flex-item{
   flex-grow: 1;
 }
-header {
-  font-weight:bold;
-  font-size: 25px;
-}
 
 </style>
 
 {% if not current %}
-<h4>
-  <font face="arial">
-  Logfiles Table:
-  </font>
-</h4>
-{% else %}
-<h4>
-  <font face="arial">
-  Logfile:
-  </font>
-</h4>
+<header>
+  Logfiles Table
+</header>
 {% endif %}
 
 <div class="container">
     {% if current %}
   <div class=flex-item>
       {% for line in logfile %}
-      <pre style="white-space:pre-line;max-width:700px;overflow-wrap:break-word;padding-left:10px;padding-right:10px">{{ line }}</pre>
+      <pre style="white-space:pre-line;overflow-wrap:break-word;padding-right:10px">{{ line }}</pre>
       {% endfor %}
   </div>
     {% endif %}
-  <div class=flex-item>
+  <div class=flex-item style="padding-right:10px">
     <br>
     <table border="1" cellpadding="8">
       <tr>

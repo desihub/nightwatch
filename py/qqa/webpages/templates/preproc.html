@@ -28,18 +28,12 @@ table {
 .flex-item{
   flex-grow: 1;
 }
-header {
-  font-weight:bold;
-  font-size: 25px;
-}
 </style>
 
 {% if not current %}
-<h4>
-  <font face="arial">
-  Preproc Image Generator:
-  </font>
-</h4>
+<header>
+  Preproc Image Generator
+</header>
 {% endif %}
 <div class="container">
     {% if current %}
@@ -47,7 +41,7 @@ header {
     <div>{{plot_script}} {{plot_div}}</div>
   </div>
     {% endif %}
-  <div class=flex-item>
+  <div class=flex-item style="padding-right:10px">
     <br>
     <table border="1" cellpadding="8">
       <tr>
