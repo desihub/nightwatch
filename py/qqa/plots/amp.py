@@ -119,8 +119,8 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
                       line_policy='nearest')
     
     fig = bk.figure(x_range=axis.x_range, 
-                      toolbar_location=None, plot_height=plot_height, 
-                      plot_width=plot_width, x_axis_location=None, tools=[hover, 'tap'])
+                    plot_height=plot_height, plot_width=plot_width, 
+                    x_axis_location=None, tools=[hover, 'tap'])
     
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):

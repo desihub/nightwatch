@@ -123,9 +123,8 @@ def get_thresholds(filepath):
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
     if 'COSMICS_RATE' in filepath:
-        print(threshold_data)
         lower = threshold_data['lower']
         upper = threshold_data['upper']
     return lower, upper
 
-        
+  
