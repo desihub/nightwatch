@@ -167,9 +167,9 @@ def main_monitor(options=None):
                 qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
 
                 print('Generating plots for {}/{}'.format(night, expid))
-                expdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-                if not os.path.isdir(expdir) :
-                    os.makedirs(expdir)
+                tmpdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+                if not os.path.isdir(tmpdir) :
+                    os.makedirs(tmpdir)
                 run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, cameras=cameras)
 
                 run.write_tables(args.outdir, args.plotdir)
