@@ -153,6 +153,13 @@ def parse_numlist(x):
     
     Args:
         x : a 1D list of numbers
+
+    e.g.
+        parse_numlist([1,2,3]) == '1-3'
+        parse_numlist([5,1,2,3]) == '1-3,5'
+        parse_numlist([5,1,2,3,6,7]) == '1-3,5-7'
+        parse_numlist([]) == ''
+        parse_numlist(None) == '???'
     '''
     if not x:
         return ''
