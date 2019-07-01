@@ -10,6 +10,7 @@ from astropy.table import Table, vstack
 import desiutil.log
 
 import desispec.scripts.preproc
+from qqa.qa.base import QA
 
 def get_ncpu(ncpu):
     """
