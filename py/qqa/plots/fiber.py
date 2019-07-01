@@ -206,6 +206,7 @@ def plot_fibernums(source, name, cam='',
         fig.xaxis.minor_tick_line_width = 0
     else:
         fig.xaxis.major_label_orientation = math.pi/4
+        fig.xaxis.axis_label = 'Fiber number'
 
     fig.outline_line_color = camcolors.get(cam.upper())
     fig.xaxis.axis_line_color = camcolors.get(cam.upper())

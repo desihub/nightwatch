@@ -9,7 +9,7 @@ def write_image_html(input, output, downsample, night):
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('plotimage.html')
+    template = env.get_template('preproc.html')
 
     plot_script, plot_div = main(input, None, downsample)
 
@@ -27,7 +27,7 @@ def write_image_html(input, output, downsample, night):
         bokeh_version=bokeh.__version__, downsample=str(downsample), preproc=True,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
         available=available, current=current, expid=int(str(expid)), zexpid=expid,
-        num_dirs=2,
+        num_dirs=2, qatype='amp',
     )
 
     html = template.render(**html_components)
@@ -44,7 +44,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
-    template = env.get_template('preproc_nav.html')
+    template = env.get_template('preproc.html')
 
     available = []
     preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]
@@ -55,7 +55,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
         version=bokeh.__version__, downsample=str(downsample),
         preproc=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
-        num_dirs=2,
+        num_dirs=2, qatype='amp',
     )
 
     html = template.render(**html_components)

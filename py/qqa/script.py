@@ -108,7 +108,7 @@ def main_monitor(options=None):
         rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if expdir not in processed and os.path.exists(rawfile):
             outdir = '{}/{}/{}'.format(args.outdir, night, expid)
-            if os.path.exists(outdir) and len(glob.glob(outdir+'/*.fits'))>0:
+            if os.path.exists(outdir) and len(glob.glob(outdir+'/qa-*.fits'))>0:
                 print('Skipping previously processed {}/{}'.format(night, expid))
                 processed.add(expdir)
                 continue
@@ -170,10 +170,11 @@ def main_monitor(options=None):
                 qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
 
                 print('Generating plots for {}/{}'.format(night, expid))
-                expdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-                if not os.path.isdir(expdir) :
-                    os.makedirs(expdir)
-                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, cameras=cameras)
+                tmpdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+                if not os.path.isdir(tmpdir) :
+                    os.makedirs(tmpdir)
+                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
+                               cameras=cameras)
 
                 run.write_tables(args.outdir, args.plotdir)
 
@@ -192,6 +193,7 @@ def main_monitor(options=None):
 
             processed.add(expdir)
 
+        sys.stdout.flush()
         time.sleep(args.waittime)
 
 def main_run(options=None):
@@ -223,7 +225,7 @@ def main_run(options=None):
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
     basedir = os.path.dirname(os.path.dirname(os.path.abspath(args.outdir)))
-    run.make_plots(qafile, basedir, preprocdir=args.outdir, cameras=cameras)
+    run.make_plots(qafile, basedir, preprocdir=args.outdir, logdir=args.outdir, cameras=cameras)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
@@ -299,7 +301,7 @@ def main_plot(options=None):
         else:
             outdir = args.outdir
 
-        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile))
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile))
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

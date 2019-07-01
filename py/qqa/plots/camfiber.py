@@ -138,12 +138,19 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
         #- axis labels for the last camera
         if i == (len(cameras) - 1):
             xaxislabels = True
-            heightpad = 25
+            heightpad = 50
         else:
             xaxislabels = False
         
         #- focused y-ranges unless outliers in data
         cam_metric = metric[np.array(cds.data.get('CAM')) == c]
+
+        if len(cam_metric) == 0:
+            #- create a blank plot as a placeholder
+            fig = bokeh.plotting.figure(plot_width=width, plot_height=height)
+            figs_list.append(fig)
+            continue
+
         plotmin = min(ymin, np.min(cam_metric) * 0.9) if ymin else np.min(cam_metric) * 0.9
         plotmax = max(ymax, nnp.max(cam_metric) * 1.1) if ymax else np.max(cam_metric) * 1.1
 

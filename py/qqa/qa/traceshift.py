@@ -25,6 +25,10 @@ class QATraceShift(QA):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         infiles = glob.glob(os.path.join(indir, 'psf-*.fits'))
+        if len(infiles) == 0:
+            log.error('No {}/psf*.fits files found'.format(indir))
+            return None
+
         results = list()
         for filename in infiles:
             log.debug(filename)

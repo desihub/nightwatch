@@ -63,10 +63,9 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
     '''Plot a per-amp visualization of data[name]
     qamin/qamax: min/max ranges for the color scale
     ymin/ymax: y-axis ranges *unless* the data exceeds those ranges'''
-    
     if title is None:
-        title = name   
-    
+        title = name
+
     #unpacking data
     spec_loc = []
     amp_loc = []
@@ -98,7 +97,7 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
     
     colors = get_amp_colors(data_val, lower, upper)
     sizes = get_amp_size(data_val, lower, upper)
-    
+
     source = ColumnDataSource(data=dict(
         data_val=data_val,
         locations=locations,
@@ -108,25 +107,25 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
         lower=lower,
         upper=upper,
     ))
-    
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
                      plot_height=50, plot_width=plot_width,
-                     y_axis_location=None)      
+                     y_axis_location=None)
     #plotting
-    hover= HoverTool(tooltips = [
+    hover= HoverTool(names=["circles"], tooltips = [
         ('(spec, amp)', '@locations'),
         ('{}'.format(name), '@data_val')],
                       line_policy='nearest')
-    
-    fig = bk.figure(x_range=axis.x_range, 
-                      toolbar_location=None, plot_height=plot_height, 
+
+    fig = bk.figure(x_range=axis.x_range,
+                      toolbar_location=None, plot_height=plot_height,
                       plot_width=plot_width, x_axis_location=None, tools=[hover, 'tap'])
-    
+
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
-        fig.line(x=spec_groups[i], y=data_groups[i], line_color='black', alpha=0.25)
-        
-    fig.circle(x='locations', y='data_val', line_color=None, 
+        fig.line(x=spec_groups[i], name='lines', y=data_groups[i], line_color='black', alpha=0.25)
+
+    fig.circle(x='locations', y='data_val', line_color=None,
                  fill_color='colors', size='sizes', source=source, name='circles')
 
 
@@ -157,8 +156,9 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, plot_height=80
     
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
-    taptool.callback = OpenURL(url='@name-4x.html')
-
+    taptool.callback = CustomJS(args=dict(source=source), code="""
+    window.open(((source.data.name)[0])+"-4x.html", "_self");
+    """)
     return fig
 
 def plot_amp_qa(data, name, lower, upper, title=None, plot_height=80, plot_width=700):
@@ -179,13 +179,11 @@ def plot_amp_qa(data, name, lower, upper, title=None, plot_height=80, plot_width
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
                      plot_height=50, plot_width=plot_width,
-                     y_axis_location=None)         
+                     y_axis_location=None)
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
     axis.outline_line_color=None
-    
+
     fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location=None)
-    
+
     return fig
-        
-        
