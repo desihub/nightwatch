@@ -366,7 +366,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
-    
+
     #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
     htmlfile = '{}/qa-lastexp.html'.format(basedir)
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
@@ -490,6 +490,7 @@ def write_nights_summary(indir, last):
                 else:
                     qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
                     if (qadata_stacked is None):
+                        hdr = fitsio.read_header(fitsfile, 0)
                         qadata_stacked = qadata
                     else:
                         qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
@@ -497,6 +498,12 @@ def write_nights_summary(indir, last):
             if qadata_stacked is None:
                 print("no exposures found")
                 return
+
+            night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+            if not os.path.isfile(night_qafile):
+                with fitsio.FITS(night_qafile, 'rw', clobber=True) as fx:
+                    fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
+                    fx.write_table(qadata_stacked.as_array(), extname="PER_AMP", header=hdr)
 
             readnoise_sca = dict()
             bias_sca = dict()
