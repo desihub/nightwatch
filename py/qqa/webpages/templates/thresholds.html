@@ -3,15 +3,19 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
+<div><h1>Threshold Inspector</h1></div>
 {% if READNOISE %}
+<div><h3>Readnoise</h3></div>
     <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
 {% endif %}
 
 {% if BIAS %}
+<div><h3>Bias</h3></div>
     <div>{{ BIAS.script }} {{ BIAS.div }}</div>
 {% endif %}
 
 {% if COSMICS_RATE %}
+<div><h3>Cosmics Rate</h3></div>
     <div>{{ COSMICS_RATE.script }} {{ COSMICS_RATE.div }}</div>
 {% endif %}
 
