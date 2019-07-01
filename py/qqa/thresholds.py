@@ -274,7 +274,6 @@ def plot_timeseries(src, amps=None):
 def get_threshold_table(filepath):
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
     lower, upper, keys = get_thresholds(filepath, return_keys=True)
-    print(keys)
     if len(lower) != 1:
         lower = lower[0]+lower[1]+lower[2]
         upper = upper[0]+upper[1]+upper[2]
