@@ -135,13 +135,15 @@ def get_thresholds(filepath, return_keys=True):
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
     if 'COSMICS_RATE' in filepath:
-        real_keys = list(threshold_data.keys())
+        real_keys = ['keys not applicable']
         lower = [threshold_data['lower']]
         upper = [threshold_data['upper']]
+    
     if return_keys:
         return lower, upper, real_keys
     else:
         return lower, upper 
+    
 
 def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     '''reuses the timeseries function for the flask app, but with some changes'''
@@ -264,14 +266,15 @@ def plot_timeseries(src, amps=None):
             for i in range(len(cam_src)):
                 fig.circle(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], color=colors[cam], size=2)
                 fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], line_color=colors[cam])
-                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['lower'][1:], line_dash='dashed', line_color=colors[cam])
-                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['upper'][1:], line_dash='dashed', line_color=colors[cam])
+                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['lower'][1:], line_dash='dashed', line_color='black')
+                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['upper'][1:], line_dash='dashed', line_color='black')
             cam_figs.append(fig)
     return column(cam_figs)
 
 def get_threshold_table(filepath):
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
     lower, upper, keys = get_thresholds(filepath, return_keys=True)
+    print(keys)
     if len(lower) != 1:
         lower = lower[0]+lower[1]+lower[2]
         upper = upper[0]+upper[1]+upper[2]
@@ -282,7 +285,7 @@ def get_threshold_table(filepath):
         upper=upper,
     ))
     
-    if 'COSMICS_RATE' in filepath:
+    if len(keys) == 1:
         columns = [
             TableColumn(field="lower", title="1st percentile", formatter=NumberFormatter(format="0.00")),
             TableColumn(field="upper", title="99th percentile", formatter=NumberFormatter(format="0.00")),
