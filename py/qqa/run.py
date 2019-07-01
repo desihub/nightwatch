@@ -483,7 +483,7 @@ def write_nights_summary(indir, last):
         if not os.path.isfile(jsonfile):
             night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
             expids = next(os.walk(os.path.join(indir, night)))[1]
-            expid = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
+            expids = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
             qadata_stacked = dict()
             for expid in expids:
                 fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
@@ -493,13 +493,16 @@ def write_nights_summary(indir, last):
                     for attr in QA.metacols:
                         try:
                             qadata = Table(fitsio.read(fitsfile, attr))
-                            if (attr in qadata_stacked):
-                                hdr = fitsio.read_header(fitsfile, 0)
-                                qadata_stacked[attr] = qadata
-                            else:
-                                qadata_stacked[attr] = vstack([qadata_stacked[attr], qadata], metadata_conflicts='silent')
                         except:
                             continue
+                        
+                        if (attr not in qadata_stacked):
+                            hdr = fitsio.read_header(fitsfile, 0)
+                            qadata_stacked[attr] = qadata
+                        else:
+                            qadata_stacked[attr] = vstack([qadata_stacked[attr], qadata], metadata_conflicts='silent')
+                            
+                        print("processed {}".format(fitsfile))
 
             if len(qadata_stacked) == 0:
                 print("no exposures found")

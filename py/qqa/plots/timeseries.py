@@ -23,8 +23,8 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         if (start_date <= dir and end_date >= dir):
             avaliable_dates += [os.path.join(i, dir)]
 
-    for date in avaliable_dates:   
-        nights_qa = os.path.join(date, "qa-n{}.fits".format(os.path.basename(date)))     
+    for date in avaliable_dates:
+        nights_qa = os.path.join(date, "qa-n{}.fits".format(os.path.basename(date)))
         if os.path.isfile(nights_qa):
             try:
                 print("found {}".format(os.path.join(date, "qa-n{}.fits".format(os.path.basename(date)))))
