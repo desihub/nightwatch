@@ -95,7 +95,7 @@ def pick_threshold_file(name, night):
         filepath += os.path.join(threshold_dir, files[-1])
     return filepath
 
-def get_thresholds(filepath):
+def get_thresholds(filepath, return_keys=True):
     '''Unpack threshold values to use in plotting amp graphs'''
     with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
@@ -107,6 +107,7 @@ def get_thresholds(filepath):
         upperZ = []
         lowerR = []
         upperR = []
+        real_keys = []
         for key in keys:
             if key[0] == 'B':
                 if threshold_data[key]['lower'] == None:
@@ -114,26 +115,33 @@ def get_thresholds(filepath):
                 else:
                     lowerB.append(threshold_data[key]['lower'])
                     upperB.append(threshold_data[key]['upper'])
+                    real_keys.append(key)
             if key[0] == 'Z': 
                 if threshold_data[key]['lower'] == None:
                     continue
                 else:
                     lowerZ.append(threshold_data[key]['lower'])
                     upperZ.append(threshold_data[key]['upper'])
+                    real_keys.append(key)
             if key[0] == 'R':
                 if threshold_data[key]['lower'] == None:
                     continue
                 else:
                     lowerR.append(threshold_data[key]['lower'])
                     upperR.append(threshold_data[key]['upper'])
+                    real_keys.append(key)
             else:
                 continue
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
     if 'COSMICS_RATE' in filepath:
+        real_keys = list(threshold_data.keys())
         lower = [threshold_data['lower']]
         upper = [threshold_data['upper']]
-    return lower, upper
+    if return_keys:
+        return lower, upper, real_keys
+    else:
+        return lower, upper, 
 
 def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     '''reuses the timeseries function for the flask app, but with some changes'''
@@ -250,23 +258,29 @@ def plot_timeseries(src, amps=None):
     return column(cam_figs)
 
 def get_threshold_table(filepath):
-    amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
-    lower, upper = get_thresholds(filepath)
+    #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
+    lower, upper, keys = get_thresholds(filepath, return_keys=True)
     if len(lower) != 1:
         lower = lower[0]+lower[1]+lower[2]
         upper = upper[0]+upper[1]+upper[2]
     
     src = ColumnDataSource(data=dict(
-        amp=amps,
+        amp=keys,
         lower=lower,
         upper=upper,
     ))
     
-    columns = [
-    TableColumn(field="amp", title="Amp"),
-    TableColumn(field="lower", title="Lower Threshold", formatter=NumberFormatter(format="0.00")),
-    TableColumn(field="upper", title="Upper Threshold", formatter=NumberFormatter(format="0.00")),
-    ]
+    if 'COSMICS_RATE' in filepath:
+        columns = [
+            TableColumn(field="lower", title="1st percentile", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="upper", title="99th percentile", formatter=NumberFormatter(format="0.00")),
+        ]
+    else:    
+        columns = [
+        TableColumn(field="amp", title="Amp"),
+        TableColumn(field="lower", title="Lower Threshold", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="upper", title="Upper Threshold", formatter=NumberFormatter(format="0.00")),
+        ]
 
     data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
     return data_table
