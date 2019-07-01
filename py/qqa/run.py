@@ -541,12 +541,25 @@ def write_nights_summary(indir, last):
                 json.dump(data, out, indent=4)
             print('Wrote {}'.format(jsonfile))
             
-def write_thresholds(indir, start_date, end_date):
+def write_thresholds(indir, outdir, start_date, end_date):
     '''Writes threshold files for each metric over a given date range.
     Input: 
         indir: directory that contains nightly directories (which contain summary.json files)
-        outdir: directory to write threshold files
+        outdir: directory to threshold inspector html files
         start_date: beginning of date range
         end_date: end of date range'''
     for name in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         write_threshold_json(indir, start_date, end_date, name)
+    
+    if not os.path.isdir(outdir):
+        #log.info('Creating {}'.format(outdir))
+        os.makedirs(outdir, exist_ok=True)
+    
+    from qqa.webpages import thresholds as web_thresholds
+    
+    plot_components = dict()
+    htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
+    pc = web_thresholds.write_threshold_html(htmlfile, indir, start_date, end_date)
+    plot_components.update(pc)
+    print('Wrote {}'.format(htmlfile))
+

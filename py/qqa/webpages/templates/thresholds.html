@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block body %}
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+{% if READNOISE %}
+    <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
+{% endif %}
+
+{% if BIAS %}
+    <div>{{ BIAS.script }} {{ BIAS.div }}</div>
+{% endif %}
+
+{% if COSMICS_RATE %}
+    <div>{{ COSMICS_RATE.script }} {{ COSMICS_RATE.div }}</div>
+{% endif %}
+
+{% endblock %}

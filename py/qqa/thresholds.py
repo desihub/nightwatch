@@ -1,7 +1,15 @@
-import sys, os
+import sys, os, re 
 import numpy as np
 import json
 import csv
+from astropy.table import Table, vstack
+import fitsio
+import bokeh.plotting as bk
+from bokeh.layouts import gridplot, column
+from bokeh.models import TapTool as TapTool
+from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
+from qqa.qa.base import QA
+from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
 def get_outdir():
     qqa_path = ''
@@ -123,8 +131,8 @@ def get_thresholds(filepath):
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
     if 'COSMICS_RATE' in filepath:
-        lower = threshold_data['lower']
-        upper = threshold_data['upper']
+        lower = [threshold_data['lower']]
+        upper = [threshold_data['upper']]
     return lower, upper
 
 def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
@@ -145,6 +153,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
         for i,j,y in os.walk(date):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
+                    #print(Table(os.path.join(i, file)).info())
                     try:
                         list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
                         #list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
