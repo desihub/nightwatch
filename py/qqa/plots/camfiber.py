@@ -138,7 +138,7 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
         #- axis labels for the last camera
         if i == (len(cameras) - 1):
             xaxislabels = True
-            heightpad = 25
+            heightpad = 50
         else:
             xaxislabels = False
         
