@@ -116,8 +116,9 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
-
                 run_batch_qproc=args.batch
+                qproc_fails = []
+
                 if run_batch_qproc:
                     print('Spawning qproc of {} to batch processes'.format(rawfile))
 
@@ -133,11 +134,12 @@ def main_monitor(options=None):
                         dirfile=dirfile,
                         rawfile=rawfile,
                         outdir=outdir,
+                        qfails=qproc_fails,
                         cameras=cameras,
                     )
 
                     batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
-                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} '
+                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} --qfails {qfails}'
                     if cameras:
                         runfile += '--cameras {cameras}'
 
@@ -154,7 +156,12 @@ def main_monitor(options=None):
 
                 if not run_batch_qproc:
                     print('Running qproc on {}'.format(rawfile))
-                    header = run.run_qproc(rawfile, outdir, cameras=cameras)
+                    #- TODO: delete
+                    print('qproc_fails is ')
+                    print(qproc_fails)
+                    header = run.run_qproc(rawfile, outdir, cameras=cameras, qproc_fails=qproc_fails)
+                    print('qproc fails is ')
+                    print(qproc_fails)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
@@ -171,9 +178,9 @@ def main_monitor(options=None):
                 if not os.path.isdir(tmpdir) :
                     os.makedirs(tmpdir)
                 run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
-                               cameras=cameras)
+                               cameras=cameras, qproc_fails=qproc_fails)
 
-                run.write_tables(args.outdir, args.plotdir)
+                run.write_tables(args.outdir, args.plotdir, qfails=qproc_fails)
 
                 time_end = time.time()
                 dt = (time_end - time_start) / 60
@@ -211,9 +218,10 @@ def main_run(options=None):
     else:
         cameras = None
 
+    qproc_fails = []
     time_start = time.time()
     print('{} Running qproc'.format(time.strftime('%H:%M')))
-    header = run.run_qproc(args.infile, args.outdir, cameras=cameras)
+    header = run.run_qproc(args.infile, args.outdir, cameras=cameras, qproc_fails=qproc_fails)
 
     print('{} Running QA analysis'.format(time.strftime('%H:%M')))
     expid = header['EXPID']
@@ -222,7 +230,8 @@ def main_run(options=None):
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
     basedir = os.path.dirname(os.path.dirname(os.path.abspath(args.outdir)))
-    run.make_plots(qafile, basedir, preprocdir=args.outdir, logdir=args.outdir, cameras=cameras)
+    run.make_plots(qafile, basedir, preprocdir=args.outdir, logdir=args.outdir, cameras=cameras,
+                  qproc_fails=qproc_fails)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))

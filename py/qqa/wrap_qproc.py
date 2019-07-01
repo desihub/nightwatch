@@ -8,6 +8,7 @@ def run(options=None):
     parser.add_argument("--outdir", type=str, required=True, 
                         help="output directory (without appending YEARMMDD/EXPID/)")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+    parser.add_argument("--qfails", type=str, help="empty list to store failed qprocesses")
 
     if options is None:
         options = sys.argv[2:]
@@ -18,9 +19,13 @@ def run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
+    
+    if args.qfails:
+        qfails = args.qfails.split(',')
+    else:
+        qfails=[]
 
-
-    run_qproc(args.rawfile, args.outdir, cameras=cameras)
+    run_qproc(args.rawfile, args.outdir, cameras=cameras, qproc_fails=qfails)
 
 if __name__ == '__main__':   
     run()

@@ -144,12 +144,14 @@ get_explinks({})
 
             
 
-def write_exposures_tables(indir,outdir, exposures, nights=None):
+def write_exposures_tables(indir,outdir, exposures, nights=None, qproc_fails=[]):
     """
     outfile: output HTML files to outdir/YEARMMDD/exposures.html
     exposures: table with columns NIGHT, EXPID
     nights: optional list of nights to process
     """
+    import IPython
+    IPython.embed()
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')

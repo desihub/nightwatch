@@ -129,7 +129,7 @@ def write_summary_html(outfile, qadata, qprocdir):
 
 
 
-def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
+def write_logtable_html(outfile, logdir, night, expid, error_colors=dict(), qproc_fails=[]):
     """Write a table of logfiles to outfile
 
     Args:
@@ -137,7 +137,9 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
         logdir : directory containing log outputs
         night : YYYYMMDD night of logdir
         expid : exposure ID of logdir
+    Options:
         error_colors : dictionary of error colors corresponding to each camera
+        qproc_fails : a list of failed qproc processes
 
     Returns:
         None
@@ -155,6 +157,11 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
     logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
     for file in logfiles:
         available += [file.split("-")[1]]
+
+    #- TODO: delete
+    print('debugging in summary.py, line 162')
+    import IPython
+    IPython.embed()
     
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
