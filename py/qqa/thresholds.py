@@ -127,4 +127,137 @@ def get_thresholds(filepath):
         upper = threshold_data['upper']
     return lower, upper
 
-  
+def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
+    '''reuses the timeseries function for the flask app, but with some changes'''
+    
+    start_date = str(start_date).zfill(8)
+    end_date = str(end_date).zfill(8)
+
+    list_tables = []
+
+    avaliable_dates = []
+    i,j,y = os.walk(data_dir).__next__()
+    for dir in j:
+        if (start_date <= dir and end_date >= dir):
+            avaliable_dates += [os.path.join(i, dir)]
+
+    for date in avaliable_dates:
+        for i,j,y in os.walk(date):
+            for file in y:
+                if re.match(r"qa-[0-9]{8}.fits", file):
+                    try:
+                        list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
+                        #list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                    except Exception as e:
+                        print("{} does not have desired hdu or column".format(file))
+
+    if list_tables == []:
+        return None
+    table = vstack(list_tables, metadata_conflicts='silent')
+#     table = None
+#     for tab in list_tables:
+#         if table is None:
+#             table = tab
+#         else:
+#             table = np.append(table, tab)
+#     table = Table(table)
+    table.sort("EXPID") # axis
+
+    metacols = QA.metacols
+
+    group_by_list = list(metacols[hdu])
+    group_by_list.remove("NIGHT")
+    group_by_list.remove("EXPID")
+    if group_by_list == []:
+        table_by_amp = table
+    else:
+        table_by_amp = table.group_by(group_by_list).groups.aggregate(list)
+
+    source_data = []
+    if "CAM" in table_by_amp.colnames:
+        colors = {"B":"blue", "R":"red", "Z":"green"}
+        group_by_list.remove("CAM")
+        for cam in ["B", "R", "Z"]:
+            cam_table = table_by_amp[table_by_amp["CAM"] == cam]
+            for row in cam_table:
+                length = len(row["EXPID"])
+                #print(row[aspect])
+                data=dict(
+                    EXPID = row["EXPID"],
+                    EXPIDZ = [str(expid).zfill(8) for expid in row["EXPID"]],
+                    NIGHT = row["NIGHT"],
+                    aspect_values = row[aspect],
+                    CAM = row['CAM'],
+                )
+                for col in group_by_list:
+                    data[col] = [str(row[col])]*length
+                source_data.append(data)          
+    else:
+        for row in table_by_amp:
+            length = len(row["EXPID"])
+            data=dict(
+                EXPID = row["EXPID"],
+                EXPIDZ = [str(expid).zfill(8) for expid in row["EXPID"]],
+                NIGHT = row["NIGHT"],
+                aspect_values = row[aspect]
+            )
+            for col in group_by_list:
+                data[col] = [str(row[col])]*length
+            source_data.append(data)
+            
+    return source_data
+
+def get_amp_rows(amps):  
+    ids = []
+    amp_vals = {'A':0, 'B':1, 'C':2, 'D':3}
+    cam_vals = {'B':0, 'R':10, 'Z':20}
+    for amp in amps:
+        cam_val = cam_vals[amp[0]]
+        spec_val = int(amp[1])
+        amp_val = amp_vals[amp[2]]
+        ids.append(((cam_val+spec_val)*4)+amp_val)
+    return ids
+
+def plot_timeseries(src, amps=None): 
+    #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
+    ids = []
+    if amps == None:
+        ids += list(np.arange(0, len(src)))
+    else:
+        ids += get_amp_rows(amps)
+    src_selected = np.array(src)[np.array(ids)]
+    cam_figs = []
+    for cam in ['B', 'R', 'Z']:
+        colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
+        cam_src = [s for s in src_selected if s['CAM']==cam]
+        fig = bk.figure(title=cam, plot_height=200, plot_width=600)
+        if len(cam_src) == 0:
+            continue
+        else:
+            for i in range(len(cam_src)):
+                fig.circle(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], color=colors[cam], size=2)
+                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], line_color=colors[cam])
+            cam_figs.append(fig)
+    return column(cam_figs)
+
+def get_threshold_table(filepath):
+    amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
+    lower, upper = get_thresholds(filepath)
+    if len(lower) != 1:
+        lower = lower[0]+lower[1]+lower[2]
+        upper = upper[0]+upper[1]+upper[2]
+    
+    src = ColumnDataSource(data=dict(
+        amp=amps,
+        lower=lower,
+        upper=upper,
+    ))
+    
+    columns = [
+    TableColumn(field="amp", title="Amp"),
+    TableColumn(field="lower", title="Lower Threshold", formatter=NumberFormatter(format="0.00")),
+    TableColumn(field="upper", title="Upper Threshold", formatter=NumberFormatter(format="0.00")),
+    ]
+
+    data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
+    return data_table
