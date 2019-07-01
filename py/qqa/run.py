@@ -480,8 +480,8 @@ def write_nights_summary(indir, last):
 
     for night in nights:
         jsonfile = os.path.join(indir, night, "summary.json")
-        if not os.path.isfile(jsonfile):
-            night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+        night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+        if (not os.path.isfile(jsonfile)) or (not os.path.isfile(night_qafile)):
             expids = next(os.walk(os.path.join(indir, night)))[1]
             expids = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
             qadata_stacked = dict()
@@ -495,13 +495,13 @@ def write_nights_summary(indir, last):
                             qadata = Table(fitsio.read(fitsfile, attr))
                         except:
                             continue
-                        
+
                         if (attr not in qadata_stacked):
                             hdr = fitsio.read_header(fitsfile, 0)
                             qadata_stacked[attr] = qadata
                         else:
                             qadata_stacked[attr] = vstack([qadata_stacked[attr], qadata], metadata_conflicts='silent')
-                            
+
                         print("processed {}".format(fitsfile))
 
             if len(qadata_stacked) == 0:
