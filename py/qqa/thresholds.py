@@ -141,7 +141,7 @@ def get_thresholds(filepath, return_keys=True):
     if return_keys:
         return lower, upper, real_keys
     else:
-        return lower, upper, 
+        return lower, upper 
 
 def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     '''reuses the timeseries function for the flask app, but with some changes'''
@@ -190,6 +190,9 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     else:
         table_by_amp = table.group_by(group_by_list).groups.aggregate(list)
 
+    filepath = pick_threshold_file(aspect, end_date)
+    with open(filepath, 'r') as json_file:
+        threshold_data = json.load(json_file)
     source_data = []
     if "CAM" in table_by_amp.colnames:
         colors = {"B":"blue", "R":"red", "Z":"green"}
@@ -206,6 +209,13 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                     aspect_values = row[aspect],
                     CAM = row['CAM'],
                 )
+                if aspect in ['READNOISE', 'BIAS']:
+                    amp = cam + str(row['SPECTRO']) + row['AMP']
+                    data['lower'] = [threshold_data[amp]['lower']]*length
+                    data['upper'] = [threshold_data[amp]['upper']]*length
+                if aspect in ['COSMICS_RATE']:
+                    data['lower'] = [threshold_data['lower']]*length
+                    data['upper'] = [threshold_data['upper']]*length
                 for col in group_by_list:
                     data[col] = [str(row[col])]*length
                 source_data.append(data)          
@@ -254,6 +264,8 @@ def plot_timeseries(src, amps=None):
             for i in range(len(cam_src)):
                 fig.circle(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], color=colors[cam], size=2)
                 fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], line_color=colors[cam])
+                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['lower'][1:], line_dash='dashed', line_color=colors[cam])
+                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['upper'][1:], line_dash='dashed', line_color=colors[cam])
             cam_figs.append(fig)
     return column(cam_figs)
 
