@@ -157,11 +157,11 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict(), qpro
     logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
     for file in logfiles:
         available += [file.split("-")[1]]
-
-    #- TODO: delete
-    print('debugging in summary.py, line 162')
-    import IPython
-    IPython.embed()
+    
+    #- Shows all failed qprocs as red
+    for qfail in qproc_fails:
+        qfail = qfail.split("-")[1]
+        error_colors[qfail] = 'red'
     
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
@@ -205,7 +205,7 @@ def write_logfile_html(input, output, night):
     expid = os.path.basename(input).split("-")[2].split(".")[0]
     
     error_level = 0
-    error_colors = dict({1:'orange', 2:'orangered', 3:'red'})
+    error_colors = dict({1:'orange', 2:'pink', 3:'red'})
 
     lines = []
     f = open(input, "rb")

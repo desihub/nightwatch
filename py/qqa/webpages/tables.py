@@ -144,14 +144,12 @@ get_explinks({})
 
             
 
-def write_exposures_tables(indir,outdir, exposures, nights=None, qproc_fails=[]):
+def write_exposures_tables(indir,outdir, exposures, nights=None, qproc_fails=None):
     """
     outfile: output HTML files to outdir/YEARMMDD/exposures.html
     exposures: table with columns NIGHT, EXPID
     nights: optional list of nights to process
     """
-    import IPython
-    IPython.embed()
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
@@ -196,7 +194,17 @@ def write_exposures_tables(indir,outdir, exposures, nights=None, qproc_fails=[])
                     short_name = qatype.split("_")[1].lower()
 
                     expinfo[qatype] = qastatus.name
-                    expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(expid=expid, name=short_name)
+                    expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(
+                        expid=expid, name=short_name)
+            #- Adds qproc to the expid status
+            if qproc_fails is None:
+                expinfo['QPROC'] = '-'
+            else:
+                if len(qproc_fails) == 0:
+                    expinfo['QPROC'] = 'ok'
+                else:
+                    expinfo['QPROC'] = 'error'
+            expinfo['QPROC_link'] = '{expid:08d}/qa-summary-{expid:08d}-logfiles_table.html'.format(expid=expid)
 
             explist.append(expinfo)
 

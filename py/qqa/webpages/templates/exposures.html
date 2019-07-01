@@ -38,13 +38,14 @@
 <table>
 <tr>
   <th colspan="5">Metadata</th>
-  <th colspan="6">QA Status</th>
+  <th colspan="7">QA Status</th>
 <tr>
   <th>NIGHT</th>
   <th>EXPID</th>
   <th>FLAVOR</th>
   <th>EXPTIME</th>
   <th>SPECTROS</th>
+  <th>Qproc</th>
   <th>Amp</th>
   <th>Camera</th>
   <th>Fiber</th>
@@ -60,6 +61,12 @@
   <td>{{ exp.flavor }}</td>
   <td>{{ exp.exptime }}</td>
   <td>{{ exp.spectros }}</td>
+
+{% if exp.QPROC_LINK != "na" %}
+  <td><a href="{{ exp.QPROC_link }}">{{ exp.QPROC }}</a></td>
+{% else %}
+  <td>{{ exp.QPROC }}</td>
+{% endif %}
 
 {% if exp.PER_AMP_link != "na" %}
   <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>

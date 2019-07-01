@@ -156,12 +156,7 @@ def main_monitor(options=None):
 
                 if not run_batch_qproc:
                     print('Running qproc on {}'.format(rawfile))
-                    #- TODO: delete
-                    print('qproc_fails is ')
-                    print(qproc_fails)
                     header = run.run_qproc(rawfile, outdir, cameras=cameras, qproc_fails=qproc_fails)
-                    print('qproc fails is ')
-                    print(qproc_fails)
 
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
@@ -180,7 +175,7 @@ def main_monitor(options=None):
                 run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
                                cameras=cameras, qproc_fails=qproc_fails)
 
-                run.write_tables(args.outdir, args.plotdir, qfails=qproc_fails)
+                run.write_tables(args.outdir, args.plotdir, qproc_fails=qproc_fails)
 
                 time_end = time.time()
                 dt = (time_end - time_start) / 60

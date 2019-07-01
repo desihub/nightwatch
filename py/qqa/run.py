@@ -134,7 +134,7 @@ def which_cameras(rawfile):
 
     return sorted(cameras)
 
-def runcmd(command, logfile, msg):
+def runcmd(command, logfile, msg, fails=[]):
     args = command.split()
     print('Logging {} to {}'.format(msg, logfile))
     with open(logfile, 'w') as logfx:
@@ -148,11 +148,11 @@ def runcmd(command, logfile, msg):
     if err == 0:
         print('SUCCESS {}'.format(msg))
     if err != 0:
-        #- TODO: delete
+        fails.append(logfile)
         print('ERROR {} while running {}'.format(err, msg))
         print('See {}'.format(logfile))
     
-    return logfile
+#     return logfile
     
 
 def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
@@ -270,18 +270,21 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, qproc_fails=[]):
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
+    #- TODO: delete
+    ncpu = 1
 
     if ncpu > 1:
+        [qproc_fails.append([]) for _ in range(len(cmdlist))]
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(
             ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
-        pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
+        pool.starmap(runcmd, zip(cmdlist, loglist, msglist, qproc_fails))
         pool.close()
         pool.join()
     else:
         log.info('Running qproc serially for {} cameras'.format(ncpu))
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
-            runcmd(cmd, logfile, msg)
+            runcmd(cmd, logfile, msg, qproc_fails)
             
     return hdr
 
