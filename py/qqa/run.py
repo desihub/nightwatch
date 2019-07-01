@@ -53,9 +53,10 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
         startdate = ''
     all_nights = sorted(os.listdir(datadir))
     #- Search for the earliest unprocessed datadir/YYYYMMDD
-    for night in list_nights:
+    for night in all_nights:
         nightdir = os.path.join(datadir, night)
-        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and dirname >= startdate:
+        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and \
+                night >= startdate:
             for expid in sorted(os.listdir(nightdir)):
                 expdir = os.path.join(nightdir, expid)
                 if re.match('\d{8}', expid) and os.path.isdir(expdir):
@@ -80,29 +81,43 @@ def find_latest_expdir(basedir, processed, startdate=None):
         startdate : the earliest night to consider processing YYYYMMDD
 
     Returns directory, or None if no matching directories are found
+
+    Note: if you want the first unprocessed directory, use
+    `find_unprocessed_expdir` instead
     '''
     if startdate:
         startdate = str(startdate)
     else:
         startdate = ''
+
+    log = desiutil.log.get_logger()
     #- Search for most recent basedir/YEARMMDD
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
-        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir) and dirname >= startdate:
-            night = dirname
-            for dirname in sorted(os.listdir(nightdir)):
-                expid = dirname
-                expdir = os.path.join(nightdir, dirname)
-                if expdir in processed:
-                    continue
-                fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
-                if re.match('\d{8}', dirname) and os.path.isdir(expdir) and fits_fz_exists:
-                    return expdir
-                else:
-                    print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
-            #else:
-            #    return None  #- no basename/YEARMMDD/EXPID directory was found
+        if re.match('20\d{6}', dirname) and dirname >= startdate and \
+                os.path.isdir(nightdir):
+            break
+    #- if for loop completes without finding nightdir to break, run this else
     else:
+        log.debug('No YEARMMDD dirs found in {}'.format(basedir))
+        return None
+
+    night = dirname
+    for dirname in sorted(os.listdir(nightdir)):
+        expdir = os.path.join(nightdir, dirname)
+        if expdir in processed:
+            continue
+
+        expid = dirname
+        datafilename = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
+        if os.path.isfile(datafilename):
+            log.debug('Found {}'.format(datafilename))
+            return expdir
+        else:
+            log.debug('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
+            processed.add(expdir)  #- so that we won't check again
+    else:
+        log.debug('No new exposures found')
         return None  #- no basename/YEARMMDD directory was found
 
 def which_cameras(rawfile):
@@ -209,6 +224,16 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         log.error(str(e))
         raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
+
+    #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
+    if night == '        ':
+        log.error('Correcting blank NIGHT keyword based upon directory structure')
+        #- /path/to/NIGHT/EXPID/rawfile.fits
+        night = os.path.basename(os.path.dirname(os.path.dirname(os.path.abspath(rawfile))))
+        if re.match('20\d{6}', night):
+            log.info('Setting NIGHT to {}'.format(night))
+        else:
+            raise RuntimeError('Unable to derive NIGHT for {}'.format(rawfile))
 
     cmdlist = list()
     loglist = list()
@@ -390,6 +415,8 @@ def write_tables(indir, outdir):
     from pkg_resources import resource_filename
     from shutil import copyfile
 
+    log = desiutil.log.get_logger()
+
     #- Hack: parse the directory structure to learn nights
     rows = list()
     for dirname in sorted(os.listdir(indir)):
@@ -398,9 +425,13 @@ def write_tables(indir, outdir):
             night = int(dirname)
             for dirname in sorted(os.listdir(nightdir), reverse=True):
                 expdir = os.path.join(nightdir, dirname)
-                if re.match('\d{8}', dirname) and os.path.isdir(expdir):
+                if re.match('\d{8}', dirname):
                     expid = int(dirname)
-                    rows.append(dict(NIGHT=night, EXPID=expid))
+                    qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
+                    if os.path.exists(qafile):
+                        rows.append(dict(NIGHT=night, EXPID=expid))
+                    else:
+                        log.error('Missing {}'.format(qafile))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)

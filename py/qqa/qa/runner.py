@@ -42,7 +42,7 @@ class QARunner(object):
         preprocfiles = sorted(glob.glob('{}/preproc-*.fits'.format(indir)))
         if len(preprocfiles) == 0:
             log.error('No preproc files found in {}'.format(indir))
-            raise RuntimeError
+            return None
 
         # We can have different flavors (signal+dark) with calibration data
         # obtained with a calibration slit hooked to a single spectrograph.
