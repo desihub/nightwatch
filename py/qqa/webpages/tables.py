@@ -142,6 +142,8 @@ The first and last exposure have prev/next as [null, null]
 get_explinks({})
 """.format(json.dumps(links[night], indent=2)))
 
+            
+
 def write_exposures_tables(indir,outdir, exposures, nights=None):
     """
     outfile: output HTML files to outdir/YEARMMDD/exposures.html

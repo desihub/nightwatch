@@ -20,6 +20,7 @@ input {
 
 table {
   border-collapse: collapse;
+  position: fixed;
 }
 
 .container{
@@ -28,24 +29,56 @@ table {
 .flex-item{
   flex-grow: 1;
 }
+
+#logfile{
+    max-width: 65%;
+    overflow: auto;
+    height: 100%;
+    padding-right:10px;
+}
+
 </style>
+
+{% if not current %}
+<header>
+  Logfiles Table
+</header>
+{% endif %}
+
 <div class="container">
-  <div class=flex-item>
-    <div>{{plot_script}} {{plot_div}}</div>
+    {% if current %}
+  <div class=flex-item id="logfile">
+      {% for line in logfile %}
+      <pre style="white-space:pre-line;overflow-wrap:break-word;">{{ line }}</pre>
+      {% endfor %}
   </div>
-  <div class=flex-item>
+    {% endif %}
+  <div class=flex-item style="padding-right:10px">
     <br>
     <table border="1" cellpadding="8">
+      <tr>
+        <td colspan="1"></td>
+        <td colspan="10"><text style="font-weight:bold">Spectrograph<text></td>
+      </tr>
   {% for c in ["b", "r", "z"] %}
   <tr>
+    {% if c == "b" %}
+      <td rowspan=3>  <text  style="font-weight:bold" >Cam<text></td>
+    {% endif %}
     {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
     <td {% if c + i == current %} bgcolor="#6495ed" {% endif %}>
       {% if (c+i != current) and (c+i in available) %}
-    <a href="preproc-{{c}}{{i}}-{{zexpid}}-{{downsample}}x.html">
+    <a href="qproc-{{c}}{{i}}-{{zexpid}}-logfile.html">
       {% endif %}
+      
+      {% if not current %}
       <font size="6">
+      {% endif %}
         <text {% if c + i in available %} style="font-weight:bold" {% endif %}>{{c}}{{i}}<text>
+      {% if not current %}
       </font>
+      {% endif %}
+
       {% if (c+i != current) and (c+i in available) %}
     </a>
       {% endif %}
@@ -54,12 +87,7 @@ table {
   </tr>
   {% endfor %}
 </table>
-<br>
-<div>Downsample: <input size="4" type="number" id = "down" value={{downsample}}></div>
-<button onclick='
-    var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
-    window.open(url, "_top")
-    '>Generate</button>
-  </div>
 </div>
+</div>
+
 {% endblock %}

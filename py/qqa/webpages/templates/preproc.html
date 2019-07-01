@@ -28,24 +28,25 @@ table {
 .flex-item{
   flex-grow: 1;
 }
-
-header {
-  font-weight:bold;
-  font-size: 25px;
-}
 </style>
+
+{% if not current %}
 <header>
-  <font face="arial">
-  Preproc Image Generator:
-  </font>
+  Preproc Image Generator
 </header>
+{% endif %}
 <div class="container">
+    {% if current %}
   <div class=flex-item>
+    <div>{{plot_script}} {{plot_div}}</div>
+  </div>
+    {% endif %}
+  <div class=flex-item style="padding-right:10px">
     <br>
     <table border="1" cellpadding="8">
       <tr>
         <td colspan="1"></td>
-        <td colspan="10" >  <text style="font-weight:bold" >Spectrograph<text></td>
+        <td colspan="10"><text style="font-weight:bold">Spectrograph<text></td>
       </tr>
   {% for c in ["b", "r", "z"] %}
   <tr>
@@ -57,9 +58,13 @@ header {
       {% if (c+i != current) and (c+i in available) %}
     <a href="preproc-{{c}}{{i}}-{{zexpid}}-{{downsample}}x.html">
       {% endif %}
+      {% if not current %}
       <font size="6">
+      {% endif %}
         <text {% if c + i in available %} style="font-weight:bold" {% endif %}>{{c}}{{i}}<text>
+      {% if not current %}
       </font>
+      {% endif %}
       {% if (c+i != current) and (c+i in available) %}
     </a>
       {% endif %}
@@ -69,5 +74,13 @@ header {
   {% endfor %}
 </table>
 <br>
-
+{% if current and downsample %}
+<div>Downsample: <input size="4" type="number" id = "down" value={{downsample}}></div>
+<button onclick='
+    var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
+    window.open(url, "_top")
+    '>Generate</button>
+{% endif %}
+  </div>
+</div>
 {% endblock %}
