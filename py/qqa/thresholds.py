@@ -7,7 +7,7 @@ import fitsio
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot, column
 from bokeh.models import TapTool as TapTool
-from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
+from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS, Span
 from qqa.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
@@ -298,3 +298,34 @@ def get_threshold_table(filepath):
 
     data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
     return data_table
+
+def plot_histogram(src, bins, amps=None):
+    ids = []
+    if amps == None:
+        ids += list(np.arange(0, len(src)))
+    else:
+        ids += get_amp_rows(amps)
+    src_selected = np.array(src)[np.array(ids)]
+    cam_figs = []
+    for cam in ['B', 'R', 'Z']:
+        fig = bk.figure(plot_height=350, plot_width=450)
+        colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
+        cam_src = [s for s in src_selected if s['CAM']==cam]
+        aspect_data = []
+        for src in cam_src:
+            aspect_data += list(src['aspect_values'])
+        
+        hist, edges = np.histogram(aspect_data, density=True, bins=bins)
+        fig.quad(top=hist, bottom=0, left=edges[:-1], right=edges[1:], 
+                 fill_color=colors[cam], line_color='black', alpha=0.70)
+        fig.add_layout(Span(location=np.percentile(aspect_data, 1),
+                            dimension='height', line_color='black',
+                            line_width=3,
+                           ))
+        fig.add_layout(Span(location=np.percentile(aspect_data, 99),
+                            dimension='height', line_color='black',
+                            line_width=3,
+                           ))
+        cam_figs.append(fig)
+        
+    return column(cam_figs)
