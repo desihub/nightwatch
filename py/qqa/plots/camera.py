@@ -31,7 +31,14 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
     cam_figs=[]
     colors = {"B":"blue", "R":"red", "Z":"green"}
     for cam in ["B", "R", "Z"]:
+        
         cam_table = astrotable[astrotable["CAM"]==cam]
+
+        if len(cam_table) == 0:
+            #- Create placeholder fig if not data for this camera
+            fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
+            continue
+
         fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam)
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],

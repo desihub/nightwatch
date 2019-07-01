@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
+{% block navigation %}
+
+<ul class="navigationbar">
+  <li style="float:left"><a id="nights" href = "../../../../../nights.html">nights</a></li>
+  <li style="float:left"><a>{{attribute}} Timeseries from {{start}} to {{end}} (inclusive)</a></li>
+</ul>
+
+{% endblock %}
+
 {% block body %}
 
 {# Rendering arguments: attribute, start, end, timeseries(.script, .div) #}
@@ -21,25 +30,15 @@ input {
   margin-left: 10px;
 }
 
-.container{
-  display: flex;
+header {
+  font-weight:bold;
+  font-size: 25px;
 }
-.flex-item{
-  flex-grow: 1;
-}
+
 </style>
 
-<button onclick='
-  var url = "../../../../../nights.html"
-
-  window.open(url, "_top")
-'>Nights</button>
-
-<header><strong>{{attribute}} Timeseries from {{start}} to {{end}} (inclusive)</strong></header>
-
-<div class="container">
 {% if timeseries %}
-    <div class=flex-item>{{ timeseries.script }} {{ timeseries.div }}</div>
+    <div>{{ timeseries.script }} {{ timeseries.div }}</div>
 {% endif %}
 <script src="../../../../cal_files/jquery_min.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
@@ -50,7 +49,7 @@ input {
     $( "#end" ).datepicker({ dateFormat: 'yymmdd' });
   } );
 </script>
-<div class=flex-item>
+<div>
 <label>start date: <input type="number" id = "start" value = {{start}}></label>
 <label>end date: <input type="number" id = "end" value = {{end}}></label>
 <label>hdu:
@@ -79,7 +78,6 @@ input {
   var url = "../../../" + document.getElementById("start").value + "/" + document.getElementById("end").value + "/" +  document.getElementById("hdu").value + "/" +  document.getElementById("attribute").value
   window.open(url, "_top")
 '>Generate Timeseries</button>
-</div>
 <script>
 function changed(new_val) {
   {% for hdu_ in dropdown_hdu %}

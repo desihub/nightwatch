@@ -6,13 +6,14 @@ from bokeh.embed import components
 
 from ..plots import spectra
 
-def get_spectra_html(data, expid, view, downsample_str, select_string = None):
+def get_spectra_html(data, night, expid, view, frame, downsample_str, select_string = None):
     '''
     Generates the html for the page conatining spectra plots. The format of
     the page depends on the provided view.
 
     Args:
         data: night directory that contains the expid we want to process spectra for
+        night : string or int of the night we want to process spectra for
         expid: string or int of the expid we want to process spectra for
         view: must be either "spectrograph", "objtype", "input".
             "spectrograph":
@@ -21,6 +22,7 @@ def get_spectra_html(data, expid, view, downsample_str, select_string = None):
                 generates different plots corresponding to each different objtype
             "input":
                 generates different plots corresponding to the user's input
+        frame: filename header to look for ("qframe" or "qcframe")
         downsample_str: string corresponding to downsample, structured like "4x".
             if None, assumes "4x"
 
@@ -35,14 +37,25 @@ def get_spectra_html(data, expid, view, downsample_str, select_string = None):
         print("No such view " + view, file=sys.stderr)
         return "No such view " + view
 
+    if frame not in ["qcframe", "qframe"]:
+        print("No such frame " + str(frame), file=sys.stderr)
+        frame = "qframe"
+
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('spectra.html')
 
     html_components = dict(
-        bokeh_version=bokeh.__version__
+        bokeh_version=bokeh.__version__, night=night, expid=int(expid),
+        zexpid='{:08d}'.format(expid), downsample=downsample_str, # spectra=True,
     )
+    
+    num_dirs = 6 #night/expid/spectra/view/.../frame/downsample-x
+    add_dirs = len(select_string.split("/")) if select_string else 0
+    html_components['num_dirs'] = num_dirs + add_dirs
+    
+    
     if downsample_str is None:
         downsample = 4
     else:
@@ -54,27 +67,40 @@ def get_spectra_html(data, expid, view, downsample_str, select_string = None):
             return("invalid downsample")
 
     html_components["downsample"] = downsample
+    html_components["view"] = view.capitalize()
+    html_components["expid"] = str(expid).zfill(8)
+    html_components["frame"] = frame
+
     #- Generate the bokeh figure
     if view == "spectrograph":
-        fig = spectra.plot_spectra_spectro(data, expid, downsample)
+        fig = spectra.plot_spectra_spectro(data, expid, frame, downsample)
     elif view == "objtype":
-        fig = spectra.plot_spectra_objtype(data, expid, downsample)
+        fig = spectra.plot_spectra_objtype(data, expid, frame, downsample)
     elif view == "input":
         html_components["input"] = True
         fig = None
         if select_string != None:
             select_string =select_string.replace(" ", "")
             html_components["select_str"] = select_string
-            fig = spectra.plot_spectra_input(data, expid, downsample, select_string)
+            fig = spectra.plot_spectra_input(data, expid, frame, downsample, select_string)
             if fig is None:
                 return "None selected"
+        if fig:
+            script, div = components(fig)
+            #- Save those in a dictionary to use later
+            html_components['spectra'] = dict(script=script, div=div)
+        #- Combine template + components -> HTML
+        html = template.render(**html_components)
+        return html
 
     if fig:
         #- Convert that into the components to embed in the HTML
         script, div = components(fig)
         #- Save those in a dictionary to use later
         html_components['spectra'] = dict(script=script, div=div)
-    #- Combine template + components -> HTML
-    html = template.render(**html_components)
+        #- Combine template + components -> HTML
+        html = template.render(**html_components)
+        return html
 
-    return html
+    else:
+        return "no {}-*-{}.fits files found".format(frame, str(expid).zfill(8))

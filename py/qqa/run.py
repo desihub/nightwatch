@@ -31,10 +31,17 @@ def get_ncpu(ncpu):
 
     return ncpu
 
-def find_unprocessed_expdir(datadir, outdir):
+
+def find_unprocessed_expdir(datadir, outdir, startdate=None):
     '''
-    Returns the earliest basedir/YEARMMDD/EXPID that has not yet been processed
+    Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
+
+    Args:
+        datadir : a directory of nights with exposures
+        outdir : TODO DOCUMENTATION
+    Options:
+        startdate : the earliest night to consider processing YYYYMMDD
 
     Returns directory, of None if no unprocessed directories were found
     (either because no inputs exist, or because all inputs have been processed)
@@ -42,45 +49,78 @@ def find_unprocessed_expdir(datadir, outdir):
     Warning: traverses the whole tree every time.
     TODO: cache previously identified already-processed data and don't rescan.
     '''
-    for night in sorted(os.listdir(datadir)):
+    if startdate:
+        startdate = str(startdate)
+    else:
+        startdate = ''
+    all_nights = sorted(os.listdir(datadir))
+    #- Search for the earliest unprocessed datadir/YYYYMMDD
+    for night in all_nights:
         nightdir = os.path.join(datadir, night)
-        if re.match('20\d{6}', night) and os.path.isdir(nightdir):
+        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and \
+                night >= startdate:
             for expid in sorted(os.listdir(nightdir)):
                 expdir = os.path.join(nightdir, expid)
                 if re.match('\d{8}', expid) and os.path.isdir(expdir):
-                    qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
-                    if not os.path.exists(qafile):
-                        return expdir
+                    fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
+                    if fits_fz_exists:
+                        qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
+                        if not os.path.exists(qafile):
+                            return expdir
+                    else:
+                        print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
 
     return None
 
-def find_latest_expdir(basedir, processed):
+def find_latest_expdir(basedir, processed, startdate=None):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
     YEARMMDD without traversing the whole tree
-
-    processed: set of exposure directories already processed
+    Args:
+        basedir : a directory of nights with exposures
+        processed : set of exposure directories already processed
+    Options:
+        startdate : the earliest night to consider processing YYYYMMDD
 
     Returns directory, or None if no matching directories are found
+
+    Note: if you want the first unprocessed directory, use
+    `find_unprocessed_expdir` instead
     '''
+    if startdate:
+        startdate = str(startdate)
+    else:
+        startdate = ''
+
+    log = desiutil.log.get_logger()
     #- Search for most recent basedir/YEARMMDD
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
-        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
+        if re.match('20\d{6}', dirname) and dirname >= startdate and \
+                os.path.isdir(nightdir):
             break
+    #- if for loop completes without finding nightdir to break, run this else
     else:
-        return None  #- no basename/YEARMMDD directory was found
+        log.debug('No YEARMMDD dirs found in {}'.format(basedir))
+        return None
 
+    night = dirname
     for dirname in sorted(os.listdir(nightdir)):
         expdir = os.path.join(nightdir, dirname)
         if expdir in processed:
             continue
-        if re.match('\d{8}', dirname) and os.path.isdir(expdir):
-            break
-    else:
-        return None  #- no basename/YEARMMDD/EXPID directory was found
 
-    return expdir
+        expid = dirname
+        datafilename = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
+        if os.path.isfile(datafilename):
+            log.debug('Found {}'.format(datafilename))
+            return expdir
+        else:
+            log.debug('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
+            processed.add(expdir)  #- so that we won't check again
+    else:
+        log.debug('No new exposures found')
+        return None  #- no basename/YEARMMDD directory was found
 
 def which_cameras(rawfile):
     '''
@@ -151,6 +191,8 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
             ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.map(desispec.scripts.preproc.main, arglist)
+        pool.close()
+        pool.join()
     else:
         log.info('Running preproc serially for {} cameras'.format(ncpu))
         for args in arglist:
@@ -184,6 +226,16 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         log.error(str(e))
         raise(e)
     indir = os.path.abspath(os.path.dirname(rawfile))
+
+    #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
+    if night == '        ':
+        log.error('Correcting blank NIGHT keyword based upon directory structure')
+        #- /path/to/NIGHT/EXPID/rawfile.fits
+        night = os.path.basename(os.path.dirname(os.path.dirname(os.path.abspath(rawfile))))
+        if re.match('20\d{6}', night):
+            log.info('Setting NIGHT to {}'.format(night))
+        else:
+            raise RuntimeError('Unable to derive NIGHT for {}'.format(rawfile))
 
     cmdlist = list()
     loglist = list()
@@ -220,6 +272,8 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
+        pool.close()
+        pool.join()
     else:
         log.info('Running qproc serially for {} cameras'.format(ncpu))
         for cmd, logfile in zip(cmdlist, loglist, msglist):
@@ -240,21 +294,23 @@ def run_qa(indir, outfile=None, qalist=None):
 
     Returns dictionary of QA results, keyed by PER_AMP, PER_CCD, PER_FIBER, ...
     """
-    from .qa import QARunner
+    from .qa.runner import QARunner
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, outdir, preprocdir=None, cameras=None):
+def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
         infile: input QA fits file with HDUs like PER_AMP, PER_FIBER, ...
-        outdir: write output HTML files to this directory
+        basedir: write output HTML to basedir/NIGHT/EXPID/
 
     Options:
         preprocdir: directory to where the "preproc-*-*.fits" are located. If
             not provided, function will NOT generate any image files from any
             preproc fits file.
+        logdir: directory to where the "qproc-*-*.log" are located. If
+            not provided, function will NOT display any logfiles.
         cameras: list of cameras (strings) to generate image files of. If not
             provided, will generate a cameras list from parcing through the
             preproc fits files in the preprocdir
@@ -265,12 +321,10 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
     from qqa.webpages import camfiber as web_camfiber
     from qqa.webpages import camera as web_camera
     from qqa.webpages import summary as web_summary
+    from qqa.webpages import lastexp as web_lastexp
     from . import io
 
     log = desiutil.log.get_logger()
-    if not os.path.isdir(outdir):
-        log.info('Creating {}'.format(outdir))
-        os.makedirs(outdir, exist_ok=True)
 
     qadata = io.read_qa(infile)
     header = qadata['HEADER']
@@ -286,31 +340,45 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
         night = int(dirnight)
         header['NIGHT'] = night
 
+    #- Create output exposures plot directory if needed
+    expdir = os.path.join(basedir, str(night), '{:08d}'.format(expid))
+    if not os.path.isdir(expdir):
+        log.info('Creating {}'.format(expdir))
+        os.makedirs(expdir, exist_ok=True)
+
     plot_components = dict()
     if 'PER_AMP' in qadata:
-        htmlfile = '{}/qa-amp-{:08d}.html'.format(outdir, expid)
+        htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
         pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMFIBER' in qadata:
-        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(outdir, expid)
+        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
         pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
     if 'PER_CAMERA' in qadata:
-        htmlfile = '{}/qa-camera-{:08d}.html'.format(outdir, expid)
+        htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
         pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
 
-    htmlfile = '{}/qa-summary-{:08d}.html'.format(outdir, expid)
-    web_summary.write_summary_html(htmlfile, qadata, plot_components)
+    htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
+    web_summary.write_summary_html(htmlfile, qadata, preprocdir)
+    print('Wrote {}'.format(htmlfile))
+    
+    #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
+    htmlfile = '{}/qa-lastexp.html'.format(basedir)
+    web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
 
-    from qqa.webpages import plotimage
+    from qqa.webpages import plotimage as web_plotimage
     if (preprocdir is not None):
+        #- plot preprocessed images
+        downsample = 4
+
         if cameras is None:
             cameras = []
             import glob
@@ -318,8 +386,29 @@ def make_plots(infile, outdir, preprocdir=None, cameras=None):
                 cameras += [os.path.basename(preprocfile).split('-')[1]]
         for camera in cameras:
             input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
-            output = os.path.join(outdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
-            plotimage.write_image_html(input, output, 4)
+            output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
+            web_plotimage.write_image_html(input, output, downsample, night)
+
+        #- plot preproc nav table
+        navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
+        web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
+
+    if (logdir is not None):
+        #- plot logfiles
+        if cameras is None:
+            cameras = []
+            import glob
+            for logfile in glob.glob(os.path.join(logdir, 'qproc-*-*.log')):
+                cameras += [os.path.basename(logfile).split('-')[1]]
+        for camera in cameras:
+            input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(camera, expid))
+            output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(camera, expid))
+            web_summary.write_logfile_html(input, output, night)
+
+        #- plot logfile nav table
+        htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
+        web_summary.write_logtable_html(htmlfile, logdir, night, expid)
+
 
 def write_tables(indir, outdir):
     import re
@@ -327,6 +416,8 @@ def write_tables(indir, outdir):
     from qqa.webpages import tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
+
+    log = desiutil.log.get_logger()
 
     #- Hack: parse the directory structure to learn nights
     rows = list()
@@ -336,9 +427,13 @@ def write_tables(indir, outdir):
             night = int(dirname)
             for dirname in sorted(os.listdir(nightdir), reverse=True):
                 expdir = os.path.join(nightdir, dirname)
-                if re.match('\d{8}', dirname) and os.path.isdir(expdir):
+                if re.match('\d{8}', dirname):
                     expid = int(dirname)
-                    rows.append(dict(NIGHT=night, EXPID=expid))
+                    qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
+                    if os.path.exists(qafile):
+                        rows.append(dict(NIGHT=night, EXPID=expid))
+                    else:
+                        log.error('Missing {}'.format(qafile))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)

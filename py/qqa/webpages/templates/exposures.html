@@ -5,7 +5,8 @@
   <li style="float:left"><a>Exposures on night {{ night }}</a></li>
   <li><a id="next">next</a></li>
   <li><a id="prev">prev</a></li>
-  <li><a href="../nights.html">calendar</a></li>
+  <li><a href="../nights.html">nights</a></li>
+  <li><a href="../qa-lastexp.html">latest</a></li>
 </ul>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
@@ -28,15 +29,22 @@
 </script>
 <script src="../nightlinks.js"></script>
 
+{#
+<p>
+<a href="../qa-lastexp.html">Summary of latest exposure</a> (auto-updating)
+</p>
+#}
+
 <table>
 <tr>
-  <th colspan="4">Metadata</th>
+  <th colspan="5">Metadata</th>
   <th colspan="6">QA Status</th>
 <tr>
   <th>NIGHT</th>
   <th>EXPID</th>
   <th>FLAVOR</th>
   <th>EXPTIME</th>
+  <th>SPECTROS</th>
   <th>Amp</th>
   <th>Camera</th>
   <th>Fiber</th>
@@ -45,12 +53,13 @@
   <th>Exp</th>
 </tr>
 
-{% for exp in exposures %}
+{% for exp in exposures|reverse %}
 <tr>
   <td>{{ exp.night }}</td>
   <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
   <td>{{ exp.flavor }}</td>
   <td>{{ exp.exptime }}</td>
+  <td>{{ exp.spectros }}</td>
 
 {% if exp.PER_AMP_link != "na" %}
   <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>
