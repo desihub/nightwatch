@@ -193,7 +193,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
         pool.close()
         pool.join()
     else:
-        log.info('Running preproc serially for {} cameras'.format(ncpu))
+        log.info('Running preproc serially for {} cameras'.format(len(cameras)))
         for args in arglist:
             desispec.scripts.preproc.main(args)
 
@@ -266,17 +266,16 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
 
-    if ncpu > 1:
-        log.info('Running qproc in parallel on {} cores for {} cameras'.format(
-            ncpu, len(cameras) ))
+    if ncpu > 1 and len(cameras)>1 :
+        log.info('Running qproc in parallel on {} cores for {} cameras'.format(ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
         pool.close()
         pool.join()
     else:
-        log.info('Running qproc serially for {} cameras'.format(ncpu))
-        for cmd, logfile in zip(cmdlist, loglist, msglist):
-            runcmd(cmd, logfile)
+        log.info('Running qproc serially for {} cameras'.format(len(cameras)))
+        for cmd, logfile, msg  in zip(cmdlist, loglist, msglist):
+            runcmd(cmd, logfile, msg)
 
     return hdr
 
