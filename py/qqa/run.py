@@ -30,7 +30,7 @@ def get_ncpu(ncpu):
     return ncpu
 
 
-def find_unprocessed_expdir(datadir, outdir, startdate=None):
+def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
     '''
     Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
@@ -63,7 +63,8 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
                     fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
                     if fits_fz_exists:
                         qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
-                        if not os.path.exists(qafile):
+                        if (not os.path.exists(qafile)) and (expdir not in processed):
+                            processed.add(expdir)
                             return expdir
                     else:
                         print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
@@ -366,7 +367,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
-    
+
     #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
     htmlfile = '{}/qa-lastexp.html'.format(basedir)
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
