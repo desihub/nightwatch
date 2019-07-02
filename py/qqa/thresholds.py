@@ -95,7 +95,7 @@ def pick_threshold_file(name, night):
         filepath += os.path.join(threshold_dir, files[-1])
     return filepath
 
-def get_thresholds(filepath, return_keys=True):
+def get_thresholds(filepath, return_keys=None):
     '''Unpack threshold values to use in plotting amp graphs'''
     with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
@@ -141,7 +141,7 @@ def get_thresholds(filepath, return_keys=True):
     
     if return_keys:
         return lower, upper, real_keys
-    else:
+    if return_keys = None:
         return lower, upper 
     
 
