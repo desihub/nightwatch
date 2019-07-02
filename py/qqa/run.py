@@ -134,7 +134,7 @@ def which_cameras(rawfile):
 
     return sorted(cameras)
 
-def runcmd(command, logfile, msg, fails=[]):
+def runcmd(command, logfile, msg):
     args = command.split()
     print('Logging {} to {}'.format(msg, logfile))
     with open(logfile, 'w') as logfx:
@@ -148,11 +148,9 @@ def runcmd(command, logfile, msg, fails=[]):
     if err == 0:
         print('SUCCESS {}'.format(msg))
     if err != 0:
-        fails.append(logfile)
         print('ERROR {} while running {}'.format(err, msg))
         print('See {}'.format(logfile))
     
-#     return logfile
     
 
 def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
@@ -203,7 +201,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return header
 
-def run_qproc(rawfile, outdir, ncpu=None, cameras=None, qproc_fails=[]):
+def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the flavor of the rawfile, and run qproc with appropriate options
 
@@ -270,20 +268,17 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None, qproc_fails=[]):
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
-    #- TODO: delete
-    ncpu = 1
 
     if ncpu > 1 and len(cameras)>1 :
-        [qproc_fails.append([]) for _ in range(len(cmdlist))]
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
-        pool.starmap(runcmd, zip(cmdlist, loglist, msglist, qproc_fails))
+        pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
         pool.close()
         pool.join()
     else:
         log.info('Running qproc serially for {} cameras'.format(ncpu))
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
-            runcmd(cmd, logfile, msg, qproc_fails)
+            runcmd(cmd, logfile, msg)
 
     return hdr
 
@@ -304,7 +299,7 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None, qproc_fails=[]):
+def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
@@ -381,16 +376,31 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None, qpro
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
 
+    #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
+    #- generated preproc files to generated logfiles
+    qproc_fails = []    
+    if cameras is None:
+        cameras = []
+        import glob
+        for preprocfile in glob.glob(os.path.join(preprocdir, 'preproc-*-*.fits')):
+            cameras += [os.path.basename(preprocfile).split('-')[1]]
+    
+    log_cams = []
+    log_outputs = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
+    for log in log_outputs:
+        l_cam = log.split("-")[1]
+        log_cams += [l_cam]
+        if l_cam not in cameras:
+            #- TODO: delete
+            print('appending ' + l_cam + ' to qproc_fails')
+            qproc_fails.append(l_cam)
+        
+    
     from qqa.webpages import plotimage as web_plotimage
     if (preprocdir is not None):
         #- plot preprocessed images
         downsample = 4
 
-        if cameras is None:
-            cameras = []
-            import glob
-            for preprocfile in glob.glob(os.path.join(preprocdir, 'preproc-*-*.fits')):
-                cameras += [os.path.basename(preprocfile).split('-')[1]]
         for camera in cameras:
             input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
             output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
@@ -401,28 +411,23 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None, qpro
         web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
 
     if (logdir is not None):
-        #- plot logfiles
-        if cameras is None:
-            cameras = []
-            import glob
-            for logfile in glob.glob(os.path.join(logdir, 'qproc-*-*.log')):
-                cameras += [os.path.basename(logfile).split('-')[1]]
+        #- plot logfiles        
 
         error_colors = dict()
-        for camera in cameras:
-            input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(camera, expid))
-            output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(camera, expid))
+        for log_cam in log_cams:
+            input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(log_cam, expid))
+            output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(log_cam, expid))
             e = web_summary.write_logfile_html(input, output, night)
             
-            error_colors[camera] = e
+            error_colors[log_cam] = e
 
         #- plot logfile nav table
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
-        web_summary.write_logtable_html(htmlfile, logdir, night, expid, error_colors=error_colors,
-                                        qproc_fails=qproc_fails)
+        web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
+                                        error_colors=error_colors, qproc_fails=qproc_fails)
 
 
-def write_tables(indir, outdir, qproc_fails=[]):
+def write_tables(indir, outdir):
     import re
     from astropy.table import Table
     from qqa.webpages import tables as web_tables
@@ -469,6 +474,9 @@ def write_tables(indir, outdir, qproc_fails=[]):
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
 
+    '''TODO: qproc_fails '''
+    qproc_fails = None
+    
     web_tables.write_exposures_tables(indir,outdir, exposures, qproc_fails=qproc_fails)
 
 def write_nights_summary(indir, last):

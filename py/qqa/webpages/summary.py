@@ -129,7 +129,8 @@ def write_summary_html(outfile, qadata, qprocdir):
 
 
 
-def write_logtable_html(outfile, logdir, night, expid, error_colors=dict(), qproc_fails=[]):
+def write_logtable_html(outfile, logdir, night, expid, available=None, error_colors=dict(), 
+                        qproc_fails=[]):
     """Write a table of logfiles to outfile
 
     Args:
@@ -152,16 +153,20 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict(), qpro
     if not logdir:
         logdir = ''
     
-    available = []
+    if available==None:
+        available = []
     
-    logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
-    for file in logfiles:
-        available += [file.split("-")[1]]
-    
+        logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
+        for file in logfiles:
+            available += [file.split("-")[1]]
+
     #- Shows all failed qprocs as red
     for qfail in qproc_fails:
-        qfail = qfail.split("-")[1]
         error_colors[qfail] = 'red'
+    
+#     for log_cam in available:
+#         if log_cam not in error_colors:
+#             error_colors[log_cam] = 'green'
     
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
@@ -205,7 +210,7 @@ def write_logfile_html(input, output, night):
     expid = os.path.basename(input).split("-")[2].split(".")[0]
     
     error_level = 0
-    error_colors = dict({1:'orange', 2:'pink', 3:'red'})
+    error_colors = dict({0:'green', 1:'orange', 2:'pink', 3:'red'})
 
     lines = []
     f = open(input, "rb")
@@ -218,10 +223,10 @@ def write_logfile_html(input, output, night):
         elif 'ERROR' in line:
             line = '<span style="color:{};">'.format(error_colors.get(2)) + line + '</span>'
             error_level = max(error_level, 2)
-        elif 'CRITICAL' in line or 'FATAL' in line:
+        elif 'CRITICAL' in line or 'FATAL' in line or 'Traceback' in line:
             line = '<span style="color:{};">'.format(error_colors.get(3)) + line + '</span>'
             error_level = max(error_level, 3)
-        
+
         lines.append(line)
         
     html_components = dict(        
