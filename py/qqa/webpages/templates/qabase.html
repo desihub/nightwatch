@@ -62,9 +62,7 @@ function get_explinks(links) {
         "../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
         "../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/input/";
-        {% elif logfile and current %}
-          "../../"+next_item.night+"/"+next_item.zexpid+"/qproc-{{current}}-"+next_item.zexpid+"-logfile.html";
-        {% elif logfile and not current %}
+        {% elif logfile %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-summary-"+next_item.zexpid+"-logfiles_table.html";
         {% else %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
@@ -84,9 +82,7 @@ function get_explinks(links) {
         "../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
         "../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/input/";
-        {% elif logfile and current %}
-          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qproc-{{current}}-"+prev_item.zexpid+"-logfile.html";
-        {% elif logfile and not current %}
+        {% elif logfile %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-summary-"+prev_item.zexpid+"-logfiles_table.html";
         {% else %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+".html";
