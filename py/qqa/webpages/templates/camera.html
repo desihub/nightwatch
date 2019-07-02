@@ -5,16 +5,12 @@
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
 <style>
-  .container{
-    display: flex;
-    flex-wrap: wrap;
-}
 .flex-item{
     flex-grow: 1;
 }
 </style>
 
-<div class="container">
+<div class="flex-container">
   {% if DX %}
       <div class=flex-item>{{ DX.script }} {{ DX.div }}</div>
   {% endif %}
