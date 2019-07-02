@@ -29,7 +29,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         title=attribute
 
     cam_figs=[]
-    colors = {"B":"blue", "R":"red", "Z":"green"}
+    colors = {"B":"steelblue", "R":"firebrick", "Z":"green"}
     for cam in ["B", "R", "Z"]:
         
         cam_table = astrotable[astrotable["CAM"]==cam]
