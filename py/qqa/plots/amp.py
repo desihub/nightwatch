@@ -154,7 +154,7 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, ymin=None, yma
         fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
             fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
     if name in ['COSMICS_RATE']:
-        fig.add_layout(BoxAnnotation(bottom=lower[0], top=upper[0], fill_alpha=0.1, fill_color='green'))
+        fig.add_layout(BoxAnnotation(bottom=lower[0][0], top=upper[0][0], fill_alpha=0.1, fill_color='green'))
     
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
