@@ -62,6 +62,10 @@ function get_explinks(links) {
         "../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
         "../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/input/";
+        {% elif logfile and current %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qproc-{{current}}-"+next_item.zexpid+"-logfile.html";
+        {% elif logfile and not current %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-summary-"+next_item.zexpid+"-logfiles_table.html";
         {% else %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
         {% endif %}
