@@ -141,7 +141,7 @@ def get_thresholds(filepath, return_keys=None):
     
     if return_keys:
         return lower, upper, real_keys
-    if return_keys = None:
+    if return_keys == None:
         return lower, upper 
     
 
