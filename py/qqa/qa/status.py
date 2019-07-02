@@ -3,10 +3,12 @@ Placeholder code for the concept of raising warnings and errors on metrics
 """
 
 import numpy as np
+import json
 
 from astropy.table import Table
 
 from .base import QA
+from ..thresholds import pick_threshold_file
 
 import enum
 class Status(enum.IntEnum):
@@ -14,7 +16,7 @@ class Status(enum.IntEnum):
     warning = 1
     error = 2
 
-def get_status(qadata):
+def get_status(qadata, night):
     '''
     Placeholder for determining status of input qadata.
     Currently hardcoded; need to move to config file(s).
@@ -39,13 +41,40 @@ def get_status(qadata):
                 status[qatype][col] = data[col]
             else:
                 status[qatype][col] = np.full(n, Status.ok, dtype=np.int16)
-    
     #- Set thresholds for readnoise suspiciously low or high
     data = qadata['PER_AMP']
-    warn = (data['READNOISE'] < 1.5) | (data['READNOISE'] > 4)
-    error = (data['READNOISE'] < 1) | (data['READNOISE'] > 5)
-    status['PER_AMP']['READNOISE'][warn] = Status.warning
-    status['PER_AMP']['READNOISE'][error] = Status.error
+    for metric in ['READNOISE', 'BIAS']:
+        filepath = pick_threshold_file(metric, night)
+        with open(filepath, 'r') as json_file:
+            thresholds = json.load(json_file)
+        for cam in [b'B', b'R', b'Z']:
+            for spec in range(0, 10):
+                for amp in [b'A', b'B', b'C', b'D']:
+                    key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
+                    status_loc = (status['PER_AMP']['AMP'] == amp) & (status['PER_AMP']['SPECTRO']==spec) & (status['PER_AMP']['CAM']==cam)
+                    data_loc = (data['AMP'] == amp) & (data['SPECTRO']==spec) & (data['CAM']==cam)
+                    if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
+                        warn = (data[data_loc][metric] < thresholds[key]['lower']) | (data[data_loc][metric] > thresholds[key]['upper'])
+                        error = (data[data_loc][metric] < 0.5*thresholds[key]['lower']) | (data[data_loc][metric] > 1.5*thresholds[key]['upper'])
+                        if warn: 
+                            status['PER_AMP'][metric][status_loc] = Status.warning
+                        if error:
+                            status['PER_AMP'][metric][status_loc] = Status.error
+                    else:
+                        continue
+    
+    for metric in ['COSMICS_RATE']:
+        filepath = pick_threshold_file(metric, night)
+        with open(filepath, 'r') as json_file:
+            thresholds = json.load(json_file)
+        key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
+        if thresholds['lower'] != None and thresholds['upper'] != None:
+            warn = (data[metric] < thresholds['lower']) | (data[metric] > thresholds['upper'])
+            error = (data[metric] < 0.5*thresholds['lower']) | (data[metric] > 1.5*thresholds['upper']) 
+            status['PER_AMP'][metric][warn] = Status.warning
+            status['PER_AMP'][metric][error] = Status.error
+        else:
+            continue
     
     #- TODO: add more threshold checks here
     

@@ -22,7 +22,7 @@ Supported commands are:
     plot       Generate webpages with plots of QA output
     tables     Generate webpages with tables of nights and exposures
     summary    Generate summary.json for every night available
-    thresholds Generate threshold.json for all metrics, last night available
+    threshold Generate threshold.json for all metrics, last night available
 Run "qqa <command> --help" for details options about each command
 """)
 
