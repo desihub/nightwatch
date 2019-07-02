@@ -63,18 +63,22 @@ table {
   {% for c in ["b", "r", "z"] %}
   <tr>
     {% if c == "b" %}
-      <td rowspan=3>  <text  style="font-weight:bold" >Cam<text></td>
+      <td rowspan=3><text style="font-weight:bold">Cam<text></td>
     {% endif %}
     {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
-    <td {% if c + i == current %} bgcolor="#6495ed" {% endif %}>
+    <td {% if c + i == current %} style="background-color:#6495ed;"
+        {% endif %}>
       {% if (c+i != current) and (c+i in available) %}
     <a href="qproc-{{c}}{{i}}-{{zexpid}}-logfile.html">
       {% endif %}
       
       {% if not current %}
-      <font size="6">
+      <font size="6" 
+            {% if c + i in error_colors %} color={{error_colors.get(c+i)}} 
+            {% else %} color="green"
+            {% endif %}>
       {% endif %}
-        <text {% if c + i in available %} style="font-weight:bold" {% endif %}>{{c}}{{i}}<text>
+        <text {% if c + i in available %} style="font-weight:bold;"{% endif %}>{{c}}{{i}}<text>
       {% if not current %}
       </font>
       {% endif %}

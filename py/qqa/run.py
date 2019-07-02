@@ -398,14 +398,18 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
             import glob
             for logfile in glob.glob(os.path.join(logdir, 'qproc-*-*.log')):
                 cameras += [os.path.basename(logfile).split('-')[1]]
+
+        error_colors = dict()
         for camera in cameras:
             input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(camera, expid))
             output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(camera, expid))
-            web_summary.write_logfile_html(input, output, night)
+            e = web_summary.write_logfile_html(input, output, night)
+            
+            error_colors[camera] = e
 
         #- plot logfile nav table
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
-        web_summary.write_logtable_html(htmlfile, logdir, night, expid)
+        web_summary.write_logtable_html(htmlfile, logdir, night, expid, error_colors)
 
 
 def write_tables(indir, outdir):
