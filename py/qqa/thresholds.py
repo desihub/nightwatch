@@ -259,7 +259,7 @@ def plot_timeseries(src, amps=None):
     for cam in ['B', 'R', 'Z']:
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]
-        fig = bk.figure(title=cam, plot_height=200, plot_width=600)
+        fig = bk.figure(title=cam, plot_height=200, plot_width=600, toolbar_location=None)
         if len(cam_src) == 0:
             continue
         else:
@@ -308,7 +308,7 @@ def plot_histogram(src, bins, amps=None):
     src_selected = np.array(src)[np.array(ids)]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
-        fig = bk.figure(plot_height=350, plot_width=450)
+        fig = bk.figure(plot_height=200, plot_width=300, toolbar_location=None)
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]
         aspect_data = []
