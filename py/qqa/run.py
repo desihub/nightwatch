@@ -413,6 +413,14 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
 
 
 def write_tables(indir, outdir):
+    '''TODO: document
+    Parses directory for available nights, exposures to generate
+    nights and exposures tables
+    
+    Args:
+        indir : directory of nights
+        outdir : directory where to write nights table 
+    '''
     import re
     from astropy.table import Table
     from qqa.webpages import tables as web_tables
@@ -433,16 +441,17 @@ def write_tables(indir, outdir):
                     expid = int(dirname)
                     qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0))
                     else:
                         log.error('Missing {}'.format(qafile))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
         raise RuntimeError(msg)
 
     exposures = Table(rows)
-
+    
     caldir = os.path.join(outdir, 'cal_files')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
@@ -459,7 +468,8 @@ def write_tables(indir, outdir):
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
 
-    web_tables.write_exposures_tables(indir,outdir, exposures)
+    web_tables.write_exposures_tables(indir, outdir, exposures)
+    
 
 def write_nights_summary(indir, last):
     '''

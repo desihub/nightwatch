@@ -91,7 +91,7 @@ def main_monitor(options=None):
     processed = set()
 
     #- TODO: figure out a way to print how many nights are being skipped before startdate
-    while True:
+    while True:        
         if args.catchup:
             expdir = run.find_unprocessed_expdir(args.indir, args.outdir, processed, startdate=args.startdate)
         else:
@@ -188,6 +188,7 @@ def main_monitor(options=None):
                 traceback.print_exception(*exc_info)
                 del exc_info
                 print("Now moving on ...")
+                
 
             processed.add(expdir)
 
