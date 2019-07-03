@@ -391,8 +391,6 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         l_cam = log.split("-")[1]
         log_cams += [l_cam]
         if l_cam not in cameras:
-            #- TODO: delete
-            print('appending ' + l_cam + ' to qproc_fails')
             qproc_fails.append(l_cam)
         
     
@@ -444,11 +442,19 @@ def write_tables(indir, outdir):
             night = int(dirname)
             for dirname in sorted(os.listdir(nightdir), reverse=True):
                 expdir = os.path.join(nightdir, dirname)
+
                 if re.match('\d{8}', dirname):
                     expid = int(dirname)
                     qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
+                    
+                    #- gets the list of failed qprocs for each expid
+                    preproc_cams = [i.split("-")[1] for i in os.listdir(expdir) 
+                                    if re.match(r'preproc-.*-.*.fits', i)]
+                    log_cams = [i.split("-")[1] for i in os.listdir(expdir) if re.match(r'.*\.log', i)]
+                    qfails = len([i for i in log_cams if i not in preproc_cams])
+                    
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid))
+                        rows.append(dict(NIGHT=night, EXPID=expid, QPROC=qfails))
                     else:
                         log.error('Missing {}'.format(qafile))
 
@@ -473,11 +479,8 @@ def write_tables(indir, outdir):
 
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
-
-    '''TODO: qproc_fails '''
-    qproc_fails = None
     
-    web_tables.write_exposures_tables(indir,outdir, exposures, qproc_fails=qproc_fails)
+    web_tables.write_exposures_tables(indir,outdir, exposures)
 
 def write_nights_summary(indir, last):
     '''

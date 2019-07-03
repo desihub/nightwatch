@@ -164,10 +164,6 @@ def write_logtable_html(outfile, logdir, night, expid, available=None, error_col
     for qfail in qproc_fails:
         error_colors[qfail] = 'red'
     
-#     for log_cam in available:
-#         if log_cam not in error_colors:
-#             error_colors[log_cam] = 'green'
-    
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),

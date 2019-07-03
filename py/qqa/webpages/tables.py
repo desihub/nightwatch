@@ -144,7 +144,7 @@ get_explinks({})
 
             
 
-def write_exposures_tables(indir,outdir, exposures, nights=None, qproc_fails=None):
+def write_exposures_tables(indir,outdir, exposures, nights=None):
     """
     outfile: output HTML files to outdir/YEARMMDD/exposures.html
     exposures: table with columns NIGHT, EXPID
@@ -196,14 +196,16 @@ def write_exposures_tables(indir,outdir, exposures, nights=None, qproc_fails=Non
                     expinfo[qatype] = qastatus.name
                     expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(
                         expid=expid, name=short_name)
+            
+            
             #- Adds qproc to the expid status
-            if qproc_fails is None:
-                expinfo['QPROC'] = '-'
+            #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
+            qproc_fails = exposures[ii][exposures[ii]['EXPID']==expid]['QPROC'][0]
+            if qproc_fails == 0:
+                expinfo['QPROC'] = 'ok'
             else:
-                if len(qproc_fails) == 0:
-                    expinfo['QPROC'] = 'ok'
-                else:
-                    expinfo['QPROC'] = 'error'
+                expinfo['QPROC'] = 'error'
+
             expinfo['QPROC_link'] = '{expid:08d}/qa-summary-{expid:08d}-logfiles_table.html'.format(expid=expid)
 
             explist.append(expinfo)
