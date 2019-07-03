@@ -312,7 +312,6 @@ def plot_timeseries(src, title, amps=None):
             continue
         else:
             for i in range(len(cam_src)):
-                print(cam_src[i])
                 fig.circle(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['aspect_values'], color=colors[cam], size=2)
                 fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['aspect_values'], line_color=colors[cam])
                 fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['lower'], line_dash='dashed', line_color='black')
