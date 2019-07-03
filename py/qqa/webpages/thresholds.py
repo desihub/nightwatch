@@ -20,8 +20,8 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
     
     for aspect in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect)
-        timeseries = plot_timeseries(data)
-        histogram = plot_histogram(data, 20)
+        timeseries = plot_timeseries(data, aspect)
+        histogram = plot_histogram(data, bins=20)
         filepath = pick_threshold_file(aspect, end_date)
         table = get_threshold_table(filepath)
         fig = gridplot(children=[[timeseries, histogram], [table,]], toolbar_location=None)

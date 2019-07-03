@@ -12,6 +12,7 @@ from qqa.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
 def get_outdir():
+    '''Retrieve the path to the threshold_files directory within qqa by finding the user's python path.'''
     qqa_path = ''
     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
     for path in user_paths:
@@ -23,14 +24,14 @@ def get_outdir():
 def write_threshold_json(indir, start_date, end_date, name):
     '''
     Inputs:
-        indir: contains summary.json files, 
-        outdir: where the thresholds files should be generated
-        start_date, end_date: range over which thresholds should be calculated
-        name: the metric thresholds are being generated for
+        indir: contains summary.json files for each night (str)
+        outdir: where the thresholds files should be generated (str)
+        start_date, end_date: range over which thresholds should be calculated (int)
+        name: the metric thresholds are being generated for (str)
     Output:
-        writes a json file with thresholds for each amp to the specified directory
+        writes a json file containing the thresholds per amp to the qqa/threshold_files directory
         (NOTE: if amp is not in previous nights summary files, the thresholds generated 
-        will be None and will need to be manually input)'''
+        will be None and will need to be manually input if they need to be used)'''
     datadict = dict()
     amps = []
     nights = np.arange(start_date, end_date+1)
@@ -84,6 +85,13 @@ def write_threshold_json(indir, start_date, end_date, name):
     print('Wrote {}'.format(threshold_file))
 
 def pick_threshold_file(name, night):
+    '''Picks the right threshold file to use given the metric and the night. If no file is found, it returns
+    the most recent file.
+    Arguments:
+        name: metric thresholds are needed for (str)
+        night: the night the thresholds are needed for (int)
+    Output:
+        filepath: a path to the proper threshold file'''
     file = '{name}-{night}.json'.format(name=name, night=night)
     threshold_dir = get_outdir()
     filepath = ''
@@ -96,7 +104,16 @@ def pick_threshold_file(name, night):
     return filepath
 
 def get_thresholds(filepath, return_keys=None):
-    '''Unpack threshold values to use in plotting amp graphs'''
+    '''Unpack threshold values to use in plotting amp graphs
+    Arguments:
+        filepath: the path to the threshold file being unpacked
+    Options:
+        return_keys: if True, returns in addition to the lower and upper threshold lists,
+        a list of the amps that had thresholds associated with them (not None). If none, does nothing
+    Output:
+        lower: [lowerB, lowerR, lowerZ] returns the lower thresholds for cam B, R, Z amps concatenated
+        upper: [upperB, upperR, upperZ] returns the upper thresholds for cam B, R, Z amps concatenated
+        real_keys: see return_key option'''
     with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
     keys = threshold_data.keys()
@@ -146,7 +163,16 @@ def get_thresholds(filepath, return_keys=None):
     
 
 def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
-    '''reuses the timeseries function for the flask app, but with some changes'''
+    '''reuses the timeseries function for the flask app, but with some changes. 
+    Inputs:
+        data_dir: directory of nights, where data_dir/NIGHT/EXPID/qa-EXPID.fits files can be found.
+        start_date: starting date for range over which timeseries should be generated
+        end_date: last date for range over which timeseries should be generated
+        hdu: the level of qa metric. ex: PER_AMP, PER_CAM, PER_CAMFIBER. currently, only PER_AMP supported
+        aspect: the metric being plotted. ex: READNOISE, BIAS, COSMICS_RATE
+    Output:
+        source_data: a list of dictionaries with per_amp data. Each element contains keywords [EXPID, EXPIDZ, NIGHT,
+        aspect_data, CAM, lower, upper]'''
     
     start_date = str(start_date).zfill(8)
     end_date = str(end_date).zfill(8)
@@ -236,7 +262,13 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
             
     return source_data
 
-def get_amp_rows(amps):  
+def get_amp_rows(amps):
+    '''Convert amp keys from threshold files into an index that can be used to filter
+    out selected amps when plotting timeseries and histograms.
+    Input:
+        amps: list of amps in the (cam+spectro+amp) format
+    Output:
+        ids: numpy array of the corresponding ids to filter a list '''
     ids = []
     amp_vals = {'A':0, 'B':1, 'C':2, 'D':3}
     cam_vals = {'B':0, 'R':10, 'Z':20}
@@ -245,16 +277,24 @@ def get_amp_rows(amps):
         spec_val = int(amp[1])
         amp_val = amp_vals[amp[2]]
         ids.append(((cam_val+spec_val)*4)+amp_val)
-    return ids
+    return np.array(ids)
 
-def plot_timeseries(src, amps=None): 
+def plot_timeseries(src, title, amps=None):
+    '''Given a list of separate dictionaries containing data for each amp, plots timeseries.
+    Input:
+        src: a list of dictionaries, with elements containing keywords [EXPID, EXPIDZ, NIGHT, aspect_value, CAM, lower, upper]
+        title: y-axis label, (name of metric being plotted)
+    Options:
+        amps: a list of amps to be plotted. if None, all amps are plotted.
+    Output:
+        a bokeh Column object, containing the 3 timeseries plots for each camera for the given metric.'''
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
     ids = []
     if amps == None:
         ids += list(np.arange(0, len(src)))
     else:
         ids += get_amp_rows(amps)
-    src_selected = np.array(src)[np.array(ids)]
+    src_selected = np.array(src)[ids]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
@@ -268,10 +308,18 @@ def plot_timeseries(src, amps=None):
                 fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], line_color=colors[cam])
                 fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['lower'][1:], line_dash='dashed', line_color='black')
                 fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['upper'][1:], line_dash='dashed', line_color='black')
+                if cam == 'Z':
+                    fig.xaxis.axis_label = 'Exposure ID'
+                fig.yaxis.axis_label = ' '.join(title.split(sep='_')).title()
             cam_figs.append(fig)
     return column(cam_figs)
 
 def get_threshold_table(filepath):
+    '''Given a filepath, returns a table containing the lower and upper threshold values for each amp.
+    Input:
+        filepath: path to a threshold file 
+    Output:
+        a bokeh DataTable object'''
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
     lower, upper, keys = get_thresholds(filepath, return_keys=True)
     if len(lower) != 1:
@@ -299,7 +347,15 @@ def get_threshold_table(filepath):
     data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
     return data_table
 
-def plot_histogram(src, bins, amps=None):
+def plot_histogram(src, bins=20, amps=None):
+    '''Given timeseries data for each amp, plots histograms per camera across all exposures in the data.
+    Input:
+        src: a list of dictionaries containing data per amp for some metric.
+    Options:
+        bins: number of bins for the histogram, default 20. (int)
+        amps: list of selected amps to use when making histogram. if None, uses all amps.
+    Output:
+        a bokeh Column figure object, containing all 3 histograms (one per cam)'''
     ids = []
     if amps == None:
         ids += list(np.arange(0, len(src)))
