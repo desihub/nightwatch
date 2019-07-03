@@ -315,8 +315,6 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         cameras: list of cameras (strings) to generate image files of. If not
             provided, will generate a cameras list from parcing through the
             preproc fits files in the preprocdir
-        qproc_fails: list of failed qproc processes for this night/expid
-
     '''
 
     from qqa.webpages import amp as web_amp
@@ -422,11 +420,11 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         #- plot logfile nav table
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
-                                        error_colors=error_colors, qproc_fails=qproc_fails)
+                                        error_colors=error_colors)
 
 
 def write_tables(indir, outdir):
-    '''TODO: document
+    '''
     Parses directory for available nights, exposures to generate
     nights and exposures tables
     
