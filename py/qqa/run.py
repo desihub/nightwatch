@@ -462,7 +462,7 @@ def write_tables(indir, outdir):
                     qfails = len([i for i in log_cams if i not in preproc_cams])
                     
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid, fAIL=0, QPROC=qfails))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails))
                     else:
                         log.error('Missing {}'.format(qafile))
                         rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None))
