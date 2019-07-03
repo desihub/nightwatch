@@ -412,7 +412,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, error_colors)
 
 
-def write_tables(indir, outdir, failed_exps=list()):
+def write_tables(indir, outdir):
     '''TODO: document
     Parses directory for available nights, exposures to generate
     nights and exposures tables
@@ -420,9 +420,6 @@ def write_tables(indir, outdir, failed_exps=list()):
     Args:
         indir : directory of nights
         outdir : directory where to write nights table 
-    Options:
-        failed_exps : list of dict(NIGHT, EXPID, FAIL=1) elements corresponding
-                      to failed exposures, only supported for qqa monitor processing
     '''
     import re
     from astropy.table import Table
@@ -447,18 +444,14 @@ def write_tables(indir, outdir, failed_exps=list()):
                         rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0))
                     else:
                         log.error('Missing {}'.format(qafile))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
         raise RuntimeError(msg)
 
     exposures = Table(rows)
-    #- vertically stack the existing exposures and the failed exposures
-    if len(failed_exps) > 0:
-        from astropy.table import vstack
-        failed_exposures = Table(failed_exps)
-        exposures = vstack([exposures, failed_exposures], join_type='outer')
-        
+    
     caldir = os.path.join(outdir, 'cal_files')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
