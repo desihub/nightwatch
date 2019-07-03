@@ -38,14 +38,15 @@ def write_threshold_json(indir, start_date, end_date, name):
     nights = np.arange(start_date, end_date+1)
     nights_real = [night for night in nights if os.path.isfile(os.path.join(indir, '{night}/summary.json'.format(night=night)))]
     for night in nights_real:
+        n = name
         with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
             data = json.load(json_file)
         try:
-            amps += data['PER_AMP'][name].keys()
+            amps += data['PER_AMP'][n].keys()
         except KeyError:
             print('Summary.json for {} needs to be updated. Correcting COSMICS_RATE to COSMICS_RATES for now.'.format(night))
-            name = 'COSMICS_RATES'
-            amps += data['PER_AMP'][name].keys()
+            n = 'COSMICS_RATES'
+            amps += data['PER_AMP'][n].keys()
         datadict[night] = data
     all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
     rest_amps = np.setdiff1d(all_amps, amps)
@@ -337,7 +338,7 @@ def plot_timeseries(src, title, amps=None):
     children = []
     for fig in cam_figs:
         children.append([fig])
-    grid_figs = gridplot(children=children, toolbar_location='above')
+    grid_figs = gridplot(children=children, toolbar_location=None)
     return grid_figs
 
 def get_threshold_table(filepath):
@@ -390,7 +391,8 @@ def plot_histogram(src, bins=20, amps=None):
     src_selected = np.array(src)[np.array(ids)]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
-        fig = bk.figure(plot_height=200, plot_width=300, toolbar_location=None)
+        fig = bk.figure(plot_height=200, plot_width=300, toolbar_location=None, title=cam)
+        fig.title.text_color = 'white'
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]
         aspect_data = []
