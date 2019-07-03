@@ -89,9 +89,10 @@ def main_monitor(options=None):
 
     qarunner = QARunner()
     processed = set()
+    failed_exposures = list() #- to track failed exposures
 
     #- TODO: figure out a way to print how many nights are being skipped before startdate
-    while True:
+    while True:        
         if args.catchup:
             expdir = run.find_unprocessed_expdir(args.indir, args.outdir, processed, startdate=args.startdate)
         else:
@@ -173,7 +174,7 @@ def main_monitor(options=None):
                 run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
                                cameras=cameras)
 
-                run.write_tables(args.outdir, args.plotdir)
+                run.write_tables(args.outdir, args.plotdir, failed_exps=failed_exposures)
 
                 time_end = time.time()
                 dt = (time_end - time_start) / 60
@@ -181,12 +182,19 @@ def main_monitor(options=None):
                     time.strftime('%H:%M'), night, expid, dt))
 
             except Exception as e :
+                #- only adds failed exposure to list if no qa file found
+                if not qafile:
+                    qafile = "{}/qa-{}.fits".format(outdir,expid)
+                if not os.path.exists(qafile):
+                    failed_exposures.append(dict(NIGHT=int(night), EXPID=int(expid), FAIL=1))                
+                
                 print("Failed to process or QA or plot exposure {}".format(expid))
                 print("Error message: {}".format(str(e)))
                 exc_info = sys.exc_info()
                 traceback.print_exception(*exc_info)
                 del exc_info
                 print("Now moving on ...")
+                
 
             processed.add(expdir)
 

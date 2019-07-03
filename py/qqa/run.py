@@ -412,7 +412,18 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, error_colors)
 
 
-def write_tables(indir, outdir):
+def write_tables(indir, outdir, failed_exps=list()):
+    '''TODO: document
+    Parses directory for available nights, exposures to generate
+    nights and exposures tables
+    
+    Args:
+        indir : directory of nights
+        outdir : directory where to write nights table 
+    Options:
+        failed_exps : list of dict(NIGHT, EXPID, FAIL=1) elements corresponding
+                      to failed exposures, only supported for qqa monitor processing
+    '''
     import re
     from astropy.table import Table
     from qqa.webpages import tables as web_tables
@@ -433,7 +444,7 @@ def write_tables(indir, outdir):
                     expid = int(dirname)
                     qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0))
                     else:
                         log.error('Missing {}'.format(qafile))
 
@@ -442,7 +453,12 @@ def write_tables(indir, outdir):
         raise RuntimeError(msg)
 
     exposures = Table(rows)
-
+    #- vertically stack the existing exposures and the failed exposures
+    if len(failed_exps) > 0:
+        from astropy.table import vstack
+        failed_exposures = Table(failed_exps)
+        exposures = vstack([exposures, failed_exposures], join_type='outer')
+        
     caldir = os.path.join(outdir, 'cal_files')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
@@ -459,7 +475,8 @@ def write_tables(indir, outdir):
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
 
-    web_tables.write_exposures_tables(indir,outdir, exposures)
+    web_tables.write_exposures_tables(indir, outdir, exposures)
+    
 
 def write_nights_summary(indir, last):
     '''
