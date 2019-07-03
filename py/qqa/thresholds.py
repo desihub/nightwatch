@@ -72,14 +72,21 @@ def write_threshold_json(indir, start_date, end_date, name):
                 thresholds[amp] = dict(upper=upper, lower=lower)
             if amp in rest_amps:
                 thresholds[amp] = dict(upper=None, lower=None)
-    if name in ['COSMICS_RATE', 'COSMICS_RATES']:
+    if name in ['COSMICS_RATE']:
         num_exps = []
         lower = []
         upper = []
-        for night in nights_real:
-            lower.append(datadict[night]['PER_AMP'][name]['lower'])
-            upper.append(datadict[night]['PER_AMP'][name]['upper'])
-            num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
+        try:
+            for night in nights_real:
+                lower.append(datadict[night]['PER_AMP'][name]['lower'])
+                upper.append(datadict[night]['PER_AMP'][name]['upper'])
+                num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
+        except KeyError:
+            n = 'COSMICS_RATE'
+            for night in nights_real:
+                lower.append(datadict[night]['PER_AMP'][n]['lower'])
+                upper.append(datadict[night]['PER_AMP'][n]['upper'])
+                num_exps.append(datadict[night]['PER_AMP'][n]['num_exp'])
         weights = np.array(num_exps)/np.sum(num_exps)
         lower_avg = np.average(lower, weights=weights)
         upper_avg = np.average(upper, weights=weights)
