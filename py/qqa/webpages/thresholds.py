@@ -24,12 +24,15 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
         histogram = plot_histogram(data, bins=20)
         filepath = pick_threshold_file(aspect, end_date)
         table = get_threshold_table(filepath)
-        fig = gridplot(children=[[timeseries, histogram], [table,]], toolbar_location=None)
+        fig = gridplot(children=[[timeseries, histogram]], toolbar_location='right')
         if fig is None:
             return "No data between {} and {}".format(start_date, end_date)
 
         script, div = components(fig)
+        table_script, table_div = components(table)
+        table_label = '{}_table'.format(aspect)
         html_components[aspect] = dict(script=script, div=div)
+        html_components[table_label] = dict(script=table_script, div=table_div)
     
 #     for aspect in ["COSMICS_RATE"]:
 #         data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect)

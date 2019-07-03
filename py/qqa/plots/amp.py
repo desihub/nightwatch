@@ -61,9 +61,8 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, ymin=None, ymax=None, plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, lower, upper, amp_keys, title, ymin=None, ymax=None, plot_height=80, plot_width=700):
     '''Plot a per-amp visualization of data[name]
-    qamin/qamax: min/max ranges for the color scale
     ymin/ymax: y-axis ranges *unless* the data exceeds those ranges'''
     if title is None:
         title = name
@@ -97,8 +96,26 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, ymin=None, yma
     data_val = np.array(data_val)[sorted_ids]
     locations = [(spec, amp) for spec in np.sort(spec_loc) for amp in np.sort(amp_loc)]
     
-    colors = get_amp_colors(data_val, lower, upper)
-    sizes = get_amp_size(data_val, lower, upper)
+    colors = []
+    sizes = []
+    
+    if name in ['READNOISE', 'BIAS']:
+        ids = []
+        for i in range(len(amp_keys)):
+            if amp_keys[i][0] == cam:
+                if (amp_keys[i][1], amp_keys[i][2]) in locations:
+                    print(amp_keys[i])
+                    ids.append(i)
+            else:
+                continue
+        lower = np.array(lower)[ids]
+        upper = np.array(upper)[ids]
+        colors += get_amp_colors(data_val, lower, upper)
+        sizes += get_amp_size(data_val, lower, upper)
+
+    else:
+        colors += get_amp_colors(data_val, lower, upper)
+        sizes += get_amp_size(data_val, lower, upper)
 
     source = ColumnDataSource(data=dict(
         data_val=data_val,
@@ -163,20 +180,20 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, title, ymin=None, yma
     """)
     return fig
 
-def plot_amp_qa(data, name, lower, upper, title=None, plot_height=80, plot_width=700):
+def plot_amp_qa(data, name, lower, upper, amp_keys, title=None, plot_height=80, plot_width=700):
 
     if title == None:
         title = name
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
     
     if name in ['READNOISE', 'BIAS']:
-        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0], upper[0], title, plot_height=plot_height+25, plot_width=plot_width)
-        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1], upper[1], title, plot_height=plot_height, plot_width=plot_width)
-        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2], upper[2], title, plot_height=plot_height, plot_width=plot_width)
+        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0], upper[0], amp_keys, title, plot_height=plot_height+25, plot_width=plot_width)
+        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1], upper[1], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
+        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2], upper[2], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
     if name in ['COSMICS_RATE']:
-        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower, upper, title, plot_height=plot_height+25, plot_width=plot_width)
-        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower, upper, title, plot_height=plot_height, plot_width=plot_width)
-        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower, upper, title, plot_height=plot_height, plot_width=plot_width)
+        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower, upper, amp_keys, title, plot_height=plot_height+25, plot_width=plot_width)
+        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower, upper, amp_keys, title, plot_height=plot_height, plot_width=plot_width)
+        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower, upper, amp_keys, title, plot_height=plot_height, plot_width=plot_width)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 

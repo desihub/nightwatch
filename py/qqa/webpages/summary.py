@@ -51,9 +51,9 @@ def get_summary_plots(qadata, qprocdir=None):
     #- CCD Read Noise
     if 'PER_AMP' in qadata:
         noise_file = pick_threshold_file('READNOISE', night)
-        lower_noise, upper_noise = get_thresholds(noise_file)
+        lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
         fig = plot_amp_qa(qadata['PER_AMP'], 'READNOISE',
-                lower_noise, upper_noise,
+                lower_noise, upper_noise, noise_keys,
                 title='CCD Amplifier Read Noise',
                 plot_width=plot_width, plot_height=plot_height)
         script, div = components(fig)

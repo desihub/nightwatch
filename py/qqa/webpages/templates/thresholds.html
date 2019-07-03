@@ -3,20 +3,87 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<div><h1>Threshold Inspector</h1></div>
-{% if READNOISE %}
-<div><h3>Readnoise</h3></div>
-    <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
-{% endif %}
+<style>
+    .header {
+        font-family: Helvetica, Arial, sans-serif;
+        color:white;
+        background-color: #333;
+        padding: 10px;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .header.sub {
+        background-color: #f0f0f0;
+        color:black;
+        padding: 2px;
+    }
+    .column {
+        float: center;
+        justify-content: center;
+        padding: 10px
+    }
 
-{% if BIAS %}
-<div><h3>Bias</h3></div>
-    <div>{{ BIAS.script }} {{ BIAS.div }}</div>
-{% endif %}
+    .column.side {
+        width = 25%;
+    }
 
-{% if COSMICS_RATE %}
-<div><h3>Cosmics Rate</h3></div>
-    <div>{{ COSMICS_RATE.script }} {{ COSMICS_RATE.div }}</div>
-{% endif %}
+    .column.middle {
+        width = 50%;
+    }
 
+    .flex-box {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 10px;
+    }
+
+    p.sansserif {
+        font-family: "Open Serif", Helvetica, sans-serif;
+    }
+</style>
+
+<div class="header"><h1>Threshold Inspector</h1></div>
+<div>
+    <div class="column side"></div>
+    <div class="flex-box">
+        <div class="flex-box">
+            {% if READNOISE %}
+            <div class="header sub"><h3>Readnoise</h3></div>
+            <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
+            {% endif %}
+        </div>
+        <div class="flex-box">
+            {% if READNOISE_table %}
+            <div>{{ READNOISE_table.script}} {{ READNOISE_table.div }}</div>
+            {% endif %}
+        </div>
+
+        <div class="flex-box">
+            {% if BIAS %}
+            <div class="header sub"><h3>Bias</h3></div>
+            <div>{{ BIAS.script }} {{ BIAS.div }}</div>
+            {% endif %}
+        </div>
+        <div class="flex-box">
+            {% if BIAS_table %}
+            <div>{{ BIAS_table.script}} {{ BIAS_table.div }}</div>
+            {% endif %}
+        </div>
+
+        <div class="flex-box">
+            {% if COSMICS_RATE %}
+            <div class="header sub"><h3>Cosmics Rate</h3></div>
+            <div>{{ COSMICS_RATE.script }} {{ COSMICS_RATE.div }}</div>
+            {% endif %}
+        </div>
+        <div class="flex-box">
+            {% if COSMICS_RATE_table %}
+            <div>{{ COSMICS_RATE_table.script}} {{ COSMICS_RATE_table.div }}</div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="column side"></div>
+</div>
 {% endblock %}
