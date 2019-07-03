@@ -29,7 +29,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         title=attribute
 
     cam_figs=[]
-    colors = {"B":"blue", "R":"red", "Z":"green"}
+    colors = {"B":"steelblue", "R":"firebrick", "Z":"green"}
     for cam in ["B", "R", "Z"]:
         
         cam_table = astrotable[astrotable["CAM"]==cam]
@@ -57,6 +57,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         fig.xaxis.ticker = FixedTicker(ticks=[i for i in range(0, 10, 1)])
         if cam == 'Z':
             fig.xaxis.axis_label = "Spectrograph number"
+            fig.plot_height = height+25
         fig.yaxis.axis_label = attribute
         if minmax is not None:
             ymin, ymax = minmax
