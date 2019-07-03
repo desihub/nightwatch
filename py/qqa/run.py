@@ -65,7 +65,6 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
                     if fits_fz_exists:
                         qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
                         if (not os.path.exists(qafile)) and (expdir not in processed):
-                            processed.add(expdir)
                             return expdir
                     else:
                         print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
