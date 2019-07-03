@@ -10,6 +10,7 @@ from astropy.table import Table, vstack
 import desiutil.log
 
 import desispec.scripts.preproc
+from qqa.qa.base import QA
 
 def get_ncpu(ncpu):
     """
@@ -64,7 +65,6 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
                     if fits_fz_exists:
                         qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
                         if (not os.path.exists(qafile)) and (expdir not in processed):
-                            processed.add(expdir)
                             return expdir
                     else:
                         print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
@@ -426,6 +426,14 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
 
 
 def write_tables(indir, outdir):
+    '''TODO: document
+    Parses directory for available nights, exposures to generate
+    nights and exposures tables
+    
+    Args:
+        indir : directory of nights
+        outdir : directory where to write nights table 
+    '''
     import re
     from astropy.table import Table
     from qqa.webpages import tables as web_tables
@@ -454,16 +462,17 @@ def write_tables(indir, outdir):
                     qfails = len([i for i in log_cams if i not in preproc_cams])
                     
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid, QPROC=qfails))
+                        rows.append(dict(NIGHT=night, EXPID=expid, fAIL=0, QPROC=qfails))
                     else:
                         log.error('Missing {}'.format(qafile))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
         raise RuntimeError(msg)
 
     exposures = Table(rows)
-
+    
     caldir = os.path.join(outdir, 'cal_files')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
@@ -479,8 +488,9 @@ def write_tables(indir, outdir):
 
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
+
+    web_tables.write_exposures_tables(indir, outdir, exposures)
     
-    web_tables.write_exposures_tables(indir,outdir, exposures)
 
 def write_nights_summary(indir, last):
     '''
@@ -504,24 +514,42 @@ def write_nights_summary(indir, last):
 
     for night in nights:
         jsonfile = os.path.join(indir, night, "summary.json")
-        if not os.path.isfile(jsonfile):
+        night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+        if (not os.path.isfile(jsonfile)) or (not os.path.isfile(night_qafile)):
             expids = next(os.walk(os.path.join(indir, night)))[1]
-            expid = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
-            qadata_stacked = None
+            expids = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
+            qadata_stacked = dict()
             for expid in expids:
                 fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
                 if not os.path.isfile(fitsfile):
                     print("could not find {}".format(fitsfile))
                 else:
-                    qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
-                    if (qadata_stacked is None):
-                        qadata_stacked = qadata
-                    else:
-                        qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
+                    for attr in QA.metacols:
+                        try:
+                            qadata = Table(fitsio.read(fitsfile, attr))
+                        except:
+                            continue
 
-            if qadata_stacked is None:
+                        if (attr not in qadata_stacked):
+                            hdr = fitsio.read_header(fitsfile, 0)
+                            qadata_stacked[attr] = qadata
+                        else:
+                            qadata_stacked[attr] = vstack([qadata_stacked[attr], qadata], metadata_conflicts='silent')
+
+                        print("processed {}".format(fitsfile))
+
+            if len(qadata_stacked) == 0:
                 print("no exposures found")
                 return
+
+            night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+            if not os.path.isfile(night_qafile):
+                with fitsio.FITS(night_qafile, 'rw', clobber=True) as fx:
+                    fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
+                    for attr in qadata_stacked:
+                        fx.write_table(qadata_stacked[attr].as_array(), extname=attr, header=hdr)
+
+            qadata_stacked = qadata_stacked["PER_AMP"]
 
             readnoise_sca = dict()
             bias_sca = dict()

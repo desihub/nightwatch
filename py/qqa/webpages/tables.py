@@ -144,11 +144,14 @@ get_explinks({})
 
             
 
-def write_exposures_tables(indir,outdir, exposures, nights=None):
+def write_exposures_tables(indir, outdir, exposures, nights=None):
     """
-    outfile: output HTML files to outdir/YEARMMDD/exposures.html
-    exposures: table with columns NIGHT, EXPID
-    nights: optional list of nights to process
+    Writes exposures table for each night available
+    Args:
+        outfile: output HTML files to outdir/YEARMMDD/exposures.html
+        exposures: table with columns NIGHT, EXPID
+    Options:
+        nights: optional list of nights to process
     """
 
     env = jinja2.Environment(
@@ -162,7 +165,19 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
     for night in nights:
         ii = (exposures['NIGHT'] == night)
         explist = list()
-        for expid in sorted(exposures['EXPID'][ii]):
+        
+        night_exps = exposures[ii]
+        night_exps.sort('EXPID')
+        for row in night_exps:
+            expid = row['EXPID']
+            
+            #- adds failed expid to table
+            if row['FAIL'] == 1:
+                expinfo = dict(night=night, expid=expid, fail=1)
+                explist.append(expinfo)
+                continue
+            
+                        
             qafile = io.findfile('qa', night, expid, basedir=indir)
             qadata = io.read_qa(qafile)
             status = get_status(qadata)
@@ -181,7 +196,15 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
                 night=night, expid=expid)
 
             expinfo = dict(night=night, expid=expid, flavor=flavor, link=link, 
-                           exptime=exptime, spectros=spectros)
+                           exptime=exptime, spectros=spectros, fail=0)
+
+            #- Adds qproc to the expid status
+            #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
+            if len(row['QPROC']) == 0:
+                expinfo['QPROC'] = 'ok'
+            else:
+                expinfo['QPROC'] = 'error'
+            expinfo['QPROC_link'] = '{expid:08d}/qa-summary-{expid:08d}-logfiles_table.html'.format(expid=expid)
 
             #- TODO: have actual thresholds
             for i, qatype in enumerate(['PER_AMP', 'PER_CAMERA', 'PER_FIBER',
@@ -194,20 +217,7 @@ def write_exposures_tables(indir,outdir, exposures, nights=None):
                     short_name = qatype.split("_")[1].lower()
 
                     expinfo[qatype] = qastatus.name
-                    expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(
-                        expid=expid, name=short_name)
             
-            
-            #- Adds qproc to the expid status
-            #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
-            qproc_fails = exposures[ii][exposures[ii]['EXPID']==expid]['QPROC'][0]
-            if qproc_fails == 0:
-                expinfo['QPROC'] = 'ok'
-            else:
-                expinfo['QPROC'] = 'error'
-
-            expinfo['QPROC_link'] = '{expid:08d}/qa-summary-{expid:08d}-logfiles_table.html'.format(expid=expid)
-
             explist.append(expinfo)
 
         html = template.render(night=night, exposures=explist, autoreload=True,
