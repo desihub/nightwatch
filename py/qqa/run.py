@@ -457,7 +457,7 @@ def write_tables(indir, outdir):
                     preproc_cams = [i.split("-")[1] for i in os.listdir(expdir) 
                                     if re.match(r'preproc-.*-.*.fits', i)]
                     log_cams = [i.split("-")[1] for i in os.listdir(expdir) if re.match(r'.*\.log', i)]
-                    qfails = len([i for i in log_cams if i not in preproc_cams])
+                    qfails = [i for i in log_cams if i not in preproc_cams]
                     
                     if os.path.exists(qafile):
                         rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails))
