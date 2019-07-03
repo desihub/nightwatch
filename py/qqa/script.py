@@ -104,6 +104,7 @@ def main_monitor(options=None):
         night, expid = expdir.split('/')[-2:]
         rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if expdir not in processed and os.path.exists(rawfile):
+            processed.add(expdir)
             outdir = '{}/{}/{}'.format(args.outdir, night, expid)
             if os.path.exists(outdir) and len(glob.glob(outdir+'/qa-*.fits'))>0:
                 print('Skipping previously processed {}/{}'.format(night, expid))
