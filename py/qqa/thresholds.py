@@ -4,6 +4,7 @@ import json
 import csv
 from astropy.table import Table, vstack
 import fitsio
+
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot, column
 from bokeh.models import TapTool as TapTool
@@ -42,7 +43,7 @@ def write_threshold_json(indir, start_date, end_date, name):
         try:
             amps += data['PER_AMP'][name].keys()
         except KeyError:
-            print('Summary.json needs to be updated. Correcting COSMICS_RATE to COSMICS_RATES for now.')
+            print('Summary.json for {} needs to be updated. Correcting COSMICS_RATE to COSMICS_RATES for now.'.format(night))
             name = 'COSMICS_RATES'
             amps += data['PER_AMP'][name].keys()
         datadict[night] = data
