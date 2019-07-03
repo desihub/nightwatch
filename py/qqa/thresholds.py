@@ -39,7 +39,12 @@ def write_threshold_json(indir, start_date, end_date, name):
     for night in nights_real:
         with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
             data = json.load(json_file)
-        amps += data['PER_AMP'][name].keys()
+        try:
+            amps += data['PER_AMP'][name].keys()
+        except KeyError:
+            print('Summary.json needs to be updated. Correcting COSMICS_RATE to COSMICS_RATES for now.')
+            name = 'COSMICS_RATES'
+            amps += data['PER_AMP'][name].keys()
         datadict[night] = data
     all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
     rest_amps = np.setdiff1d(all_amps, amps)
@@ -151,7 +156,7 @@ def get_thresholds(filepath, return_keys=None):
                 continue
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
-    if 'COSMICS_RATE' in filepath:
+    if 'COSMICS_RATE' in filepath or 'COSMICS_RATES' in filepath:
         real_keys = ['keys not applicable']
         lower = [threshold_data['lower']]
         upper = [threshold_data['upper']]
@@ -241,7 +246,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                     amp = cam + str(row['SPECTRO']) + row['AMP']
                     data['lower'] = [threshold_data[amp]['lower']]*length
                     data['upper'] = [threshold_data[amp]['upper']]*length
-                if aspect in ['COSMICS_RATE']:
+                if aspect in ['COSMICS_RATE, COSMICS_RATES']:
                     data['lower'] = [threshold_data['lower']]*length
                     data['upper'] = [threshold_data['upper']]*length
                 for col in group_by_list:
