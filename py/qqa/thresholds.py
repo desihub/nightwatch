@@ -82,7 +82,7 @@ def write_threshold_json(indir, start_date, end_date, name):
                 upper.append(datadict[night]['PER_AMP'][name]['upper'])
                 num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
         except KeyError:
-            n = 'COSMICS_RATE'
+            n = 'COSMICS_RATES'
             for night in nights_real:
                 lower.append(datadict[night]['PER_AMP'][n]['lower'])
                 upper.append(datadict[night]['PER_AMP'][n]['upper'])
