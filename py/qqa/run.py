@@ -276,7 +276,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         pool.close()
         pool.join()
     else:
-        log.info('Running qproc serially for {} cameras'.format(ncpu))
+        log.info('Running qproc serially for {} cameras'.format(len(cameras)))
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
             runcmd(cmd, logfile, msg)
 
