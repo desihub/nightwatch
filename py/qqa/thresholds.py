@@ -71,7 +71,7 @@ def write_threshold_json(indir, start_date, end_date, name):
                 thresholds[amp] = dict(upper=upper, lower=lower)
             if amp in rest_amps:
                 thresholds[amp] = dict(upper=None, lower=None)
-    if name in ['COSMICS_RATE']:
+    if name in ['COSMICS_RATE', 'COSMICS_RATES']:
         num_exps = []
         lower = []
         upper = []
@@ -85,6 +85,8 @@ def write_threshold_json(indir, start_date, end_date, name):
         thresholds = dict(lower=lower_avg, upper=upper_avg) 
         
     outdir = get_outdir()
+    if name == 'COSMICS_RATES':
+        name = 'COSMICS_RATE'
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
     with open(threshold_file, 'w') as json_file:
          json.dump(thresholds, json_file, indent=4)
@@ -157,7 +159,7 @@ def get_thresholds(filepath, return_keys=None):
                 continue
         lower = [lowerB, lowerR, lowerZ]
         upper = [upperB, upperR, upperZ]
-    if 'COSMICS_RATE' in filepath or 'COSMICS_RATES' in filepath:
+    if 'COSMICS_RATE' in filepath:
         real_keys = ['keys not applicable']
         lower = [threshold_data['lower']]
         upper = [threshold_data['upper']]
@@ -247,7 +249,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                     amp = cam + str(row['SPECTRO']) + row['AMP']
                     data['lower'] = [threshold_data[amp]['lower']]*length
                     data['upper'] = [threshold_data[amp]['upper']]*length
-                if aspect in ['COSMICS_RATE, COSMICS_RATES']:
+                if aspect in ['COSMICS_RATE']:
                     data['lower'] = [threshold_data['lower']]*length
                     data['upper'] = [threshold_data['upper']]*length
                 for col in group_by_list:
@@ -310,10 +312,11 @@ def plot_timeseries(src, title, amps=None):
             continue
         else:
             for i in range(len(cam_src)):
-                fig.circle(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], color=colors[cam], size=2)
-                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['aspect_values'][1:], line_color=colors[cam])
-                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['lower'][1:], line_dash='dashed', line_color='black')
-                fig.line(x=cam_src[i]['EXPIDZ'][1:], y=cam_src[i]['upper'][1:], line_dash='dashed', line_color='black')
+                print(cam_src[i])
+                fig.circle(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['aspect_values'], color=colors[cam], size=2)
+                fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['aspect_values'], line_color=colors[cam])
+                fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['lower'], line_dash='dashed', line_color='black')
+                fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['upper'], line_dash='dashed', line_color='black')
                 if cam == 'Z':
                     fig.xaxis.axis_label = 'Exposure ID'
                 fig.yaxis.axis_label = ' '.join(title.split(sep='_')).title()
