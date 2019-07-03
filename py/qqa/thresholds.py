@@ -307,20 +307,38 @@ def plot_timeseries(src, title, amps=None):
     for cam in ['B', 'R', 'Z']:
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]
-        fig = bk.figure(title=cam, plot_height=200, plot_width=600, toolbar_location=None)
+        
+        hover= HoverTool(names = ['circles'], tooltips = [('Amp', '@AMP'),
+                                     ('Spec', '@SPECTRO'),
+                                     ('EXPID', '@EXPID'),
+                                     ('{}'.format(title), '@aspect_values'),
+                                     ('Upper threshold', '@upper'),
+                                     ('Lower threshold', '@lower')])
+        
+        fig = bk.figure(title=cam, plot_height=200, plot_width=600, tools=[hover], toolbar_location=None)
         if len(cam_src) == 0:
             continue
         else:
             for i in range(len(cam_src)):
-                fig.circle(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['aspect_values'], color=colors[cam], size=2)
-                fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['aspect_values'], line_color=colors[cam])
-                fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['lower'], line_dash='dashed', line_color='black')
-                fig.line(x=cam_src[i]['EXPIDZ'], y=cam_src[i]['upper'], line_dash='dashed', line_color='black')
+                source=ColumnDataSource()
+                for key in cam_src[i].keys():
+                    if key != 'CAM':
+                        source.add(cam_src[i][key], key)
+                    if key == 'CAM':
+                        continue
+                fig.circle(x='EXPIDZ', y='aspect_values', color=colors[cam], size=2, name='circles', source=source)
+                fig.line(x='EXPIDZ', y='aspect_values', line_color=colors[cam], source=source)
+                fig.line(x='EXPIDZ', y='lower', line_dash='dashed', line_color='black', source=source)
+                fig.line(x='EXPIDZ', y='upper', line_dash='dashed', line_color='black', source=source)
                 if cam == 'Z':
                     fig.xaxis.axis_label = 'Exposure ID'
                 fig.yaxis.axis_label = ' '.join(title.split(sep='_')).title()
             cam_figs.append(fig)
-    return column(cam_figs)
+    children = []
+    for fig in cam_figs:
+        children.append([fig])
+    grid_figs = gridplot(children=children, toolbar_location='above')
+    return grid_figs
 
 def get_threshold_table(filepath):
     '''Given a filepath, returns a table containing the lower and upper threshold values for each amp.
