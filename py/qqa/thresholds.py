@@ -67,10 +67,10 @@ def write_threshold_json(indir, start_date, end_date, name):
                 weights = np.array(num_exps)/np.sum(num_exps)
                 med_avg = np.average(meds, weights=weights)
                 std_avg = np.average(stds, weights=weights)
-                upper_err = med_avg + std_avg
-                upper = med_avg + 0.5*std_avg
-                lower = med_avg - 0.5*std_avg
-                lower_err = med_avg - std_avg
+                upper_err = med_avg + 3*std_avg
+                upper = med_avg + std_avg
+                lower = med_avg - std_avg
+                lower_err = med_avg - 3*std_avg
                 thresholds[amp] = dict(upper_err=upper_err, upper=upper, lower=lower, lower_err=lower_err)
             if amp in rest_amps:
                 thresholds[amp] = dict(upper_err=None, upper=None, lower=None, lower_err=None)
