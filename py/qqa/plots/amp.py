@@ -9,9 +9,8 @@ from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
-def get_amp_colors(data, lower, upper):
-    '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
-    we allow for individual amplifiers to have different thresholds).
+def get_amp_colors(name, data, lower_err, lower, upper, upper_err):
+    '''takes in per amplifier data and the acceptable threshold for that metric.
     Input: array of amplifier metric data, upper threshold (float)
     Output: array of colors to be put into a ColumnDataSource
     '''
@@ -19,15 +18,19 @@ def get_amp_colors(data, lower, upper):
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
             continue
-        if data[i] < lower[i]:
+        if data[i] <= lower_err[i]:
             colors.append('red')
-        if data[i] >= lower[i] and data[i] < upper[i]:
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            colors.append('orange')
+        if data[i] > lower[i] and data[i] < upper[i]:
             colors.append('black')
-        if data[i] >= upper[i]:
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            colors.append('orange')
+        if data[i] >= upper_err[i]:
             colors.append('red')
     return colors
 
-def get_amp_size(data, lower, upper):
+def get_amp_size(name, data, lower_err, lower, upper, upper_err):
     '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
     we allow for individual amplifiers to have different thresholds).
     Input: array of amplifier metric data, upper threshold (float)
@@ -36,13 +39,17 @@ def get_amp_size(data, lower, upper):
     sizes = []
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
-            sizes.append(None)
-        if data[i] < lower[i]:
-            sizes.append(6)
-        if data[i] >= lower[i] and data[i] < upper[i]:
-            sizes.append(4)
-        if data[i] >= upper[i]:
-            sizes.append(6)
+            continue
+        if data[i] <= lower_err[i]:
+            sizes.append('5')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            sizes.append('4')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            sizes.append('3')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            sizes.append('4')
+        if data[i] >= upper_err[i]:
+            sizes.append('5')
     return sizes
 
 def isolate_spec_lines(data_locs, data):
@@ -61,7 +68,7 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, lower, upper, amp_keys, title, ymin=None, ymax=None, plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, lower_err, lower, upper, upper_err, amp_keys, title, ymin=None, ymax=None, plot_height=80, plot_width=700):
     '''Plot a per-amp visualization of data[name]
     ymin/ymax: y-axis ranges *unless* the data exceeds those ranges'''
     if title is None:
@@ -87,8 +94,10 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, amp_keys, title, ymin
     amp_loc = np.array(amp_loc)[np.sort(ids)]
     
     if name in ['COSMICS_RATE']:
+        lower_err = [lower_err]*len(data_val)
         lower = [lower]*len(data_val)
         upper = [upper]*len(data_val)
+        upper_err = [upper_err]*len(data_val)
     
     locations_to_sort = [str(spec+amp) for spec in spec_loc for amp in amp_loc]
     sorted_ids = np.argsort(locations_to_sort)
@@ -104,18 +113,19 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, amp_keys, title, ymin
         for i in range(len(amp_keys)):
             if amp_keys[i][0] == cam:
                 if (amp_keys[i][1], amp_keys[i][2]) in locations:
-                    print(amp_keys[i])
                     ids.append(i)
             else:
                 continue
         lower = np.array(lower)[ids]
+        lower_err = np.array(lower_err)[ids]
         upper = np.array(upper)[ids]
-        colors += get_amp_colors(data_val, lower, upper)
-        sizes += get_amp_size(data_val, lower, upper)
-
+        upper_err = np.array(upper_err)[ids]
+        colors += get_amp_colors(name, data_val, lower_err, lower, upper, upper_err)
+        sizes += get_amp_size(name, data_val, lower_err, lower, upper, upper_err)
+    
     else:
-        colors += get_amp_colors(data_val, lower, upper)
-        sizes += get_amp_size(data_val, lower, upper)
+        colors += get_amp_colors(name, data_val, lower_err, lower, upper, upper_err)
+        sizes += get_amp_size(name, data_val, lower_err, lower, upper, upper_err)
 
     source = ColumnDataSource(data=dict(
         data_val=data_val,
@@ -171,7 +181,7 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, amp_keys, title, ymin
         fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
             fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
     if name in ['COSMICS_RATE']:
-        fig.add_layout(BoxAnnotation(bottom=lower[0][0], top=upper[0][0], fill_alpha=0.1, fill_color='green'))
+        fig.add_layout(BoxAnnotation(bottom=lower[0], top=upper[0], fill_alpha=0.1, fill_color='green'))
     
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
@@ -181,19 +191,20 @@ def plot_amp_cam_qa(data, name, cam, labels, lower, upper, amp_keys, title, ymin
     return fig
 
 def plot_amp_qa(data, name, lower, upper, amp_keys, title=None, plot_height=80, plot_width=700):
-
+    
     if title == None:
         title = name
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
     
     if name in ['READNOISE', 'BIAS']:
-        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0], upper[0], amp_keys, title, plot_height=plot_height+25, plot_width=plot_width)
-        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1], upper[1], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
-        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2], upper[2], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
+        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0][0], lower[0][1], upper[0][0], upper[0][1], amp_keys[0], title, plot_height=plot_height+25, plot_width=plot_width)
+        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1][0], lower[1][1], upper[1][0], upper[1][1], amp_keys[1], title, plot_height=plot_height, plot_width=plot_width)
+        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2][0], lower[2][1], upper[2][0], upper[2][1], amp_keys[2], title, plot_height=plot_height, plot_width=plot_width)
     if name in ['COSMICS_RATE']:
-        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower, upper, amp_keys, title, plot_height=plot_height+25, plot_width=plot_width)
-        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower, upper, amp_keys, title, plot_height=plot_height, plot_width=plot_width)
-        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower, upper, amp_keys, title, plot_height=plot_height, plot_width=plot_width)
+        print(upper[0])
+        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0], lower[1], upper[0], upper[1], amp_keys, title, plot_height=plot_height+25, plot_width=plot_width)
+        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[0], lower[1], upper[0], upper[1], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
+        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[0], lower[1], upper[0], upper[1], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 

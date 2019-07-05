@@ -148,47 +148,50 @@ def get_thresholds(filepath, return_keys=None):
         lower_errB = []
         upperB = []
         upper_errB = []
+        real_keysB = []
         lowerZ = []
         lower_errZ = []
         upperZ = []
         upper_errZ = []
+        real_keysZ = []
         lowerR = []
         lower_errR = []
         upperR = []
         upper_errR = []
-        real_keys = []
+        real_keysR = []
         for key in keys:
             if key[0] == 'B':
-                if threshold_data[key]['lower'] == None:
-                    continue
-                else:
-                    lowerB.append(threshold_data[key]['lower'])
-                    upperB.append(threshold_data[key]['upper'])
-                    lower_errB.append(threshold_data[key]['lower_err'])
-                    upper_errB.append(threshold_data[key]['upper_err'])
-                    real_keys.append(key)
+#                 if threshold_data[key]['lower'] == None:
+#                     continue
+#                 else:
+                lowerB.append(threshold_data[key]['lower'])
+                upperB.append(threshold_data[key]['upper'])
+                lower_errB.append(threshold_data[key]['lower_err'])
+                upper_errB.append(threshold_data[key]['upper_err'])
+                real_keysB.append(key)
             if key[0] == 'Z': 
-                if threshold_data[key]['lower'] == None:
-                    continue
-                else:
-                    lowerZ.append(threshold_data[key]['lower'])
-                    upperZ.append(threshold_data[key]['upper'])
-                    lower_errZ.append(threshold_data[key]['lower_err'])
-                    upper_errZ.append(threshold_data[key]['upper_err'])
-                    real_keys.append(key)
+#                 if threshold_data[key]['lower'] == None:
+#                     continue
+#                 else:
+                lowerZ.append(threshold_data[key]['lower'])
+                upperZ.append(threshold_data[key]['upper'])
+                lower_errZ.append(threshold_data[key]['lower_err'])
+                upper_errZ.append(threshold_data[key]['upper_err'])
+                real_keysZ.append(key)
             if key[0] == 'R':
-                if threshold_data[key]['lower'] == None:
-                    continue
-                else:
-                    lowerR.append(threshold_data[key]['lower'])
-                    upperR.append(threshold_data[key]['upper'])
-                    lower_errR.append(threshold_data[key]['lower_err'])
-                    upper_errR.append(threshold_data[key]['upper_err'])
-                    real_keys.append(key)
+#                 if threshold_data[key]['lower'] == None:
+#                     continue
+#                 else:
+                lowerR.append(threshold_data[key]['lower'])
+                upperR.append(threshold_data[key]['upper'])
+                lower_errR.append(threshold_data[key]['lower_err'])
+                upper_errR.append(threshold_data[key]['upper_err'])
+                real_keysR.append(key)
             else:
                 continue
         lower = [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
         upper = [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
+        real_keys = [real_keysB, real_keysR, real_keysZ]
     if 'COSMICS_RATE' in filepath:
         real_keys = ['keys not applicable']
         lower = [threshold_data['lower_err'], threshold_data['lower']]
