@@ -67,30 +67,40 @@ def write_threshold_json(indir, start_date, end_date, name):
                 weights = np.array(num_exps)/np.sum(num_exps)
                 med_avg = np.average(meds, weights=weights)
                 std_avg = np.average(stds, weights=weights)
+                upper_err = med_avg + std_avg
                 upper = med_avg + 0.5*std_avg
                 lower = med_avg - 0.5*std_avg
-                thresholds[amp] = dict(upper=upper, lower=lower)
+                lower_err = med_avg - std_avg
+                thresholds[amp] = dict(upper_err=upper_err, upper=upper, lower=lower, lower_err=lower_err)
             if amp in rest_amps:
-                thresholds[amp] = dict(upper=None, lower=None)
+                thresholds[amp] = dict(upper_err=None, upper=None, lower=None, lower_err=None)
     if name in ['COSMICS_RATE']:
         num_exps = []
+        lower_error = []
         lower = []
         upper = []
+        upper_error = []
         try:
             for night in nights_real:
+                lower_error.append(datadict[night]['PER_AMP'][name]['lower_error'])
                 lower.append(datadict[night]['PER_AMP'][name]['lower'])
                 upper.append(datadict[night]['PER_AMP'][name]['upper'])
+                upper_error.append(datadict[night]['PER_AMP'][name]['upper_error'])
                 num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
         except KeyError:
             n = 'COSMICS_RATES'
             for night in nights_real:
+                lower_error.append(datadict[night]['PER_AMP'][n]['lower_error'])
                 lower.append(datadict[night]['PER_AMP'][n]['lower'])
                 upper.append(datadict[night]['PER_AMP'][n]['upper'])
+                upper_error.append(datadict[night]['PER_AMP'][n]['upper_error'])
                 num_exps.append(datadict[night]['PER_AMP'][n]['num_exp'])
         weights = np.array(num_exps)/np.sum(num_exps)
+        lower_err_avg = np.average(lower_error, weights=weights)
         lower_avg = np.average(lower, weights=weights)
         upper_avg = np.average(upper, weights=weights)
-        thresholds = dict(lower=lower_avg, upper=upper_avg) 
+        upper_err_avg = np.average(upper_error, weights=weights)
+        thresholds = dict(lower_err=lower_err_avg, lower=lower_avg, upper=upper_avg, upper_err=upper_err_avg) 
         
     outdir = get_outdir()
     if name == 'COSMICS_RATES':
@@ -135,11 +145,17 @@ def get_thresholds(filepath, return_keys=None):
     keys = threshold_data.keys()
     if 'READNOISE' or 'BIAS' in filepath:
         lowerB = []
+        lower_errB = []
         upperB = []
+        upper_errB = []
         lowerZ = []
+        lower_errZ = []
         upperZ = []
+        upper_errZ = []
         lowerR = []
+        lower_errR = []
         upperR = []
+        upper_errR = []
         real_keys = []
         for key in keys:
             if key[0] == 'B':
@@ -148,6 +164,8 @@ def get_thresholds(filepath, return_keys=None):
                 else:
                     lowerB.append(threshold_data[key]['lower'])
                     upperB.append(threshold_data[key]['upper'])
+                    lower_errB.append(threshold_data[key]['lower_err'])
+                    upper_errB.append(threshold_data[key]['upper_err'])
                     real_keys.append(key)
             if key[0] == 'Z': 
                 if threshold_data[key]['lower'] == None:
@@ -155,6 +173,8 @@ def get_thresholds(filepath, return_keys=None):
                 else:
                     lowerZ.append(threshold_data[key]['lower'])
                     upperZ.append(threshold_data[key]['upper'])
+                    lower_errZ.append(threshold_data[key]['lower_err'])
+                    upper_errZ.append(threshold_data[key]['upper_err'])
                     real_keys.append(key)
             if key[0] == 'R':
                 if threshold_data[key]['lower'] == None:
@@ -162,15 +182,17 @@ def get_thresholds(filepath, return_keys=None):
                 else:
                     lowerR.append(threshold_data[key]['lower'])
                     upperR.append(threshold_data[key]['upper'])
+                    lower_errR.append(threshold_data[key]['lower_err'])
+                    upper_errR.append(threshold_data[key]['upper_err'])
                     real_keys.append(key)
             else:
                 continue
-        lower = [lowerB, lowerR, lowerZ]
-        upper = [upperB, upperR, upperZ]
+        lower = [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
+        upper = [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
     if 'COSMICS_RATE' in filepath:
         real_keys = ['keys not applicable']
-        lower = [threshold_data['lower']]
-        upper = [threshold_data['upper']]
+        lower = [threshold_data['lower_err'], threshold_data['lower']]
+        upper = [threshold_data['upper'], threshold_data['upper_err']]
     
     if return_keys:
         return lower, upper, real_keys
@@ -255,11 +277,15 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                 )
                 if aspect in ['READNOISE', 'BIAS']:
                     amp = cam + str(row['SPECTRO']) + row['AMP']
+                    data['lower_err'] = [threshold_data[amp]['lower_err']]*length
                     data['lower'] = [threshold_data[amp]['lower']]*length
                     data['upper'] = [threshold_data[amp]['upper']]*length
+                    data['upper_err'] = [threshold_data[amp]['upper_err']]*length
                 if aspect in ['COSMICS_RATE']:
+                    data['lower_err'] = [threshold_data['lower_err']]*length
                     data['lower'] = [threshold_data['lower']]*length
                     data['upper'] = [threshold_data['upper']]*length
+                    data['upper_err'] = [threshold_data['upper_err']]*length
                 for col in group_by_list:
                     data[col] = [str(row[col])]*length
                 source_data.append(data)          
@@ -356,27 +382,44 @@ def get_threshold_table(filepath):
         a bokeh DataTable object'''
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
     lower, upper, keys = get_thresholds(filepath, return_keys=True)
-    if len(lower) != 1:
-        lower = lower[0]+lower[1]+lower[2]
-        upper = upper[0]+upper[1]+upper[2]
+    
+    lower_col = []
+    lower_err_col = []
+    upper_col = []
+    upper_err_col = []
+    
+    if len(keys) != 1:
+        lower_col += (lower[0][1]+lower[1][1]+lower[2][1])
+        lower_err_col += (lower[0][0]+lower[1][0]+lower[2][0])
+        upper_col += (upper[0][0]+upper[1][0]+upper[2][0])
+        upper_err_col += (upper[0][1]+upper[1][1]+upper[2][1])
+    
+    if len(keys) == 1:
+        lower_col += [lower[1]]
+        lower_err_col += [lower[0]]
+        upper_col += [upper[0]]
+        upper_err_col += [upper[1]]
     
     src = ColumnDataSource(data=dict(
         amp=keys,
-        lower=lower,
-        upper=upper,
+        lower_err=lower_err_col,
+        lower=lower_col,
+        upper=upper_col,
+        upper_err=upper_err_col,
     ))
     
-    if len(keys) == 1:
-        columns = [
-            TableColumn(field="lower", title="1st percentile", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="upper", title="99th percentile", formatter=NumberFormatter(format="0.00")),
-        ]
-    else:    
-        columns = [
-        TableColumn(field="amp", title="Amp"),
-        TableColumn(field="lower", title="Lower Threshold", formatter=NumberFormatter(format="0.00")),
-        TableColumn(field="upper", title="Upper Threshold", formatter=NumberFormatter(format="0.00")),
-        ]
+    columns = []
+    
+    if len(keys) != 1:
+        columns += [TableColumn(field="amp", title="Amp")]
+    
+    columns += [
+        TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
+    ]
+    
 
     data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
     return data_table
