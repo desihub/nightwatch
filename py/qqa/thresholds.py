@@ -433,7 +433,6 @@ def get_threshold_table(name, filepath):
         ]
     if name in ['COSMICS_RATE']:
          columns = [
-            TableColumn(field="amp", title="Amp"),
             TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
             TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
             TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
