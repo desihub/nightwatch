@@ -1,482 +1,722 @@
 {
     "B0A": {
-        "upper": 1144.4258230060775,
-        "lower": 1144.4186555811177
+        "upper_err": 1144.443741568477,
+        "upper": 1144.4294067185574,
+        "lower": 1144.4150718686378,
+        "lower_err": 1144.4007370187182
     },
     "B0B": {
-        "upper": 1148.1133791496197,
-        "lower": 1148.104774750533
+        "upper_err": 1148.1348901473368,
+        "upper": 1148.1176813491631,
+        "lower": 1148.1004725509895,
+        "lower_err": 1148.0832637528158
     },
     "B0C": {
-        "upper": 1136.8410815171314,
-        "lower": 1136.826277223889
+        "upper_err": 1136.8780922502376,
+        "upper": 1136.8484836637526,
+        "lower": 1136.8188750772679,
+        "lower_err": 1136.789266490783
     },
     "B0D": {
-        "upper": 1113.433673765353,
-        "lower": 1113.4273352878854
+        "upper_err": 1113.449519959022,
+        "upper": 1113.4368430040868,
+        "lower": 1113.4241660491516,
+        "lower_err": 1113.4114890942164
     },
     "R0A": {
-        "upper": 2006.8169303817301,
-        "lower": 2006.8137641856008
+        "upper_err": 2006.8248458720539,
+        "upper": 2006.818513479795,
+        "lower": 2006.812181087536,
+        "lower_err": 2006.805848695277
     },
     "R0B": {
-        "upper": 2003.934755273396,
-        "lower": 2003.9311908903912
+        "upper_err": 2003.9436662309074,
+        "upper": 2003.9365374648983,
+        "lower": 2003.929408698889,
+        "lower_err": 2003.9222799328797
     },
     "R0C": {
-        "upper": 1999.356750314408,
-        "lower": 1999.3409461815697
+        "upper_err": 1999.3962606465032,
+        "upper": 1999.364652380827,
+        "lower": 1999.3330441151506,
+        "lower_err": 1999.3014358494745
     },
     "R0D": {
-        "upper": 2008.9120385890951,
-        "lower": 2008.9060573053007
+        "upper_err": 2008.926991798581,
+        "upper": 2008.9150292309923,
+        "lower": 2008.9030666634035,
+        "lower_err": 2008.8911040958149
     },
     "Z0A": {
-        "upper": 2005.333369693539,
-        "lower": 2005.3140908099301
+        "upper_err": 2005.3815669025614,
+        "upper": 2005.3430091353434,
+        "lower": 2005.3044513681257,
+        "lower_err": 2005.2658936009077
     },
     "Z0B": {
-        "upper": 2007.2378406556318,
-        "lower": 2007.2364470185112
+        "upper_err": 2007.241324748433,
+        "upper": 2007.238537474192,
+        "lower": 2007.2357501999509,
+        "lower_err": 2007.23296292571
     },
     "Z0C": {
-        "upper": 2005.921610429732,
-        "lower": 2005.9149862753534
+        "upper_err": 2005.9381708156784,
+        "upper": 2005.9249225069213,
+        "lower": 2005.911674198164,
+        "lower_err": 2005.898425889407
     },
     "Z0D": {
-        "upper": 2001.0062670113846,
-        "lower": 2001.0054846061614
+        "upper_err": 2001.0082230244427,
+        "upper": 2001.0066582139962,
+        "lower": 2001.0050934035498,
+        "lower_err": 2001.0035285931033
     },
     "B1A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B1B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B1C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B1D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R1A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R1B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R1C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R1D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z1A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z1B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z1C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z1D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B2A": {
-        "upper": 1201.8557716801236,
-        "lower": 1201.7367114154733
+        "upper_err": 1202.1534223417495,
+        "upper": 1201.915301812449,
+        "lower": 1201.677181283148,
+        "lower_err": 1201.4390607538473
     },
     "B2B": {
-        "upper": 1210.5634881972348,
-        "lower": 1210.4369394705316
+        "upper_err": 1210.8798600139926,
+        "upper": 1210.6267625605863,
+        "lower": 1210.3736651071802,
+        "lower_err": 1210.1205676537738
     },
     "B2C": {
-        "upper": 1188.2413793467877,
-        "lower": 1188.1529716824302
+        "upper_err": 1188.4623985076812,
+        "upper": 1188.2855831789664,
+        "lower": 1188.1087678502515,
+        "lower_err": 1187.9319525215367
     },
     "B2D": {
-        "upper": 1174.8735034282836,
-        "lower": 1174.7817492299541
+        "upper_err": 1175.1028889241072,
+        "upper": 1174.9193805274483,
+        "lower": 1174.7358721307894,
+        "lower_err": 1174.5523637341305
     },
     "R2A": {
-        "upper": 2000.0514232562289,
-        "lower": 2000.0126674459395
+        "upper_err": 2000.1483127819527,
+        "upper": 2000.0708011613738,
+        "lower": 1999.9932895407946,
+        "lower_err": 1999.9157779202158
     },
     "R2B": {
-        "upper": 1994.8524421081534,
-        "lower": 1994.8392001041084
+        "upper_err": 1994.8855471182655,
+        "upper": 1994.8590631101758,
+        "lower": 1994.832579102086,
+        "lower_err": 1994.8060950939962
     },
     "R2C": {
-        "upper": 2000.8329073840932,
-        "lower": 2000.796272728248
+        "upper_err": 2000.9244940237072,
+        "upper": 2000.8512247120161,
+        "lower": 2000.777955400325,
+        "lower_err": 2000.704686088634
     },
     "R2D": {
-        "upper": 1998.0614911416856,
-        "lower": 1998.0483104287619
+        "upper_err": 1998.0944429239942,
+        "upper": 1998.0680814981472,
+        "lower": 1998.0417200723002,
+        "lower_err": 1998.0153586464533
     },
     "Z2A": {
-        "upper": 2005.8648966236378,
-        "lower": 2005.5976137384564
+        "upper_err": 2006.533103836591,
+        "upper": 2005.9985380662283,
+        "lower": 2005.463972295866,
+        "lower_err": 2004.9294065255033
     },
     "Z2B": {
-        "upper": 2006.9618484063913,
-        "lower": 2006.9179693794867
+        "upper_err": 2007.071545973652,
+        "upper": 2006.9837879198433,
+        "lower": 2006.8960298660347,
+        "lower_err": 2006.808271812226
     },
     "Z2C": {
-        "upper": 2008.9174116254121,
-        "lower": 2008.8660631085618
+        "upper_err": 2009.045782917538,
+        "upper": 2008.9430858838373,
+        "lower": 2008.8403888501366,
+        "lower_err": 2008.737691816436
     },
     "Z2D": {
-        "upper": 2003.51605764441,
-        "lower": 2003.4839671832888
+        "upper_err": 2003.5962837972133,
+        "upper": 2003.5321028749706,
+        "lower": 2003.4679219527281,
+        "lower_err": 2003.4037410304854
     },
     "B3A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B3B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B3C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B3D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R3A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R3B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R3C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R3D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z3A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z3B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z3C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z3D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B4A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B4B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B4C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B4D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R4A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R4B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R4C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R4D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z4A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z4B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z4C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z4D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B5A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B5B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B5C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B5D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R5A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R5B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R5C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R5D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z5A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z5B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z5C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z5D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B6A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B6B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B6C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B6D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R6A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R6B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R6C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R6D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z6A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z6B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z6C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z6D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B7A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B7B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B7C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B7D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R7A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R7B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R7C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R7D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z7A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z7B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z7C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z7D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B8A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B8B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B8C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B8D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R8A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R8B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R8C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R8D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z8A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z8B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z8C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z8D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B9A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B9B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B9C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "B9D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R9A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R9B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R9C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "R9D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z9A": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z9B": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z9C": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     },
     "Z9D": {
+        "upper_err": null,
         "upper": null,
-        "lower": null
+        "lower": null,
+        "lower_err": null
     }
 }
