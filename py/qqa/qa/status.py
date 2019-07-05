@@ -55,7 +55,7 @@ def get_status(qadata, night):
                     data_loc = (data['AMP'] == amp) & (data['SPECTRO']==spec) & (data['CAM']==cam)
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                         warn = (data[data_loc][metric] < thresholds[key]['lower']) | (data[data_loc][metric] > thresholds[key]['upper'])
-                        error = (data[data_loc][metric] < 0.5*thresholds[key]['lower']) | (data[data_loc][metric] > 1.5*thresholds[key]['upper'])
+                        error = (data[data_loc][metric] <= thresholds[key]['lower_err']) | (data[data_loc][metric] >= thresholds[key]['upper_err'])
                         if warn: 
                             status['PER_AMP'][metric][status_loc] = Status.warning
                         if error:
@@ -70,7 +70,7 @@ def get_status(qadata, night):
         key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
         if thresholds['lower'] != None and thresholds['upper'] != None:
             warn = (data[metric] < thresholds['lower']) | (data[metric] > thresholds['upper'])
-            error = (data[metric] < 0.5*thresholds['lower']) | (data[metric] > 1.5*thresholds['upper']) 
+            error = (data[metric] < thresholds['lower_err']) | (data[metric] > thresholds['upper_err']) 
             status['PER_AMP'][metric][warn] = Status.warning
             status['PER_AMP'][metric][error] = Status.error
         else:
