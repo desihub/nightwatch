@@ -523,9 +523,11 @@ def write_nights_summary(indir, last):
                             bias_sca[c + str(s) + a] = bias_sca_dict
 
             cosmics_rates = dict(
+                lower_error=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 0.1),
                 lower=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 1),
                 upper=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 99),
-                num_exp=len(qadata_stacked)
+                upper_error=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 99.9),
+                num_exp=len(qadata_stacked),
             )
 
             data = dict(
