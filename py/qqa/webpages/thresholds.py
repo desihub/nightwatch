@@ -23,7 +23,7 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
         timeseries = plot_timeseries(data, aspect)
         histogram = plot_histogram(data, bins=20)
         filepath = pick_threshold_file(aspect, end_date)
-        table = get_threshold_table(filepath)
+        table = get_threshold_table(aspect, filepath)
         fig = gridplot(children=[[timeseries, histogram]], toolbar_location='right')
         if fig is None:
             return "No data between {} and {}".format(start_date, end_date)

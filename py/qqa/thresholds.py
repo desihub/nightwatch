@@ -377,7 +377,7 @@ def plot_timeseries(src, title, amps=None):
     grid_figs = gridplot(children=children, toolbar_location=None)
     return grid_figs
 
-def get_threshold_table(filepath):
+def get_threshold_table(name, filepath):
     '''Given a filepath, returns a table containing the lower and upper threshold values for each amp.
     Input:
         filepath: path to a threshold file 
@@ -390,40 +390,56 @@ def get_threshold_table(filepath):
     lower_err_col = []
     upper_col = []
     upper_err_col = []
+    keys_col = []
     
-    if len(keys) != 1:
+    if name in ['READNOISE', 'BIAS']:
         lower_col += (lower[0][1]+lower[1][1]+lower[2][1])
         lower_err_col += (lower[0][0]+lower[1][0]+lower[2][0])
         upper_col += (upper[0][0]+upper[1][0]+upper[2][0])
         upper_err_col += (upper[0][1]+upper[1][1]+upper[2][1])
+        keys_col += (keys[0] + keys[1] + keys[2])
+        
+        for i in range(len(lower_col)):
+            if lower_col[i] == 0 or lower_col[i] == None:
+                lower_col[i] = 'N/A'
+                lower_err_col[i] = 'N/A'
+                upper_col[i] = 'N/A'
+                upper_err_col[i] = 'N/A'
+            else:
+                continue
     
-    if len(keys) == 1:
+    if name in ['COSMICS_RATE']:
         lower_col += [lower[1]]
         lower_err_col += [lower[0]]
         upper_col += [upper[0]]
         upper_err_col += [upper[1]]
+        keys_col += keys*len(lower_col)
     
     src = ColumnDataSource(data=dict(
-        amp=keys,
+        amp=keys_col,
         lower_err=lower_err_col,
         lower=lower_col,
         upper=upper_col,
         upper_err=upper_err_col,
     ))
     
-    columns = []
+    if name in ['READNOISE', 'BIAS']:
+        columns = [
+            TableColumn(field="amp", title="Amp"),
+            TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
+        ]
+    if name in ['COSMICS_RATE']:
+         columns = [
+            TableColumn(field="amp", title="Amp"),
+            TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
+            TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
+        ]
     
-    if len(keys) != 1:
-        columns += [TableColumn(field="amp", title="Amp")]
-    
-    columns += [
-        TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
-        TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
-        TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
-        TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
-    ]
-    
-
     data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
     return data_table
 
