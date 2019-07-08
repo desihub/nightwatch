@@ -41,29 +41,34 @@ def write_camera_html(outfile, data, header):
         flavor=flavor, program=program, qatype='camera',
         num_dirs=2,
     )
+    num_plots = len(set([i for i in ["MEANDX", "MEANDY", "MEANXSIG", "MEANYSIG"] if i in data.dtype.names]))
+    if num_plots==0:
+        plot_width = 100
+    else:
+        plot_width = int(1350/num_plots)
 
     #- Generate the bokeh figures
     if "MEANDX" in data.dtype.names:
         fig = plot_camera_qa(data, 'DX', title='DX with camera',
-                minmax=(-0.1, 0.1), height=150, width=300)
+                minmax=(-0.1, 0.1), height=200, width=plot_width)
         script, div = components(fig)
         html_components['DX'] = dict(script=script, div=div)
 
     if "MEANDY" in data.dtype.names:
         fig = plot_camera_qa(data, 'DY', title='DY with camera',
-                minmax=(-0.1, 0.1), height=150, width=300)
+                minmax=(-0.1, 0.1), height=200, width=plot_width)
         script, div = components(fig)
         html_components['DY'] = dict(script=script, div=div)
 
     if "MEANXSIG" in data.dtype.names:
         fig = plot_camera_qa(data, 'XSIG', title='XSIG with camera',
-                line0=False, minmax=(0.8, 1.3), height=150, width=300)
+                line0=False, minmax=(0.8, 1.3), height=200, width=plot_width)
         script, div = components(fig)
         html_components['XSIG'] = dict(script=script, div=div)
 
     if "MEANYSIG" in data.dtype.names:
         fig = plot_camera_qa(data, 'YSIG', title='YSIG with camera',
-                line0=False, minmax=(0.8, 1.3), height=150, width=300)
+                line0=False, minmax=(0.8, 1.3), height=200, width=plot_width)
         script, div = components(fig)
         html_components['YSIG'] = dict(script=script, div=div)
 
