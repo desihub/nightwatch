@@ -178,7 +178,7 @@ def plot_fibernums(source, name, cam='',
 
     #- Fibernum scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
-                    x_range=fig_x_range, y_range=fig_y_range,
+                    x_range=fig_x_range, y_range=fig_y_range,y_axis_type="log",
                     toolbar_location=toolbar_location)
 
     #- Filter data to just this camera
