@@ -3,8 +3,9 @@ import bokeh
 import sys, os, re
 from bokeh.embed import components
 from bokeh.layouts import column, gridplot, row
+from bokeh.models.widgets import Panel, Tabs
 
-from ..thresholds import get_timeseries_dataset, plot_timeseries, get_threshold_table, get_amp_rows, pick_threshold_file, plot_histogram
+from ..thresholds import get_timeseries_dataset, plot_timeseries, get_threshold_table, get_amp_rows, pick_threshold_file, plot_histogram, get_spec_amps
 
 def write_threshold_html(outfile, datadir, start_date, end_date):
     
@@ -20,18 +21,28 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
     
     for aspect in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect)
-        timeseries = plot_timeseries(data, aspect)
-        histogram = plot_histogram(data, bins=20)
         filepath = pick_threshold_file(aspect, end_date)
-        table = get_threshold_table(aspect, filepath)
-        fig = gridplot(children=[[timeseries, histogram]], toolbar_location='right')
-        if fig is None:
+        
+        tabs = []
+        for i in range(10):
+            time = plot_timeseries(data, aspect, amps=get_spec_amps(i), plot_height=250, plot_width=750)
+            tab = Panel(child=time, title='{}'.format(i))
+            tabs.append(tab)
+ 
+        time = Tabs(tabs=tabs)
+        hist = plot_histogram(data, 20, plot_height=250, plot_width=250)
+        table = get_threshold_table(aspect, filepath, width=750)
+        if time is None or hist is None or table is None:
             return "No data between {} and {}".format(start_date, end_date)
 
-        script, div = components(fig)
+        time_script, time_div = components(time)
+        hist_script, hist_div = components(hist)
         table_script, table_div = components(table)
+        time_label = '{}_time'.format(aspect)
+        hist_label = '{}_hist'.format(aspect)
         table_label = '{}_table'.format(aspect)
-        html_components[aspect] = dict(script=script, div=div)
+        html_components[time_label] = dict(script=time_script, div=time_div)
+        html_components[hist_label] = dict(script=hist_script, div=hist_div)
         html_components[table_label] = dict(script=table_script, div=table_div)
     
 #     for aspect in ["COSMICS_RATE"]:
@@ -53,5 +64,6 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
         fx.write(html)
 
     return html_components
+
 
     

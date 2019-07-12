@@ -6,9 +6,9 @@ from astropy.table import Table, vstack
 import fitsio
 
 import bokeh.plotting as bk
-from bokeh.layouts import gridplot, column
+from bokeh.layouts import gridplot, column, row
 from bokeh.models import TapTool as TapTool
-from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS, Span
+from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS, Span, Band, BoxAnnotation, ResetTool, BoxZoomTool
 from qqa.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
@@ -262,7 +262,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     filepath = pick_threshold_file(aspect, end_date)
     with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
-    source_data = []
+    source_data = [0]*120
     if "CAM" in table_by_amp.colnames:
         colors = {"B":"blue", "R":"red", "Z":"green"}
         group_by_list.remove("CAM")
@@ -278,8 +278,10 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                     aspect_values = row[aspect],
                     CAM = row['CAM'],
                 )
+                amp = cam + str(row['SPECTRO']) + row['AMP']
+                amps = []
+                amps.append(amp)
                 if aspect in ['READNOISE', 'BIAS']:
-                    amp = cam + str(row['SPECTRO']) + row['AMP']
                     data['lower_err'] = [threshold_data[amp]['lower_err']]*length
                     data['lower'] = [threshold_data[amp]['lower']]*length
                     data['upper'] = [threshold_data[amp]['upper']]*length
@@ -291,7 +293,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                     data['upper_err'] = [threshold_data['upper_err']]*length
                 for col in group_by_list:
                     data[col] = [str(row[col])]*length
-                source_data.append(data)          
+                source_data[get_amp_rows(amps)[0]] = data         
     else:
         for row in table_by_amp:
             length = len(row["EXPID"])
@@ -307,7 +309,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
             
     return source_data
 
-def get_amp_rows(amps):
+def get_amp_rows(amps, cam_sep=None):
     '''Convert amp keys from threshold files into an index that can be used to filter
     out selected amps when plotting timeseries and histograms.
     Input:
@@ -317,14 +319,21 @@ def get_amp_rows(amps):
     ids = []
     amp_vals = {'A':0, 'B':1, 'C':2, 'D':3}
     cam_vals = {'B':0, 'R':10, 'Z':20}
-    for amp in amps:
-        cam_val = cam_vals[amp[0]]
-        spec_val = int(amp[1])
-        amp_val = amp_vals[amp[2]]
-        ids.append(((cam_val+spec_val)*4)+amp_val)
+    
+    if cam_sep:
+        for amp in amps:
+            spec_val = int(amp[1])
+            amp_val = amp_vals[amp[2]]
+            ids.append(spec_val*4 + amp_val)
+    else:
+        for amp in amps:
+            cam_val = cam_vals[amp[0]]
+            spec_val = int(amp[1])
+            amp_val = amp_vals[amp[2]]
+            ids.append(((cam_val+spec_val)*4)+amp_val)
     return np.array(ids)
 
-def plot_timeseries(src, title, amps=None):
+def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
     '''Given a list of separate dictionaries containing data for each amp, plots timeseries.
     Input:
         src: a list of dictionaries, with elements containing keywords [EXPID, EXPIDZ, NIGHT, aspect_value, CAM, lower, upper]
@@ -338,7 +347,7 @@ def plot_timeseries(src, title, amps=None):
     if amps == None:
         ids += list(np.arange(0, len(src)))
     else:
-        ids += get_amp_rows(amps)
+        ids.append(get_amp_rows(amps))
     src_selected = np.array(src)[ids]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
@@ -351,8 +360,10 @@ def plot_timeseries(src, title, amps=None):
                                      ('{}'.format(title), '@aspect_values'),
                                      ('Upper threshold', '@upper'),
                                      ('Lower threshold', '@lower')])
+        box_zoom = BoxZoomTool()
+        reset = ResetTool()
         
-        fig = bk.figure(title=cam, plot_height=200, plot_width=600, tools=[hover], toolbar_location=None)
+        fig = bk.figure(title=cam, plot_height=plot_height, plot_width=plot_width, tools=[hover, box_zoom, reset])
         if len(cam_src) == 0:
             continue
         else:
@@ -365,19 +376,19 @@ def plot_timeseries(src, title, amps=None):
                         continue
                 fig.circle(x='EXPIDZ', y='aspect_values', color=colors[cam], size=2, name='circles', source=source)
                 fig.line(x='EXPIDZ', y='aspect_values', line_color=colors[cam], source=source)
-                fig.line(x='EXPIDZ', y='lower', line_dash='dashed', line_color='black', source=source)
-                fig.line(x='EXPIDZ', y='upper', line_dash='dashed', line_color='black', source=source)
-                if cam == 'Z':
-                    fig.xaxis.axis_label = 'Exposure ID'
+                good_range = BoxAnnotation(bottom=cam_src[i]['lower'][0], top=cam_src[i]['upper'][0], 
+                                           fill_color='green', fill_alpha=0.05)
+                fig.add_layout(good_range)
+                #fig.line(x='EXPIDZ', y='lower', line_dash='dashed', line_color='black', source=source)
+                #fig.line(x='EXPIDZ', y='upper', line_dash='dashed', line_color='black', source=source)
+                fig.xaxis.axis_label = 'Exposure ID'
+                if cam in ['R', 'B']:
+                    fig.xaxis.axis_label_text_color = 'white'
                 fig.yaxis.axis_label = ' '.join(title.split(sep='_')).title()
             cam_figs.append(fig)
-    children = []
-    for fig in cam_figs:
-        children.append([fig])
-    grid_figs = gridplot(children=children, toolbar_location=None)
-    return grid_figs
+    return column(cam_figs)
 
-def get_threshold_table(name, filepath):
+def get_threshold_table(name, filepath, width=600):
     '''Given a filepath, returns a table containing the lower and upper threshold values for each amp.
     Input:
         filepath: path to a threshold file 
@@ -439,10 +450,10 @@ def get_threshold_table(name, filepath):
             TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
         ]
     
-    data_table = DataTable(source=src, columns=columns, width=800, selectable=True, sortable=True)
+    data_table = DataTable(source=src, columns=columns, width=width, selectable=True, sortable=True)
     return data_table
 
-def plot_histogram(src, bins=20, amps=None):
+def plot_histogram(src, bins=20, amps=None, plot_height=250, plot_width=250):
     '''Given timeseries data for each amp, plots histograms per camera across all exposures in the data.
     Input:
         src: a list of dictionaries containing data per amp for some metric.
@@ -459,7 +470,7 @@ def plot_histogram(src, bins=20, amps=None):
     src_selected = np.array(src)[np.array(ids)]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
-        fig = bk.figure(plot_height=200, plot_width=300, toolbar_location=None, title=cam)
+        fig = bk.figure(plot_height=plot_height, plot_width=plot_width, toolbar_location=None, title=cam)
         fig.title.text_color = 'white'
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]
@@ -472,12 +483,21 @@ def plot_histogram(src, bins=20, amps=None):
                  fill_color=colors[cam], line_color='black', alpha=0.70)
         fig.add_layout(Span(location=np.percentile(aspect_data, 1),
                             dimension='height', line_color='black',
-                            line_width=3,
+                            line_width=2,
                            ))
         fig.add_layout(Span(location=np.percentile(aspect_data, 99),
                             dimension='height', line_color='black',
-                            line_width=3,
+                            line_width=2,
                            ))
+        fig.yaxis.axis_label = 'Value'
+        fig.yaxis.axis_label_text_color = 'white'
         cam_figs.append(fig)
         
-    return column(cam_figs)
+    return row(cam_figs)
+
+def get_spec_amps(i):
+    amps = []
+    for cam in ['B', 'R', 'Z']:
+        for amp in ['A', 'B', 'C', 'D']:
+            amps.append(cam+str(i)+amp)
+    return amps
