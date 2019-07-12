@@ -314,6 +314,8 @@ def get_amp_rows(amps, cam_sep=None):
     out selected amps when plotting timeseries and histograms.
     Input:
         amps: list of amps in the (cam+spectro+amp) format
+    Options:
+        cam_sep: if True, indicates that data is already separated by camera
     Output:
         ids: numpy array of the corresponding ids to filter a list '''
     ids = []
@@ -464,9 +466,9 @@ def plot_histogram(src, bins=20, amps=None, plot_height=250, plot_width=250):
         a bokeh Column figure object, containing all 3 histograms (one per cam)'''
     ids = []
     if amps == None:
-        ids += list(np.arange(0, len(src)))
+        ids = list(np.arange(0, len(src)))
     else:
-        ids += get_amp_rows(amps)
+        ids = get_amp_rows(amps)
     src_selected = np.array(src)[np.array(ids)]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
@@ -495,9 +497,25 @@ def plot_histogram(src, bins=20, amps=None, plot_height=250, plot_width=250):
         
     return row(cam_figs)
 
-def get_spec_amps(i):
+
+def get_specs(time_data):
+    specs = []
+    for i in range(len(time_data)):
+        if type(time_data[i]) == dict:
+            specs.append(time_data[i]['SPECTRO'][0])
+        if type(time_data[i]) == int:
+            continue
+    return np.unique(specs)
+
+def get_spec_amps(spec, lst=None):
     amps = []
-    for cam in ['B', 'R', 'Z']:
-        for amp in ['A', 'B', 'C', 'D']:
-            amps.append(cam+str(i)+amp)
+    if lst == None:
+        for cam in ['B', 'R', 'Z']:
+            for amp in ['A', 'B', 'C', 'D']:
+                amps.append(cam+str(spec)+amp)
+    if lst == True:
+        for s in spec:
+            for cam in ['B', 'R', 'Z']:
+                for amp in ['A', 'B', 'C', 'D']:
+                    amps.append(cam+str(s)+amp)
     return amps

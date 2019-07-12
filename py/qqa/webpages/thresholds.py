@@ -5,7 +5,7 @@ from bokeh.embed import components
 from bokeh.layouts import column, gridplot, row
 from bokeh.models.widgets import Panel, Tabs
 
-from ..thresholds import get_timeseries_dataset, plot_timeseries, get_threshold_table, get_amp_rows, pick_threshold_file, plot_histogram, get_spec_amps
+from ..thresholds import get_timeseries_dataset, plot_timeseries, get_threshold_table, get_amp_rows, pick_threshold_file, plot_histogram, get_spec_amps, get_specs
 
 def write_threshold_html(outfile, datadir, start_date, end_date):
     
@@ -22,15 +22,15 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
     for aspect in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect)
         filepath = pick_threshold_file(aspect, end_date)
-        
+        specs_in_use = get_specs(data)
         tabs = []
-        for i in range(10):
+        for i in specs_in_use:
             time = plot_timeseries(data, aspect, amps=get_spec_amps(i), plot_height=250, plot_width=750)
             tab = Panel(child=time, title='{}'.format(i))
             tabs.append(tab)
  
         time = Tabs(tabs=tabs)
-        hist = plot_histogram(data, 20, plot_height=250, plot_width=250)
+        hist = plot_histogram(data, 20, amps=get_spec_amps(specs_in_use, lst=True), plot_height=250, plot_width=250)
         table = get_threshold_table(aspect, filepath, width=750)
         if time is None or hist is None or table is None:
             return "No data between {} and {}".format(start_date, end_date)
