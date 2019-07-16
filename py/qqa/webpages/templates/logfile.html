@@ -74,15 +74,15 @@ table {
 
       {% if not current %}
       <font size="6" color={{error_colors.get(c+i)}} >
-      {% endif %}
       {% if error_colors.get(c+i) == 'black'%}
       <mark>
       {% endif %}
+      {% endif %}
         <text {% if c + i in available %} style="font-weight:bold;"{% endif %}>{{c}}{{i}}<text>
+      {% if not current %}
       {% if error_colors.get(c+i) == 'black'%}
       </mark>
       {% endif %}
-      {% if not current %}
       </font>
       {% endif %}
 
