@@ -522,19 +522,24 @@ def write_nights_summary(indir, last):
                             )
                             bias_sca[c + str(s) + a] = bias_sca_dict
 
-            cosmics_rates = dict(
-                lower_error=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 0.1),
-                lower=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 1),
-                upper=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 99),
-                upper_error=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 99.9),
-                num_exp=len(qadata_stacked),
-            )
+            cosmics_rate = dict()
+            for c in ["R", "B", "Z"]:
+                specific = qadata_stacked[qadata_stacked["CAM"]==c]
+                if len(specific) > 0:
+                    cosmics_dict = dict(
+                        lower_error=np.percentile(list(specific["COSMICS_RATE"]), 0.1),
+                        lower=np.percentile(list(specific["COSMICS_RATE"]), 1),
+                        upper=np.percentile(list(specific["COSMICS_RATE"]), 99),
+                        upper_error=np.percentile(list(specific["COSMICS_RATE"]), 99.9),
+                        num_exp=len(specific),
+                    )
+                    cosmics_rate[c] = cosmics_dict
 
             data = dict(
                 PER_AMP=dict(
                     READNOISE=readnoise_sca,
                     BIAS=bias_sca,
-                    COSMICS_RATE=cosmics_rates
+                    COSMICS_RATE=cosmics_rate
                 )
             )
 

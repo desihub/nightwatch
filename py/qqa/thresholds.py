@@ -75,33 +75,33 @@ def write_threshold_json(indir, start_date, end_date, name):
             if amp in rest_amps:
                 thresholds[amp] = dict(upper_err=None, upper=None, lower=None, lower_err=None)
     if name in ['COSMICS_RATE']:
-        num_exps = []
-        lower_error = []
-        lower = []
-        upper = []
-        upper_error = []
-        try:
-            for night in nights_real:
-                lower_error.append(datadict[night]['PER_AMP'][name]['lower_error'])
-                lower.append(datadict[night]['PER_AMP'][name]['lower'])
-                upper.append(datadict[night]['PER_AMP'][name]['upper'])
-                upper_error.append(datadict[night]['PER_AMP'][name]['upper_error'])
-                num_exps.append(datadict[night]['PER_AMP'][name]['num_exp'])
-        except KeyError:
-            n = 'COSMICS_RATES'
-            for night in nights_real:
-                lower_error.append(datadict[night]['PER_AMP'][n]['lower_error'])
-                lower.append(datadict[night]['PER_AMP'][n]['lower'])
-                upper.append(datadict[night]['PER_AMP'][n]['upper'])
-                upper_error.append(datadict[night]['PER_AMP'][n]['upper_error'])
-                num_exps.append(datadict[night]['PER_AMP'][n]['num_exp'])
-        weights = np.array(num_exps)/np.sum(num_exps)
-        lower_err_avg = np.average(lower_error, weights=weights)
-        lower_avg = np.average(lower, weights=weights)
-        upper_avg = np.average(upper, weights=weights)
-        upper_err_avg = np.average(upper_error, weights=weights)
-        thresholds = dict(lower_err=lower_err_avg, lower=lower_avg, upper=upper_avg, upper_err=upper_err_avg) 
-        
+        for cam in ['R', 'B', 'Z']:
+            num_exps = []
+            lower_error = []
+            lower = []
+            upper = []
+            upper_error = []
+            try:
+                for night in nights_real:
+                    lower_error.append(datadict[night]['PER_AMP'][name][cam]['lower_error'])
+                    lower.append(datadict[night]['PER_AMP'][name][cam]['lower'])
+                    upper.append(datadict[night]['PER_AMP'][name][cam]['upper'])
+                    upper_error.append(datadict[night]['PER_AMP'][name][cam]['upper_error'])
+                    num_exps.append(datadict[night]['PER_AMP'][name][cam]['num_exp'])
+            except KeyError:
+                n = 'COSMICS_RATES'
+                for night in nights_real:
+                    lower_error.append(datadict[night]['PER_AMP'][n][cam]['lower_error'])
+                    lower.append(datadict[night]['PER_AMP'][n][cam]['lower'])
+                    upper.append(datadict[night]['PER_AMP'][n][cam]['upper'])
+                    upper_error.append(datadict[night]['PER_AMP'][n][cam]['upper_error'])
+                    num_exps.append(datadict[night]['PER_AMP'][n][cam]['num_exp'])
+            weights = np.array(num_exps)/np.sum(num_exps)
+            lower_err_avg = np.average(lower_error, weights=weights)
+            lower_avg = np.average(lower, weights=weights)
+            upper_avg = np.average(upper, weights=weights)
+            upper_err_avg = np.average(upper_error, weights=weights)
+            thresholds[cam] = dict(lower_err=lower_err_avg, lower=lower_avg, upper=upper_avg, upper_err=upper_err_avg)     
     outdir = get_outdir()
     if name == 'COSMICS_RATES':
         name = 'COSMICS_RATE'
@@ -126,7 +126,7 @@ def pick_threshold_file(name, night):
         if str(night) in f:
             filepath += os.path.join(threshold_dir, file)    
     if filepath == '':
-        filepath += os.path.join(threshold_dir, files[-1])
+        filepath += os.path.join(threshold_dir, files[0])
     return filepath
 
 def get_thresholds(filepath, return_keys=None):
@@ -143,65 +143,50 @@ def get_thresholds(filepath, return_keys=None):
     with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
     keys = threshold_data.keys()
-    if 'READNOISE' or 'BIAS' in filepath:
-        lowerB = []
-        lower_errB = []
-        upperB = []
-        upper_errB = []
-        real_keysB = []
-        lowerZ = []
-        lower_errZ = []
-        upperZ = []
-        upper_errZ = []
-        real_keysZ = []
-        lowerR = []
-        lower_errR = []
-        upperR = []
-        upper_errR = []
-        real_keysR = []
-        for key in keys:
-            if key[0] == 'B':
-#                 if threshold_data[key]['lower'] == None:
-#                     continue
-#                 else:
-                lowerB.append(threshold_data[key]['lower'])
-                upperB.append(threshold_data[key]['upper'])
-                lower_errB.append(threshold_data[key]['lower_err'])
-                upper_errB.append(threshold_data[key]['upper_err'])
-                real_keysB.append(key)
-            if key[0] == 'Z': 
-#                 if threshold_data[key]['lower'] == None:
-#                     continue
-#                 else:
-                lowerZ.append(threshold_data[key]['lower'])
-                upperZ.append(threshold_data[key]['upper'])
-                lower_errZ.append(threshold_data[key]['lower_err'])
-                upper_errZ.append(threshold_data[key]['upper_err'])
-                real_keysZ.append(key)
-            if key[0] == 'R':
-#                 if threshold_data[key]['lower'] == None:
-#                     continue
-#                 else:
-                lowerR.append(threshold_data[key]['lower'])
-                upperR.append(threshold_data[key]['upper'])
-                lower_errR.append(threshold_data[key]['lower_err'])
-                upper_errR.append(threshold_data[key]['upper_err'])
-                real_keysR.append(key)
-            else:
-                continue
-        lower = [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
-        upper = [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
-        real_keys = [real_keysB, real_keysR, real_keysZ]
-    if 'COSMICS_RATE' in filepath:
-        real_keys = ['keys not applicable']
-        lower = [threshold_data['lower_err'], threshold_data['lower']]
-        upper = [threshold_data['upper'], threshold_data['upper_err']]
+    lowerB = []
+    lower_errB = []
+    upperB = []
+    upper_errB = []
+    real_keysB = []
+    lowerZ = []
+    lower_errZ = []
+    upperZ = []
+    upper_errZ = []
+    real_keysZ = []
+    lowerR = []
+    lower_errR = []
+    upperR = []
+    upper_errR = []
+    real_keysR = []
+    for key in keys:
+        if key[0] == 'B':
+            lowerB.append(threshold_data[key]['lower'])
+            upperB.append(threshold_data[key]['upper'])
+            lower_errB.append(threshold_data[key]['lower_err'])
+            upper_errB.append(threshold_data[key]['upper_err'])
+            real_keysB.append(key)
+        if key[0] == 'Z':
+            lowerZ.append(threshold_data[key]['lower'])
+            upperZ.append(threshold_data[key]['upper'])
+            lower_errZ.append(threshold_data[key]['lower_err'])
+            upper_errZ.append(threshold_data[key]['upper_err'])
+            real_keysZ.append(key)
+        if key[0] == 'R':
+            lowerR.append(threshold_data[key]['lower'])
+            upperR.append(threshold_data[key]['upper'])
+            lower_errR.append(threshold_data[key]['lower_err'])
+            upper_errR.append(threshold_data[key]['upper_err'])
+            real_keysR.append(key)
+        else:
+            continue
+    lower = [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
+    upper = [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
+    real_keys = [real_keysB, real_keysR, real_keysZ]
     
     if return_keys:
         return lower, upper, real_keys
     if return_keys == None:
         return lower, upper 
-    
 
 def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     '''reuses the timeseries function for the flask app, but with some changes. 
@@ -287,10 +272,10 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
                     data['upper'] = [threshold_data[amp]['upper']]*length
                     data['upper_err'] = [threshold_data[amp]['upper_err']]*length
                 if aspect in ['COSMICS_RATE']:
-                    data['lower_err'] = [threshold_data['lower_err']]*length
-                    data['lower'] = [threshold_data['lower']]*length
-                    data['upper'] = [threshold_data['upper']]*length
-                    data['upper_err'] = [threshold_data['upper_err']]*length
+                    data['lower_err'] = [threshold_data[cam]['lower_err']]*length
+                    data['lower'] = [threshold_data[cam]['lower']]*length
+                    data['upper'] = [threshold_data[cam]['upper']]*length
+                    data['upper_err'] = [threshold_data[cam]['upper_err']]*length
                 for col in group_by_list:
                     data[col] = [str(row[col])]*length
                 source_data[get_amp_rows(amps)[0]] = data         
@@ -411,6 +396,12 @@ def get_threshold_table(name, filepath, width=600):
         upper_col += (upper[0][0]+upper[1][0]+upper[2][0])
         upper_err_col += (upper[0][1]+upper[1][1]+upper[2][1])
         keys_col += (keys[0] + keys[1] + keys[2])
+    if name in ['COSMICS_RATE']:
+        lower_col += [lower[0][1], lower[1][1], lower[2][1]]
+        lower_err_col += [lower[0][0], lower[1][0], lower[2][0]]
+        upper_col += [upper[0][0], upper[1][0], upper[2][0]]
+        upper_err_col += [upper[0][1], upper[1][1], upper[2][1]]
+        keys_col += (keys[0]+keys[1]+keys[2])
         
         for i in range(len(lower_col)):
             if lower_col[i] == 0 or lower_col[i] == None:
@@ -421,36 +412,26 @@ def get_threshold_table(name, filepath, width=600):
             else:
                 continue
     
-    if name in ['COSMICS_RATE']:
-        lower_col += [lower[1]]
-        lower_err_col += [lower[0]]
-        upper_col += [upper[0]]
-        upper_err_col += [upper[1]]
-        keys_col += keys*len(lower_col)
-    
     src = ColumnDataSource(data=dict(
-        amp=keys_col,
+        key=keys_col,
         lower_err=lower_err_col,
         lower=lower_col,
         upper=upper_col,
         upper_err=upper_err_col,
     ))
     
+    columns = []
     if name in ['READNOISE', 'BIAS']:
-        columns = [
-            TableColumn(field="amp", title="Amp"),
-            TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
-        ]
+        columns += [TableColumn(field='key', title='Amp')]
     if name in ['COSMICS_RATE']:
-         columns = [
-            TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
-            TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
-        ]
+        columns += [TableColumn(field='key', title='Cam')]
+    
+    columns += [
+        TableColumn(field="lower_err", title="Lower Error", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="lower", title="Lower Warning", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="upper", title="Upper Warning", formatter=NumberFormatter(format="0.00")),
+        TableColumn(field="upper_err", title="Upper Error", formatter=NumberFormatter(format="0.00")),
+    ]
     
     data_table = DataTable(source=src, columns=columns, width=width, selectable=True, sortable=True)
     return data_table
