@@ -217,7 +217,9 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
                     short_name = qatype.split("_")[1].lower()
 
                     expinfo[qatype] = qastatus.name
-            
+                    if qatype != 'QPROC':
+                        expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(expid=expid, name=short_name)            
+
             explist.append(expinfo)
 
         html = template.render(night=night, exposures=explist, autoreload=True,
