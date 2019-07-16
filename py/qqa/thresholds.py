@@ -35,21 +35,17 @@ def write_threshold_json(indir, start_date, end_date, name):
         will be None and will need to be manually input if they need to be used)'''
     datadict = dict()
     amps = []
+    rest_amps = []
     nights = np.arange(start_date, end_date+1)
     nights_real = [night for night in nights if os.path.isfile(os.path.join(indir, '{night}/summary.json'.format(night=night)))]
     for night in nights_real:
-        n = name
         with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
             data = json.load(json_file)
-        try:
-            amps += data['PER_AMP'][n].keys()
-        except KeyError:
-            print('Summary.json for {} needs to be updated. Correcting COSMICS_RATE to COSMICS_RATES for now.'.format(night))
-            n = 'COSMICS_RATES'
-            amps += data['PER_AMP'][n].keys()
-        datadict[night] = data
-    all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
-    rest_amps = np.setdiff1d(all_amps, amps)
+        if name in ["READNOISE", "BIAS"]:
+            amps += data['PER_AMP'][name].keys()
+            all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
+            rest_amps += list(np.setdiff1d(all_amps, amps))
+    datadict[night] = data
     thresholds = dict()
     if name in ["READNOISE", "BIAS"]:
         for amp in all_amps:
@@ -81,30 +77,39 @@ def write_threshold_json(indir, start_date, end_date, name):
             lower = []
             upper = []
             upper_error = []
-            try:
-                for night in nights_real:
-                    lower_error.append(datadict[night]['PER_AMP'][name][cam]['lower_error'])
-                    lower.append(datadict[night]['PER_AMP'][name][cam]['lower'])
-                    upper.append(datadict[night]['PER_AMP'][name][cam]['upper'])
-                    upper_error.append(datadict[night]['PER_AMP'][name][cam]['upper_error'])
-                    num_exps.append(datadict[night]['PER_AMP'][name][cam]['num_exp'])
-            except KeyError:
-                n = 'COSMICS_RATES'
-                for night in nights_real:
-                    lower_error.append(datadict[night]['PER_AMP'][n][cam]['lower_error'])
-                    lower.append(datadict[night]['PER_AMP'][n][cam]['lower'])
-                    upper.append(datadict[night]['PER_AMP'][n][cam]['upper'])
-                    upper_error.append(datadict[night]['PER_AMP'][n][cam]['upper_error'])
-                    num_exps.append(datadict[night]['PER_AMP'][n][cam]['num_exp'])
+            for night in nights_real:
+                lower_error.append(datadict[night]['PER_AMP'][name][cam]['lower_error'])
+                lower.append(datadict[night]['PER_AMP'][name][cam]['lower'])
+                upper.append(datadict[night]['PER_AMP'][name][cam]['upper'])
+                upper_error.append(datadict[night]['PER_AMP'][name][cam]['upper_error'])
+                num_exps.append(datadict[night]['PER_AMP'][name][cam]['num_exp'])
             weights = np.array(num_exps)/np.sum(num_exps)
             lower_err_avg = np.average(lower_error, weights=weights)
             lower_avg = np.average(lower, weights=weights)
             upper_avg = np.average(upper, weights=weights)
             upper_err_avg = np.average(upper_error, weights=weights)
-            thresholds[cam] = dict(lower_err=lower_err_avg, lower=lower_avg, upper=upper_avg, upper_err=upper_err_avg)     
+            thresholds[cam] = dict(lower_err=lower_err_avg, lower=lower_avg, upper=upper_avg, upper_err=upper_err_avg)
+    if name in ['DX', 'DY']:
+        for cam in ['R', 'B', 'Z']:
+            num_exps = []
+            mins = []
+            maxs = []
+            meds = []
+            stds = []
+            for night in nights_real:
+                mins.append(datadict[night]['PER_CAMERA'][name][cam]['mind'])
+                maxs.append(datadict[night]['PER_CAMERA'][name][cam]['maxd'])
+                meds.append(datadict[night]['PER_CAMERA'][name][cam]['med'])
+                stds.append(datadict[night]['PER_CAMERA'][name][cam]['std'])
+                num_exps.append(datadict[night]['PER_CAMERA'][name][cam]['num_exp'])
+            weights = np.array(num_exps)/np.sum(num_exps)
+            min_avg = np.average(mins, weights=weights)
+            max_avg = np.average(maxs, weights=weights)
+            stds_avg = np.average(stds, weights=weights)
+            med_lower = np.average(meds, weights=weights) - stds_avg
+            med_upper = np.average(meds, weights=weights) + stds_avg
+            thresholds[cam] = dict(lower_err=min_avg, lower=med_lower, upper=med_upper, upper_err=max_avg)
     outdir = get_outdir()
-    if name == 'COSMICS_RATES':
-        name = 'COSMICS_RATE'
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
     with open(threshold_file, 'w') as json_file:
          json.dump(thresholds, json_file, indent=4)

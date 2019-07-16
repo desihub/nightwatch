@@ -180,8 +180,9 @@ def plot_amp_cam_qa(data, name, cam, labels, lower_err, lower, upper, upper_err,
         #fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower', line_alpha=0.3))
         fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
             fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
+    
     if name in ['COSMICS_RATE']:
-        fig.add_layout(BoxAnnotation(bottom=lower[0], top=upper[0], fill_alpha=0.1, fill_color='green'))
+        fig.add_layout(BoxAnnotation(bottom=lower[0][0], top=upper[0][0], fill_alpha=0.1, fill_color='green'))
     
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
@@ -196,15 +197,9 @@ def plot_amp_qa(data, name, lower, upper, amp_keys, title=None, plot_height=80, 
         title = name
     labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
     
-    if name in ['READNOISE', 'BIAS']:
-        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0][0], lower[0][1], upper[0][0], upper[0][1], amp_keys[0], title, plot_height=plot_height+25, plot_width=plot_width)
-        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1][0], lower[1][1], upper[1][0], upper[1][1], amp_keys[1], title, plot_height=plot_height, plot_width=plot_width)
-        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2][0], lower[2][1], upper[2][0], upper[2][1], amp_keys[2], title, plot_height=plot_height, plot_width=plot_width)
-    if name in ['COSMICS_RATE']:
-        print(upper[0])
-        fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0], lower[1], upper[0], upper[1], amp_keys, title, plot_height=plot_height+25, plot_width=plot_width)
-        fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[0], lower[1], upper[0], upper[1], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
-        fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[0], lower[1], upper[0], upper[1], amp_keys, title, plot_height=plot_height, plot_width=plot_width)
+    fig_B = plot_amp_cam_qa(data, name, 'B', labels, lower[0][0], lower[0][1], upper[0][0], upper[0][1], amp_keys[0], title, plot_height=plot_height+25, plot_width=plot_width)
+    fig_R = plot_amp_cam_qa(data, name, 'R', labels, lower[1][0], lower[1][1], upper[1][0], upper[1][1], amp_keys[1], title, plot_height=plot_height, plot_width=plot_width)
+    fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2][0], lower[2][1], upper[2][0], upper[2][1], amp_keys[2], title, plot_height=plot_height, plot_width=plot_width)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 

@@ -6,6 +6,8 @@ from bokeh.embed import components
 
 from ..plots.camera import plot_camera_qa
 
+from ..thresholds import get_thresholds, pick_threshold_file
+
 def write_camera_html(outfile, data, header):
     '''
     Creates a html file with camera qa data (DX, DY, XSIG, YSIG) plotted vs
@@ -43,14 +45,18 @@ def write_camera_html(outfile, data, header):
     )
 
     #- Generate the bokeh figures
+    dx_file = pick_threshold_file('DX', night)
+    lower_dx, upper_dx = get_thresholds(dx_file)
     if "MEANDX" in data.dtype.names:
-        fig = plot_camera_qa(data, 'DX', title='DX with camera',
+        fig = plot_camera_qa(data, 'DX', lower=lower_dx, upper=upper_dx, title='DX with camera',
                 minmax=(-0.1, 0.1), height=150, width=300)
         script, div = components(fig)
         html_components['DX'] = dict(script=script, div=div)
-
+    
+    dy_file = pick_threshold_file('DY', night)
+    lower_dy, upper_dy = get_thresholds(dy_file)
     if "MEANDY" in data.dtype.names:
-        fig = plot_camera_qa(data, 'DY', title='DY with camera',
+        fig = plot_camera_qa(data, 'DY', lower=lower_dy, upper=upper_dy, title='DY with camera',
                 minmax=(-0.1, 0.1), height=150, width=300)
         script, div = components(fig)
         html_components['DY'] = dict(script=script, div=div)

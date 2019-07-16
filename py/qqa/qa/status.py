@@ -43,14 +43,17 @@ def get_status(qadata, night):
                 status[qatype][col] = np.full(n, Status.ok, dtype=np.int16)
     #- Set thresholds for readnoise suspiciously low or high
     data = qadata['PER_AMP']
-    for metric in ['READNOISE', 'BIAS']:
+    for metric in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         filepath = pick_threshold_file(metric, night)
         with open(filepath, 'r') as json_file:
             thresholds = json.load(json_file)
         for cam in [b'B', b'R', b'Z']:
             for spec in range(0, 10):
                 for amp in [b'A', b'B', b'C', b'D']:
-                    key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
+                    if metric == 'READNOISE' or metric == 'BIAS':
+                        key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
+                    if metric == 'COSMICS_RATE':
+                        key = cam.decode('utf-8')
                     status_loc = (status['PER_AMP']['AMP'] == amp) & (status['PER_AMP']['SPECTRO']==spec) & (status['PER_AMP']['CAM']==cam)
                     data_loc = (data['AMP'] == amp) & (data['SPECTRO']==spec) & (data['CAM']==cam)
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
@@ -63,20 +66,41 @@ def get_status(qadata, night):
                     else:
                         continue
     
-    for metric in ['COSMICS_RATE']:
+    #- TODO: add more threshold checks here
+    for metric in ['DX', 'DY']:
+        try:
+            cam_data = qadata['PER_CAMERA']
+        except:
+            continue
         filepath = pick_threshold_file(metric, night)
         with open(filepath, 'r') as json_file:
             thresholds = json.load(json_file)
-        key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
-        if thresholds['lower'] != None and thresholds['upper'] != None:
-            warn = (data[metric] < thresholds['lower']) | (data[metric] > thresholds['upper'])
-            error = (data[metric] < thresholds['lower_err']) | (data[metric] > thresholds['upper_err']) 
-            status['PER_AMP'][metric][warn] = Status.warning
-            status['PER_AMP'][metric][error] = Status.error
-        else:
-            continue
-    
-    #- TODO: add more threshold checks here
+        for cam in [b'B', b'R', b'Z']:
+            for spec in range(0, 10):
+                key = cam.decode('utf-8')
+                status_loc = (status['PER_CAMERA']['CAM'] == cam) & (status['PER_CAMERA']['SPECTRO']==spec)
+                data_loc = (cam_data['CAM'] == cam) & (cam_data['SPECTRO']==spec)
+                if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
+                    warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
+                    warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= abs(thresholds[key]['lower_err']))
+                    warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= abs(thresholds[key]['upper_err']))
+                    error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(1.3*thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(1.3*thresholds[key]['upper']))
+                    error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.3*abs(thresholds[key]['lower_err']))
+                    error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.3*abs(thresholds[key]['upper_err']))
+                    if warn_mean: 
+                        status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
+                    if warn_min: 
+                        status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
+                    if warn_max: 
+                        status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
+                    if error_mean:
+                        status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
+                    if error_min:
+                        status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
+                    if error_max:
+                        status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
+                else:
+                    continue
     
     #- Update global QASTATUS for all QA types
     for qatype, data in status.items():

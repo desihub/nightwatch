@@ -4,6 +4,7 @@ import subprocess
 
 import fitsio
 import numpy as np
+import scipy as sp
 
 from astropy.table import Table, vstack
 
@@ -485,18 +486,27 @@ def write_nights_summary(indir, last):
             expids = next(os.walk(os.path.join(indir, night)))[1]
             expid = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
             qadata_stacked = None
+            cam_qadata_stacked = None
             for expid in expids:
                 fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
                 if not os.path.isfile(fitsfile):
                     print("could not find {}".format(fitsfile))
                 else:
+                    data = fitsio.read(fitsfile)
                     qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
+                    try:
+                        cam_qadata = Table(fitsio.read(fitsfile, "PER_CAMERA"))
+                    except:
+                        print('no per_camera data for {} available.'.format(expid))
                     if (qadata_stacked is None):
                         qadata_stacked = qadata
+                    if (cam_qadata_stacked is None):
+                        cam_qadata_stacked = cam_qadata
                     else:
                         qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
+                        cam_qadata_stacked = vstack([cam_qadata_stacked, cam_qadata], metadata_conflicts='silent')
 
-            if qadata_stacked is None:
+            if qadata_stacked is None or cam_qadata_stacked is None:
                 print("no exposures found")
                 return
 
@@ -523,8 +533,13 @@ def write_nights_summary(indir, last):
                             bias_sca[c + str(s) + a] = bias_sca_dict
 
             cosmics_rate = dict()
+            dx = dict()
+            dy = dict()
+            xsig = dict()
+            ysig = dict()
             for c in ["R", "B", "Z"]:
                 specific = qadata_stacked[qadata_stacked["CAM"]==c]
+                cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
                 if len(specific) > 0:
                     cosmics_dict = dict(
                         lower_error=np.percentile(list(specific["COSMICS_RATE"]), 0.1),
@@ -534,12 +549,51 @@ def write_nights_summary(indir, last):
                         num_exp=len(specific),
                     )
                     cosmics_rate[c] = cosmics_dict
+                if len(cam_specific) > 0:
+                    dx_dict = dict(
+                        med=np.median(list(cam_specific["MEANDX"])),
+                        std=np.std(list(cam_specific['MEANDX'])),
+                        maxd=np.average(list(cam_specific["MAXDX"])),
+                        mind=np.average(list(cam_specific["MINDX"])),
+                        num_exp=len(cam_specific),
+                    )
+                    dx[c] = dx_dict
+                    dy_dict = dict(
+                        med=np.median(list(cam_specific["MEANDY"])),
+                        std=np.std(list(cam_specific['MEANDY'])),
+                        maxd=np.average(list(cam_specific["MAXDY"])),
+                        mind=np.average(list(cam_specific["MINDY"])),
+                        num_exp=len(cam_specific),
+                    )
+                    dy[c] = dy_dict
+                    
+#                     try:
+#                         xsig_dict = dict(
+#                             mean=np.median(list(cam_specific["MEANXSIG"])),
+#                             maxd=np.median(list(cam_specific["MAXXSIG"])),
+#                             mind=np.median(list(cam_specific["MINXSIG"])),
+#                             num_exp=len(cam_specific),
+#                         )
+#                         xsig[c] = xsig_dict
+#                         ysig_dict = dict(
+#                             mean=np.median(list(cam_specific["MEANYSIG"])),
+#                             maxd=np.median(list(cam_specific["MAXYSIG"])),
+#                             mind=np.median(list(cam_specific["MINYSIG"])),
+#                             num_exp=len(cam_specific),
+#                         )
+#                         ysig[c] = ysig_dict
 
             data = dict(
                 PER_AMP=dict(
                     READNOISE=readnoise_sca,
                     BIAS=bias_sca,
                     COSMICS_RATE=cosmics_rate
+                ),
+                PER_CAMERA=dict(
+                    DX=dx,
+                    DY=dy,
+#                     XSIG=xsig,
+#                     YSIG=ysig
                 )
             )
 
@@ -555,7 +609,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
         outdir: directory to threshold inspector html files
         start_date: beginning of date range
         end_date: end of date range'''
-    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
+    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY']:
         write_threshold_json(indir, start_date, end_date, name)
     
     if not os.path.isdir(outdir):
