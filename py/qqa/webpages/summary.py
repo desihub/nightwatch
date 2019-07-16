@@ -206,7 +206,7 @@ def write_logfile_html(input, output, night):
     expid = os.path.basename(input).split("-")[2].split(".")[0]
     
     error_level = 0
-    error_colors = dict({0:'green', 1:'orange', 2:'pink', 3:'red'})
+    error_colors = dict({0:'green', 1:'orange', 2:'red', 3:'red'})
 
     lines = []
     f = open(input, "rb")
@@ -220,7 +220,7 @@ def write_logfile_html(input, output, night):
             line = '<span style="color:{};">'.format(error_colors.get(2)) + line + '</span>'
             error_level = max(error_level, 2)
         elif 'CRITICAL' in line or 'FATAL' in line or 'Traceback' in line:
-            line = '<span style="color:{};">'.format(error_colors.get(3)) + line + '</span>'
+            line = '<span style="color:{};"><mark>'.format(error_colors.get(3)) + line + '</mark></span>'
             error_level = max(error_level, 3)
 
         lines.append(line)
