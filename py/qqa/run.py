@@ -575,7 +575,7 @@ def write_nights_summary(indir, last):
                     cosmics_rate[c] = cosmics_dict
                 if len(cam_specific) > 0:
                     dx_dict = dict(
-                        med=np.median(list(cam_specific["MEANDX"])),
+                        med=np.average([abs(i) for i in cam_specific["MEANDX"]]),
                         std=np.std(list(cam_specific['MEANDX'])),
                         maxd=np.average(list(cam_specific["MAXDX"])),
                         mind=np.average(list(cam_specific["MINDX"])),

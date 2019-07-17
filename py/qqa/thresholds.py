@@ -106,8 +106,8 @@ def write_threshold_json(indir, start_date, end_date, name):
             min_avg = np.average(mins, weights=weights)
             max_avg = np.average(maxs, weights=weights)
             stds_avg = np.average(stds, weights=weights)
-            med_lower = np.average(meds, weights=weights) - stds_avg
-            med_upper = np.average(meds, weights=weights) + stds_avg
+            med_lower = -abs(np.average(meds, weights=weights))
+            med_upper = abs(np.average(meds, weights=weights))
             thresholds[cam] = dict(lower_err=min_avg, lower=med_lower, upper=med_upper, upper_err=max_avg)
     outdir = get_outdir()
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
