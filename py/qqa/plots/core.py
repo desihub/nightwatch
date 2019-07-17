@@ -80,7 +80,7 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     hfig.quad(top='top', bottom='bottom', left='left', right='right', color=mapper,
               alpha=0.5, source=src)
 
-    hfig.xaxis.axis_label = title
+    hfig.xaxis.axis_label = (' '.join(title.split(sep='_', maxsplit=2))).title()
     hfig.toolbar_location = None
     hfig.title.text_color = '#ffffff'
     hfig.yaxis.major_label_text_font_size = '0pt'

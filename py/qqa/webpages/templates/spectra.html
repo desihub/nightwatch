@@ -73,6 +73,13 @@ for (var i = 0, length = radios.length; i < length; i++)
 <p>eg: "1, 3-5" plots fibers [1, 3, 4, 5]</p>
 {% endif %}
 
+{% else %}
+
+<button onclick='
+  window.open("../../{% if frame=="qframe" %}qcframe{% else %}qframe{% endif %}/{{ downsample }}x", "_top")
+'>Generate with {% if frame=="qframe" %}qcframe{% else %}qframe{% endif %} (if avaliable)
+</button>
+
 {% endif %}
 
 {% endblock %}

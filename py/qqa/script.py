@@ -92,11 +92,11 @@ def main_monitor(options=None):
 
     qarunner = QARunner()
     processed = set()
-    
+
     #- TODO: figure out a way to print how many nights are being skipped before startdate
-    while True:
+    while True:        
         if args.catchup:
-            expdir = run.find_unprocessed_expdir(args.indir, args.outdir, startdate=args.startdate)
+            expdir = run.find_unprocessed_expdir(args.indir, args.outdir, processed, startdate=args.startdate)
         else:
             expdir = run.find_latest_expdir(args.indir, processed, startdate=args.startdate)
 
@@ -107,6 +107,7 @@ def main_monitor(options=None):
         night, expid = expdir.split('/')[-2:]
         rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if expdir not in processed and os.path.exists(rawfile):
+            processed.add(expdir)
             outdir = '{}/{}/{}'.format(args.outdir, night, expid)
             if os.path.exists(outdir) and len(glob.glob(outdir+'/qa-*.fits'))>0:
                 print('Skipping previously processed {}/{}'.format(night, expid))
@@ -119,11 +120,11 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
-                
+
                 run_batch_qproc=args.batch
                 if run_batch_qproc:
                     print('Spawning qproc of {} to batch processes'.format(rawfile))
-                    
+
                     sep = os.path.sep
                     dirfile = sep.join(['..', 'code', 'qqa', 'py', 'qqa', 'wrap_qproc.py'])
 
@@ -134,27 +135,27 @@ def main_monitor(options=None):
                         qos=args.qos,
                         time=args.time,
                         dirfile=dirfile,
-                        rawfile=rawfile, 
+                        rawfile=rawfile,
                         outdir=outdir,
                         cameras=cameras,
                     )
-                    
+
                     batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
                     runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} '
                     if cameras:
                         runfile += '--cameras {cameras}'
-                    
+
                     cmd = (batchcmd + runfile).format(**batch_dict)
                     err = subprocess.call(cmd.split())
-                    
+
                     if err == 0:
                         print('SUCCESS {}'.format('running qproc as batch process'))
                     if err != 0:
                         print('ERROR {} while running {}'.format(err, 'qproc as batch process'))
                         print('Failed to run qproc as batch process, switching to run locally')
                         run_batch_qproc = False
-                    
-                    
+
+
                 if not run_batch_qproc:
                     print('Running qproc on {}'.format(rawfile))
                     header = run.run_qproc(rawfile, outdir, cameras=cameras)
@@ -190,6 +191,7 @@ def main_monitor(options=None):
                 traceback.print_exception(*exc_info)
                 del exc_info
                 print("Now moving on ...")
+                
 
             processed.add(expdir)
 

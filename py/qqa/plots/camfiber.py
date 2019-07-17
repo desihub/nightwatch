@@ -6,6 +6,7 @@ from astropy.table import Table
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
+from bokeh.models import TapTool, OpenURL
 
 from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
 # from ..plots.core import get_colors
@@ -86,7 +87,7 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
 
 
 def plot_per_fibernum(cds, attribute, cameras, titles={},
-        tools='pan,box_zoom,reset', width=700, height=80,
+        tools='pan,box_zoom,tap,reset', width=700, height=80,
         ymin=None, ymax=None):
     '''
     ARGS:
@@ -163,6 +164,8 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
                              width=width, height=height+heightpad, xaxislabels=xaxislabels,
                             )
 
+        taptool = fig.select(type=TapTool)
+        taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
         figs_list.append(fig)
         
     return figs_list

@@ -157,9 +157,12 @@ def plot_amp_cam_qa(data, name, cam, labels, lower_err, lower, upper, upper_err,
     fig.circle(x='locations', y='data_val', line_color=None,
                  fill_color='colors', size='sizes', source=source, name='circles')
 
-
-    plotmin = min(ymin, np.min(data_val) * 0.9) if ymin else np.min(data_val) * 0.9
-    plotmax = max(ymax, np.max(data_val) * 1.1) if ymax else np.max(data_val) * 1.1
+    if len(data_val)>0 :
+        plotmin = min(ymin, np.min(data_val) * 0.9) if ymin else np.min(data_val) * 0.9
+        plotmax = max(ymax, np.max(data_val) * 1.1) if ymax else np.max(data_val) * 1.1
+    else :
+        plotmin = ymin
+        plotmax = ymax
     fig.y_range = Range1d(plotmin, plotmax)
     
     #- style visual attributes

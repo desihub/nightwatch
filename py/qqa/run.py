@@ -11,6 +11,7 @@ from astropy.table import Table, vstack
 import desiutil.log
 
 import desispec.scripts.preproc
+from qqa.qa.base import QA
 
 from .thresholds import write_threshold_json
 
@@ -33,7 +34,7 @@ def get_ncpu(ncpu):
     return ncpu
 
 
-def find_unprocessed_expdir(datadir, outdir, startdate=None):
+def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
     '''
     Returns the earliest outdir/YEARMMDD/EXPID that has not yet been processed
     in outdir/YEARMMDD/EXPID.
@@ -66,7 +67,7 @@ def find_unprocessed_expdir(datadir, outdir, startdate=None):
                     fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
                     if fits_fz_exists:
                         qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
-                        if not os.path.exists(qafile):
+                        if (not os.path.exists(qafile)) and (expdir not in processed):
                             return expdir
                     else:
                         print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
@@ -195,7 +196,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
         pool.close()
         pool.join()
     else:
-        log.info('Running preproc serially for {} cameras'.format(ncpu))
+        log.info('Running preproc serially for {} cameras'.format(len(cameras)))
         for args in arglist:
             desispec.scripts.preproc.main(args)
 
@@ -268,17 +269,16 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
 
-    if ncpu > 1:
-        log.info('Running qproc in parallel on {} cores for {} cameras'.format(
-            ncpu, len(cameras) ))
+    if ncpu > 1 and len(cameras)>1 :
+        log.info('Running qproc in parallel on {} cores for {} cameras'.format(ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
         pool.close()
         pool.join()
     else:
-        log.info('Running qproc serially for {} cameras'.format(ncpu))
-        for cmd, logfile in zip(cmdlist, loglist, msglist):
-            runcmd(cmd, logfile)
+        log.info('Running qproc serially for {} cameras'.format(len(cameras)))
+        for cmd, logfile, msg  in zip(cmdlist, loglist, msglist):
+            runcmd(cmd, logfile, msg)
 
     return hdr
 
@@ -369,7 +369,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
-    
+
     #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
     htmlfile = '{}/qa-lastexp.html'.format(basedir)
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
@@ -401,17 +401,29 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
             import glob
             for logfile in glob.glob(os.path.join(logdir, 'qproc-*-*.log')):
                 cameras += [os.path.basename(logfile).split('-')[1]]
+
+        error_colors = dict()
         for camera in cameras:
             input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(camera, expid))
             output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(camera, expid))
-            web_summary.write_logfile_html(input, output, night)
+            e = web_summary.write_logfile_html(input, output, night)
+            
+            error_colors[camera] = e
 
         #- plot logfile nav table
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
-        web_summary.write_logtable_html(htmlfile, logdir, night, expid)
+        web_summary.write_logtable_html(htmlfile, logdir, night, expid, error_colors)
 
 
 def write_tables(indir, outdir):
+    '''TODO: document
+    Parses directory for available nights, exposures to generate
+    nights and exposures tables
+    
+    Args:
+        indir : directory of nights
+        outdir : directory where to write nights table 
+    '''
     import re
     from astropy.table import Table
     from qqa.webpages import tables as web_tables
@@ -432,16 +444,17 @@ def write_tables(indir, outdir):
                     expid = int(dirname)
                     qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0))
                     else:
                         log.error('Missing {}'.format(qafile))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
         raise RuntimeError(msg)
 
     exposures = Table(rows)
-
+    
     caldir = os.path.join(outdir, 'cal_files')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
@@ -458,7 +471,8 @@ def write_tables(indir, outdir):
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
 
-    web_tables.write_exposures_tables(indir,outdir, exposures)
+    web_tables.write_exposures_tables(indir, outdir, exposures)
+    
 
 def write_nights_summary(indir, last):
     '''
@@ -482,33 +496,43 @@ def write_nights_summary(indir, last):
 
     for night in nights:
         jsonfile = os.path.join(indir, night, "summary.json")
-        if not os.path.isfile(jsonfile):
+        night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+        if (not os.path.isfile(jsonfile)) or (not os.path.isfile(night_qafile)):
             expids = next(os.walk(os.path.join(indir, night)))[1]
-            expid = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
-            qadata_stacked = None
-            cam_qadata_stacked = None
+            expids = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
+            qadata_stacked = dict()
             for expid in expids:
                 fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
                 if not os.path.isfile(fitsfile):
                     print("could not find {}".format(fitsfile))
                 else:
-                    data = fitsio.read(fitsfile)
-                    qadata = Table(fitsio.read(fitsfile, "PER_AMP"))
-                    try:
-                        cam_qadata = Table(fitsio.read(fitsfile, "PER_CAMERA"))
-                    except:
-                        print('no per_camera data for {} available.'.format(expid))
-                    if (qadata_stacked is None):
-                        qadata_stacked = qadata
-                    if (cam_qadata_stacked is None):
-                        cam_qadata_stacked = cam_qadata
-                    else:
-                        qadata_stacked = vstack([qadata_stacked, qadata], metadata_conflicts='silent')
-                        cam_qadata_stacked = vstack([cam_qadata_stacked, cam_qadata], metadata_conflicts='silent')
+                    for attr in QA.metacols:
+                        try:
+                            qadata = Table(fitsio.read(fitsfile, attr))
+                        except:
+                            continue
 
-            if qadata_stacked is None or cam_qadata_stacked is None:
+                        if (attr not in qadata_stacked):
+                            hdr = fitsio.read_header(fitsfile, 0)
+                            qadata_stacked[attr] = qadata
+                        else:
+                            qadata_stacked[attr] = vstack([qadata_stacked[attr], qadata], metadata_conflicts='silent')
+
+                        print("processed {}".format(fitsfile))
+
+            if len(qadata_stacked) == 0:
                 print("no exposures found")
                 return
+
+            night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+            if not os.path.isfile(night_qafile):
+                with fitsio.FITS(night_qafile, 'rw', clobber=True) as fx:
+                    fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
+                    for attr in qadata_stacked:
+                        fx.write_table(qadata_stacked[attr].as_array(), extname=attr, header=hdr)
+
+            amp_qadata_stacked = qadata_stacked["PER_AMP"]
+            cam_qadata_stacked = qadata_stacked["PER_CAMERA"]
 
             readnoise_sca = dict()
             bias_sca = dict()
@@ -516,7 +540,7 @@ def write_nights_summary(indir, last):
             for c in ["R", "B", "Z"]:
                 for s in range(0, 10, 1):
                     for a in ["A", "B", "C", "D"]:
-                        specific = qadata_stacked[(qadata_stacked["CAM"]==c) & (qadata_stacked["SPECTRO"]==s) & (qadata_stacked["AMP"]==a)]
+                        specific = amp_qadata_stacked[(amp_qadata_stacked["CAM"]==c) & (amp_qadata_stacked["SPECTRO"]==s) & (amp_qadata_stacked["AMP"]==a)]
                         if len(specific) > 0:
                             readnoise_sca_dict = dict(
                                 median=np.median(list(specific["READNOISE"])),
@@ -538,7 +562,7 @@ def write_nights_summary(indir, last):
             xsig = dict()
             ysig = dict()
             for c in ["R", "B", "Z"]:
-                specific = qadata_stacked[qadata_stacked["CAM"]==c]
+                specific = amp_qadata_stacked[amp_qadata_stacked["CAM"]==c]
                 cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
                 if len(specific) > 0:
                     cosmics_dict = dict(

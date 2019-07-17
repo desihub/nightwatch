@@ -14,7 +14,7 @@ from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
 from bokeh.transform import transform
 from bokeh.transform import linear_cmap
 import bokeh.palettes as bp
-from bokeh.models import ColorBar, BasicTicker, NumeralTickFormatter, TapTool, OpenURL
+from bokeh.models import ColorBar, BasicTicker, ContinuousTicker, NumeralTickFormatter, TapTool, OpenURL
 import math
 from ..plots.core import get_colors, plot_histogram
 
@@ -213,7 +213,8 @@ def plot_fibernums(source, name, cam='',
     fig.yaxis.axis_label = cam
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color = None
-    fig.yaxis.formatter = NumeralTickFormatter(format='0a')
+    fig.yaxis.formatter = NumeralTickFormatter(format='0.0a')
+    
 
 
     taptool = fig.select(type=TapTool)

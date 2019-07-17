@@ -31,6 +31,7 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
         title=attribute
 
     cam_figs=[]
+
     colors = {"B":"blue", "R":"red", "Z":"green"}
     keys = {'B':0, 'R':1, 'Z':2}
     for cam in ["B", "R", "Z"]:
@@ -60,6 +61,7 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
         fig.xaxis.ticker = FixedTicker(ticks=[i for i in range(0, 10, 1)])
         if cam == 'Z':
             fig.xaxis.axis_label = "Spectrograph number"
+            fig.plot_height = height+25
         fig.yaxis.axis_label = attribute
         
         if lower is not None and upper is not None:

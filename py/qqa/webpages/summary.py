@@ -132,7 +132,7 @@ def write_summary_html(outfile, qadata, qprocdir):
 
 
 
-def write_logtable_html(outfile, logdir, night, expid):
+def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
     """Write a table of logfiles to outfile
 
     Args:
@@ -140,6 +140,7 @@ def write_logtable_html(outfile, logdir, night, expid):
         logdir : directory containing log outputs
         night : YYYYMMDD night of logdir
         expid : exposure ID of logdir
+        error_colors : dictionary of error colors corresponding to each camera
 
     Returns:
         None
@@ -153,14 +154,15 @@ def write_logtable_html(outfile, logdir, night, expid):
         logdir = ''
     
     available = []
+    
     logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
     for file in logfiles:
         available += [file.split("-")[1]]
-
+    
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
-        num_dirs=2, qatype='summary',
+        num_dirs=2, qatype='summary', error_colors=error_colors,
     )
 
     html = template.render(**html_components)
@@ -173,7 +175,16 @@ def write_logtable_html(outfile, logdir, night, expid):
 
     
 def write_logfile_html(input, output, night):
-    '''TODO: document'''
+    """Write a qproc logfile to an HTML webpage
+
+    Args:
+        input : input qproc logfile
+        output : output HTML file
+        night : YYYYMMDD night of logdir
+
+    Returns:
+        int error level corresponding to the highest level alert in the logfile
+    """
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
@@ -188,6 +199,9 @@ def write_logfile_html(input, output, night):
 
     current = os.path.basename(input).split("-")[1]
     expid = os.path.basename(input).split("-")[2].split(".")[0]
+    
+    error_level = 0
+    error_colors = dict({1:'orange', 2:'orangered', 3:'red'})
 
     lines = []
     f = open(input, "rb")
@@ -195,9 +209,14 @@ def write_logfile_html(input, output, night):
         #- byte to str
         line = line.decode("utf-8")
         if 'WARNING' in line:
-            line = '<span style="color:orange;">' + line + '</span>'
+            line = '<span style="color:{};">'.format(error_colors.get(1)) + line + '</span>'
+            error_level = max(error_level, 1)
         elif 'ERROR' in line:
-            line = '<span style="color:red;">' + line + '</span>'
+            line = '<span style="color:{};">'.format(error_colors.get(2)) + line + '</span>'
+            error_level = max(error_level, 2)
+        elif 'CRITICAL' in line or 'FATAL' in line:
+            line = '<span style="color:{};">'.format(error_colors.get(3)) + line + '</span>'
+            error_level = max(error_level, 3)
         
         lines.append(line)
         
@@ -205,7 +224,8 @@ def write_logfile_html(input, output, night):
         bokeh_version=bokeh.__version__, log=True, logfile=lines, file_url=output,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
         available=available, current=current, expid=int(str(expid)), zexpid=expid,
-        num_dirs=2, qatype='summary',
+        num_dirs=2, qatype='summary', error_level=error_level, 
+        error_color=error_colors.get(error_level),
     )
 
     html = template.render(**html_components)
@@ -215,3 +235,5 @@ def write_logfile_html(input, output, night):
         fx.write(html)
     
     print('Wrote {}'.format(output))
+    
+    return error_colors.get(error_level)

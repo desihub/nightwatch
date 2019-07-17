@@ -25,6 +25,17 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
             avaliable_dates += [os.path.join(i, dir)]
 
     for date in avaliable_dates:
+        nights_qa = os.path.join(date, "qa-n{}.fits".format(os.path.basename(date)))
+        if os.path.isfile(nights_qa):
+            try:
+                print("found {}".format(os.path.join(date, "qa-n{}.fits".format(os.path.basename(date)))))
+                #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
+                list_tables += [fitsio.read(nights_qa, hdu, columns=list(QA.metacols[hdu])+[aspect])]
+            except Exception as e:
+                print("{} does not have desired hdu or column".format(file))
+            continue
+
+        print("cannot find {}".format("qa-n{}.fits".format(os.path.basename(date))))
         for i,j,y in os.walk(date):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
@@ -144,7 +155,7 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
             else:
                 fig.x_range=first.x_range
 
-        fig = gridplot([[i] for i in cam_figs], sizing_mode="fixed")
+        fig = gridplot([[i] for i in cam_figs])
 
     else:
         fig = bk.figure(toolbar_location="above", plot_height = 300, plot_width = 800)
