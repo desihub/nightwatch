@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band, ResetTool, BoxZoomTool
 from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
@@ -137,18 +137,19 @@ def plot_amp_cam_qa(data, name, cam, labels, lower_err, lower, upper, upper_err,
         upper=upper,
     ))
 
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
+    #plotting
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
                      plot_height=50, plot_width=plot_width,
                      y_axis_location=None)
-    #plotting
+    
     hover= HoverTool(names=["circles"], tooltips = [
         ('(spec, amp)', '@locations'),
         ('{}'.format(name), '@data_val')],
                       line_policy='nearest')
 
-    fig = bk.figure(x_range=axis.x_range,
-                      toolbar_location=None, plot_height=plot_height,
-                      plot_width=plot_width, x_axis_location=None, tools=[hover, 'tap'])
+    fig = bk.figure(x_range=axis.x_range, plot_height=plot_height,
+                    plot_width=plot_width, x_axis_location=None, 
+                    tools=[hover, 'tap', 'reset', 'box_zoom', 'pan'])
 
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
@@ -205,13 +206,13 @@ def plot_amp_qa(data, name, lower, upper, amp_keys, title=None, plot_height=80, 
     fig_Z = plot_amp_cam_qa(data, name, 'Z', labels, lower[2][0], lower[2][1], upper[2][0], upper[2][1], amp_keys[2], title, plot_height=plot_height, plot_width=plot_width)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
                      plot_height=50, plot_width=plot_width,
                      y_axis_location=None)
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
     axis.outline_line_color=None
 
-    fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location=None)
+    fig = gridplot([[fig_B], [fig_R], [fig_Z], [axis]], toolbar_location='right')
 
     return fig
