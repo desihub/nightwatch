@@ -43,7 +43,7 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
             fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
             continue
 
-        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam)
+        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom'])
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],
             MEANattr = cam_table["MEAN"+attribute],
