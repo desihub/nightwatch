@@ -341,7 +341,7 @@ def main_summary(options=None):
 def main_threshold(options=None):
     parser = argparse.ArgumentParser(usage = '{prog} [options]')
     parser.add_argument('-i', '--indir', type=str, required=True, help='directory of night directories; where summary.json files can be found')
-    parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold html file should be written to')
+    parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold json/html files should be written to')
     parser.add_argument('-s', '--start', type=int, required=True, help='start date for calculation range')
     parser.add_argument('-e', '--end', type=int, required=True, help='end date for calculation range')
     

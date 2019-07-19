@@ -22,7 +22,7 @@ def get_outdir():
     qqa_path += '/qqa/threshold_files'
     return qqa_path
 
-def write_threshold_json(indir, start_date, end_date, name):
+def write_threshold_json(indir, outdir, start_date, end_date, name):
     '''
     Inputs:
         indir: contains summary.json files for each night (str)
@@ -63,10 +63,10 @@ def write_threshold_json(indir, start_date, end_date, name):
                 weights = np.array(num_exps)/np.sum(num_exps)
                 med_avg = np.average(meds, weights=weights)
                 std_avg = np.average(stds, weights=weights)
-                upper_err = med_avg + 3*std_avg
-                upper = med_avg + std_avg
-                lower = med_avg - std_avg
-                lower_err = med_avg - 3*std_avg
+                upper_err = med_avg + 5*std_avg
+                upper = med_avg + 3*std_avg
+                lower = med_avg - 3*std_avg
+                lower_err = med_avg - 5*std_avg
                 thresholds[amp] = dict(upper_err=upper_err, upper=upper, lower=lower, lower_err=lower_err)
             if amp in rest_amps:
                 thresholds[amp] = dict(upper_err=None, upper=None, lower=None, lower_err=None)
@@ -109,7 +109,7 @@ def write_threshold_json(indir, start_date, end_date, name):
             med_lower = -abs(np.average(meds, weights=weights))
             med_upper = abs(np.average(meds, weights=weights))
             thresholds[cam] = dict(lower_err=min_avg, lower=med_lower, upper=med_upper, upper_err=max_avg)
-    outdir = get_outdir()
+    #outdir = get_outdir()
     threshold_file = os.path.join(outdir, '{name}-{night}.json'.format(name=name, night=end_date+1))
     with open(threshold_file, 'w') as json_file:
          json.dump(thresholds, json_file, indent=4)

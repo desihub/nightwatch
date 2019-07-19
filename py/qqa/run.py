@@ -634,7 +634,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
         start_date: beginning of date range
         end_date: end of date range'''
     for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY']:
-        write_threshold_json(indir, start_date, end_date, name)
+        write_threshold_json(indir, outdir, start_date, end_date, name)
     
     if not os.path.isdir(outdir):
         #log.info('Creating {}'.format(outdir))
