@@ -69,7 +69,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
                 lower_err = med_avg - 5*std_avg
                 thresholds[amp] = dict(upper_err=upper_err, upper=upper, lower=lower, lower_err=lower_err)
             if amp in rest_amps:
-                thresholds[amp] = dict(upper_err=None, upper=None, lower=None, lower_err=None)
+                thresholds[amp] = dict(upper_err=4.5, upper=4, lower=1.5, lower_err=1)
     if name in ['COSMICS_RATE']:
         for cam in ['R', 'B', 'Z']:
             num_exps = []
