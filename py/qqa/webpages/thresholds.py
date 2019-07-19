@@ -7,7 +7,7 @@ from bokeh.models.widgets import Panel, Tabs
 
 from ..thresholds import get_timeseries_dataset, plot_timeseries, get_threshold_table, get_amp_rows, pick_threshold_file, plot_histogram, get_spec_amps, get_specs
 
-def write_threshold_html(outfile, datadir, start_date, end_date):
+def write_threshold_html(outfile, outdir, datadir, start_date, end_date):
     
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
@@ -20,8 +20,8 @@ def write_threshold_html(outfile, datadir, start_date, end_date):
     )
     
     for aspect in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
-        data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect)
-        filepath = pick_threshold_file(aspect, end_date)
+        filepath = pick_threshold_file(aspect, end_date, in_qqa=False, outdir=outdir)
+        data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect, filepath)
         specs_in_use = get_specs(data)
         tabs = []
         for i in specs_in_use:

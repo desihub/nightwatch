@@ -115,23 +115,33 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
          json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(threshold_file))
 
-def pick_threshold_file(name, night):
+def pick_threshold_file(name, night, outdir=None, in_qqa=True):
     '''Picks the right threshold file to use given the metric and the night. If no file is found, it returns
     the earliest file.
     Arguments:
         name: metric thresholds are needed for (str)
         night: the night the thresholds are needed for (int)
+    Options:
+        outdir: specify where to look for threshold files
+        in_qqa: tells function to look in qqa module for threshold files
     Output:
         filepath: a path to the proper threshold file'''
     file = '{name}-{night}.json'.format(name=name, night=night)
-    threshold_dir = get_outdir()
+    
+    if in_qqa:
+        threshold_dir = get_outdir()
+    if not in_qqa and outdir is not None:
+        threshold_dir = outdir
+    
     filepath = ''
     files = [f for f in np.sort(os.listdir(threshold_dir)) if name in f]
+    
     for f in files:
         if str(night) in f:
             filepath += os.path.join(threshold_dir, file)    
     if filepath == '':
         filepath += os.path.join(threshold_dir, files[0])
+    
     return filepath
 
 def get_thresholds(filepath, return_keys=None):
@@ -193,7 +203,7 @@ def get_thresholds(filepath, return_keys=None):
     if return_keys == None:
         return lower, upper 
 
-def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
+def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect, filepath):
     '''reuses the timeseries function for the flask app, but with some changes. 
     Inputs:
         data_dir: directory of nights, where data_dir/NIGHT/EXPID/qa-EXPID.fits files can be found.
@@ -201,6 +211,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
         end_date: last date for range over which timeseries should be generated
         hdu: the level of qa metric. ex: PER_AMP, PER_CAM, PER_CAMFIBER. currently, only PER_AMP supported
         aspect: the metric being plotted. ex: READNOISE, BIAS, COSMICS_RATE
+        filepath: threshold file to be used
     Output:
         source_data: a list of dictionaries with per_amp data. Each element contains keywords [EXPID, EXPIDZ, NIGHT,
         aspect_data, CAM, lower, upper]'''
@@ -249,7 +260,7 @@ def get_timeseries_dataset(data_dir, start_date, end_date, hdu, aspect):
     else:
         table_by_amp = table.group_by(group_by_list).groups.aggregate(list)
 
-    filepath = pick_threshold_file(aspect, end_date)
+    #filepath = pick_threshold_file(aspect, end_date)
     with open(filepath, 'r') as json_file:
         threshold_data = json.load(json_file)
     source_data = [0]*120

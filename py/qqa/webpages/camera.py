@@ -50,7 +50,7 @@ def write_camera_html(outfile, data, header):
         plot_width = int(1350/num_plots)
 
     #- Generate the bokeh figures
-    dx_file = pick_threshold_file('DX', night)
+    dx_file = pick_threshold_file('DX', night, in_qqa=True)
     lower_dx, upper_dx = get_thresholds(dx_file)
     if "MEANDX" in data.dtype.names:
         fig = plot_camera_qa(data, 'DX', lower=lower_dx, upper=upper_dx, title='DX with camera',
@@ -58,7 +58,7 @@ def write_camera_html(outfile, data, header):
         script, div = components(fig)
         html_components['DX'] = dict(script=script, div=div)
     
-    dy_file = pick_threshold_file('DY', night)
+    dy_file = pick_threshold_file('DY', night, in_qqa=True)
     lower_dy, upper_dy = get_thresholds(dy_file)
     if "MEANDY" in data.dtype.names:
         fig = plot_camera_qa(data, 'DY', lower=lower_dy, upper=upper_dy, title='DY with camera',

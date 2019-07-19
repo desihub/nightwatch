@@ -13,7 +13,7 @@ import desiutil.log
 import desispec.scripts.preproc
 from qqa.qa.base import QA
 
-from .thresholds import write_threshold_json
+from .thresholds import write_threshold_json, get_outdir
 
 def get_ncpu(ncpu):
     """
@@ -633,18 +633,22 @@ def write_thresholds(indir, outdir, start_date, end_date):
         outdir: directory to threshold inspector html files
         start_date: beginning of date range
         end_date: end of date range'''
-    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY']:
-        write_threshold_json(indir, outdir, start_date, end_date, name)
+    if not os.path.isdir(get_outdir()):
+        os.makedirs(get_outdir(), exist_ok=True)
+        print('Added threshold_files directory to qqa/py/qqa')
     
     if not os.path.isdir(outdir):
         #log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
     
+    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY']:
+        write_threshold_json(indir, outdir, start_date, end_date, name)
+    
     from qqa.webpages import thresholds as web_thresholds
     
     plot_components = dict()
     htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
-    pc = web_thresholds.write_threshold_html(htmlfile, indir, start_date, end_date)
+    pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
     plot_components.update(pc)
     print('Wrote {}'.format(htmlfile))
 

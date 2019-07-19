@@ -46,7 +46,7 @@ def write_amp_html(outfile, data, header):
     plot_components = dict()
 
     #- Generate the bokeh figure
-    noise_file = pick_threshold_file('READNOISE', night)
+    noise_file = pick_threshold_file('READNOISE', night, in_qqa=True)
     lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
     fig = plot_amp_qa(data, 'READNOISE', lower=lower_noise, upper=upper_noise, amp_keys=noise_keys, title='CCD Amplifier Read Noise')
     #- Convert that into the components to embed in the HTML
@@ -56,14 +56,14 @@ def write_amp_html(outfile, data, header):
 
     #- Amplifier offset
 
-    bias_file = pick_threshold_file('BIAS', night)
+    bias_file = pick_threshold_file('BIAS', night, in_qqa=True)
     lower_bias, upper_bias, bias_keys = get_thresholds(bias_file, return_keys=True)
     fig = plot_amp_qa(data, 'BIAS', lower=lower_bias, upper=upper_bias, amp_keys=bias_keys, title='CCD Amplifier Overscan Bias Level')
     script, div = components(fig)
     html_components['BIAS'] = dict(script=script, div=div)
 
     #- Cosmics rate
-    cosmics_file = pick_threshold_file('COSMICS_RATE', night)
+    cosmics_file = pick_threshold_file('COSMICS_RATE', night, in_qqa=True)
     lower_cosmics, upper_cosmics, cosmics_keys = get_thresholds(cosmics_file, return_keys=True)
     fig = plot_amp_qa(data, 'COSMICS_RATE', lower=lower_cosmics, upper=upper_cosmics, amp_keys=cosmics_keys, title='CCD Amplifier cosmics per minute')
     script, div = components(fig)
