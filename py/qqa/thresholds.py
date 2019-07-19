@@ -117,7 +117,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
 
 def pick_threshold_file(name, night):
     '''Picks the right threshold file to use given the metric and the night. If no file is found, it returns
-    the most recent file.
+    the earliest file.
     Arguments:
         name: metric thresholds are needed for (str)
         night: the night the thresholds are needed for (int)
@@ -332,6 +332,7 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
         title: y-axis label, (name of metric being plotted)
     Options:
         amps: a list of amps to be plotted. if None, all amps are plotted.
+        plot_height, plot_width: width and height of plot in pixels
     Output:
         a bokeh Column object, containing the 3 timeseries plots for each camera for the given metric.'''
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
@@ -381,9 +382,13 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
     return column(cam_figs)
 
 def get_threshold_table(name, filepath, width=600):
-    '''Given a filepath, returns a table containing the lower and upper threshold values for each amp.
+    '''Given a filepath, returns a table containing the lower and upper threshold values for each amp
+    for a certain metric.
     Input:
-        filepath: path to a threshold file 
+        name: metric (str)
+        filepath: path to a threshold file (str)
+    Options:
+        width: width of the plot in pixels
     Output:
         a bokeh DataTable object'''
     #amps = [cam+str(spec)+amp for cam in ['B', 'R', 'Z'] for spec in np.arange(0, 10) for amp in ['A', 'B', 'C', 'D']]
@@ -448,6 +453,7 @@ def plot_histogram(src, bins=20, amps=None, plot_height=250, plot_width=250):
     Options:
         bins: number of bins for the histogram, default 20. (int)
         amps: list of selected amps to use when making histogram. if None, uses all amps.
+        plot_height, plot_width = height, width of plot in pixels
     Output:
         a bokeh Column figure object, containing all 3 histograms (one per cam)'''
     ids = []
@@ -485,6 +491,7 @@ def plot_histogram(src, bins=20, amps=None, plot_height=250, plot_width=250):
 
 
 def get_specs(time_data):
+    '''return the spectrographs that have timeseries data'''
     specs = []
     for i in range(len(time_data)):
         if type(time_data[i]) == dict:
@@ -494,6 +501,13 @@ def get_specs(time_data):
     return np.unique(specs)
 
 def get_spec_amps(spec, lst=None):
+    '''return amps that correspond to a spectrograph in cam+spec+amp format.
+    Args:
+        spec: an integer spectrograph number, or a list of spectrographs. If
+        a list, enable the lst option.
+    Options:
+        lst: if true, will return amps for multiple spectrographs. if None,
+        will assume spec is a single value.'''
     amps = []
     if lst == None:
         for cam in ['B', 'R', 'Z']:

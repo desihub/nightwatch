@@ -13,10 +13,12 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
     Args :
         table : PER_CAMERA table (can be astropy table or just numpy matrix)
         attribute : string that is a column name of table
-        lower : list of lower per_camera thresholds from thresholds.get_thresholds()
-        upper : list of upper per_camera thresholds from thresholds.get_thresholds()
 
     Options :
+        lower : list of lower per_camera thresholds from thresholds.get_thresholds()
+            format: [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
+        upper : list of upper per_camera thresholds from thresholds.get_thresholds() 
+            format : [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
         height : height of each plot
         width : width of each plot
         title : title + " " + cam is the title for each figure

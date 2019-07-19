@@ -9,9 +9,14 @@ from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
-def get_amp_colors(name, data, lower_err, lower, upper, upper_err):
+def get_amp_colors(data, lower_err, lower, upper, upper_err):
     '''takes in per amplifier data and the acceptable threshold for that metric.
-    Input: array of amplifier metric data, upper threshold (float)
+    Args: 
+        data: array of amplifier metric data 
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
     Output: array of colors to be put into a ColumnDataSource
     '''
     colors = []
@@ -30,10 +35,14 @@ def get_amp_colors(name, data, lower_err, lower, upper, upper_err):
             colors.append('red')
     return colors
 
-def get_amp_size(name, data, lower_err, lower, upper, upper_err):
-    '''takes in per amplifier data and the acceptable threshold for that metric (TO DO: update this once
-    we allow for individual amplifiers to have different thresholds).
-    Input: array of amplifier metric data, upper threshold (float)
+def get_amp_size(data, lower_err, lower, upper, upper_err):
+    '''takes in per amplifier data and the acceptable threshold for that metric
+    Args: 
+        data: array of amplifier metric data 
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
     Output: array of sizes for markers to be put into a ColumnDataSource
     '''
     sizes = []
@@ -53,7 +62,12 @@ def get_amp_size(name, data, lower_err, lower, upper, upper_err):
     return sizes
 
 def isolate_spec_lines(data_locs, data):
-    '''function to generate isolated data sets so that each spectrograph has an isolated line'''
+    '''function to generate isolated data sets so that each spectrograph has an isolated line
+    Inputs:
+        data_locs: list of (spec, amp) pairs
+        data: the metric data to be plotted (array)
+    Output: 
+        spec_groups (groupings of amplifiers per spec), data_groups (the data corresponding to those amps) (arrays)'''
     ids = [0]
     for i in range(len(data_locs)-1):
         if data_locs[i][0] == data_locs[i+1][0]:
@@ -69,8 +83,24 @@ def isolate_spec_lines(data_locs, data):
     return spec_groups, data_groups
 
 def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
-    '''Plot a per-amp visualization of data[name]
-    ymin/ymax: y-axis ranges *unless* the data exceeds those ranges'''
+    '''Plot a per-camera, per-amp visualization of data[name]
+    Args:
+        data: table of per_amp qa data
+        name: metric being plotted (string)
+        cam: camera being plotted ('B', 'R', 'Z')
+        labels: list of (spec, amp) pairs for x-axis
+        title: string
+    Options:
+        lower: list of lower thresholds per camera from get_thresholds()
+            format: [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
+        upper: list of upper thresholds per camera from get_thresholds()
+            format : [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
+        amp_keys: list of amps that have data
+        ymin/ymax: y-axis ranges *unless* the data exceeds those ranges
+        plot_height, plot_width: height, width of graph in pixels
+    Output:
+        Bokeh figure object
+        '''
     
     if title is None:
         title = name
@@ -136,8 +166,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
             upper_warn = np.array(upper_warn)[ids]
             upper_err = np.array(upper_err)[ids]
         
-        colors += get_amp_colors(name, data_val, lower_err, lower_warn, upper_warn, upper_err)
-        sizes += get_amp_size(name, data_val, lower_err, lower_warn, upper_warn, upper_err)
+        colors += get_amp_colors(data_val, lower_err, lower_warn, upper_warn, upper_err)
+        sizes += get_amp_size(data_val, lower_err, lower_warn, upper_warn, upper_err)
 
     source = ColumnDataSource(data=dict(
         data_val=data_val,
@@ -214,15 +244,17 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
 
 def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700):
     '''Creates gridplot of 3 camera separated amp plots
-    Inputs:
-        data:
-        name:
+    Args:
+        data: table of per_amp qadata
+        name: metric being plotted (str)
     Options:
-        lower:
-        upper:
-        amp_keys:
-        title:
-        plot_height, plot_width:
+        lower: list of lower thresholds per camera from get_thresholds()
+            format: [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
+        upper: list of upper thresholds per camera from get_thresholds()
+            format : [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
+        amp_keys: list of amps that have data
+        title: title for plot, if different than name (str)
+        plot_height, plot_width: height, width of graph in pixels
     Output:
         Bokeh gridplot object'''
     
