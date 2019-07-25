@@ -1,0 +1,41 @@
+version: '2' # important, rancher is not compatible with version 3
+services:
+  # these names are important, how we will tell nginx where to direct requests
+  app:
+    # this image is tagged latest, but you can change the tag to choose a different version to base the container on
+    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest
+    # the volumes mount an external directory to a location inside the container
+    # format is: external/path:/internal/path:option (ro = read only, etc.)
+    # the external paths are relative to the docker-compose file
+    volumes:
+     - ../qqatest/output:/app/static 
+     - ../qqa:/app/qqa:ro
+     - ../desimodel:/app/desimodel:ro
+     - ../desiutil:/app/desiutil:ro
+     - ../qqatest/data/output:/app/data:ro
+    user: 80355:58102 # insert your user id and group id here (58102 = desi group)
+    entrypoint: uwsgi # specifying what command should be run when this container runs
+    command:
+     - --ini
+     - app.ini
+     - --pyargv
+     - '-s ./static -d ./data' # should reflect dir structure of static, data volumes (relative to /app dir)
+     - --uid                   # need uid, gid here to tell uwsgi to expect a non-root user to start
+     - '80355'
+     - --gid
+     - '58102'
+    retain_ip: true            # containers can communicate even if spin changes where they are being run
+    cap_drop:                  # security requirement for running on spin
+    - ALL
+  web:
+    image: registry.spin.nersc.gov/alyons18/web-nginx:latest
+    ports:
+    - "60000:8080"             # external:internal ports, you can change the external port, will have to change in nginx.conf too
+    #this volume mounts our specific nginx configuration
+    volumes:
+    - ./web/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    user: 80355:58102          # see above in app section   
+    group_add:                 # adds our uid to group nginx so we can add the configurations above
+    - nginx
+    cap_drop:
+    - ALL
