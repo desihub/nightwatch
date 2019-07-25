@@ -8,8 +8,8 @@ import sys, os
 import numpy as np
 from bokeh.embed import components
 import jinja2
-import fitsio
-#from astropy.io import fits
+#import fitsio
+from astropy.io import fits
 from astropy.visualization import ZScaleInterval
 
 import bokeh
@@ -89,7 +89,8 @@ def main(input_in = None, output_in = None, downsample_in = None):
         n = downsample_in
         output = output_in
 
-    image = fitsio.read(image)
+    hdul = fits.open(image)
+    image = hdul[0].data
 
     short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
     long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
