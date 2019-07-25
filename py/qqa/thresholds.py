@@ -45,7 +45,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
             amps += data['PER_AMP'][name].keys()
             all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
             rest_amps += list(np.setdiff1d(all_amps, amps))
-    datadict[night] = data
+        datadict[night] = data
     thresholds = dict()
     if name in ["READNOISE", "BIAS"]:
         for amp in all_amps:
