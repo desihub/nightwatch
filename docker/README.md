@@ -59,6 +59,7 @@ vacuum = true
 
 die-on-term = true
 ```
+See the [uWSGI documentation](https://uwsgi-docs.readthedocs.io/en/latest/CustomOptions.html) if you want to learn more about the specific options here. The version of the app.ini file in this repo also contains some more details on these configs.
 
 ### Nginx
 
