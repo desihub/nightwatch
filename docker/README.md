@@ -80,16 +80,23 @@ RUN sed --regexp-extended --in-place=.bak 's%^pid\s+/var/run/nginx.pid;%pid /var
 First step is accessing Spin, through Cori.
 ```
 yourlocalmachine$ ssh [your username]@cori.nersc.gov
-@cori$ module load spin
+user@cori01: $ module load spin
+```
+Now, test your account:
+```
+user@cori01: $ spin-keygen.sh
+Password for user ?
+Success: Spin API Key generated for user.
+user@cori01: $
 ```
 Next, we want to define which rancher environment we are going to be using. There are two options: cattle-dev, and cattle-prod, the development and production environments, respectively. In this example, and for non-production state versions, we will choose cattle-dev. The environment variable is helpful, or rancher will ask us every time we try and do something to choose which environment we want to do it in.
 ```
-@cori$ export RANCHER_ENVIRONMENT=cattle-dev
+user@cori01: $ export RANCHER_ENVIRONMENT=cattle-dev
 ```
 Now, we will create the directory structure we need for the application to work smoothly, and to mount our volumes properly. First, create a directory you want to keep the docker-compose files, and nginx configurations in. 
 ```
-@cori$ export SPIN_DIRECTORY=path/to/where/you/want/the/project/
-@cori$ mkdir $SPIN_DIRECTORY && cd $SPIN_DIRECTORY
+user@cori01: $ export SPIN_DIRECTORY=path/to/where/you/want/the/project/
+user@cori01: $ mkdir $SPIN_DIRECTORY && cd $SPIN_DIRECTORY
 ```
 This should probably be somewhere near to the static html files and data that we will use to populate the app, or somewhere from which you can easily gain access to those files (as we will be mounting those other directories into our containers). For example, this is my own directory structure that I use, all within my own global project filesystem directory:
 ```bash
@@ -107,7 +114,7 @@ This should probably be somewhere near to the static html files and data that we
 ```
 After choosing a good place for the project files, make a new yaml file called docker-compose:
 ```
-SPIN_DIRECTORY$ touch docker-compose.yml && open docker-compose.yml
+user@cori01:SPIN_DIRECTORY $ touch docker-compose.yml && open docker-compose.yml
 ```
 And copy and paste the following text, with your data replaced in the brackets: 
 ```
@@ -132,8 +139,8 @@ services:
 Note: you can replace the port above with any port you would like [(look at the Spin port guide)](https://docs.nersc.gov/services/spin/best_practices/#networking). 
 Next, we will make a directory specific to the web service:
 ```
-SPIN_DIRECTORY$ mkdir web && cd web
-SPIN_DIRECTORY$ touch nginx.conf && open nginx.conf
+user@cori01:SPIN_DIRECTORY $ mkdir web && cd web
+user@cori01:SPIN_DIRECTORY $ touch nginx.conf && open nginx.conf
 ```
 This file will contain our specific nginx configurations, which will allow it to act correctly as a reverse proxy for our flask app. In here, paste the below code:
 ```
@@ -195,7 +202,7 @@ services:
 ### Setting Permissions
 Running at Spin means that our services need to comply with their [security requirements](https://docs.nersc.gov/services/spin/best_practices/#security). In addition, because we mounted directories in the global filesystem at NERSC above, our application needs to match user and group privileges for accessing those files, or we won't be able to use them for our service. This means we need to make sure that all the directories and sub-directories being accessed by our containers have the proper permissions:
 ```
-chmod o+x [directories here]
+user@cori01:SPIN_DIRECTORY $ chmod o+x [directories here]
 ```
 Make sure all of your directories, going all the way from the top to the bottom, have the executable bit at the end. In addition to this, we need to be running the container as a non-root user, specifically one with permissions to access these files and make modifications. This also improves security, as we will be removing almost all of the capabilities that a root user would have.
 We already mostly took care of the permissions issue by putting our uid and gid into the docker-compose, but there are some specific issues with how uWSGI runs that mean we need to reiterate this. In particular, uWSGI expects to be a root user to start, and to be switched later to a specific user and group. We need to tell it not to expect this, or our application will get stuck in the starting up phase. To do this, we add the following section to the app service in our docker-compose.yml.
@@ -214,29 +221,28 @@ We already mostly took care of the permissions issue by putting our uid and gid 
 This is basically the same command as we saw the the app Dockerfile, but by placing it in the docker-compose, the uWSGI container begins expecting to be a non-root user.
 
 ### Starting A Stack
-Our docker-compose.yml is now complete, and we can start up our stack on Spin with rancher. First, verify that you have access to Spin and your account is working properly:
+Our docker-compose.yml is now complete, and we can start up our stack on Spin with rancher. First, make sure you are in the right directory- this should be the directory containing your docker-compose.yml, and the directory should be the same name as the stack you want to run. See [Spin naming conventions](https://docs.nersc.gov/services/spin/best_practices/#naming-convention-for-stacks). Validate your docker-compose.yml for any syntax errors:
 ```
-code here
-```
-Now, make sure you are in the right directory- this should be the directory containing your docker-compose.yml, and the directory should be the same name as the stack you want to run. See [Spin naming conventions](https://docs.nersc.gov/services/spin/best_practices/#naming-convention-for-stacks). Validate your docker-compose.yml for any syntax errors:
-```
-stackdir$ rancher up --render
+user@cori01:SPIN_DIRECTORY $ rancher up --render
 ```
 If everything seems ok, this should print out the contents of the file. If not, it will point to the error. Once everything is all squared away, we can start the stack:
 ```
-stackdir$ rancher up -d
+user@cori01:SPIN_DIRECTORY $ rancher up -d
 ```
 The `-d` flag runs everything in the background, so the logs don't get printed to the console, and you can do other stuff without exiting the running process. If you do want to check the logs for a service, you can call:
 ```
-rancher logs service-name --follow --tail 100
+user@cori01:SPIN_DIRECTORY $ rancher logs service-name --follow --tail 100
 ```
 The `--follow` tag will print the logs out realtime to the console, while the `--tail` option will only print out the last, in this case 100, lines of the log. 
 If everything is in order, then calling
 ```rancher ps```
-should return that both of our services, app and web, are healthy. In order to visit them, you can go to web.stack-name.dev.stable.spin.nersc.org:{your external nginx port}. Or, you can use the IP address (although this changes periodically, the url is more reliable). To check the port or the IP address, you can use either of:
+should return that both of our services, app and web, are healthy. In order to visit them, you can check where they are being hosted:
 ```
-host web.stack-name.dev.stable.spin.nersc.org
-public endpoints thing here
+rancher inspect your-stack-name/web | jq '.fqdn'
+```
+Which should return a name like web.stack-name.dev.stable.spin.nersc.org:{your external nginx port}, which you can navigate to in your browser. Or, you can use the IP address (although this changes periodically, the url is more reliable). To check the port or the IP address, you can use:
+```
+rancher inspect your-stack-name/web | jq '.publicEndpoints'
 ```
 If everything went properly, you should see the nightly calendar pop up when you navigate to the address, and voilà!
 
