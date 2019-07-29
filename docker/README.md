@@ -243,6 +243,16 @@ rancher inspect your-stack-name/web | jq '.fqdn'
 Which should return a name like web.stack-name.dev.stable.spin.nersc.org:{your external nginx port}, which you can navigate to in your browser. Or, you can use the IP address (although this changes periodically, the url is more reliable). To check the port or the IP address, you can use:
 ```
 rancher inspect your-stack-name/web | jq '.publicEndpoints'
+[
+  {
+    "hostId": "1h83",
+    "instanceId": "1i2601738",
+    "ipAddress": "128.55.206.19",
+    "port": 60000,
+    "serviceId": "1s4783",
+    "type": "publicEndpoint"
+  }
+]
 ```
 If everything went properly, you should see the nightly calendar pop up when you navigate to the address, and voilà!
 
