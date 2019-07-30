@@ -2,20 +2,29 @@
 This tutorial will go through the process of setting up a stack to run Nightwatch on Spin, or on a local machine, in addition to documenting the configurations and default images built for Nightwatch.
 
 #### Useful resources:
-Spin has some tutorials if you want to go through [building a Docker image](https://docs.nersc.gov/services/spin/getting_started/lesson-1/) or [starting up a basic stack](https://docs.nersc.gov/services/spin/getting_started/lesson-2/).
+- Spin has some tutorials if you want to go through [building a Docker image](https://docs.nersc.gov/services/spin/getting_started/lesson-1/) or [starting up a basic stack](https://docs.nersc.gov/services/spin/getting_started/lesson-2/).
+
+- [Docker documentation](https://docs.docker.com/) and [docker-compose documentation](https://docs.docker.com/compose/).
+
+- [Nginx documentation](https://nginx.org/en/docs/).
+
+- [uWSGI documentation](https://uwsgi-docs.readthedocs.io/en/latest/index.html).
 
 ## Contents
 - [General Structure](#general-structure) 
 - [Configuring Images](#configuring-images)
   - [uWSGI](#uwsgi)
-    - [Image Context](#image-context)
+    - [uWSGI configuration](#uwsgi-congfiguration)
   - [Nginx](#nginx)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
   - [Getting Started](#getting-started)
   - [Mounting Volumes](#mounting-volumes)
   - [Setting Permissions](#setting-permissions)
-  - [Starting A Stack](#starting-a-stack)
+  - [Starting a Stack](#starting-a-stack)
 - [Some Useful Tips and Tricks](#some-useful-tips-and-tricks)
+  - [Removing a Stack](#removing-a-stack)
+  - [Upgrading a Stack](#upgrading-a-stack)
+  - [Troubleshooting](#troubleshooting)
 
 ## General Structure
 Our stack will consist of two separate containers, one running [Nginx](https://nginx.org/en/docs/) to serve as our frontend server, and one running [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/index.html), which will handle transferring requests between Nginx and our Flask web app. To coordinate these two containers, we have to use Docker-compose, which will allow the two containers to communicate properly. Spin, where we will run the stack at NERSC, handles the actual distribution of nodes and the connection to the internet. 
@@ -42,7 +51,7 @@ ENTRYPOINT [ "uwsgi" ]
 CMD [ "--ini", "app.ini", "--pyargv", "-s ./static -d ./data"]
 ```
 
-#### Image context
+#### uWSGI Configurations
 The uWSGI image also contains an app.ini file with uWSGI specific configurations:
 ```
 [uwsgi]
@@ -220,7 +229,7 @@ We already mostly took care of the permissions issue by putting our uid and gid 
 ```
 This is basically the same command as we saw the the app Dockerfile, but by placing it in the docker-compose, the uWSGI container begins expecting to be a non-root user.
 
-### Starting A Stack
+### Starting a Stack
 Our docker-compose.yml is now complete, and we can start up our stack on Spin with rancher. First, make sure you are in the right directory- this should be the directory containing your docker-compose.yml, and the directory should be the same name as the stack you want to run. See [Spin naming conventions](https://docs.nersc.gov/services/spin/best_practices/#naming-convention-for-stacks). Validate your docker-compose.yml for any syntax errors:
 ```
 user@cori01:SPIN_DIRECTORY $ rancher up --render
@@ -264,4 +273,21 @@ rancher inspect your-stack-name/web | jq '.publicEndpoints'
 If everything went properly, you should see the nightly calendar pop up when you navigate to the address, and voilà!
 
 ## Some Useful Tips and Tricks
-These are just a mix of things I learned that were useful while trying to get this to work.
+These are just a mix of things I learned that were useful while trying to get this to work, in addition to some stuff not covered above, but useful for continuing development.
+#### Removing a Stack
+Sometimes when trying to start up a stack, something goes wrong enough for the stack to get stuck, or it to just be more convient to start over again. If this happens, you want to be able to totally remove that stack (this will not affect the actual docker-compose or other file you have stored!). To do this:
+```
+user@cori01:SPIN_DIRECTORY $ rancher rm --type stack [stack-name]
+```
+Or, to remove only one service:
+```
+user@cori01:SPIN_DIRECTORY $ rancher rm --type service [stack-name]/[service-name]
+```
+If you check your stacks with `rancher ps` now, you should not see the services you have removed.
+Additionally, if you only want to stop a stack, instead of removing it entirely, you can do:
+```
+user@cori01:SPIN_DIRECTORY $ rancher stop [stack-name]
+```
+#### Upgrading a Stack
+Once a stack is up and running, if you want to make modifications to it, you need to go through the process of upgrading it. 
+#### Troubleshooting
