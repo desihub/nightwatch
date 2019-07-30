@@ -108,7 +108,7 @@ user@cori01: $ export SPIN_DIRECTORY=path/to/where/you/want/the/project/
 user@cori01: $ mkdir $SPIN_DIRECTORY && cd $SPIN_DIRECTORY
 ```
 This should probably be somewhere near to the static html files and data that we will use to populate the app, or somewhere from which you can easily gain access to those files (as we will be mounting those other directories into our containers). For example, this is my own directory structure that I use, all within my own global project filesystem directory:
-```bash
+```
 ├── nightwatch-stack (contains docker files)
 │   ├── docker-compose.yml
 │   ├── web (contains specific nginx stuff)
@@ -126,7 +126,7 @@ After choosing a good place for the project files, make a new yaml file called d
 user@cori01:SPIN_DIRECTORY $ touch docker-compose.yml && open docker-compose.yml
 ```
 And copy and paste the following text, with your data replaced in the brackets: 
-```
+```yaml
 version: '2'
 services:
   app:
@@ -152,7 +152,7 @@ user@cori01:SPIN_DIRECTORY $ mkdir web && cd web
 user@cori01:SPIN_DIRECTORY $ touch nginx.conf && open nginx.conf
 ```
 This file will contain our specific nginx configurations, which will allow it to act correctly as a reverse proxy for our flask app. In here, paste the below code:
-```
+```conf
 server {
     listen 8080;
     location / {
@@ -170,7 +170,7 @@ Note: again, if you chose a port other than 60000, replace 60000 with your port 
 ### Mounting Volumes
 So far, we have a docker-compose file that will theoretically run- however, we don't have any content for our app! We need to mount the external directories containing these files into our container. Here, we are using docker volumes, although there are other ways to mount external files into a container (see the [docker-compose documentation](https://docs.docker.com/compose/compose-file/compose-file-v2/#volumes)). Mounting our data externally allows us to keep the image light, as well as making it easier to tweak the code or update the data or html files to new versions, without having to build a new image.
 The syntax for mounting a volume is as follows:
-```
+```yaml
 volumes:
     - /external/path:/internal/path:mode
 ```
@@ -181,7 +181,7 @@ The path to the external directory (relative to the docker-compose.yml!), then t
 4. The nginx.conf file created above, mounted into the nginx container (you can copy and paste what I have below, as it should have the same relative directory structure)
 
 This is what my docker-compose.yml looks like, with an added volumes section to the app and web services:
-```
+```yaml
 version: '2'
 services:
   app:
@@ -239,14 +239,14 @@ If everything seems ok, this should print out the contents of the file. If not, 
 user@cori01:SPIN_DIRECTORY $ rancher up -d
 ```
 The `-d` flag runs everything in the background, so the logs don't get printed to the console, and you can do other stuff without exiting the running process. If you do want to check the logs for a service, you can call:
-```
+```bash
 user@cori01:SPIN_DIRECTORY $ rancher logs service-name --follow --tail 100
 ```
 The `--follow` tag will print the logs out realtime to the console, while the `--tail` option will only print out the last, in this case 100, lines of the log. 
 If everything is in order, then calling
 ```rancher ps```
 should return that both of our services, app and web, are healthy. 
-```
+```bash
 user@cori01:SPIN_DIRECTORY $ rancher ps
 ID        TYPE      NAME                       IMAGE                                                             STATE      SCALE     SYSTEM    ENDPOINTS   DETAIL
 1s13343   service   nightwatch-stack/web       registry.spin.nersc.gov/alyons18/web-nginx:latest                 healthy    1/1       false                 
