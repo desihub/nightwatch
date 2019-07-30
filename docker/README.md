@@ -14,7 +14,6 @@ This tutorial will go through the process of setting up a stack to run Nightwatc
 - [General Structure](#general-structure) 
 - [Configuring Images](#configuring-images)
   - [uWSGI](#uwsgi)
-    - [uWSGI configuration](#uwsgi-congfiguration)
   - [Nginx](#nginx)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
   - [Getting Started](#getting-started)
@@ -51,7 +50,7 @@ ENTRYPOINT [ "uwsgi" ]
 CMD [ "--ini", "app.ini", "--pyargv", "-s ./static -d ./data"]
 ```
 
-#### uWSGI Configurations
+#### uWSGI Configuration
 The uWSGI image also contains an app.ini file with uWSGI specific configurations:
 ```
 [uwsgi]
