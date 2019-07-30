@@ -22,6 +22,7 @@ This tutorial will go through the process of setting up a stack to run Nightwatc
   - [Starting a Stack](#starting-a-stack)
 - [Some Useful Tips and Tricks](#some-useful-tips-and-tricks)
   - [Removing a Stack](#removing-a-stack)
+  - [Shelling into a Stack](#shelling-into-a-stack)
   - [Upgrading a Stack](#upgrading-a-stack)
   - [Troubleshooting](#troubleshooting)
 
@@ -287,6 +288,44 @@ Additionally, if you only want to stop a stack, instead of removing it entirely,
 ```
 user@cori01:SPIN_DIRECTORY $ rancher stop [stack-name]
 ```
+#### Shelling into a Stack
+If you want to modify something or check anything about a container that is running, you can use `rancher exec` to create a shell inside the container. For example, you can check the container files:
+```
+user@cori01:SPIN_DIRECTORY $ rancher exec -it [stack-name] /bin/bash
+root@1c442b1d19a3:/# ls
+bin dev home lib64 mnt proc run srv tmp var
+boot etc lib media opt root sbin sys usr
+root@1c442b1d19a3:/# exit
+exit
+user@cori01:SPIN_DIRECTORY $
+```
 #### Upgrading a Stack
-Once a stack is up and running, if you want to make modifications to it, you need to go through the process of upgrading it. 
+Once a stack is up and running, if you want to make modifications to it, you need to go through the process of upgrading it; for example, if you change something in the docker-compose.yml. After making your modification, run:
+```
+user@cori01:SPIN_DIRECTORY $ rancher up --upgrade -d
+INFO[0000] [app]: Creating
+INFO[0000] [web]: Creating
+INFO[0000] [app]: Created
+INFO[0000] [web]: Created
+INFO[0000] [web]: Starting
+INFO[0000] [app]: Starting
+1s3042
+INFO[0000] [app]: Started
+INFO[0000] Upgrading app
+1s3041
+INFO[0008] [web]: Started
+```
+You should see the line indicating the service is being upgraded, as above. Now, you can check that the upgrade was implemented by visiting the service wherever it is being hosted. Additionally, you can call `rancher ps --containers --all` to check that there are now two versions of your service, one running and upgraded, the other, older version, stopped. If you are satisfied that everything went well with the upgrade, you now need to confirm it:
+```
+user@cori01:SPIN_DIRECTORY $ rancher up -d --upgrade --confirm-upgrade
+```
+If you check your containers again, the old stopped one should be gone.
+
+Note: if you want to learn more about the rancher CLI and what you can do with it, look [here](https://docs.nersc.gov/services/spin/tips_and_examples/).
+
 #### Troubleshooting
+These are a couple of the things I noticed were most likely to have gone wrong when I was trying to get Nightwatch up and running.
+ 1. **User permissions:** who can access the files you are trying to get to? Are all the directories top to bottom set properly? Who is the container running as, who does the image expect to be running as?
+ 2. **Ports:** is the port you are accessing internal or external? Where are the services connected and how?
+ 3. **Correct directory?:** When starting a stack, make sure you are in the directory with the same name
+
