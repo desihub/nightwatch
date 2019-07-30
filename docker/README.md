@@ -236,7 +236,14 @@ user@cori01:SPIN_DIRECTORY $ rancher logs service-name --follow --tail 100
 The `--follow` tag will print the logs out realtime to the console, while the `--tail` option will only print out the last, in this case 100, lines of the log. 
 If everything is in order, then calling
 ```rancher ps```
-should return that both of our services, app and web, are healthy. In order to visit them, you can check where they are being hosted:
+should return that both of our services, app and web, are healthy. 
+```
+user@cori01:SPIN_DIRECTORY $ rancher ps
+ID        TYPE      NAME                       IMAGE                                                             STATE      SCALE     SYSTEM    ENDPOINTS   DETAIL
+1s13343   service   nightwatch-stack/web       registry.spin.nersc.gov/alyons18/web-nginx:latest                 healthy    1/1       false                 
+1s13368   service   nightwatch-stack/app       registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest           healthy    1/1       false                 
+```
+In order to visit them, you can check where they are being hosted:
 ```
 rancher inspect your-stack-name/web | jq '.fqdn'
 ```
