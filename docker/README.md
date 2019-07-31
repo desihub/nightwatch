@@ -17,9 +17,9 @@ This tutorial will go through the process of setting up a stack to run Nightwatc
   - [Nginx](#nginx)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
   - [Getting Started](#getting-started)
-  - [Mounting Volumes](#mounting-volumes)
-  - [Setting Permissions](#setting-permissions)
-  - [Starting a Stack](#starting-a-stack)
+   * [Mounting Volumes](#mounting-volumes)
+   * [Setting Permissions](#setting-permissions)
+   * [Starting a Stack](#starting-a-stack)
 - [Some Useful Tips and Tricks](#some-useful-tips-and-tricks)
   - [Removing a Stack](#removing-a-stack)
   - [Shelling into a Stack](#shelling-into-a-stack)
@@ -102,15 +102,16 @@ Next, we want to define which rancher environment we are going to be using. Ther
 ```
 user@cori01: $ export RANCHER_ENVIRONMENT=cattle-dev
 ```
-Now, we will create the directory structure we need for the application to work smoothly, and to mount our volumes properly. First, create a directory you want to keep the docker-compose files, and nginx configurations in. 
+Now, we will create the directory structure we need for the application to work smoothly, and to mount our volumes properly. First, create a directory you want to keep the docker-compose files, and nginx configurations in. Note: rancher defaults the stack name to the directory it is currently in- so name your directory appropriately.
 ```
-user@cori01: $ export SPIN_DIRECTORY=path/to/where/you/want/the/project/
+user@cori01: $ export SPIN_DIRECTORY=path/to/where/you/want/the/project/stack-name
 user@cori01: $ mkdir $SPIN_DIRECTORY && cd $SPIN_DIRECTORY
 ```
 This should probably be somewhere near to the static html files and data that we will use to populate the app, or somewhere from which you can easily gain access to those files (as we will be mounting those other directories into our containers). For example, this is my own directory structure that I use, all within my own global project filesystem directory:
 ```
-├── nightwatch-stack (contains docker files)
+├── nightwatch-stack (SPIN_DIRECTORY, contains docker files)
 │   ├── docker-compose.yml
+|   ├── nightwatch.env
 │   ├── web (contains specific nginx stuff)
 │   │   ├── nginx.conf
 ├── qqatest
@@ -121,35 +122,78 @@ This should probably be somewhere near to the static html files and data that we
 ├── desimodel
 └── desiutil
 ```
-After choosing a good place for the project files, make a new yaml file called docker-compose:
-```
-user@cori01:SPIN_DIRECTORY $ touch docker-compose.yml && open docker-compose.yml
-```
-And copy and paste the following text, with your data replaced in the brackets: 
+After choosing a good place for the project files, you want to place the docker-compose.yml from this repo there, either by copying the file over from somewhere else you've downloaded it, or by copying and pasting into a new file.
+This is what it should look like:
 ```yaml
 version: '2'
 services:
   app:
+    env_file: ./nightwatch.env
     image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest
-    user: [your UID]:[your GID, probably desi (58102)]
-    retain_ip: true            
-    cap_drop:                  
+    volumes:
+     - ${STATIC_DIR}:/app/static
+     - ${NIGHTWATCH_DIR}:/app/qqa:ro
+     - ${DESIMODEL_DIR}:/app/desimodel:ro
+     - ${DESIUTIL_DIR}:/app/desiutil:ro
+     - ${DATA_DIR}:/app/data:ro
+    user: ${UID}:58102
+    entrypoint: uwsgi
+    command:
+     - --ini
+     - app.ini
+     - --pyargv
+     - '-s ./static -d ./data'
+     - --uid
+     - '${UID}'
+     - --gid
+     - '58102'
+    retain_ip: true
+    cap_drop:
     - ALL
   web:
+    env_file: ./nightwatch.env
     image: registry.spin.nersc.gov/alyons18/web-nginx:latest
     ports:
-    - "60000:8080"
-    user: [your UID]:[your GID]
+    - 60037:8080
+    volumes:
+    - ./web/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    user: ${UID}:58102
     group_add:
     - nginx
     cap_drop:
     - ALL
 ```
-Note: you can replace the port above with any port you would like [(look at the Spin port guide)](https://docs.nersc.gov/services/spin/best_practices/#networking). 
-Next, we will make a directory specific to the web service:
+Note: you can replace the port above with any port you would like [(look at the Spin port guide)](https://docs.nersc.gov/services/spin/best_practices/#networking), but you will have to make sure to change it inside the nginx-proxy.conf file as well.
+
+There are a couple of things we need to add for this docker-compose file to work properly:
+- nightwatch.env (configuring environment variables)
+- nginx-proxy.conf (configuring nginx)
+
+The first is a file that tells docker-compose what values to assign to all of those environment variables. We need to assign these values by editing the nightwatch.env file referenced above in the env_file lines. The nightwatch.env file should be in the same directory as the docker-compose.yml, and look something like this:
+```
+#Default: DESI group id at NERSC
+GROUP_ID=58102
+
+#Directory relative to the docker-compose.yml containing static html files
+STATIC_DIR=../qqatest/output
+
+#Directory relative to docker-compose.yml containing fits data files
+DATA_DIR=../qqatest/data/output
+
+#Directory containing version of nightwatch code you want to run the app with
+NIGHTWATCH_DIR=../qqa
+
+#Directory containing desimodel code
+DESIMODEL_DIR=../desimodel
+
+#Directory containing desiutil code
+DESIUTIL_DIR=../desiutil
+```    
+For each variable above, replace the default values with whatever is appropriate to your directory structure/group id. User id is not included here, we will just export that value later, directly from the environment.
+
+For the Nginx configurations, we will make a directory specific to the web service:
 ```
 user@cori01:SPIN_DIRECTORY $ mkdir web && cd web
-user@cori01:SPIN_DIRECTORY $ touch nginx.conf && open nginx.conf
 ```
 This file will contain our specific nginx configurations, which will allow it to act correctly as a reverse proxy for our flask app. In here, paste the below code:
 ```conf
@@ -157,18 +201,21 @@ server {
     listen 8080;
     location / {
       proxy_pass http://app:5000;
-      proxy_redirect http://$host:8080 http://$host:60000;
-      proxy_set_header Host $host:60000;
+      proxy_redirect http://$host:8080 http://$host:60037;
+      proxy_set_header Host $host:60037;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Host $server_name;
       proxy_set_header X-Real-IP $remote_addr;
     }
 }
 ```
-Note: again, if you chose a port other than 60000, replace 60000 with your port in the file above. This file tells nginx to pass all requests it receives to the proxy http://app:5000, which is where uWSGI is listening (see the app.ini file). On the way back, we need to tell nginx to direct traffic from the internal port it listens on (8080), to the external port the user is accessing (60000, in this case), hence the proxy_redirect statement. The other lines set the header on the requests going to uWSGI, and can be further configured to adjust security.
+Note: again, if you chose a port other than 60037, replace 60037 with your port in the file above. This file tells nginx to pass all requests it receives to the proxy http://app:5000, which is where uWSGI is listening (see the app.ini file). On the way back, we need to tell nginx to direct traffic from the internal port it listens on (8080), to the external port the user is accessing (60037, in this case), hence the proxy_redirect statement. The other lines set the header on the requests going to uWSGI, and can be further configured to adjust security.
 
-### Mounting Volumes
-So far, we have a docker-compose file that will theoretically run- however, we don't have any content for our app! We need to mount the external directories containing these files into our container. Here, we are using docker volumes, although there are other ways to mount external files into a container (see the [docker-compose documentation](https://docs.docker.com/compose/compose-file/compose-file-v2/#volumes)). Mounting our data externally allows us to keep the image light, as well as making it easier to tweak the code or update the data or html files to new versions, without having to build a new image.
+### What does this docker-compose mean?
+So we've got everything we need to start up our stack, but what does it all actually do? Here's an overview of the different sections of the docker-compose.yml.
+
+#### Mounting Volumes
+We don't want to include all of our files in the build context for our images, otherwise they would get way too large very quickly. Mounting files externally also means we don't need to build a new image if we want to use new data, or change our code. We need to mount the external directories containing these files into our container. In our docker-compose, volumes are assigned in the `volumes` section of each service (as one might expect). Here, we are using docker volumes, although there are other ways to mount external files into a container (see the [docker-compose documentation](https://docs.docker.com/compose/compose-file/compose-file-v2/#volumes)).
 The syntax for mounting a volume is as follows:
 ```yaml
 volumes:
@@ -179,57 +226,33 @@ The path to the external directory (relative to the docker-compose.yml!), then t
 2. Processed data files, mounted to /app/data
 3. Nightwatch, desimodel, and desiutil code, mounted to respective directories inside the /app directory
 4. The nginx.conf file created above, mounted into the nginx container (you can copy and paste what I have below, as it should have the same relative directory structure)
+We set the external paths to each of these through the nightwatch.env file.
 
-This is what my docker-compose.yml looks like, with an added volumes section to the app and web services:
-```yaml
-version: '2'
-services:
-  app:
-    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest
-    volumes:
-     - ../qqatest/output:/app/static 
-     - ../qqa:/app/qqa:ro
-     - ../desimodel:/app/desimodel:ro
-     - ../desiutil:/app/desiutil:ro
-     - ../qqatest/data/output:/app/data:ro
-    user: [your UID]:[your GID, probably desi (58102)]
-    retain_ip: true            
-    cap_drop:                  
-    - ALL
-  web:
-    image: registry.spin.nersc.gov/alyons18/web-nginx:latest
-    volumes:
-    - ./web/nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
-    ports:
-    - "60000:8080"
-    user: [your UID]:[your GID]
-    group_add:
-    - nginx
-    cap_drop:
-    - ALL
-```
-### Setting Permissions
+#### Setting Permissions
 Running at Spin means that our services need to comply with their [security requirements](https://docs.nersc.gov/services/spin/best_practices/#security). In addition, because we mounted directories in the global filesystem at NERSC above, our application needs to match user and group privileges for accessing those files, or we won't be able to use them for our service. This means we need to make sure that all the directories and sub-directories being accessed by our containers have the proper permissions:
 ```
 user@cori01:SPIN_DIRECTORY $ chmod o+x [directories here]
 ```
 Make sure all of your directories, going all the way from the top to the bottom, have the executable bit at the end. In addition to this, we need to be running the container as a non-root user, specifically one with permissions to access these files and make modifications. This also improves security, as we will be removing almost all of the capabilities that a root user would have.
-We already mostly took care of the permissions issue by putting our uid and gid into the docker-compose, but there are some specific issues with how uWSGI runs that mean we need to reiterate this. In particular, uWSGI expects to be a root user to start, and to be switched later to a specific user and group. We need to tell it not to expect this, or our application will get stuck in the starting up phase. To do this, we add the following section to the app service in our docker-compose.yml.
-```
+
+We took care of the permissions issue by putting our uid and group id into the docker-compose under the `user` section of both services, but there are some specific issues with how uWSGI runs that mean we need to reiterate this. In particular, uWSGI expects to be a root user to start, and to be switched later to a specific user and group. We need to tell it not to expect this, or our application will get stuck in the starting up phase. To do this, we added the following section to the app service in our docker-compose.yml.
+```yaml
     entrypoint: uwsgi
     command:
      - --ini
      - app.ini
      - --pyargv
-     - '-s ./static -d ./data' 
-     - --uid                   
-     - '80355'
+     - '-s ./static -d ./data'
+     - --uid
+     - '${UID}'
      - --gid
      - '58102'
 ```
 This is basically the same command as we saw the the app Dockerfile, but by placing it in the docker-compose, the uWSGI container begins expecting to be a non-root user.
 
-### Starting a Stack
+In addition, the `cap_drop` section of both the app and web services makes sure that all privileges associated with a root user get removed, improving security even further.
+
+#### Starting a Stack
 Our docker-compose.yml is now complete, and we can start up our stack on Spin with rancher. First, make sure you are in the right directory- this should be the directory containing your docker-compose.yml, and the directory should be the same name as the stack you want to run. See [Spin naming conventions](https://docs.nersc.gov/services/spin/best_practices/#naming-convention-for-stacks). Validate your docker-compose.yml for any syntax errors:
 ```
 user@cori01:SPIN_DIRECTORY $ rancher up --render
@@ -263,8 +286,8 @@ rancher inspect your-stack-name/web | jq '.publicEndpoints'
   {
     "hostId": "1h83",
     "instanceId": "1i2601738",
-    "ipAddress": "128.55.206.19",
-    "port": 60000,
+    "ipAddress": "some ip address",
+    "port": 60037,
     "serviceId": "1s4783",
     "type": "publicEndpoint"
   }
