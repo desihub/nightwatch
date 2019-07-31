@@ -17,9 +17,10 @@ This tutorial will go through the process of setting up a stack to run Nightwatc
   - [Nginx](#nginx)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
   - [Getting Started](#getting-started)
-   * [Mounting Volumes](#mounting-volumes)
-   * [Setting Permissions](#setting-permissions)
-   * [Starting a Stack](#starting-a-stack)
+    - [What does the docker-compose mean?](#what-does-the-docker-compose-mean)
+      * [Mounting Volumes](#mounting-volumes)
+      * [Setting Permissions](#setting-permissions)
+      * [Starting a Stack](#starting-a-stack)
 - [Some Useful Tips and Tricks](#some-useful-tips-and-tricks)
   - [Removing a Stack](#removing-a-stack)
   - [Shelling into a Stack](#shelling-into-a-stack)
@@ -211,7 +212,7 @@ server {
 ```
 Note: again, if you chose a port other than 60037, replace 60037 with your port in the file above. This file tells nginx to pass all requests it receives to the proxy http://app:5000, which is where uWSGI is listening (see the app.ini file). On the way back, we need to tell nginx to direct traffic from the internal port it listens on (8080), to the external port the user is accessing (60037, in this case), hence the proxy_redirect statement. The other lines set the header on the requests going to uWSGI, and can be further configured to adjust security.
 
-### What does this docker-compose mean?
+### What does the docker-compose mean?
 So we've got everything we need to start up our stack, but what does it all actually do? Here's an overview of the different sections of the docker-compose.yml.
 
 #### Mounting Volumes
