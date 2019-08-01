@@ -190,8 +190,12 @@ DESIMODEL_DIR=../desimodel
 #Directory containing desiutil code
 DESIUTIL_DIR=../desiutil
 ```    
-For each variable above, replace the default values with whatever is appropriate to your directory structure/group id. User id is not included here, we will just export that value later, directly from the environment.
-
+For each variable above, replace the default values with whatever is appropriate to your directory structure/group id. User id is not included here, we will just export that value directly from the shell:
+```
+user@cori01:SPIN_DIRECTORY $ echo $UID
+38305
+user@cori01:SPIN_DIRECTORY $ export UID
+```
 For the Nginx configurations, we will make a directory specific to the web service:
 ```
 user@cori01:SPIN_DIRECTORY $ mkdir web && cd web
