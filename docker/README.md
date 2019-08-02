@@ -16,7 +16,6 @@ This tutorial will go through the process of setting up a stack to run Nightwatc
   - [uWSGI](#uwsgi)
   - [Nginx](#nginx)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
-  - [Starting the Stack](#starting-the-stack)
 - [Docker-compose Reference](#docker-compose-reference)
   - [Mounting Volumes](#mounting-volumes)
   - [Setting Permissions](#setting-permissions)
@@ -85,7 +84,6 @@ RUN sed --regexp-extended --in-place=.bak 's%^pid\s+/var/run/nginx.pid;%pid /var
 ```
 
 ## Running at NERSC
-## Starting the Stack
 First step is accessing Spin, through Cori.
 ```
 yourlocalmachine$ ssh [your username]@cori.nersc.gov
