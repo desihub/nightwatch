@@ -101,7 +101,7 @@ user@cori01: $
 ```
 Next, we want to define which rancher environment we are going to be using. There are two options: cattle-dev, and cattle-prod, the development and production environments, respectively. In this example, and for non-production state versions, we will choose cattle-dev. The environment variable is helpful, or rancher will ask us every time we try and do something to choose which environment we want to do it in.
 ```
-user@cori01: $ export RANCHER_ENVIRONMENT=cattle-dev
+user@cori01: $ export RANCHER_ENVIRONMENT=dev-cattle
 ```
 Now, we will create the directory structure we need for the application to work smoothly, and to mount our volumes properly. First, create a directory you want to keep the docker-compose files, and nginx configurations in. Note: rancher defaults the stack name to the directory it is currently in- so name your directory appropriately.
 ```
