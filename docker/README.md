@@ -204,7 +204,7 @@ services:
     cap_drop:
     - ALL
 ```
-*Note: you can replace the port above with any port you would like [(look at the Spin port guide)](https://docs.nersc.gov/services/spin/best_practices/#networking), but you will have to make sure to change it inside the web/nginx-proxy.conf file as well. This file contains specific nginx configurations, which will allow it to act correctly as a reverse proxy for our flask app:
+*Note: you can replace the port above with any port you would like [(look at the Spin port guide)](https://docs.nersc.gov/services/spin/best_practices/#networking), but you will have to make sure to change it inside the web/nginx-proxy.conf file as well. This file contains specific nginx configurations, which will allow it to act correctly as a reverse proxy for our flask app:*
 ```conf
 server {
     listen 8080;
@@ -218,7 +218,7 @@ server {
     }
 }
 ```
-Again, if you chose a port other than 60037, replace 60037 with your port in the file above. This file tells nginx to pass all requests it receives to the proxy http://app:5000, which is where uWSGI is listening (see the app.ini file). On the way back, we need to tell nginx to direct traffic from the internal port it listens on (8080), to the external port the user is accessing (60037, in this case), hence the proxy_redirect statement. The other lines set the header on the requests going to uWSGI, and can be further configured to adjust security.*
+*Again, if you chose a port other than 60037, replace 60037 with your port in the file above. This file tells nginx to pass all requests it receives to the proxy http://app:5000, which is where uWSGI is listening (see the app.ini file). On the way back, we need to tell nginx to direct traffic from the internal port it listens on (8080), to the external port the user is accessing (60037, in this case), hence the proxy_redirect statement. The other lines set the header on the requests going to uWSGI, and can be further configured to adjust security.*
 
 So, after we've verified the docker-compose, we can start up the stack. The `-d` flag runs the process in the background, and `--stack` assigns a name to our stack. `--env-file` allows us to tell rancher which env file to reference. 
 Note: the name of the stack should follow naming conventions. See [Spin naming conventions](https://docs.nersc.gov/services/spin/best_practices/#naming-convention-for-stacks).
