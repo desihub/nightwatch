@@ -75,7 +75,7 @@ def main(input_in = None, output_in = None, downsample_in = None):
             assert ext == '.fits'
             args.output = base + "-" + str(args.downsample) + 'x.html'
 
-        image = args.input
+        input_in = args.input
         basename = os.path.basename(args.input)
         n = args.downsample
         output = args.output
@@ -84,13 +84,13 @@ def main(input_in = None, output_in = None, downsample_in = None):
     else:
         if input_in == None or downsample_in == None:
             return "input_in and/or downsample_in not provided"
-        image = input_in
+        img_input = input_in
         basename = os.path.basename(input_in)
         n = downsample_in
         output = output_in
 
-    hdul = fits.open(image)
-    image = hdul[0].data
+    with fits.open(img_input) as hdul:
+        image = hdul[0].data
 
     short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
     long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
