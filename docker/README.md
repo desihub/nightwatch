@@ -114,7 +114,7 @@ To check that the container works if you run it, you can:
 ```
 docker container run --rm --publish [external port]:[internal port] [image-name-here]
 ```
-The `--rm` flag removes the container once we stop it, so we don't have unwanted containers hanging around. If you navigate to http://localhost:[external port]/ you should see whatever your image is meant to run at that address. To stop the container, use `Control+C`.
+The `--rm` flag removes the container once we stop it, so we don't have unwanted containers hanging around. If you navigate to http://localhost:[external-port]/ you should see whatever your image is meant to run at that address. To stop the container, use `Control+C`.
 
 ### Ship Images to Spin
 Once you're happy with your image, you need to publish it to the spin registry to be able to use it at Spin. First, we need to tag the image properly on our local machine:
