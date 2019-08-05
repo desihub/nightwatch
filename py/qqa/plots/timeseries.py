@@ -1,7 +1,7 @@
-from astropy.table import Table#, vstack
+from astropy.table import Table, vstack
 import numpy as np
 import os, re, sys
-import fitsio
+#import fitsio
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
 from bokeh.models import TapTool as TapTool
@@ -28,8 +28,8 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
         if os.path.isfile(nights_qa):
             try:
                 print("found {}".format(os.path.join(date, "qa-n{}.fits".format(os.path.basename(date)))))
-                #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
-                list_tables += [fitsio.read(nights_qa, hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                list_tables += [Table.read(os.path.join(i, nights_qa), hdu=hdu)]
+                #list_tables += [fitsio.read(nights_qa, hdu, columns=list(QA.metacols[hdu])+[aspect])]
             except Exception as e:
                 print("{} does not have desired hdu or column".format(file))
             continue
@@ -39,21 +39,21 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
             for file in y:
                 if re.match(r"qa-[0-9]{8}.fits", file):
                     try:
-                        #list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
-                        list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
+                        list_tables += [Table.read(os.path.join(i, file), hdu=hdu)]
+                        #list_tables += [fitsio.read(os.path.join(i, file), hdu, columns=list(QA.metacols[hdu])+[aspect])]
                     except Exception as e:
                         print("{} does not have desired hdu or column".format(file))
 
     if list_tables == []:
         return None
-    #table = vstack(list_tables, metadata_conflicts='silent')
-    table = None
-    for tab in list_tables:
-        if table is None:
-            table = tab
-        else:
-            table = np.append(table, tab)
-    table = Table(table)
+    table = vstack(list_tables, metadata_conflicts='silent')
+#     table = None
+#     for tab in list_tables:
+#         if table is None:
+#             table = tab
+#         else:
+#             table = np.append(table, tab)
+#     table = Table(table)
 
     lowest = min(table["EXPID"])
     highest = max(table["EXPID"])
