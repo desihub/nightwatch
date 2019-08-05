@@ -15,6 +15,9 @@ This tutorial will go through the process of setting up a stack to run Nightwatc
 - [Configuring Images](#configuring-images)
   - [uWSGI](#uwsgi)
   - [Nginx](#nginx)
+- [Building and Shipping Images to NERSC](#building-and-shipping-images-to-nersc)
+  - [Building Images](#building-images)
+  - [Ship Images to Spin](#ship-images-to-spin)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
 - [Docker-compose Reference](#docker-compose-reference)
   - [Mounting Volumes](#mounting-volumes)
@@ -31,10 +34,10 @@ Our stack will consist of two separate containers, one running [Nginx](https://n
 ![nightwatch structure](nightwatch-structure.png)
 
 ## Configuring Images
-Generally, it shouldn't be necessary to modify the base Docker images, but this section will document the Dockerfiles and specific configurations in case modifications need to be made. 
+Generally, it shouldn't be necessary to modify the base Docker images, but this section will document the Dockerfiles and specific configurations in case modifications need to be made, or you want to build one of your own.  
 
 ### uWSGI
-
+The full dockerfile for the uWSGI/Flask app image:
 ```
 FROM python:3
 
@@ -49,6 +52,7 @@ EXPOSE 5000
 ENTRYPOINT [ "uwsgi" ]
 CMD [ "--ini", "app.ini", "--pyargv", "-s ./static -d ./data"]
 ```
+The first line tells Docker which image the new image is based off of- in general, this should be a standardized, well-maintained image, to ensure greatest stability. The next line creates a directory *inside* the container, in which we will mount all of our external files. The `ENV` lines add our desi models to the pythonpath inside the container, and the `ADD` line copies the files in the same directory as the docker file to the container. In this case, that was the uWSGI app.ini file, and the Flask app.py code, in addition to the requirements.txt file, which contains all of the dependencies we need to run the app. These requirements get installed in the next `RUN` line. `EXPOSE` tells the container to expose port 5000, on which the app will listen for requests from the user. The final two lines tell the container how to start up the application, with the entrypoint `uwsgi` and the arguments `"--ini app.ini --pyargv -s ./static -d ./data`. These tell uWSGI to look for the app.ini file for configurations, as well as to pass the `pygarv` arguments into the Flask app.
 
 #### uWSGI Configuration
 The uWSGI image also contains an app.ini file with uWSGI specific configurations:
@@ -70,7 +74,7 @@ die-on-term = true
 See the [uWSGI documentation](https://uwsgi-docs.readthedocs.io/en/latest/CustomOptions.html) if you want to learn more about the specific options here. The version of the app.ini file in this repo also contains some more details on these configs.
 
 ### Nginx
-
+The full dockerfile for the nginx image:
 ```
 FROM nginx:latest
 
@@ -82,6 +86,57 @@ EXPOSE 80
 
 RUN sed --regexp-extended --in-place=.bak 's%^pid\s+/var/run/nginx.pid;%pid /var/tmp/nginx.pid;%' /etc/nginx/nginx.conf
 ```
+The first line, as in the uWSGI image, tells Docker which image forms the base. The `:latest` tag makes sure that the image, whenever rebuilt, pulls the most recent, stable version. The rest of this image is slightly opaque, but the `RUN` lines are mainly dealing with nginx configurations; the first two are addressing permissions issues, and the second two are configuring nginx to listen on the right ports (in addition to the `EXPOSE 80` command).
+
+## Building and Shipping Images to NERSC
+### Building Images
+The first step is to install docker on your local machine, if you don't already have it. Docker provides some [getting started tutorials](https://docs.docker.com/get-started/), if you want to start off with a simple example first. Once you have docker installed, you can run 
+```
+docker container run hello-world
+```
+to check that everything is running properly.
+Once that is done, you can start to build an image. You need to set up a working directory to store all the files needed for the build, and create a Dockefile that will provide the instructions for the image.
+```
+user@localmachine: $ mkdir workdir && cd workdir
+user@localmachine:workdir $ vim Dockerfile
+```
+Now, you can add any text you want to the Dockefile, as with the uWSGI and Nginx Dockerfiles above. Once everything is ready, we can build the image.
+```
+user@localmachine:workdir $ docker image build --tag [image-name-here] .
+```
+The `--tag` flag allows you to give a name to your image, and the last argument defines which directory Docker should look for the Dockerfile and other files it needs to build the image (here, it is set to the directory we are already in). Now, if you run `docker image list [image-name]` you should see the new container listed. 
+
+```
+REPOSITORY              TAG     IMAGE         ID  CREATED        SIZE
+image-name              latest  c4f1cd0eb01c  36  seconds  ago   165MB
+```
+To check that the container works if you run it, you can:
+```
+docker container run --rm --publish [external port]:[internal port] [image-name-here]
+```
+The `--rm` flag removes the container once we stop it, so we don't have unwanted containers hanging around. If you navigate to http://localhost:[external port]/ you should see whatever your image is meant to run at that address. To stop the container, use `Control+C`.
+
+### Ship Images to Spin
+Once you're happy with your image, you need to publish it to the spin registry to be able to use it at Spin. First, we need to tag the image properly on our local machine:
+```
+user@laptop: $ docker image list [image-name]
+REPOSITORY              TAG     IMAGE ID      CREATED            SIZE
+my-first-container-app  latest  c4f1cd0eb01c  About an hour ago  165MB
+user@laptop: $ docker image tag [image-name] registry.spin.nersc.gov/[username]/[image-name]
+```
+Now, if you list the images again, you should see an additional image with the same ID, but with a different name. Now, login to the Spin registry with your NERSC username and password:
+```
+user@laptop: $ docker login https://registry.spin.nersc.gov/
+Username:
+Password:
+Login Succeeded
+user@laptop: $
+```
+Then, push your image to the registry, but with the relevant info replaced in the brackets.
+```
+user@laptop: $ docker image push registry.spin.nersc.gov/[username]/[image-name]
+```
+Now, the images are available to be pulled in the rancher environment, and we can start up an application stack at NERSC.
 
 ## Running at NERSC
 First step is accessing Spin, through Cori.
