@@ -532,7 +532,11 @@ def write_nights_summary(indir, last):
                         fx.write_table(qadata_stacked[attr].as_array(), extname=attr, header=hdr)
 
             amp_qadata_stacked = qadata_stacked["PER_AMP"]
-            cam_qadata_stacked = qadata_stacked["PER_CAMERA"]
+            try:
+                cam_qadata_stacked = qadata_stacked["PER_CAMERA"]
+            except:
+                print('No PER_CAMERA data available for {}'.format(night))
+                cam_qadata_stacked = [None]*len(amp_qadata_stacked)
 
             readnoise_sca = dict()
             bias_sca = dict()
@@ -563,7 +567,6 @@ def write_nights_summary(indir, last):
             ysig = dict()
             for c in ["R", "B", "Z"]:
                 specific = amp_qadata_stacked[amp_qadata_stacked["CAM"]==c]
-                cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
                 if len(specific) > 0:
                     cosmics_dict = dict(
                         lower_error=np.percentile(list(specific["COSMICS_RATE"]), 0.1),
@@ -573,39 +576,78 @@ def write_nights_summary(indir, last):
                         num_exp=len(specific),
                     )
                     cosmics_rate[c] = cosmics_dict
-                if len(cam_specific) > 0:
-                    dx_dict = dict(
-                        med=np.average([abs(i) for i in cam_specific["MEANDX"]]),
-                        std=np.std(list(cam_specific['MEANDX'])),
-                        maxd=np.average(list(cam_specific["MAXDX"])),
-                        mind=np.average(list(cam_specific["MINDX"])),
-                        num_exp=len(cam_specific),
-                    )
-                    dx[c] = dx_dict
-                    dy_dict = dict(
-                        med=np.median(list(cam_specific["MEANDY"])),
-                        std=np.std(list(cam_specific['MEANDY'])),
-                        maxd=np.average(list(cam_specific["MAXDY"])),
-                        mind=np.average(list(cam_specific["MINDY"])),
-                        num_exp=len(cam_specific),
-                    )
-                    dy[c] = dy_dict
-                    
-#                     try:
-#                         xsig_dict = dict(
-#                             mean=np.median(list(cam_specific["MEANXSIG"])),
-#                             maxd=np.median(list(cam_specific["MAXXSIG"])),
-#                             mind=np.median(list(cam_specific["MINXSIG"])),
-#                             num_exp=len(cam_specific),
-#                         )
-#                         xsig[c] = xsig_dict
-#                         ysig_dict = dict(
-#                             mean=np.median(list(cam_specific["MEANYSIG"])),
-#                             maxd=np.median(list(cam_specific["MAXYSIG"])),
-#                             mind=np.median(list(cam_specific["MINYSIG"])),
-#                             num_exp=len(cam_specific),
-#                         )
-#                         ysig[c] = ysig_dict
+                try:
+                    cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
+                    if len(cam_specific) > 0:
+                        
+                        max_diffx = np.array(cam_specific['MAXDX'])-np.array(cam_specific['MEANDX'])
+                        min_diffx = np.array(cam_specific['MINDX'])-np.array(cam_specific['MEANDX'])
+                        dx_dict = dict(
+                            med=np.average([abs(i) for i in cam_specific["MEANDX"]]),
+                            std=np.std(list(cam_specific['MEANDX'])),
+                            maxd=np.average([abs(i) for i in max_diffx]),
+                            mind=-np.average([abs(i) for i in min_diffx]),
+                            num_exp=len(cam_specific),
+                        )
+                        dx[c] = dx_dict
+                        
+                        max_diffy = np.array(cam_specific['MAXDY'])-np.array(cam_specific['MEANDY'])
+                        min_diffy = np.array(cam_specific['MINDY'])-np.array(cam_specific['MEANDY'])
+                        dy_dict = dict(
+                            med=np.median([abs(i) for i in cam_specific["MEANDY"]]),
+                            std=np.std(list(cam_specific['MEANDY'])),
+                            maxd=np.average([abs(i) for i in max_diffy]),
+                            mind=-np.average([abs(i) for i in min_diffy]),
+                            num_exp=len(cam_specific),
+                        )
+                        dy[c] = dy_dict
+                        
+                except KeyError:
+                    print('No data for DX or DY on {}'.format(night))
+                try:
+                    cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
+                    if len(cam_specific) > 0:
+                
+                        max_xsig = cam_specific['MAXXSIG']
+                        max_xsig = np.array([i for i in max_xsig if not np.ma.is_masked(i)])
+                        min_xsig = cam_specific['MINXSIG']
+                        min_xsig = np.array([i for i in min_xsig if not np.ma.is_masked(i)])
+                        mean_xsig = cam_specific['MEANXSIG']
+                        mean_xsig = np.array([i for i in mean_xsig if not np.ma.is_masked(i)])
+                        
+                        max_diffx = max_xsig - mean_xsig
+                        min_diffx = min_xsig - mean_xsig
+                        
+                        xsig_dict = dict(
+                            med=np.average([float(abs(i)) for i in mean_xsig]),
+                            std=np.std([float(abs(i)) for i in mean_xsig]),
+                            maxd=np.average([float(abs(i)) for i in max_diffx]),
+                            mind=-np.average([float(abs(i)) for i in min_diffx]),
+                            num_exp=len(cam_specific),
+                        )
+                        xsig[c] = xsig_dict
+                        
+                        max_ysig = cam_specific['MAXYSIG']
+                        max_ysig = np.array([i for i in max_ysig if not np.ma.is_masked(i)])
+                        min_ysig = cam_specific['MINYSIG']
+                        min_ysig = np.array([i for i in min_ysig if not np.ma.is_masked(i)])
+                        mean_ysig = cam_specific['MEANYSIG']
+                        mean_ysig = np.array([i for i in mean_ysig if not np.ma.is_masked(i)])
+                        
+                        max_diffy = max_ysig - mean_ysig
+                        min_diffy = min_ysig - mean_ysig
+                        
+                        ysig_dict = dict(
+                            med=np.average([float(abs(i)) for i in mean_ysig]),
+                            std=np.std([float(abs(i)) for i in mean_ysig]),
+                            maxd=np.average([float(abs(i)) for i in max_diffy]),
+                            mind=-np.average([float(abs(i)) for i in min_diffy]),
+                            num_exp=len(cam_specific),
+                        )
+                        ysig[c] = ysig_dict
+                        
+                except KeyError:
+                    print('No data for XSIG, YSIG on {}'.format(night))
 
             data = dict(
                 PER_AMP=dict(
@@ -616,8 +658,8 @@ def write_nights_summary(indir, last):
                 PER_CAMERA=dict(
                     DX=dx,
                     DY=dy,
-#                     XSIG=xsig,
-#                     YSIG=ysig
+                    XSIG=xsig,
+                    YSIG=ysig,
                 )
             )
 
@@ -641,7 +683,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
         #log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
     
-    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY']:
+    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY', 'XSIG', 'YSIG']:
         write_threshold_json(indir, outdir, start_date, end_date, name)
     
     from qqa.webpages import thresholds as web_thresholds

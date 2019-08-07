@@ -54,7 +54,7 @@ def write_camera_html(outfile, data, header):
     lower_dx, upper_dx = get_thresholds(dx_file)
     if "MEANDX" in data.dtype.names:
         fig = plot_camera_qa(data, 'DX', lower=lower_dx, upper=upper_dx, title='DX with camera',
-                minmax=(-0.1, 0.1), height=150, width=300)
+                minmax=(-0.1, 0.1), height=200, width=plot_width)
         script, div = components(fig)
         html_components['DX'] = dict(script=script, div=div)
     
@@ -62,18 +62,22 @@ def write_camera_html(outfile, data, header):
     lower_dy, upper_dy = get_thresholds(dy_file)
     if "MEANDY" in data.dtype.names:
         fig = plot_camera_qa(data, 'DY', lower=lower_dy, upper=upper_dy, title='DY with camera',
-                minmax=(-0.1, 0.1), height=150, width=300)
+                minmax=(-0.1, 0.1), height=200, width=plot_width)
         script, div = components(fig)
         html_components['DY'] = dict(script=script, div=div)
 
+    xsig_file = pick_threshold_file('XSIG', night, in_qqa=True)
+    lower_xsig, upper_xsig = get_thresholds(xsig_file)
     if "MEANXSIG" in data.dtype.names:
-        fig = plot_camera_qa(data, 'XSIG', title='XSIG with camera',
+        fig = plot_camera_qa(data, 'XSIG', lower=lower_xsig, upper=upper_xsig, title='XSIG with camera',
                 line0=False, minmax=(0.8, 1.3), height=200, width=plot_width)
         script, div = components(fig)
         html_components['XSIG'] = dict(script=script, div=div)
 
+    ysig_file = pick_threshold_file('YSIG', night, in_qqa=True)
+    lower_ysig, upper_ysig = get_thresholds(ysig_file)
     if "MEANYSIG" in data.dtype.names:
-        fig = plot_camera_qa(data, 'YSIG', title='YSIG with camera',
+        fig = plot_camera_qa(data, 'YSIG', lower=lower_ysig, upper=upper_ysig, title='YSIG with camera',
                 line0=False, minmax=(0.8, 1.3), height=200, width=plot_width)
         script, div = components(fig)
         html_components['YSIG'] = dict(script=script, div=div)

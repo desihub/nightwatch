@@ -89,23 +89,20 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
             upper_avg = np.average(upper, weights=weights)
             upper_err_avg = np.average(upper_error, weights=weights)
             thresholds[cam] = dict(lower_err=lower_err_avg, lower=lower_avg, upper=upper_avg, upper_err=upper_err_avg)
-    if name in ['DX', 'DY']:
+    if name in ['DX', 'DY', 'XSIG', 'YSIG']:
         for cam in ['R', 'B', 'Z']:
             num_exps = []
             mins = []
             maxs = []
             meds = []
-            stds = []
             for night in nights_real:
-                mins.append(datadict[night]['PER_CAMERA'][name][cam]['mind'])
-                maxs.append(datadict[night]['PER_CAMERA'][name][cam]['maxd'])
-                meds.append(datadict[night]['PER_CAMERA'][name][cam]['med'])
-                stds.append(datadict[night]['PER_CAMERA'][name][cam]['std'])
+                mins.append(abs(datadict[night]['PER_CAMERA'][name][cam]['mind']))
+                maxs.append(abs(datadict[night]['PER_CAMERA'][name][cam]['maxd']))
+                meds.append(abs(datadict[night]['PER_CAMERA'][name][cam]['med']))
                 num_exps.append(datadict[night]['PER_CAMERA'][name][cam]['num_exp'])
             weights = np.array(num_exps)/np.sum(num_exps)
-            min_avg = np.average(mins, weights=weights)
+            min_avg = -np.average(mins, weights=weights)
             max_avg = np.average(maxs, weights=weights)
-            stds_avg = np.average(stds, weights=weights)
             med_lower = -abs(np.average(meds, weights=weights))
             med_upper = abs(np.average(meds, weights=weights))
             thresholds[cam] = dict(lower_err=min_avg, lower=med_lower, upper=med_upper, upper_err=max_avg)

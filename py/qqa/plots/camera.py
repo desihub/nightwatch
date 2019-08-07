@@ -45,7 +45,7 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
             fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
             continue
 
-        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom'])
+        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],
             MEANattr = cam_table["MEAN"+attribute],
@@ -68,8 +68,8 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
         
         if lower is not None and upper is not None:
             mean_range = BoxAnnotation(bottom=lower[keys[cam]][1][0], top=upper[keys[cam]][0][0], fill_color='green', fill_alpha=0.1)
-            max_range = BoxAnnotation(bottom=upper[keys[cam]][0][0], top=upper[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
-            min_range = BoxAnnotation(bottom=lower[keys[cam]][0][0], top=lower[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
+            max_range = BoxAnnotation(bottom=upper[keys[cam]][0][0], top=upper[keys[cam]][0][0]+upper[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
+            min_range = BoxAnnotation(bottom=lower[keys[cam]][0][0]+lower[keys[cam]][1][0], top=lower[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
             fig.add_layout(mean_range)
             fig.add_layout(min_range)
             fig.add_layout(max_range)
