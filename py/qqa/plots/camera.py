@@ -1,11 +1,11 @@
 import numpy as np
 import bokeh.plotting as bk
-from bokeh.models import ColumnDataSource, Whisker
+from bokeh.models import ColumnDataSource, Whisker, BoxAnnotation
 from bokeh.layouts import column
 from bokeh.models.tickers import FixedTicker
 from astropy.table import Table
 
-def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = True, minmax=None):
+def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=450, title=None, line0 = True, minmax=None):
     '''
     Creates 3 plots of an attribute vs Spectrograph number, corresponding to
     R, B, Z cameras.
@@ -15,6 +15,10 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         attribute : string that is a column name of table
 
     Options :
+        lower : list of lower per_camera thresholds from thresholds.get_thresholds()
+            format: [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
+        upper : list of upper per_camera thresholds from thresholds.get_thresholds() 
+            format : [[upperB, upper_errB], [upperR, upper_errR], [upperZ, upper_errZ]]
         height : height of each plot
         width : width of each plot
         title : title + " " + cam is the title for each figure
@@ -29,7 +33,9 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
         title=attribute
 
     cam_figs=[]
-    colors = {"B":"steelblue", "R":"firebrick", "Z":"green"}
+
+    colors = {"B":"blue", "R":"red", "Z":"green"}
+    keys = {'B':0, 'R':1, 'Z':2}
     for cam in ["B", "R", "Z"]:
         
         cam_table = astrotable[astrotable["CAM"]==cam]
@@ -39,7 +45,7 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
             fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
             continue
 
-        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam)
+        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
         source = ColumnDataSource(data=dict(
             SPECTRO = cam_table["SPECTRO"],
             MEANattr = cam_table["MEAN"+attribute],
@@ -59,6 +65,15 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
             fig.xaxis.axis_label = "Spectrograph number"
             fig.plot_height = height+25
         fig.yaxis.axis_label = attribute
+        
+        if lower is not None and upper is not None:
+            mean_range = BoxAnnotation(bottom=lower[keys[cam]][1][0], top=upper[keys[cam]][0][0], fill_color='green', fill_alpha=0.1)
+            max_range = BoxAnnotation(bottom=upper[keys[cam]][0][0], top=upper[keys[cam]][0][0]+upper[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
+            min_range = BoxAnnotation(bottom=lower[keys[cam]][0][0]+lower[keys[cam]][1][0], top=lower[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
+            fig.add_layout(mean_range)
+            fig.add_layout(min_range)
+            fig.add_layout(max_range)
+        
         if minmax is not None:
             ymin, ymax = minmax
             attrmin = np.min(cam_table["MIN"+attribute])
@@ -70,11 +85,6 @@ def plot_camera_qa(table, attribute, height=225, width=450, title=None, line0 = 
                 fig.y_range.end = ymax
             #- Otherwise default to using data range
             else:
-                from bokeh.models import BoxAnnotation
-                fig.add_layout(BoxAnnotation(
-                    bottom=ymin, top=ymax,
-                    fill_color='green', fill_alpha=0.1)
-                    )
                 tmp = max(abs(attrmin), abs(attrmax))
                 fig.y_range.start = -tmp * 1.1
                 fig.y_range.end = tmp * 1.1

@@ -180,7 +180,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
                         
             qafile = io.findfile('qa', night, expid, basedir=indir)
             qadata = io.read_qa(qafile)
-            status = get_status(qadata)
+            status = get_status(qadata, night)
             flavor = qadata['HEADER']['FLAVOR'].rstrip()
             exptime = qadata['HEADER']['EXPTIME']
             

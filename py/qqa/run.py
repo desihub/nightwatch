@@ -4,6 +4,7 @@ import subprocess
 
 import fitsio
 import numpy as np
+import scipy as sp
 
 from astropy.table import Table, vstack
 
@@ -11,6 +12,8 @@ import desiutil.log
 
 import desispec.scripts.preproc
 from qqa.qa.base import QA
+
+from .thresholds import write_threshold_json, get_outdir
 
 def get_ncpu(ncpu):
     """
@@ -528,41 +531,135 @@ def write_nights_summary(indir, last):
                     for attr in qadata_stacked:
                         fx.write_table(qadata_stacked[attr].as_array(), extname=attr, header=hdr)
 
-            qadata_stacked = qadata_stacked["PER_AMP"]
+            amp_qadata_stacked = qadata_stacked["PER_AMP"]
+            try:
+                cam_qadata_stacked = qadata_stacked["PER_CAMERA"]
+            except:
+                print('No PER_CAMERA data available for {}'.format(night))
+                cam_qadata_stacked = [None]*len(amp_qadata_stacked)
 
             readnoise_sca = dict()
             bias_sca = dict()
 
-            for s in range(0, 10, 1):
-                for c in ["R", "B", "Z"]:
+            for c in ["R", "B", "Z"]:
+                for s in range(0, 10, 1):
                     for a in ["A", "B", "C", "D"]:
-                        specific = qadata_stacked[(qadata_stacked["SPECTRO"]==s) & (qadata_stacked["CAM"]==c) & (qadata_stacked["AMP"]==a)]
+                        specific = amp_qadata_stacked[(amp_qadata_stacked["CAM"]==c) & (amp_qadata_stacked["SPECTRO"]==s) & (amp_qadata_stacked["AMP"]==a)]
                         if len(specific) > 0:
                             readnoise_sca_dict = dict(
                                 median=np.median(list(specific["READNOISE"])),
                                 std=np.std(list(specific["READNOISE"])),
                                 num_exp=len(specific)
                             )
-                            readnoise_sca[str(s) + c + a] = readnoise_sca_dict
+                            readnoise_sca[c + str(s) + a] = readnoise_sca_dict
 
                             bias_sca_dict = dict(
                                 median=np.median(list(specific["BIAS"])),
                                 std=np.std(list(specific["BIAS"])),
                                 num_exp=len(specific)
                             )
-                            bias_sca[str(s) + c + a] = bias_sca_dict
+                            bias_sca[c + str(s) + a] = bias_sca_dict
 
-            cosmics_rates = dict(
-                p90=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 90),
-                p95=np.percentile(list(qadata_stacked["COSMICS_RATE"]), 95),
-                num_exp=len(qadata_stacked)
-            )
+            cosmics_rate = dict()
+            dx = dict()
+            dy = dict()
+            xsig = dict()
+            ysig = dict()
+            for c in ["R", "B", "Z"]:
+                specific = amp_qadata_stacked[amp_qadata_stacked["CAM"]==c]
+                if len(specific) > 0:
+                    cosmics_dict = dict(
+                        lower_error=np.percentile(list(specific["COSMICS_RATE"]), 0.1),
+                        lower=np.percentile(list(specific["COSMICS_RATE"]), 1),
+                        upper=np.percentile(list(specific["COSMICS_RATE"]), 99),
+                        upper_error=np.percentile(list(specific["COSMICS_RATE"]), 99.9),
+                        num_exp=len(specific),
+                    )
+                    cosmics_rate[c] = cosmics_dict
+                try:
+                    cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
+                    if len(cam_specific) > 0:
+                        
+                        max_diffx = np.array(cam_specific['MAXDX'])-np.array(cam_specific['MEANDX'])
+                        min_diffx = np.array(cam_specific['MINDX'])-np.array(cam_specific['MEANDX'])
+                        dx_dict = dict(
+                            med=np.average([abs(i) for i in cam_specific["MEANDX"]]),
+                            std=np.std(list(cam_specific['MEANDX'])),
+                            maxd=np.average([abs(i) for i in max_diffx]),
+                            mind=-np.average([abs(i) for i in min_diffx]),
+                            num_exp=len(cam_specific),
+                        )
+                        dx[c] = dx_dict
+                        
+                        max_diffy = np.array(cam_specific['MAXDY'])-np.array(cam_specific['MEANDY'])
+                        min_diffy = np.array(cam_specific['MINDY'])-np.array(cam_specific['MEANDY'])
+                        dy_dict = dict(
+                            med=np.median([abs(i) for i in cam_specific["MEANDY"]]),
+                            std=np.std(list(cam_specific['MEANDY'])),
+                            maxd=np.average([abs(i) for i in max_diffy]),
+                            mind=-np.average([abs(i) for i in min_diffy]),
+                            num_exp=len(cam_specific),
+                        )
+                        dy[c] = dy_dict
+                        
+                except KeyError:
+                    print('No data for DX or DY on {}'.format(night))
+                try:
+                    cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
+                    if len(cam_specific) > 0:
+                
+                        max_xsig = cam_specific['MAXXSIG']
+                        max_xsig = np.array([i for i in max_xsig if not np.ma.is_masked(i)])
+                        min_xsig = cam_specific['MINXSIG']
+                        min_xsig = np.array([i for i in min_xsig if not np.ma.is_masked(i)])
+                        mean_xsig = cam_specific['MEANXSIG']
+                        mean_xsig = np.array([i for i in mean_xsig if not np.ma.is_masked(i)])
+                        
+                        max_diffx = max_xsig - mean_xsig
+                        min_diffx = min_xsig - mean_xsig
+                        
+                        xsig_dict = dict(
+                            med=np.average([float(abs(i)) for i in mean_xsig]),
+                            std=np.std([float(abs(i)) for i in mean_xsig]),
+                            maxd=np.average([float(abs(i)) for i in max_diffx]),
+                            mind=-np.average([float(abs(i)) for i in min_diffx]),
+                            num_exp=len(cam_specific),
+                        )
+                        xsig[c] = xsig_dict
+                        
+                        max_ysig = cam_specific['MAXYSIG']
+                        max_ysig = np.array([i for i in max_ysig if not np.ma.is_masked(i)])
+                        min_ysig = cam_specific['MINYSIG']
+                        min_ysig = np.array([i for i in min_ysig if not np.ma.is_masked(i)])
+                        mean_ysig = cam_specific['MEANYSIG']
+                        mean_ysig = np.array([i for i in mean_ysig if not np.ma.is_masked(i)])
+                        
+                        max_diffy = max_ysig - mean_ysig
+                        min_diffy = min_ysig - mean_ysig
+                        
+                        ysig_dict = dict(
+                            med=np.average([float(abs(i)) for i in mean_ysig]),
+                            std=np.std([float(abs(i)) for i in mean_ysig]),
+                            maxd=np.average([float(abs(i)) for i in max_diffy]),
+                            mind=-np.average([float(abs(i)) for i in min_diffy]),
+                            num_exp=len(cam_specific),
+                        )
+                        ysig[c] = ysig_dict
+                        
+                except KeyError:
+                    print('No data for XSIG, YSIG on {}'.format(night))
 
             data = dict(
                 PER_AMP=dict(
                     READNOISE=readnoise_sca,
                     BIAS=bias_sca,
-                    COSMICS_RATES=cosmics_rates
+                    COSMICS_RATE=cosmics_rate
+                ),
+                PER_CAMERA=dict(
+                    DX=dx,
+                    DY=dy,
+                    XSIG=xsig,
+                    YSIG=ysig,
                 )
             )
 
@@ -570,3 +667,30 @@ def write_nights_summary(indir, last):
             with open(jsonfile, 'w') as out:
                 json.dump(data, out, indent=4)
             print('Wrote {}'.format(jsonfile))
+            
+def write_thresholds(indir, outdir, start_date, end_date):
+    '''Writes threshold files for each metric over a given date range.
+    Input: 
+        indir: directory that contains nightly directories (which contain summary.json files)
+        outdir: directory to threshold inspector html files
+        start_date: beginning of date range
+        end_date: end of date range'''
+    if not os.path.isdir(get_outdir()):
+        os.makedirs(get_outdir(), exist_ok=True)
+        print('Added threshold_files directory to qqa/py/qqa')
+    
+    if not os.path.isdir(outdir):
+        #log.info('Creating {}'.format(outdir))
+        os.makedirs(outdir, exist_ok=True)
+    
+    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY', 'XSIG', 'YSIG']:
+        write_threshold_json(indir, outdir, start_date, end_date, name)
+    
+    from qqa.webpages import thresholds as web_thresholds
+    
+    plot_components = dict()
+    htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
+    pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
+    plot_components.update(pc)
+    print('Wrote {}'.format(htmlfile))
+

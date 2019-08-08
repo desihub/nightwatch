@@ -14,14 +14,15 @@ def print_help():
     print("""USAGE: qqa <command> [options]
 
 Supported commands are:
-    monitor  Monitor input directory and run qproc, qa, and generate plots
-    run      Run qproc, qa, and generate plots for a single exposure
-    preproc  Run only preprocessing on an input raw data file
-    qproc    Run qproc (includes preproc) on an input raw data file
-    qa       Run QA analysis on qproc outputs
-    plot     Generate webpages with plots of QA output
-    tables   Generate webpages with tables of nights and exposures
-    summary  Generate summary.json for every night available
+    monitor    Monitor input directory and run qproc, qa, and generate plots
+    run        Run qproc, qa, and generate plots for a single exposure
+    preproc    Run only preprocessing on an input raw data file
+    qproc      Run qproc (includes preproc) on an input raw data file
+    qa         Run QA analysis on qproc outputs
+    plot       Generate webpages with plots of QA output
+    tables     Generate webpages with tables of nights and exposures
+    summary    Generate summary.json for every night available
+    threshold Generate threshold.json for all metrics, last night available
 Run "qqa <command> --help" for details options about each command
 """)
 
@@ -47,6 +48,8 @@ def main():
         main_tables()
     elif command == 'summary':
         main_summary()
+    elif command == 'threshold':
+        main_threshold()
     else:
         print('ERROR: unrecognized command "{}"'.format(command))
         print_help()
@@ -334,3 +337,17 @@ def main_summary(options=None):
 
     run.write_nights_summary(args.indir, last)
     print('Wrote summary jsons for each night to {}'.format(args.indir))
+    
+def main_threshold(options=None):
+    parser = argparse.ArgumentParser(usage = '{prog} [options]')
+    parser.add_argument('-i', '--indir', type=str, required=True, help='directory of night directories; where summary.json files can be found')
+    parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold json/html files should be written to')
+    parser.add_argument('-s', '--start', type=int, required=True, help='start date for calculation range')
+    parser.add_argument('-e', '--end', type=int, required=True, help='end date for calculation range')
+    
+    if options is None:
+        options = sys.argv[2:]
+    args = parser.parse_args(options)
+    
+    run.write_thresholds(args.indir, args.outdir, args.start, args.end)
+    print('Wrote threshold jsons for each night to {}'.format('qqa/py/qqa/threshold_files'))

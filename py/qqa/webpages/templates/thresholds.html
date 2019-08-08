@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block body %}
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+<link
+    href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-{{ bokeh_version }}.min.css"
+    rel="stylesheet" type="text/css"
+>
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-{{ bokeh_version }}.min.js"></script>
+
+<style>
+    .header {
+        font-family: Helvetica, Arial, sans-serif;
+        color:white;
+        background-color: #333;
+        padding: 10px;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .header.sub {
+        background-color: #f0f0f0;
+        color:black;
+        padding: 2px;
+    }
+
+    .flex-column {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    .flex-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+</style>
+
+<div class="header"><h1>Threshold Inspector</h1></div>
+<div class="flex-row">
+    <div class="flex-column">
+        <div class="flex-column">
+            {% if READNOISE_time %}
+            <div class="header sub"><h3>Readnoise</h3></div>
+            <div>{{ READNOISE_time.script }} {{ READNOISE_time.div }}</div>
+            {% endif %}
+            {% if READNOISE_hist %}
+            <div>{{ READNOISE_hist.script }} {{ READNOISE_hist.div }}</div>
+            {% endif %}
+            <div class='flex-row'></div>
+            {% if READNOISE_table %}
+            <div>{{ READNOISE_table.script}} {{ READNOISE_table.div }}</div>
+            {% endif %}
+        </div>
+
+        <div class="flex-column">
+            {% if BIAS_time %}
+            <div class="header sub"><h3>Bias</h3></div>
+            <div>{{ BIAS_time.script }} {{ BIAS_time.div }}</div>
+            {% endif %}
+            {% if BIAS_hist %}
+            <div>{{ BIAS_hist.script}} {{ BIAS_hist.div }}</div>
+            {% endif %}
+            {% if BIAS_table %}
+            <div class='flex-row'></div>
+            <div>{{ BIAS_table.script}} {{ BIAS_table.div }}</div>
+            {% endif %}
+        </div>
+
+        <div class="flex-column">
+            {% if COSMICS_RATE_time %}
+            <div class="header sub"><h3>Cosmics Rate</h3></div>
+            <div>{{ COSMICS_RATE_time.script }} {{ COSMICS_RATE_time.div }}</div>
+            {% endif %}
+            {% if COSMICS_RATE_hist %}
+            <div>{{ COSMICS_RATE_hist.script}} {{ COSMICS_RATE_hist.div }}</div>
+            {% endif %}
+            {% if COSMICS_RATE_table %}
+            <div class='flex-row'></div>
+            <div>{{ COSMICS_RATE_table.script}} {{ COSMICS_RATE_table.div }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

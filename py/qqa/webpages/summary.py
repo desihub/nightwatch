@@ -11,6 +11,7 @@ from ..plots.camfiber import plot_per_fibernum
 from ..plots.amp import plot_amp_qa
 from ..plots.spectra import plot_spectra_input
 from . import camfiber
+from ..thresholds import pick_threshold_file, get_thresholds
 
 import bokeh
 from bokeh.embed import components
@@ -49,10 +50,12 @@ def get_summary_plots(qadata, qprocdir=None):
 
     #- CCD Read Noise
     if 'PER_AMP' in qadata:
+        noise_file = pick_threshold_file('READNOISE', night)
+        lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
         fig = plot_amp_qa(qadata['PER_AMP'], 'READNOISE',
+                lower_noise, upper_noise, noise_keys,
                 title='CCD Amplifier Read Noise',
-                qamin=1.5, qamax=4.0, ymin=0, ymax=5.0,
-                plot_width=plot_width, plot_height=plot_height)
+                plot_width=plot_width, plot_height=plot_height, ymin=[1, 1, 1,], ymax=[5, 5, 5])
         script, div = components(fig)
         html_components['READNOISE'] = dict(script=script, div=div)
     

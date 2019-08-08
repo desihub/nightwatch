@@ -7,6 +7,7 @@ from bokeh.layouts import gridplot
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
 from qqa.qa.base import QA
+from bokeh.models.widgets import DataTable, TableColumn
 
 def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
@@ -64,11 +65,9 @@ def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     js = '''
     /// get mouse data (location of pointer in the plot)
     var geometry = cb_data['geometry'];
-
     /// get the current value of x in line_source
     var data = line_source.data;
     var x = data['x'];
-
     /// if the mouse is indeed hovering over the plot, change the line_source value
     if (isFinite(geometry.x) && (geometry.x >= data['lower'][0]) && (geometry.x <= data['upper'][0])) {
       x[0] = geometry.x

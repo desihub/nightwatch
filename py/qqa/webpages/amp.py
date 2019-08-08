@@ -5,6 +5,9 @@ import bokeh
 from bokeh.embed import components
 
 from ..plots.amp import plot_amp_qa
+from ..thresholds import pick_threshold_file, get_thresholds
+
+import os 
 
 def write_amp_html(outfile, data, header):
     '''Write CCD amp QA webpage
@@ -43,22 +46,25 @@ def write_amp_html(outfile, data, header):
     plot_components = dict()
 
     #- Generate the bokeh figure
-    fig = plot_amp_qa(data, 'READNOISE', title='CCD Amplifier Read Noise',
-        qamin=1.5, qamax=4.0, ymin=0, ymax=5.0)
+    noise_file = pick_threshold_file('READNOISE', night, in_qqa=True)
+    lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
+    fig = plot_amp_qa(data, 'READNOISE', lower=lower_noise, upper=upper_noise, amp_keys=noise_keys, title='CCD Amplifier Read Noise', ymin=[1,1,1], ymax=[5,5,5])
     #- Convert that into the components to embed in the HTML
     script, div = components(fig)
     #- Save those in a dictionary to use later
     html_components['READNOISE'] = dict(script=script, div=div)
 
     #- Amplifier offset
-    fig = plot_amp_qa(data, 'BIAS', title='CCD Amplifier Overscan Bias Level')
+    bias_file = pick_threshold_file('BIAS', night, in_qqa=True)
+    lower_bias, upper_bias, bias_keys = get_thresholds(bias_file, return_keys=True)
+    fig = plot_amp_qa(data, 'BIAS', lower=lower_bias, upper=upper_bias, amp_keys=bias_keys, title='CCD Amplifier Overscan Bias Level', ymin=[1100, 1900, 1900], ymax=[1200, 2000, 2000])
     script, div = components(fig)
     html_components['BIAS'] = dict(script=script, div=div)
 
     #- Cosmics rate
-    fig = plot_amp_qa(data, 'COSMICS_RATE',
-        title='CCD Amplifier cosmics per minute',
-        qamin=10, qamax=50, ymin=0, ymax=60)
+    cosmics_file = pick_threshold_file('COSMICS_RATE', night, in_qqa=True)
+    lower_cosmics, upper_cosmics, cosmics_keys = get_thresholds(cosmics_file, return_keys=True)
+    fig = plot_amp_qa(data, 'COSMICS_RATE', lower=lower_cosmics, upper=upper_cosmics, amp_keys=cosmics_keys, title='CCD Amplifier cosmics per minute', ymin=[0, 0, 0], ymax=[50, 100, 100])
     script, div = components(fig)
     html_components['COSMICS_RATE'] = dict(script=script, div=div)
 
