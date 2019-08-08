@@ -239,9 +239,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
     taptool.callback = OpenURL(url=url)
-    #taptool.callback = CustomJS(args=dict(source=source), code="""
-    #window.open(((source.data.name)[0])+"-4x.html", "_self");
-    #""")
+    
     return fig
 
 def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700, ymin=None, ymax=None):
