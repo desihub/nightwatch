@@ -4,7 +4,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band, ResetTool, BoxZoomTool
+from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band, ResetTool, BoxZoomTool, OpenURL
 from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
@@ -235,11 +235,13 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
         if name in ['COSMICS_RATE']:
             fig.add_layout(BoxAnnotation(bottom=lower_warn[0][0], top=upper_warn[0][0], fill_alpha=0.1, fill_color='green'))
     
+    url = '@name'+'-4x.html'
     taptool = fig.select(type=TapTool)
     taptool.names = ['circles']
-    taptool.callback = CustomJS(args=dict(source=source), code="""
-    window.open(((source.data.name)[0])+"-4x.html", "_self");
-    """)
+    taptool.callback = OpenURL(url=url)
+    #taptool.callback = CustomJS(args=dict(source=source), code="""
+    #window.open(((source.data.name)[0])+"-4x.html", "_self");
+    #""")
     return fig
 
 def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700, ymin=None, ymax=None):
