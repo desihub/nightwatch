@@ -55,7 +55,7 @@ def get_summary_plots(qadata, qprocdir=None):
         fig = plot_amp_qa(qadata['PER_AMP'], 'READNOISE',
                 lower_noise, upper_noise, noise_keys,
                 title='CCD Amplifier Read Noise',
-                plot_width=plot_width, plot_height=plot_height)
+                plot_width=plot_width, plot_height=plot_height, ymin=[1, 1, 1,], ymax=[5, 5, 5])
         script, div = components(fig)
         html_components['READNOISE'] = dict(script=script, div=div)
     

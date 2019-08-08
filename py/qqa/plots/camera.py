@@ -85,10 +85,6 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
                 fig.y_range.end = ymax
             #- Otherwise default to using data range
             else:
-#                 fig.add_layout(BoxAnnotation(
-#                     bottom=ymin, top=ymax,
-#                     fill_color='green', fill_alpha=0.1)
-#                     )
                 tmp = max(abs(attrmin), abs(attrmax))
                 fig.y_range.start = -tmp * 1.1
                 fig.y_range.end = tmp * 1.1

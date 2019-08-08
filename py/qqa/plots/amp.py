@@ -205,8 +205,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
                    fill_color='black', size=4, source=source, name='circles')
 
     if len(data_val)>0 :
-        plotmin = min(ymin, np.min(data_val) * 0.9) if ymin else np.min(data_val) * 0.9
-        plotmax = max(ymax, np.max(data_val) * 1.1) if ymax else np.max(data_val) * 1.1
+        plotmin = min(ymin, np.min(data_val)*0.9) if ymin else np.min(data_val) * 0.9
+        plotmax = max(ymax, np.max(data_val)*1.1) if ymax else np.max(data_val) * 1.1
     else :
         plotmin = ymin
         plotmax = ymax
@@ -242,7 +242,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
     """)
     return fig
 
-def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700):
+def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700, ymin=None, ymax=None):
     '''Creates gridplot of 3 camera separated amp plots
     Args:
         data: table of per_amp qadata
@@ -255,6 +255,7 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
         amp_keys: list of amps that have data
         title: title for plot, if different than name (str)
         plot_height, plot_width: height, width of graph in pixels
+        ymin/ymax: lists of y axis ranges for B, R, Z plots, unless data exceeds these
     Output:
         Bokeh gridplot object'''
     
@@ -266,9 +267,12 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
     figs = []
     for cam in ['B', 'R', 'Z']:
         if cam == 'B':
-            fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height+25, plot_width=plot_width)
-        else:
-            fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width)
+            fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height+25, plot_width=plot_width, ymin=ymin[0], ymax=ymax[0])
+        if cam == 'R':
+            fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[1], ymax=ymax[1])
+        if cam == 'Z':
+            fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[2], ymax=ymax[2])
+            
         figs.append(fig)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D

@@ -82,23 +82,23 @@ def get_status(qadata, night):
                 data_loc = (cam_data['CAM'] == cam) & (cam_data['SPECTRO']==spec)
                 if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                     warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
-                    warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-                    warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
-                    error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(1.3*thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(1.3*thresholds[key]['upper']))
-                    error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.3*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-                    error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.3*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
+#                     warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
+#                     warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
+                    error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower'])+abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['upper'])+abs(thresholds[key]['upper_err'])))
+#                     error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.5*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
+#                     error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.5*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                     if warn_mean: 
                         status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
-                    if warn_min: 
-                        status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
-                    if warn_max: 
-                        status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
+#                     if warn_min: 
+#                         status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
+#                     if warn_max: 
+#                         status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
                     if error_mean:
                         status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
-                    if error_min:
-                        status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
-                    if error_max:
-                        status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
+#                     if error_min:
+#                         status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
+#                     if error_max:
+#                         status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
                 else:
                     continue
     
@@ -118,23 +118,23 @@ def get_status(qadata, night):
                 try:
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                         warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
-                        warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-                        warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
-                        error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(1.3*thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(1.3*thresholds[key]['upper']))
-                        error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.3*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-                        error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.3*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
+#                         warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
+#                         warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
+                        error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower'])+abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['upper'])+abs(thresholds[key]['upper_err'])))
+#                         error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.5*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
+#                         error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.5*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                         if warn_mean: 
                             status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
-                        if warn_min: 
-                            status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
-                        if warn_max: 
-                            status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
+#                         if warn_min: 
+#                             status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
+#                         if warn_max: 
+#                             status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
                         if error_mean:
                             status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
-                        if error_min:
-                            status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
-                        if error_max:
-                            status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
+#                         if error_min:
+#                             status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
+#                         if error_max:
+#                             status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
                     else:
                         continue
                 except ValueError:
