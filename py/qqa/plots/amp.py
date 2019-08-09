@@ -227,13 +227,12 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
     fig.outline_line_alpha=0.7
     
     if lower is not None and upper is not None:
-        if name in ['READNOISE', 'BIAS']:
-            #fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower', line_alpha=0.3))
-            fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
-                fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
+        #fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower', line_alpha=0.3))
+        fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
+            fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
     
-        if name in ['COSMICS_RATE']:
-            fig.add_layout(BoxAnnotation(bottom=lower_warn[0][0], top=upper_warn[0][0], fill_alpha=0.1, fill_color='green'))
+#         if name in ['COSMICS_RATE']:
+#             fig.add_layout(BoxAnnotation(bottom=lower_warn[0][0], top=upper_warn[0][0], fill_alpha=0.1, fill_color='green'))
     
     url = '@name'+'-4x.html'
     taptool = fig.select(type=TapTool)
