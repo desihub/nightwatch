@@ -59,7 +59,14 @@ def plot_image(image, width=700, downsample=2, title=None):
     return fig
 
 def main(input_in = None, output_in = None, downsample_in = None):
-
+    '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
+    command line as well).
+    Options:
+        input_in: input fits file
+        output_in: output html file
+        downsample_in: downsample image NxN
+    Output:
+        html components of a bokeh figure object'''
     # if run from command line
     if [input_in, output_in, downsample_in] == [None, None, None]:
         import argparse

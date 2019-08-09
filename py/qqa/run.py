@@ -41,7 +41,7 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
 
     Args:
         datadir : a directory of nights with exposures
-        outdir : TODO DOCUMENTATION
+        outdir : directory of processed nights data
     Options:
         startdate : the earliest night to consider processing YYYYMMDD
 
@@ -138,6 +138,16 @@ def which_cameras(rawfile):
     return sorted(cameras)
 
 def runcmd(command, logfile, msg):
+    '''Runs a given command and writes a logfile, returns a SUCCESS or ERROR message.
+    
+    Args:
+        command: string, command you would call from the command line
+        logfile: path to file where logs should be written (string)
+        msg: name of the process (str)
+    
+    Returns: 
+        nothing, prints status messages to the console
+    '''
     args = command.split()
     print('Logging {} to {}'.format(msg, logfile))
     with open(logfile, 'w') as logfx:

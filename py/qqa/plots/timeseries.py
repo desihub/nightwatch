@@ -11,7 +11,15 @@ from bokeh.models.widgets import DataTable, TableColumn
 
 def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
-    Include start_date and end_date in data generation
+    Generates timeseries plots. Includes start_date and end_date in data generation.
+    Args:
+        data_dir: the directory containing nights directories with qa-*.fits files
+        start_date: beginning YYYYMMDD 
+        end_date: end YYYYMMDD
+        hdu: the qa level (PER_AMP, PER_CAMERA, etc)
+        aspect: the metric being plotted 
+    Output:
+        A bokeh figure object
     """
     start_date = str(start_date).zfill(8)
     end_date = str(end_date).zfill(8)
