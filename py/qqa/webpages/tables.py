@@ -176,7 +176,8 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
             
             #- adds failed expid to table
             if row['FAIL'] == 1:
-                expinfo = dict(night=night, expid=expid, fail=1)
+                link = '{expid:08d}/qa-summary-{expid:08}-logfiles_table.html'.format(night=night, expid=expid)
+                expinfo = dict(night=night, expid=expid, link=link, fail=1)
                 explist.append(expinfo)
                 continue
             
