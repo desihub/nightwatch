@@ -24,6 +24,10 @@ def read_qa(filename):
     return qadata
 
 def findfile(filetype, night, expid=None, basedir=''):
+    '''
+    Finds a file given a type, night, exposure, basedir
+    Currently supported types: qa : '{night}/{expid:08d}/qa-{expid:08d}.fits'
+    '''
     filemap = dict(
         qa = '{night}/{expid:08d}/qa-{expid:08d}.fits',
     )
