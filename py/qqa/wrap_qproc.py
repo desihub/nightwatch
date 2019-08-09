@@ -18,8 +18,7 @@ def run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
-
-
+    
     run_qproc(args.rawfile, args.outdir, cameras=cameras)
 
 if __name__ == '__main__':   

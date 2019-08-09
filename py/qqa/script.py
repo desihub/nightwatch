@@ -120,8 +120,8 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(
                 time.strftime('%H:%M'), night, expid))
             try :
-
                 run_batch_qproc=args.batch
+
                 if run_batch_qproc:
                     print('Spawning qproc of {} to batch processes'.format(rawfile))
 
@@ -141,9 +141,9 @@ def main_monitor(options=None):
                     )
 
                     batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
-                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir} '
+                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir}'
                     if cameras:
-                        runfile += '--cameras {cameras}'
+                        runfile += ' --cameras {cameras}'
 
                     cmd = (batchcmd + runfile).format(**batch_dict)
                     err = subprocess.call(cmd.split())

@@ -58,7 +58,7 @@ def get_summary_plots(qadata, qprocdir=None):
                 plot_width=plot_width, plot_height=plot_height, ymin=[1, 1, 1,], ymax=[5, 5, 5])
         script, div = components(fig)
         html_components['READNOISE'] = dict(script=script, div=div)
-    
+
     #- Raw flux
     if flavor.upper() in ['ARC', 'FLAT'] and 'PER_CAMFIBER' in qadata:
         cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
@@ -132,7 +132,8 @@ def write_summary_html(outfile, qadata, qprocdir):
 
 
 
-def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
+def write_logtable_html(outfile, logdir, night, expid, available=None, error_colors=dict(),
+                        qproc_fails=[]):
     """Write a table of logfiles to outfile
 
     Args:
@@ -140,7 +141,9 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
         logdir : directory containing log outputs
         night : YYYYMMDD night of logdir
         expid : exposure ID of logdir
+    Options:
         error_colors : dictionary of error colors corresponding to each camera
+        qproc_fails : a list of failed qproc processes
 
     Returns:
         None
@@ -149,16 +152,21 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )
     template = env.get_template('logfile.html')
-    
+
     if not logdir:
         logdir = ''
-    
-    available = []
-    
-    logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
-    for file in logfiles:
-        available += [file.split("-")[1]]
-    
+
+    if available==None:
+        available = []
+
+        logfiles = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
+        for file in logfiles:
+            available += [file.split("-")[1]]
+
+    #- Shows all failed qprocs as red
+    for qfail in qproc_fails:
+        error_colors[qfail] = 'red'
+
     html_components = dict(
         version=bokeh.__version__, logfile=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
@@ -173,7 +181,7 @@ def write_logtable_html(outfile, logdir, night, expid, error_colors=dict()):
     print('Wrote {}'.format(outfile))
 
 
-    
+
 def write_logfile_html(input, output, night):
     """Write a qproc logfile to an HTML webpage
 
@@ -199,9 +207,9 @@ def write_logfile_html(input, output, night):
 
     current = os.path.basename(input).split("-")[1]
     expid = os.path.basename(input).split("-")[2].split(".")[0]
-    
+
     error_level = 0
-    error_colors = dict({1:'orange', 2:'orangered', 3:'red'})
+    error_colors = dict({0:'green', 1:'orange', 2:'red', 3:'black'})
 
     lines = []
     f = open(input, "rb")
@@ -214,17 +222,17 @@ def write_logfile_html(input, output, night):
         elif 'ERROR' in line:
             line = '<span style="color:{};">'.format(error_colors.get(2)) + line + '</span>'
             error_level = max(error_level, 2)
-        elif 'CRITICAL' in line or 'FATAL' in line:
-            line = '<span style="color:{};">'.format(error_colors.get(3)) + line + '</span>'
+        elif 'CRITICAL' in line or 'FATAL' in line or 'Traceback' in line:
+            line = '<span style="color:{};"><mark>'.format(error_colors.get(3)) + line + '</mark></span>'
             error_level = max(error_level, 3)
-        
+
         lines.append(line)
-        
-    html_components = dict(        
+
+    html_components = dict(
         bokeh_version=bokeh.__version__, log=True, logfile=lines, file_url=output,
         basename=os.path.splitext(os.path.basename(input))[0], night=night,
         available=available, current=current, expid=int(str(expid)), zexpid=expid,
-        num_dirs=2, qatype='summary', error_level=error_level, 
+        num_dirs=2, qatype='summary', error_level=error_level,
         error_color=error_colors.get(error_level),
     )
 
@@ -233,7 +241,7 @@ def write_logfile_html(input, output, night):
     #- Write HTML text to the output file
     with open(output, 'w') as fx:
         fx.write(html)
-    
+
     print('Wrote {}'.format(output))
-    
+
     return error_colors.get(error_level)

@@ -201,6 +201,14 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
             expinfo = dict(night=night, expid=expid, flavor=flavor, link=link, 
                            exptime=exptime, spectros=spectros, fail=0)
 
+            #- Adds qproc to the expid status
+            #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
+            if len(row['QPROC']) == 0:
+                expinfo['QPROC'] = 'ok'
+            else:
+                expinfo['QPROC'] = 'error'
+            expinfo['QPROC_link'] = '{expid:08d}/qa-summary-{expid:08d}-logfiles_table.html'.format(expid=expid)
+
             #- TODO: have actual thresholds
             for i, qatype in enumerate(['PER_AMP', 'PER_CAMERA', 'PER_FIBER',
                                         'PER_CAMFIBER', 'PER_SPECTRO', 'PER_EXP']):
@@ -212,9 +220,9 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
                     short_name = qatype.split("_")[1].lower()
 
                     expinfo[qatype] = qastatus.name
-                    expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(expid=expid, name=short_name)
-            
-            
+                    if qatype != 'QPROC':
+                        expinfo[qatype + "_link"] = '{expid:08d}/qa-{name}-{expid:08d}.html'.format(expid=expid, name=short_name)            
+
             explist.append(expinfo)
 
         html = template.render(night=night, exposures=explist, autoreload=True,

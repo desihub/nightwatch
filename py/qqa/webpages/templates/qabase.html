@@ -62,6 +62,8 @@ function get_explinks(links) {
         "../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
         "../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/input/";
+        {% elif logfile %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-summary-"+next_item.zexpid+"-logfiles_table.html";
         {% else %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
         {% endif %}
@@ -80,6 +82,8 @@ function get_explinks(links) {
         "../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif input and not spectra %}
         "../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/input/";
+        {% elif logfile %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-summary-"+prev_item.zexpid+"-logfiles_table.html";
         {% else %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+".html";
         {% endif %}
