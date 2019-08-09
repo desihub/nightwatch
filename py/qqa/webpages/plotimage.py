@@ -4,7 +4,14 @@ import bokeh, os, re, sys
 from ..plots.plotimage import main
 
 def write_image_html(input, output, downsample, night):
-    '''TODO: document'''
+    '''
+    Writes a downsampled image to a given output file.
+    Inputs:
+        input: image fits file to be plotted
+        output: the filepath to write html file to 
+        downsample: downsample image NxN
+        night: the night YYYYMMDD the image belongs to
+    '''
 
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
@@ -40,7 +47,15 @@ def write_image_html(input, output, downsample, night):
 
 
 def write_preproc_table_html(input_dir, night, expid, downsample, output):
-    '''TODO: document'''
+    '''
+    Writes html file with preproc navigation table
+    Inputs:
+        input_dir: directory containing subdirectories with preproc images
+        night: YYYYMMDD
+        expid: exposure preproc images belong to
+        downsample: downsample image NxN
+        output: write html file here
+    '''
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
     )

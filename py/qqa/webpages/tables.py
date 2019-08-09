@@ -14,8 +14,11 @@ from ..qa.status import get_status, Status
 
 def write_nights_table(outfile, exposures):
     """
-    outfile: output HTML file
-    exposures: table with columns NIGHT, EXPID
+    Writes nights calendar html file
+    Args:
+        outfile: output HTML file
+        exposures: table with columns NIGHT, EXPID
+    Returns: HTML file written to outfile path
     """    
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('qqa.webpages', 'templates')
