@@ -28,7 +28,7 @@ def redict_to_cal():
 @app.route('/timeseries/')
 def test_input():
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     filename = os.path.join(stat, "cal_files", "timeseries_dropdown.json")
 
@@ -71,7 +71,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
         return error_message
     #html_attr["dropdown_hdu"] = dropdown
 
-    from qqa.webpages.timeseries import generate_timeseries_html
+    from nightwatch.webpages.timeseries import generate_timeseries_html
 
     html = generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
 
@@ -87,7 +87,7 @@ def redirect_to_spectrograph_spectra(night, expid):
 def getspectrainput(night, expid, select_string, frame, downsample):
     global data
     data = os.path.abspath(data)
-    from qqa.webpages import spectra
+    from nightwatch.webpages import spectra
     return spectra.get_spectra_html(os.path.join(data, str(night)), night, expid, "input", frame, downsample, select_string)
 
 @app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'frame': None, 'downsample': None})
@@ -102,7 +102,7 @@ def getspectra(night, expid, view, frame, downsample):
             return redirect('/{}/{}/spectra/{}/qframe/4x/'.format(night, '{:08d}'.format(expid), view), code=302)
         return redirect('/{}/{}/spectra/{}/{}/4x/'.format(night, '{:08d}'.format(expid), view, frame), code=302)
 
-    from qqa.webpages import spectra
+    from nightwatch.webpages import spectra
     return spectra.get_spectra_html(os.path.join(data, str(night)), night, expid, view, frame, downsample)
 
 @app.route('/<path:filepath>')
@@ -142,9 +142,9 @@ def getfile(filepath):
         if downsample <= 0:
             return 'invalid downsample'
 
-        # assume qqa/py is in PYTHONPATH
-        # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'qqa')))
-        from qqa.webpages import plotimage
+        # assume nightwatch/py is in PYTHONPATH
+        # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'nightwatch')))
+        from nightwatch.webpages import plotimage
         night = filedir.split("/")[0]
         plotimage.write_image_html(fitsfilepath, os.path.join(stat, filepath), downsample, night)
         return send_from_directory(stat, filepath)

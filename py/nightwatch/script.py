@@ -1,5 +1,5 @@
 """
-qqa command line script
+nightwatch command line script
 """
 
 import os, sys, time, glob
@@ -11,7 +11,7 @@ from .qa.runner import QARunner
 from desiutil.log import get_logger
 
 def print_help():
-    print("""USAGE: qqa <command> [options]
+    print("""USAGE: nightwatch <command> [options]
 
 Supported commands are:
     monitor    Monitor input directory and run qproc, qa, and generate plots
@@ -23,7 +23,7 @@ Supported commands are:
     tables     Generate webpages with tables of nights and exposures
     summary    Generate summary.json for every night available
     threshold Generate threshold.json for all metrics, last night available
-Run "qqa <command> --help" for details options about each command
+Run "nightwatch <command> --help" for details options about each command
 """)
 
 def main():
@@ -126,7 +126,7 @@ def main_monitor(options=None):
                     print('Spawning qproc of {} to batch processes'.format(rawfile))
 
                     sep = os.path.sep
-                    dirfile = sep.join(['..', 'code', 'qqa', 'py', 'qqa', 'wrap_qproc.py'])
+                    dirfile = sep.join(['..', 'code', 'nightwatch', 'py', 'nightwatch', 'wrap_qproc.py'])
 
                     batch_dict = dict(
                         nodes=args.nodes,
@@ -350,4 +350,4 @@ def main_threshold(options=None):
     args = parser.parse_args(options)
     
     run.write_thresholds(args.indir, args.outdir, args.start, args.end)
-    print('Wrote threshold jsons for each night to {}'.format('qqa/py/qqa/threshold_files'))
+    print('Wrote threshold jsons for each night to {}'.format('nightwatch/py/nightwatch/threshold_files'))

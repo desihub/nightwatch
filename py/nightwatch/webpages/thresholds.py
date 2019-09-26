@@ -20,7 +20,7 @@ def write_threshold_html(outfile, outdir, datadir, start_date, end_date):
     '''
     
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('thresholds.html')
 
@@ -30,7 +30,7 @@ def write_threshold_html(outfile, outdir, datadir, start_date, end_date):
     )
     
     for aspect in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
-        filepath = pick_threshold_file(aspect, end_date, in_qqa=False, outdir=outdir)
+        filepath = pick_threshold_file(aspect, end_date, in_nightwatch=False, outdir=outdir)
         data = get_timeseries_dataset(datadir, start_date, end_date, 'PER_AMP', aspect, filepath)
         specs_in_use = get_specs(data)
         tabs = []

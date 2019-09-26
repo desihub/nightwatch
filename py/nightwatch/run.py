@@ -11,7 +11,7 @@ from astropy.table import Table, vstack
 import desiutil.log
 
 import desispec.scripts.preproc
-from qqa.qa.base import QA
+from nightwatch.qa.base import QA
 
 from .thresholds import write_threshold_json, get_outdir
 
@@ -330,11 +330,11 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
             preproc fits files in the preprocdir
     '''
 
-    from qqa.webpages import amp as web_amp
-    from qqa.webpages import camfiber as web_camfiber
-    from qqa.webpages import camera as web_camera
-    from qqa.webpages import summary as web_summary
-    from qqa.webpages import lastexp as web_lastexp
+    from nightwatch.webpages import amp as web_amp
+    from nightwatch.webpages import camfiber as web_camfiber
+    from nightwatch.webpages import camera as web_camera
+    from nightwatch.webpages import summary as web_summary
+    from nightwatch.webpages import lastexp as web_lastexp
     from . import io
 
     log = desiutil.log.get_logger()
@@ -405,7 +405,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
             qproc_fails.append(l_cam)
         
     
-    from qqa.webpages import plotimage as web_plotimage
+    from nightwatch.webpages import plotimage as web_plotimage
     if (preprocdir is not None):
         #- plot preprocessed images
         downsample = 4
@@ -447,7 +447,7 @@ def write_tables(indir, outdir):
     '''
     import re
     from astropy.table import Table
-    from qqa.webpages import tables as web_tables
+    from nightwatch.webpages import tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
 
@@ -494,7 +494,7 @@ def write_tables(indir, outdir):
     for f in files:
         outfile = os.path.join(outdir, 'cal_files', f)
         if not os.path.exists(outfile):
-            infile = resource_filename('qqa', os.path.join('cal_files', f))
+            infile = resource_filename('nightwatch', os.path.join('cal_files', f))
             copyfile(infile, outfile)
 
     nightsfile = os.path.join(outdir, 'nights.html')
@@ -706,7 +706,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
         end_date: end of date range'''
     if not os.path.isdir(get_outdir()):
         os.makedirs(get_outdir(), exist_ok=True)
-        print('Added threshold_files directory to qqa/py/qqa')
+        print('Added threshold_files directory to nightwatch/py/nightwatch')
     
     if not os.path.isdir(outdir):
         #log.info('Creating {}'.format(outdir))
@@ -715,7 +715,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
     for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY', 'XSIG', 'YSIG']:
         write_threshold_json(indir, outdir, start_date, end_date, name)
     
-    from qqa.webpages import thresholds as web_thresholds
+    from nightwatch.webpages import thresholds as web_thresholds
     
     plot_components = dict()
     htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)

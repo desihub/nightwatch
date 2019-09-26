@@ -10,7 +10,7 @@ services:
     # the external paths are relative to the docker-compose file
     volumes:
      - ${STATIC_DIR}:/app/static 
-     - ${NIGHTWATCH_DIR}:/app/qqa:ro
+     - ${NIGHTWATCH_DIR}:/app/nightwatch:ro
      - ${DESIMODEL_DIR}:/app/desimodel:ro
      - ${DESIUTIL_DIR}:/app/desiutil:ro
      - ${DATA_DIR}:/app/data:ro

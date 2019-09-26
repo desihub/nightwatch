@@ -33,7 +33,7 @@ def write_camera_html(outfile, data, header):
     exptime = header['EXPTIME']
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('camera.html')
 
@@ -50,7 +50,7 @@ def write_camera_html(outfile, data, header):
         plot_width = int(1350/num_plots)
 
     #- Generate the bokeh figures
-    dx_file = pick_threshold_file('DX', night, in_qqa=True)
+    dx_file = pick_threshold_file('DX', night, in_nightwatch=True)
     lower_dx, upper_dx = get_thresholds(dx_file)
     if "MEANDX" in data.dtype.names:
         fig = plot_camera_qa(data, 'DX', lower=lower_dx, upper=upper_dx, title='DX with camera',
@@ -58,7 +58,7 @@ def write_camera_html(outfile, data, header):
         script, div = components(fig)
         html_components['DX'] = dict(script=script, div=div)
     
-    dy_file = pick_threshold_file('DY', night, in_qqa=True)
+    dy_file = pick_threshold_file('DY', night, in_nightwatch=True)
     lower_dy, upper_dy = get_thresholds(dy_file)
     if "MEANDY" in data.dtype.names:
         fig = plot_camera_qa(data, 'DY', lower=lower_dy, upper=upper_dy, title='DY with camera',
@@ -66,7 +66,7 @@ def write_camera_html(outfile, data, header):
         script, div = components(fig)
         html_components['DY'] = dict(script=script, div=div)
 
-    xsig_file = pick_threshold_file('XSIG', night, in_qqa=True)
+    xsig_file = pick_threshold_file('XSIG', night, in_nightwatch=True)
     lower_xsig, upper_xsig = get_thresholds(xsig_file)
     if "MEANXSIG" in data.dtype.names:
         fig = plot_camera_qa(data, 'XSIG', lower=lower_xsig, upper=upper_xsig, title='XSIG with camera',
@@ -74,7 +74,7 @@ def write_camera_html(outfile, data, header):
         script, div = components(fig)
         html_components['XSIG'] = dict(script=script, div=div)
 
-    ysig_file = pick_threshold_file('YSIG', night, in_qqa=True)
+    ysig_file = pick_threshold_file('YSIG', night, in_nightwatch=True)
     lower_ysig, upper_ysig = get_thresholds(ysig_file)
     if "MEANYSIG" in data.dtype.names:
         fig = plot_camera_qa(data, 'YSIG', lower=lower_ysig, upper=upper_ysig, title='YSIG with camera',

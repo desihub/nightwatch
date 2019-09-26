@@ -42,7 +42,7 @@ The full dockerfile for the uWSGI/Flask app image:
 FROM python:3
 
 WORKDIR /app
-ENV PYTHONPATH ${PYTHONPATH}:./qqa/py
+ENV PYTHONPATH ${PYTHONPATH}:./nightwatch/py
 ENV PYTHONPATH ${PYTHONPATH}:./desimodel/py
 ENV PYTHONPATH ${PYTHONPATH}:./desiutil/py
 ADD . /app
@@ -162,11 +162,11 @@ user@cori01: $ mkdir $PROJECTDIR && cd $PROJECTDIR
 ```
 This directory should be in the global project system, as directories in scratch will not be able to access the files we need to mount. For example, this is my own directory structure that I use, all within my own global project filesystem directory:
 ```
-├── qqatest
+├── nightwatchtest
 │   ├── output (static html files)
 │   ├── data (data for dynamic stuff)
 │   │   ├── output
-├── qqa
+├── nightwatch
 |   ├── docker
 |   |   ├── nightwatch-stack
 |   |   |   ├── docker-compose.yml
@@ -178,9 +178,9 @@ This directory should be in the global project system, as directories in scratch
 ```
 Now, pull the repo:
 ```
-user@cori01:PROJECTDIR $ git pull https://github.com/sbailey/qqa/
+user@cori01:PROJECTDIR $ git pull https://github.com/sbailey/nightwatch/
 ```
-You should now have a qqa subdirectory with the same structure as outlined above. Go to the docker/nightwatch-stack directory. There should be a docker-compose.yml and nightwatch.env.template file. Copy the nightwatch.env.template file into another file called nightwatch.env, and open up the new file:
+You should now have a nightwatch subdirectory with the same structure as outlined above. Go to the docker/nightwatch-stack directory. There should be a docker-compose.yml and nightwatch.env.template file. Copy the nightwatch.env.template file into another file called nightwatch.env, and open up the new file:
 ```
 user@cori01:PROJECTDIR $ cp nightwatch.env.template nightwatch.env
 user@cori01:PROJECTDIR $ vim nightwatch.env
@@ -189,13 +189,13 @@ user@cori01:PROJECTDIR $ vim nightwatch.env
 GROUP_ID=58102
 
 #Directory relative to the docker-compose.yml containing static html files
-STATIC_DIR=../qqatest/output
+STATIC_DIR=../nightwatchtest/output
 
 #Directory relative to docker-compose.yml containing fits data files
-DATA_DIR=../qqatest/data/output
+DATA_DIR=../nightwatchtest/data/output
 
 #Directory containing version of nightwatch code you want to run the app with
-NIGHTWATCH_DIR=../qqa
+NIGHTWATCH_DIR=../nightwatch
 
 #Directory containing desimodel code
 DESIMODEL_DIR=../desimodel
@@ -226,7 +226,7 @@ services:
     image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest
     volumes:
      - ${STATIC_DIR}:/app/static
-     - ${NIGHTWATCH_DIR}:/app/qqa:ro
+     - ${NIGHTWATCH_DIR}:/app/nightwatch:ro
      - ${DESIMODEL_DIR}:/app/desimodel:ro
      - ${DESIUTIL_DIR}:/app/desiutil:ro
      - ${DATA_DIR}:/app/data:ro

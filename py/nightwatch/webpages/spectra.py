@@ -42,7 +42,7 @@ def get_spectra_html(data, night, expid, view, frame, downsample_str, select_str
         frame = "qframe"
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('spectra.html')
 

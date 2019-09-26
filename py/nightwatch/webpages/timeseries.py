@@ -18,7 +18,7 @@ def generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdow
     '''
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('timeseries.html')
 
