@@ -31,7 +31,7 @@ def write_amp_html(outfile, data, header):
     exptime = header['EXPTIME']
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('amp.html')
 
@@ -46,7 +46,7 @@ def write_amp_html(outfile, data, header):
     plot_components = dict()
 
     #- Generate the bokeh figure
-    noise_file = pick_threshold_file('READNOISE', night, in_qqa=True)
+    noise_file = pick_threshold_file('READNOISE', night, in_nightwatch=True)
     lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
     fig = plot_amp_qa(data, 'READNOISE', lower=lower_noise, upper=upper_noise, amp_keys=noise_keys, title='CCD Amplifier Read Noise', ymin=[1,1,1], ymax=[5,5,5])
     #- Convert that into the components to embed in the HTML
@@ -55,14 +55,14 @@ def write_amp_html(outfile, data, header):
     html_components['READNOISE'] = dict(script=script, div=div)
 
     #- Amplifier offset
-    bias_file = pick_threshold_file('BIAS', night, in_qqa=True)
+    bias_file = pick_threshold_file('BIAS', night, in_nightwatch=True)
     lower_bias, upper_bias, bias_keys = get_thresholds(bias_file, return_keys=True)
     fig = plot_amp_qa(data, 'BIAS', lower=lower_bias, upper=upper_bias, amp_keys=bias_keys, title='CCD Amplifier Overscan Bias Level', ymin=[1100, 1900, 1900], ymax=[1200, 2000, 2000])
     script, div = components(fig)
     html_components['BIAS'] = dict(script=script, div=div)
 
     #- Cosmics rate
-    cosmics_file = pick_threshold_file('COSMICS_RATE', night, in_qqa=True)
+    cosmics_file = pick_threshold_file('COSMICS_RATE', night, in_nightwatch=True)
     lower_cosmics, upper_cosmics, cosmics_keys = get_thresholds(cosmics_file, return_keys=True)
     fig = plot_amp_qa(data, 'COSMICS_RATE', lower=lower_cosmics, upper=upper_cosmics, amp_keys=cosmics_keys, title='CCD Amplifier cosmics per minute', ymin=[0, 0, 0], ymax=[50, 100, 100])
     script, div = components(fig)

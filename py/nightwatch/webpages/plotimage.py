@@ -14,7 +14,7 @@ def write_image_html(input, output, downsample, night):
     '''
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('preproc.html')
 
@@ -57,7 +57,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
         output: write html file here
     '''
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('preproc.html')
 

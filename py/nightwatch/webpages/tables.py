@@ -21,7 +21,7 @@ def write_nights_table(outfile, exposures):
     Returns: HTML file written to outfile path
     """    
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('nights.html')
 
@@ -158,7 +158,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
     """
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('exposures.html')
 

@@ -1,3 +1,3 @@
-# Quick QA
+# DESI Nightwatch
 
-Prototype code for DESI Quick Quality Assurance (qqa) analysis
+Real-time DESI data quality monitoring

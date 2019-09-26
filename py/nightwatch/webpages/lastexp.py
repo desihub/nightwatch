@@ -40,7 +40,7 @@ def write_lastexp_html(outfile, qadata, qprocdir):
                 )
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('qqa.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     template = env.get_template('lastexp.html')
 

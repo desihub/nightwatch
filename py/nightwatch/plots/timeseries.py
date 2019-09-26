@@ -6,7 +6,7 @@ import bokeh.plotting as bk
 from bokeh.layouts import gridplot
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
-from qqa.qa.base import QA
+from nightwatch.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn
 
 def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):

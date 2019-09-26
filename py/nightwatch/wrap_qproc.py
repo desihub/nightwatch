@@ -1,4 +1,4 @@
-from qqa.run import run_qproc
+from nightwatch.run import run_qproc
 import argparse
 import sys
 

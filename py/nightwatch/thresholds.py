@@ -9,18 +9,18 @@ import bokeh.plotting as bk
 from bokeh.layouts import gridplot, column, row
 from bokeh.models import TapTool as TapTool
 from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS, Span, Band, BoxAnnotation, ResetTool, BoxZoomTool
-from qqa.qa.base import QA
+from nightwatch.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
 def get_outdir():
-    '''Retrieve the path to the threshold_files directory within qqa by finding the user's python path.'''
-    qqa_path = ''
+    '''Retrieve the path to the threshold_files directory within nightwatch by finding the user's python path.'''
+    nightwatch_path = ''
     user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
     for path in user_paths:
-        if 'qqa' in path:
-            qqa_path += path
-    qqa_path += '/qqa/threshold_files'
-    return qqa_path
+        if 'nightwatch' in path:
+            nightwatch_path += path
+    nightwatch_path += '/nightwatch/threshold_files'
+    return nightwatch_path
 
 def write_threshold_json(indir, outdir, start_date, end_date, name):
     '''
@@ -30,7 +30,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
         start_date, end_date: range over which thresholds should be calculated (int)
         name: the metric thresholds are being generated for (str)
     Output:
-        writes a json file containing the thresholds per amp to the qqa/threshold_files directory
+        writes a json file containing the thresholds per amp to the nightwatch/threshold_files directory
         (NOTE: if amp is not in previous nights summary files, the thresholds generated 
         will be None and will need to be manually input if they need to be used)'''
     datadict = dict()
@@ -112,7 +112,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
          json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(threshold_file))
 
-def pick_threshold_file(name, night, outdir=None, in_qqa=True):
+def pick_threshold_file(name, night, outdir=None, in_nightwatch=True):
     '''Picks the right threshold file to use given the metric and the night. If no file is found, it returns
     the earliest file.
     Arguments:
@@ -120,14 +120,14 @@ def pick_threshold_file(name, night, outdir=None, in_qqa=True):
         night: the night the thresholds are needed for (int)
     Options:
         outdir: specify where to look for threshold files
-        in_qqa: tells function to look in qqa module for threshold files
+        in_nightwatch: tells function to look in nightwatch module for threshold files
     Output:
         filepath: a path to the proper threshold file'''
     file = '{name}-{night}.json'.format(name=name, night=night)
     
-    if in_qqa:
+    if in_nightwatch:
         threshold_dir = get_outdir()
-    if not in_qqa and outdir is not None:
+    if not in_nightwatch and outdir is not None:
         threshold_dir = outdir
     
     filepath = ''
