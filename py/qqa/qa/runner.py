@@ -19,12 +19,12 @@ from .specscore import QASpecscore
 from .traceshift import QATraceShift
 from .psf import QAPSF
 from .fiberflat import QAFiberflat
-# from .fibersnr import QAFiberSNR
+from .snr import QASNR
 
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF,QAFiberflat)
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF,QAFiberflat,QASNR)
 
     def __init__(self, qalist=None):
         '''TODO: document'''
@@ -54,6 +54,7 @@ class QARunner(object):
             flavor = hdr['FLAVOR'].strip()
         else :
             flavor = None
+            log.debug("Reading qframe headers to guess flavor ...")
             for qframefile in qframefiles : # look at all of them and prefer arc or flat over dark or zero
                 hdr = fitsio.read_header(qframefile, 0)
                 this_flavor = hdr['FLAVOR'].strip().upper()
