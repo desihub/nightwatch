@@ -379,10 +379,13 @@ def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, wid
             else:
                 result_not += [group[spectro][i]]
 
-    fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Input: {}".format(select_string), text_font_size="16pt"), 'above')
+    # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
+    if len(result_not) > 0:
+        fig.add_layout(Title(text= "Not Found: {}".format(result_not),
+            text_font_style="italic"), 'above')
+
+    fig.add_layout(Title(text= "Fibers: {}".format(', '.join(map(str, result_able))),
+        text_font_size="12pt"), 'above')
 
     if len(result_able) == 0:
         print('ERROR: Unable to find any input spectra in {} for {}'.format(
