@@ -21,6 +21,7 @@ Supported commands are:
     qa         Run QA analysis on qproc outputs
     plot       Generate webpages with plots of QA output
     tables     Generate webpages with tables of nights and exposures
+    webapp     Run a nightwatch Flask webapp server
 Run "nightwatch <command> --help" for details options about each command
 """)
 
@@ -44,6 +45,9 @@ def main():
         main_plot()
     elif command == 'tables':
         main_tables()
+    elif command == 'webapp':
+        from .webapp import main_webapp
+        main_webapp()
     elif command == 'summary':
         main_summary()
     elif command == 'threshold':
@@ -54,7 +58,7 @@ def main():
         return 1
 
 def main_monitor(options=None):
-    parser = argparse.ArgumentParser(usage = "{prog} run [options]")
+    parser = argparse.ArgumentParser(usage = "{prog} monitor [options]")
     parser.add_argument("-i", "--indir", type=str,  help="watch indir/YEARMMDD/EXPID/ for new raw data")
     parser.add_argument("-o", "--outdir", type=str,  help="write output to outdir/YEARMMDD/EXPID/")
     # parser.add_argument("--qprocdir", type=str,  help="qproc output directory")
