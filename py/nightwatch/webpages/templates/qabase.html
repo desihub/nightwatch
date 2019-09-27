@@ -21,20 +21,24 @@
         <a id="objtype" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/objtype">objtype</a>
       </ul>
   </li>
-  <li><a id="spectro">spectro</a></li>
+
+  <li><a id="spectro" class="noHover">spectro</a></li>
+
   <li class="dropdown"><a id="camfiber" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">camfiber</a>
       <ul class="dropdown-content">
         <a id="camfiber" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">fibernum</a>
         <a id="focalplane" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-focalplane_plots.html">focalplane</a>
       </ul>
   </li>
-  <li><a id="fiber">fiber</a></li>
+
+  <li><a id="fiber" class="noHover">fiber</a></li>
+
   <li><a id="camera" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camera-{{ zexpid }}.html">camera</a></li>
 
-  <li class="dropdown"><a id="amp" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">amp</a>
+  <li class="dropdown"><a id="amp" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">ccd</a>
       <ul class="dropdown-content">
-        <a id="amp" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">amp</a>
-        <a id="preproc_table" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}-preproc_table.html">preproc</a>
+        <a id="ampQA" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">QA</a>
+        <a id="preproc_table" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}-preproc_table.html">images</a>
       </ul>
   </li>
   <li class="dropdown"><a id="summary" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-summary-{{ zexpid }}.html">summary</a>
