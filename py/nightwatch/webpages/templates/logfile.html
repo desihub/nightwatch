@@ -41,7 +41,7 @@ table {
 
 {% if not current %}
 <header>
-  Logfiles Table
+  qproc logfiles
 </header>
 {% endif %}
 
@@ -56,16 +56,9 @@ table {
   <div class=flex-item style="padding-right:10px">
     <br>
     <table border="1" cellpadding="8">
-      <tr>
-        <td colspan="1"></td>
-        <td colspan="10"><text style="font-weight:bold">Spectrograph<text></td>
-      </tr>
-  {% for c in ["b", "r", "z"] %}
-  <tr>
-    {% if c == "b" %}
-      <td rowspan=3><text style="font-weight:bold">Cam<text></td>
-    {% endif %}
     {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
+    <tr>
+    {% for c in ["b", "r", "z"] %}
     <td {% if c + i == current %} style="background-color:#6495ed;"
         {% endif %}>
       {% if (c+i != current) and (c+i in available) %}
@@ -73,7 +66,7 @@ table {
       {% endif %}
 
       {% if not current %}
-      <font size="6" color={{error_colors.get(c+i)}} >
+      <font size="5pt" color={{error_colors.get(c+i)}} >
       {% if error_colors.get(c+i) == 'black'%}
       <mark>
       {% endif %}
