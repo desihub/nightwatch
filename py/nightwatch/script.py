@@ -21,8 +21,6 @@ Supported commands are:
     qa         Run QA analysis on qproc outputs
     plot       Generate webpages with plots of QA output
     tables     Generate webpages with tables of nights and exposures
-    summary    Generate summary.json for every night available
-    threshold Generate threshold.json for all metrics, last night available
 Run "nightwatch <command> --help" for details options about each command
 """)
 
