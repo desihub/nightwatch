@@ -5,30 +5,35 @@ from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
 parser = argparse.ArgumentParser(usage = "{prog} [options]")
-parser.add_argument("-w", "--webdir", type=str, required=True, help="directory with pre-generated nightwatch webpages")
-parser.add_argument("-d", "--datadir", type=str, help="directory with qproc output data files")
+parser.add_argument("-i", "--indir", type=str, required=True, help="input directory with pre-generated nightwatch webpages")
+parser.add_argument("-d", "--datadir", type=str, help="directory with qproc output data files (if different than --indir)")
 parser.add_argument("--host", type=str, default="localhost", help="hostname (e.g. localhost or 0.0.0.0")
 parser.add_argument("--port", type=int, default=8001, help="port number")
+parser.add_argument("--debug", action="store_true", help="enable Flask debug mode")
 args = parser.parse_args()
 
-webdir = args.webdir
+if args.datadir is None and args.indir is not None:
+    args.datadir = args.indir
+
+indir = args.indir
 datadir = args.datadir
 
-app = Flask('nightwatch', static_folder=webdir)
+app = Flask('nightwatch', static_folder=indir)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/')
 def redict_to_cal():
+    global indir
     print('redirecting to nights.html')
     return redirect('nights.html', code=302)
 
-
 @app.route('/timeseries/')
 def test_input():
+    global indir
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
-    filename = os.path.join(webdir, "static", "timeseries_dropdown.json")
+    filename = os.path.join(indir, "static", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
@@ -55,7 +60,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
     "attribute"
     ]
 
-    filename = os.path.join(webdir, "static", "timeseries_dropdown.json")
+    filename = os.path.join(indir, "static", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
@@ -106,18 +111,18 @@ def getspectra(night, expid, view, frame, downsample):
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
-    global webdir
+    global indir
     global datadir
-    webdir = os.path.abspath(webdir)
+    indir = os.path.abspath(indir)
     datadir = os.path.abspath(datadir)
 
-    exists_html = os.path.isfile(os.path.join(webdir, filepath))
+    exists_html = os.path.isfile(os.path.join(indir, filepath))
     if exists_html:
-        print("found " + os.path.join(webdir, filepath), file=sys.stderr)
-        print("retrieving " + os.path.join(webdir, filepath), file=sys.stderr)
-        return send_from_directory(webdir, filepath)
+        print("found " + os.path.join(indir, filepath), file=sys.stderr)
+        print("retrieving " + os.path.join(indir, filepath), file=sys.stderr)
+        return send_from_directory(indir, filepath)
 
-    print("could NOT find " + os.path.join(webdir, filepath), file=sys.stderr)
+    print("could NOT find " + os.path.join(indir, filepath), file=sys.stderr)
 
     # splits the url contents by '/'
     filedir, filename = os.path.split(filepath)
@@ -127,7 +132,7 @@ def getfile(filepath):
     splitname = filebasename.split('-')
     down = splitname.pop()
     if down[len(down)-1] != 'x':
-        return 'no data for ' + os.path.join(webdir, filepath)
+        return 'no data for ' + os.path.join(indir, filepath)
 
     filebasename = '-'.join(splitname)
     fitsfilename = '{filebasename}.fits'.format(filebasename=filebasename)
@@ -145,11 +150,11 @@ def getfile(filepath):
         # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'nightwatch')))
         from nightwatch.webpages import plotimage
         night = filedir.split("/")[0]
-        plotimage.write_image_html(fitsfilepath, os.path.join(webdir, filepath), downsample, night)
-        return send_from_directory(webdir, filepath)
+        plotimage.write_image_html(fitsfilepath, os.path.join(indir, filepath), downsample, night)
+        return send_from_directory(indir, filepath)
 
     print("could NOT find " + fitsfilepath, file=sys.stderr)
-    return 'no data for ' + os.path.join(webdir, filepath)
+    return 'no data for ' + os.path.join(indir, filepath)
 
 if __name__ == "__main__":
-    app.run(debug=True, host=args.host, port=args.port)
+    app.run(debug=args.debug, host=args.host, port=args.port)
