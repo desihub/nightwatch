@@ -5,16 +5,16 @@ from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
 parser = argparse.ArgumentParser(usage = "{prog} [options]")
-parser.add_argument("-s", "--static", type=str, required=True, help="static file directory")
-parser.add_argument("-d", "--data", type=str, help="data/fits file directory")
+parser.add_argument("-w", "--webdir", type=str, required=True, help="directory with pre-generated nightwatch webpages")
+parser.add_argument("-d", "--datadir", type=str, help="directory with qproc output data files")
 parser.add_argument("--host", type=str, default="localhost", help="hostname (e.g. localhost or 0.0.0.0")
 parser.add_argument("--port", type=int, default=8001, help="port number")
 args = parser.parse_args()
 
-stat = args.static
-data = args.data
+webdir = args.webdir
+datadir = args.datadir
 
-app = Flask('nightwatch', static_folder=stat)
+app = Flask('nightwatch', static_folder=webdir)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/')
@@ -28,7 +28,7 @@ def test_input():
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
-    filename = os.path.join(stat, "static", "timeseries_dropdown.json")
+    filename = os.path.join(webdir, "static", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
@@ -40,6 +40,7 @@ def test_input():
 
 @app.route('/timeseries/<int:start_date>/<int:end_date>/<string:hdu>/<string:attribute>')
 def test_timeseries(start_date, end_date, hdu, attribute):
+    global datadir
 
     verify = [
     not re.match(r"20[0-9]{6}", str(start_date)),
@@ -54,7 +55,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
     "attribute"
     ]
 
-    filename = os.path.join(stat, "static", "timeseries_dropdown.json")
+    filename = os.path.join(webdir, "static", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
@@ -71,7 +72,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
 
     from nightwatch.webpages.timeseries import generate_timeseries_html
 
-    html = generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdown)
+    html = generate_timeseries_html(datadir, start_date, end_date, hdu, attribute, dropdown)
 
     return html
 
@@ -83,17 +84,17 @@ def redirect_to_spectrograph_spectra(night, expid):
 @app.route('/<int:night>/<int:expid>/spectra/input/', defaults={'frame': None, 'select_string': None, 'downsample': None})
 @app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:frame>/<string:downsample>/')
 def getspectrainput(night, expid, select_string, frame, downsample):
-    global data
-    data = os.path.abspath(data)
+    global datadir
+    datadir = os.path.abspath(datadir)
     from nightwatch.webpages import spectra
-    return spectra.get_spectra_html(os.path.join(data, str(night)), night, expid, "input", frame, downsample, select_string)
+    return spectra.get_spectra_html(os.path.join(datadir, str(night)), night, expid, "input", frame, downsample, select_string)
 
 @app.route('/<int:night>/<int:expid>/spectra/<string:view>/', defaults={'frame': None, 'downsample': None})
 @app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:frame>/', defaults={'downsample': None})
 @app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:frame>/<string:downsample>/')
 def getspectra(night, expid, view, frame, downsample):
-    global data
-    data = os.path.abspath(data)
+    global datadir
+    datadir = os.path.abspath(datadir)
 
     if downsample is None:
         if frame is None:
@@ -101,22 +102,22 @@ def getspectra(night, expid, view, frame, downsample):
         return redirect('/{}/{}/spectra/{}/{}/4x/'.format(night, '{:08d}'.format(expid), view, frame), code=302)
 
     from nightwatch.webpages import spectra
-    return spectra.get_spectra_html(os.path.join(data, str(night)), night, expid, view, frame, downsample)
+    return spectra.get_spectra_html(os.path.join(datadir, str(night)), night, expid, view, frame, downsample)
 
 @app.route('/<path:filepath>')
 def getfile(filepath):
-    global stat
-    global data
-    stat = os.path.abspath(stat)
-    data = os.path.abspath(data)
+    global webdir
+    global datadir
+    webdir = os.path.abspath(webdir)
+    datadir = os.path.abspath(datadir)
 
-    exists_html = os.path.isfile(os.path.join(stat, filepath))
+    exists_html = os.path.isfile(os.path.join(webdir, filepath))
     if exists_html:
-        print("found " + os.path.join(stat, filepath), file=sys.stderr)
-        print("retrieving " + os.path.join(stat, filepath), file=sys.stderr)
-        return send_from_directory(stat, filepath)
+        print("found " + os.path.join(webdir, filepath), file=sys.stderr)
+        print("retrieving " + os.path.join(webdir, filepath), file=sys.stderr)
+        return send_from_directory(webdir, filepath)
 
-    print("could NOT find " + os.path.join(stat, filepath), file=sys.stderr)
+    print("could NOT find " + os.path.join(webdir, filepath), file=sys.stderr)
 
     # splits the url contents by '/'
     filedir, filename = os.path.split(filepath)
@@ -126,11 +127,11 @@ def getfile(filepath):
     splitname = filebasename.split('-')
     down = splitname.pop()
     if down[len(down)-1] != 'x':
-        return 'no data for ' + os.path.join(stat, filepath)
+        return 'no data for ' + os.path.join(webdir, filepath)
 
     filebasename = '-'.join(splitname)
     fitsfilename = '{filebasename}.fits'.format(filebasename=filebasename)
-    fitsfilepath = os.path.join(data, filedir, fitsfilename)
+    fitsfilepath = os.path.join(datadir, filedir, fitsfilename)
     exists_fits = os.path.isfile(fitsfilepath)
 
     exists_fits = os.path.isfile(fitsfilepath)
@@ -144,11 +145,11 @@ def getfile(filepath):
         # sys.path.append(os.path.abspath(os.path.join('..', 'py', 'nightwatch')))
         from nightwatch.webpages import plotimage
         night = filedir.split("/")[0]
-        plotimage.write_image_html(fitsfilepath, os.path.join(stat, filepath), downsample, night)
-        return send_from_directory(stat, filepath)
+        plotimage.write_image_html(fitsfilepath, os.path.join(webdir, filepath), downsample, night)
+        return send_from_directory(webdir, filepath)
 
     print("could NOT find " + fitsfilepath, file=sys.stderr)
-    return 'no data for ' + os.path.join(stat, filepath)
+    return 'no data for ' + os.path.join(webdir, filepath)
 
 if __name__ == "__main__":
     app.run(debug=True, host=args.host, port=args.port)
