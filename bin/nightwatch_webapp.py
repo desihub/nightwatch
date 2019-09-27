@@ -4,11 +4,6 @@ import bokeh
 from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
-app = Flask(__name__)
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-stat = ""
-data = ""
-
 parser = argparse.ArgumentParser(usage = "{prog} [options]")
 parser.add_argument("-s", "--static", type=str, required=True, help="static file directory")
 parser.add_argument("-d", "--data", type=str, help="data/fits file directory")
@@ -18,6 +13,9 @@ args = parser.parse_args()
 
 stat = args.static
 data = args.data
+
+app = Flask('nightwatch', static_folder=stat)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/')
 def redict_to_cal():
@@ -30,7 +28,7 @@ def test_input():
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
-    filename = os.path.join(stat, "cal_files", "timeseries_dropdown.json")
+    filename = os.path.join(stat, "static", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
@@ -56,7 +54,7 @@ def test_timeseries(start_date, end_date, hdu, attribute):
     "attribute"
     ]
 
-    filename = os.path.join(stat, "cal_files", "timeseries_dropdown.json")
+    filename = os.path.join(stat, "static", "timeseries_dropdown.json")
 
     with open(filename, 'r') as myfile:
         json_data=myfile.read()
