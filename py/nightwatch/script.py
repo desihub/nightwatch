@@ -163,7 +163,7 @@ def main_monitor(options=None):
                 print('Running QA on {}/{}'.format(night, expid))
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
 
-                caldir = os.path.join(args.plotdir, "cal_files")
+                caldir = os.path.join(args.plotdir, "static")
                 jsonfile = os.path.join(caldir, "timeseries_dropdown.json")
 
                 if not os.path.isdir(caldir):

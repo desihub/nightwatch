@@ -1,13 +1,26 @@
 {% extends "base.html" %}
 
 {% block navigation %}
+<ul class="titlebar">
+  <li><a>Nightwatch: QA night {{ night }} expid {{ expid }}</a></li>
+</ul>
 <ul class="navigationbar">
+  {# Left side navigations links (from left to right)#}
   <li style="float:left"><a id="nights" href =
-    "{% for i in range(num_dirs) %}../{% endfor %}nights.html">nights</a></li>
-  <li style="float:left"><a>QA {{ night }}/{{ expid }}</a></li>
+    "{% for i in range(num_dirs) %}../{% endfor %}nights.html">calendar</a></li>
+  <li style="float:left"><a id="exposures" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/exposures.html">exposures</a></li>
   <li style="float:left"><a id="prev">prev</a></li>
   <li style="float:left"><a id="next">next</a></li>
-  <li style="float:left"><a href="{% for i in range(num_dirs) %}../{% endfor %}qa-lastexp.html">last</a></li>
+  <li style="float:left"><a href="{% for i in range(num_dirs) %}../{% endfor %}qa-lastexp.html">latest</a></li>
+
+  {# Right side navigations links (from right to left)#}
+  <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">spectra</a>
+      <ul class="dropdown-content">
+        <a id="input" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">input</a>
+        <a id="spectrograph" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/spectrograph">spectrograph</a>
+        <a id="objtype" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/objtype">objtype</a>
+      </ul>
+  </li>
   <li><a id="spectro">spectro</a></li>
   <li class="dropdown"><a id="camfiber" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">camfiber</a>
       <ul class="dropdown-content">
@@ -30,14 +43,6 @@
         <a id="logfiles" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-summary-{{ zexpid }}-logfiles_table.html">logfiles</a>
       </ul>
   </li>
-  <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">spectra</a>
-      <ul class="dropdown-content">
-        <a id="input" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">input</a>
-        <a id="spectrograph" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/spectrograph">spectrograph</a>
-        <a id="objtype" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/objtype">objtype</a>
-      </ul>
-  </li>
-  <li><a id="exposures" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/exposures.html">exposures</a></li>
 </ul>
 {% if exptime %}
 <p>{{ exptime }} second {{ flavor }} ({{ program }})</p>

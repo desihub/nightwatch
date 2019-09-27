@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 
 {% block body %}
+<ul class="titlebar">
+  <li><a>Nightwatch: Exposures on night {{ night }}</a></li>
+</ul>
 <ul class="navigationbar">
-  <li style="float:left"><a>Exposures on night {{ night }}</a></li>
+  <li style="float:left"><a href="../nights.html">Calendar</a></li>
   <li><a id="next">next</a></li>
   <li><a id="prev">prev</a></li>
-  <li><a href="../nights.html">nights</a></li>
   <li><a href="../qa-lastexp.html">latest</a></li>
 </ul>
 
