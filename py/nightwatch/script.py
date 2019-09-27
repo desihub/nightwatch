@@ -6,7 +6,7 @@ import os, sys, time, glob
 import argparse
 import traceback
 import subprocess
-from . import run, plots
+from . import run, plots, io
 from .qa.runner import QARunner
 from desiutil.log import get_logger
 
@@ -203,7 +203,7 @@ def main_run(options=None):
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
-        help="output directory (including YEARMMDD/EXPID/)")
+        help="output base directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
@@ -216,28 +216,33 @@ def main_run(options=None):
     else:
         cameras = None
 
+    night, expid = io.get_night_expid(args.infile)
+    expdir = io.findfile('expdir', night=night, expid=expid, basedir=args.outdir)
+
     time_start = time.time()
     print('{} Running qproc'.format(time.strftime('%H:%M')))
-    header = run.run_qproc(args.infile, args.outdir, cameras=cameras)
+    header = run.run_qproc(args.infile, expdir, cameras=cameras)
 
     print('{} Running QA analysis'.format(time.strftime('%H:%M')))
-    expid = header['EXPID']
-    qafile = os.path.join(args.outdir, 'qa-{:08d}.fits'.format(expid))
-    qaresults = run.run_qa(args.outdir, outfile=qafile)
+    qafile = io.findfile('qa', night=night, expid=expid, basedir=args.outdir)
+    qaresults = run.run_qa(expdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    basedir = os.path.dirname(os.path.dirname(os.path.abspath(args.outdir)))
-    run.make_plots(qafile, basedir, preprocdir=args.outdir, logdir=args.outdir, cameras=cameras)
+    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, cameras=cameras)
+
+    print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
+    run.write_tables(args.outdir, args.outdir)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
+
 
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
-        help="output directory (without appending YEARMMDD/EXPID/)")
+        help="output directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
@@ -258,7 +263,7 @@ def main_qproc(options=None):
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
-        help="output directory (without appending YEARMMDD/EXPID/)")
+        help="output directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
@@ -289,8 +294,8 @@ def main_qa(options=None):
 
 def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
-    parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input fits file name with qa outputs")
-    parser.add_argument("-o", "--outdir", type=str, help="output directory (not including YEARMMDD/EXPID/)")
+    parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input QA fits file")
+    parser.add_argument("-o", "--outdir", type=str, help="output base directory (not including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]

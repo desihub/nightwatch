@@ -242,7 +242,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
-    #- TODO: fix by "if night.strip() == '' ..."
     if night == '        ':
         log.error('Correcting blank NIGHT keyword based upon directory structure')
         #- /path/to/NIGHT/EXPID/rawfile.fits

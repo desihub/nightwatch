@@ -23,18 +23,37 @@ def read_qa(filename):
     
     return qadata
 
-def findfile(filetype, night, expid=None, basedir=''):
+def findfile(filetype, night, expid=None, basedir=None):
     '''
-    Finds a file given a type, night, exposure, basedir
-    Currently supported types: qa : '{night}/{expid:08d}/qa-{expid:08d}.fits'
+    Returns standardized filepath given a type, night, exposure, basedir
+    Currently supported types: qa, expdir
     '''
     filemap = dict(
         qa = '{night}/{expid:08d}/qa-{expid:08d}.fits',
+        expdir = '{night}/{expid:08d}'
     )
     if filetype not in filemap:
         raise ValueError('Unknown filetype {}; known types {}'.format(
             filetype, list(filemap.keys()) ))
 
-    qafile = filemap[filetype].format(night=night, expid=expid)
-    qafile = os.path.join(basedir, qafile)
-    return qafile
+    filename = filemap[filetype].format(night=night, expid=expid)
+    if basedir is not None:
+        filename = os.path.join(basedir, filename)
+
+    return filename
+
+def get_night_expid(filename):
+    '''
+    Returns NIGHT, EXPID from input filename header keywords
+    '''
+    #- First try HDU 0
+    hdr = fitsio.read_header(filename, 0)
+    if 'NIGHT' in hdr and 'EXPID' in hdr:
+        return int(hdr['NIGHT']), int(hdr['EXPID'])
+
+    #- not found there, try HDU 1 before giving up
+    hdr = fitsio.read_header(filename, 1)
+    if 'NIGHT' in hdr and 'EXPID' in hdr:
+        return int(hdr['NIGHT']), int(hdr['EXPID'])
+
+    raise ValueError('NIGHT and/or EXPID not found in HDU 0 or 1 of {}'.format(filename))
