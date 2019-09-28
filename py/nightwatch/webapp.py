@@ -13,7 +13,7 @@ def main_webapp(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} webapp [options]")
     parser.add_argument("-i", "--indir", type=str, required=True, help="input directory with pre-generated nightwatch webpages")
     parser.add_argument("-d", "--datadir", type=str, help="directory with qproc output data files (if different than --indir)")
-    parser.add_argument("--host", type=str, default="localhost", help="hostname (e.g. localhost or 0.0.0.0")
+    parser.add_argument("--host", type=str, default="0.0.0.0", help="hostname (e.g. localhost or 0.0.0.0")
     parser.add_argument("--port", type=int, default=8001, help="port number")
     parser.add_argument("--debug", action="store_true", help="enable Flask debug mode")
 
