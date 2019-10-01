@@ -3,38 +3,36 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <link rel="stylesheet" href="cal_files/bootstrap.css">
-    <script src="cal_files/jquery_min.js"></script>
-    <script src="cal_files/popper_min.js"></script>
-    <script src="cal_files/bootstrap.js"></script>
-    <link rel="stylesheet" href="cal_files/bootstrap-year-calendar.css">
-    <script src="cal_files/bootstrap-year-calendar.js"></script>
+    <link rel="stylesheet" href="static/bootstrap.css">
+    <script src="static/jquery_min.js"></script>
+    <script src="static/popper_min.js"></script>
+    <script src="static/bootstrap.js"></script>
+    <link rel="stylesheet" href="static/bootstrap-year-calendar.css">
+    <script src="static/bootstrap-year-calendar.js"></script>
 
     </head>
 <body>
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<div>
-  <center><font size="6" text_align="center">DESI Data QA</font></center>
-</div>
-<div id="box">
-  <button onclick='
-    var url = "timeseries";
-    window.open(url, "_top")'>timeseries</button>
+<div id="titlebar">
+  <center><font size="6" text_align="center">DESI Nightwatch</font></center>
 </div>
 
 <div class="container">
     <div class="calendar"></div>
 </div>
 
+{#
+<div class="container">
+    <a href="timeseries">timeseries plots</a>
+</div>
+#}
+
 <style>
-#box {
-    width: 100px;
-    height: 25px;
-    margin: 0 auto;
-    line-height: 20px;
-    position: relative;
-    left: 300px;
+#titlebar {
+    padding: 6px;
+    color: gold;
+    background-color: #333;
 }
 </style>
 

@@ -242,7 +242,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     indir = os.path.abspath(os.path.dirname(rawfile))
 
     #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
-    #- TODO: fix by "if night.strip() == '' ..."
     if night == '        ':
         log.error('Correcting blank NIGHT keyword based upon directory structure')
         #- /path/to/NIGHT/EXPID/rawfile.fits
@@ -484,7 +483,7 @@ def write_tables(indir, outdir):
 
     exposures = Table(rows)
     
-    caldir = os.path.join(outdir, 'cal_files')
+    caldir = os.path.join(outdir, 'static')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
 
@@ -492,9 +491,9 @@ def write_tables(indir, outdir):
              'bootstrap-year-calendar.css', 'bootstrap-year-calendar.js',
              'jquery_min.js', 'popper_min.js', 'live.js']
     for f in files:
-        outfile = os.path.join(outdir, 'cal_files', f)
+        outfile = os.path.join(outdir, 'static', f)
         if not os.path.exists(outfile):
-            infile = resource_filename('nightwatch', os.path.join('cal_files', f))
+            infile = resource_filename('nightwatch', os.path.join('static', f))
             copyfile(infile, outfile)
 
     nightsfile = os.path.join(outdir, 'nights.html')

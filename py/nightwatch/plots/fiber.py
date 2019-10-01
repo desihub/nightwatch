@@ -214,8 +214,6 @@ def plot_fibernums(source, name, cam='',
     fig.yaxis.minor_tick_line_color=None
     fig.ygrid.grid_line_color = None
     fig.yaxis.formatter = NumeralTickFormatter(format='0.0a')
-    
-
 
     taptool = fig.select(type=TapTool)
     taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")

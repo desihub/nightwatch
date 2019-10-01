@@ -28,7 +28,7 @@ def downsample_image(image, n):
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
-def plot_image(image, width=700, downsample=2, title=None):
+def plot_image(image, width=800, downsample=2, title=None):
     """
     plots image downsampled, returning bokeh figure of requested width
     """

@@ -89,9 +89,11 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         else:
             indexes = []
         fig=bk.figure(plot_height = height, plot_width = width+50)
-        fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-        fig.add_layout(Title(text= "Fibers: {}".format(common), text_font_style="italic"), 'above')
-        fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="16pt"), 'above')
+        # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
+        # fig.add_layout(Title(text= "Fibers: {}".format(common), text_font_style="italic"), 'above')
+        # fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="12pt"), 'above')
+        title = "sp{} fibers {}".format(spectro, ", ".join(map(str, common)))
+        fig.add_layout(Title(text=title, text_font_style="italic"), 'above')
         tooltips = tooltips=[
             ("Fiber", "@fiber"),
             ("Cam", "@cam"),
@@ -379,10 +381,13 @@ def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, wid
             else:
                 result_not += [group[spectro][i]]
 
-    fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Not Found: {}".format(result_not), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Found: {}".format(result_able), text_font_style="italic"), 'above')
-    fig.add_layout(Title(text= "Input: {}".format(select_string), text_font_size="16pt"), 'above')
+    # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
+    if len(result_not) > 0:
+        fig.add_layout(Title(text= "Not Found: {}".format(result_not),
+            text_font_style="italic"), 'above')
+
+    fig.add_layout(Title(text= "Fibers: {}".format(', '.join(map(str, result_able))),
+        text_font_size="12pt"), 'above')
 
     if len(result_able) == 0:
         print('ERROR: Unable to find any input spectra in {} for {}'.format(

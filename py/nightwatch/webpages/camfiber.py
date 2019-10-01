@@ -31,8 +31,8 @@ def write_camfiber_html(outfile, data, header):
     CAMERAS = ['B', 'R', 'Z']
     PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
-              'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibration Flux',
-              'MEDIAN_CALIB_FLUX':'Median Calibration Flux', 'MEDIAN_CALIB_SNR':'Median Calibration S/N'}
+              'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibrated Flux',
+              'MEDIAN_CALIB_FLUX':'Median Calibrated Flux', 'MEDIAN_CALIB_SNR':'Median Calibrated S/N'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,tap,reset'
 

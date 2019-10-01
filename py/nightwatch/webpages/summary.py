@@ -212,10 +212,11 @@ def write_logfile_html(input, output, night):
     error_colors = dict({0:'green', 1:'orange', 2:'red', 3:'black'})
 
     lines = []
+    lines.append('qproc logfile {}'.format(os.path.abspath(input)))
     f = open(input, "rb")
     for line in f.readlines():
         #- byte to str
-        line = line.decode("utf-8")
+        line = line.decode("utf-8").strip()
         if 'WARNING' in line:
             line = '<span style="color:{};">'.format(error_colors.get(1)) + line + '</span>'
             error_level = max(error_level, 1)

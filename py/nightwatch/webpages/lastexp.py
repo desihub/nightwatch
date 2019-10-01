@@ -46,7 +46,7 @@ def write_lastexp_html(outfile, qadata, qprocdir):
 
     #- Tell HTML to auto-reload upon change, using {staticdir}/live.js
     plot_components['autoreload'] = True
-    plot_components['staticdir'] = 'cal_files'
+    plot_components['staticdir'] = 'static'
 
     #- Combine template + components -> HTML
     html = template.render(**plot_components)

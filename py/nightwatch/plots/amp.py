@@ -4,7 +4,11 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
-from bokeh.models import LinearColorMapper, ColorBar, ColumnDataSource, OpenURL, TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band, ResetTool, BoxZoomTool, OpenURL
+from bokeh.models import (
+    LinearColorMapper, ColorBar, ColumnDataSource, OpenURL,
+    NumeralTickFormatter,
+    TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band,
+    ResetTool, BoxZoomTool, OpenURL)
 from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
@@ -82,7 +86,8 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
+    amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
     '''Plot a per-camera, per-amp visualization of data[name]
     Args:
         data: table of per_amp qa data
@@ -205,8 +210,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
                    fill_color='black', size=4, source=source, name='circles')
 
     if len(data_val)>0 :
-        plotmin = min(ymin, np.min(data_val)*0.9) if ymin else np.min(data_val) * 0.9
-        plotmax = max(ymax, np.max(data_val)*1.1) if ymax else np.max(data_val) * 1.1
+        plotmin = min(ymin, np.min(data_val)*0.9) if ymin is not None else np.min(data_val) * 0.9
+        plotmax = max(ymax, np.max(data_val)*1.1) if ymax is not None else np.max(data_val) * 1.1
     else :
         plotmin = ymin
         plotmax = ymax
@@ -272,6 +277,7 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
         if cam == 'Z':
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[2], ymax=ymax[2])
             
+        fig.yaxis.formatter = NumeralTickFormatter(format='a')
         figs.append(fig)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
