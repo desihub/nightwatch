@@ -25,7 +25,11 @@ def write_camera_html(outfile, data, header):
 
     night = header['NIGHT']
     expid = header['EXPID']
-    flavor = header['FLAVOR'].rstrip()
+    if 'OBSTYPE' in header :
+        obstype = header['OBSTYPE'].rstrip().upper()
+    else :
+        log.warning('Use FLAVOR instead of missing OBSTYPE')
+        obstype = header['FLAVOR'].rstrip().upper()
     if "PROGRAM" not in header :
         program = "no program in header!"
     else :
@@ -40,7 +44,7 @@ def write_camera_html(outfile, data, header):
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program, qatype='camera',
+        obstype=obstype, program=program, qatype='camera',
         num_dirs=2,
     )
     num_plots = len(set([i for i in ["MEANDX", "MEANDY", "MEANXSIG", "MEANYSIG"] if i in data.dtype.names]))

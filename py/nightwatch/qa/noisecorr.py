@@ -53,9 +53,9 @@ class QANoiseCorr(QA):
         self.output_type = "PER_AMP"
         pass
 
-    def valid_flavor(self, flavor):
+    def valid_obstype(self, obstype):
         # can only reliably compute noise correlation with zero images
-        return flavor.upper() == "ZERO"
+        return obstype.upper() == "ZERO"
 
     def run(self, indir):
         '''TODO: document'''

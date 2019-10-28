@@ -185,7 +185,11 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
             qafile = io.findfile('qa', night, expid, basedir=indir)
             qadata = io.read_qa(qafile)
             status = get_status(qadata, night)
-            flavor = qadata['HEADER']['FLAVOR'].rstrip()
+            if 'OBSTYPE' in qadata['HEADER'] :
+                obstype = qadata['HEADER']['OBSTYPE'].rstrip().upper()
+            else :
+                log.warning('Use FLAVOR instead of missing OBSTYPE')
+                obstype = qadata['HEADER']['FLAVOR'].rstrip().upper()
             exptime = qadata['HEADER']['EXPTIME']
             
             from ..plots.core import parse_numlist
@@ -199,7 +203,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
             link = '{expid:08d}/qa-summary-{expid:08d}.html'.format(
                 night=night, expid=expid)
 
-            expinfo = dict(night=night, expid=expid, flavor=flavor, link=link, 
+            expinfo = dict(night=night, expid=expid, obstype=obstype, link=link, 
                            exptime=exptime, spectros=spectros, fail=0)
 
             #- Adds qproc to the expid status

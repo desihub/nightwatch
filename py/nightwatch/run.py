@@ -216,7 +216,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
-    Determine the flavor of the rawfile, and run qproc with appropriate options
+    Determine the obstype of the rawfile, and run qproc with appropriate options
 
     cameras can be a list
 
@@ -229,11 +229,15 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         os.makedirs(outdir, exist_ok=True)
 
     hdr = fitsio.read_header(rawfile, 0)
-    if 'FLAVOR' not in hdr :
-        log.warning("no flavor keyword in first hdu header, moving to the next one")
+    if ( 'OBSTYPE' not in hdr ) and ( 'FLAVOR' not in hdr ) :
+        log.warning("no obstype nor flavor keyword in first hdu header, moving to the next one")
         hdr = fitsio.read_header(rawfile, 1)
     try :
-        flavor = hdr['FLAVOR'].rstrip().upper()
+        if 'OBSTYPE' in hdr :
+            obstype = hdr['OBSTYPE'].rstrip().upper()
+        else :
+            log.warning('Use FLAVOR instead of missing OBSTYPE')
+            obstype = hdr['FLAVOR'].rstrip().upper()
         night = hdr['NIGHT']
         expid = hdr['EXPID']
     except KeyError as e :

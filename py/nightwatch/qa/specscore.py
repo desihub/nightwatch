@@ -18,9 +18,9 @@ class QASpecscore(QA):
         self.output_type = "PER_CAMFIBER"
         pass
 
-    def valid_flavor(self, flavor):
+    def valid_obstype(self, obstype):
         '''PER_AMP QA metrics work for all qframe files'''
-        return (flavor.upper() in ["ARC", "FLAT", "SCIENCE"])
+        return (obstype.upper() in ["ARC", "FLAT", "SCIENCE", "SKY", "TWILIGHT", "TESTARC", "TESTFLAT"])
 
     def run(self, indir):
         '''TODO: document'''

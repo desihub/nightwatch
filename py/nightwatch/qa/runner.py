@@ -44,34 +44,44 @@ class QARunner(object):
             log.error('No preproc files found in {}'.format(indir))
             return None
 
-        # We can have different flavors (signal+dark) with calibration data
+        # We can have different obstypes (signal+dark) with calibration data
         # obtained with a calibration slit hooked to a single spectrograph.
         # So we have to loop over all frames to check if there are science,
-        # arc, or flat flavors as guessed by qproc.
+        # arc, or flat obstypes as guessed by qproc.
         qframefiles = sorted(glob.glob('{}/qframe-*.fits'.format(indir)))
         if len(qframefiles) == 0 : # no qframe so it's either zero or dark
             hdr = fitsio.read_header(preprocfiles[0], 0)
-            flavor = hdr['FLAVOR'].strip()
+            if 'OBSTYPE' in hdr :
+                obstype = hdr['FLAVOR'].strip()
+            else :
+                log.warning("Using FLAVOR instead of missing OBSTYPE")
+                obstype = hdr['FLAVOR'].strip()
         else :
-            flavor = None
+            obstype = None
             log.debug("Reading qframe headers to guess flavor ...")
             for qframefile in qframefiles : # look at all of them and prefer arc or flat over dark or zero
                 hdr = fitsio.read_header(qframefile, 0)
-                this_flavor = hdr['FLAVOR'].strip().upper()
-                if this_flavor == "ARC" or this_flavor == "FLAT" :
-                    flavor = this_flavor
+                if 'OBSTYPE' in hdr :
+                    this_obstype = hdr['OBSTYPE'].strip().upper()
+                else:
+                    log.warning("Using FLAVOR instead of missing OBSTYPE")
+                    obstype = hdr['FLAVOR'].strip()
+
+                if this_obstype == "ARC" or this_obstype == "FLAT" \
+                   or this_obstype  == "TESTARC" or this_obstype == "TESTFLAT" :
+                    obstype = this_obstype
                     # we use this so we exit the loop
                     break
-                elif flavor == None :
-                    flavor = this_flavor
-                    # we stay in the loop in case another frame has another flavor
+                elif obstype == None :
+                    obstype = this_obstype
+                    # we stay in the loop in case another frame has another obstype
 
 
-        log.debug('Found FLAVOR={} files'.format(flavor))
+        log.debug('Found OBSTYPE={} files'.format(obstype))
 
         results = dict()
         for qa in self.qalist:
-            if qa.valid_flavor(flavor):
+            if qa.valid_obstype(obstype):
                 log.debug('Running {} {}'.format(qa, qa.output_type))
                 qa_results = None
                 try:
@@ -90,7 +100,7 @@ class QARunner(object):
                     results[qa.output_type].append(qa_results)
 
             else :
-                log.debug('Skip {} {} for {}'.format(qa, qa.output_type, flavor))
+                log.debug('Skip {} {} for {}'.format(qa, qa.output_type, obstype))
         #- Combine results for different types of QA
         join_keys = dict(
             PER_AMP = ['NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'AMP'],

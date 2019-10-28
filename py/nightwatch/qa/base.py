@@ -20,9 +20,9 @@ class QA(object):
         self.output_type = "None"
         pass
 
-    def valid_flavor(self, flavor):
-        '''Return True/False if this metric is applicable to this flavor
-        of exposure (ZERO, DARK, ARC, FLAT, SCIENCE)'''
+    def valid_obstype(self, obstype):
+        '''Return True/False if this metric is applicable to this obstype
+        of exposure (ZERO, DARK, ARC, FLAT, SCIENCE ...)'''
         return False
 
     def run(self, indir):
