@@ -9,6 +9,8 @@ import numpy as np
 import jinja2
 from astropy.table import Table
 
+import desiutil.log
+
 from .. import io
 from ..qa.status import get_status, Status
 
@@ -157,6 +159,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
         nights: optional list of nights to process
     """
 
+    log = desiutil.log.get_logger()
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
