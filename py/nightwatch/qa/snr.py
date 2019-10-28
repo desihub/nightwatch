@@ -53,8 +53,8 @@ class QASNR(QA):
         self.rwave=np.linspace(min_filter_wave,max_filter_wave,int(max_filter_wave-min_filter_wave))
 
 
-    def valid_flavor(self, flavor):
-        return ( flavor.upper() == "SCIENCE" )
+    def valid_obstype(self, obstype):
+        return ( obstype.upper() == "SCIENCE" )
 
     def run(self, indir):
         '''TODO: document'''

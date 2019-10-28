@@ -31,7 +31,11 @@ def get_summary_plots(qadata, qprocdir=None):
     header = qadata['HEADER']
     night = header['NIGHT']
     expid = header['EXPID']
-    flavor = header['FLAVOR'].rstrip()
+    if 'OBSTYPE' in header :
+        obstype = header['OBSTYPE'].rstrip().upper()
+    else :
+        log.warning('Use FLAVOR instead of missing OBSTYPE')
+        obstype = header['FLAVOR'].rstrip().upper()
     if "PROGRAM" not in header :
         program = "no program in header!"
     else :
@@ -41,7 +45,7 @@ def get_summary_plots(qadata, qprocdir=None):
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        flavor=flavor, program=program,
+        obstype=obstype, program=program,
         num_dirs=2,
    )
 
@@ -60,7 +64,7 @@ def get_summary_plots(qadata, qprocdir=None):
         html_components['READNOISE'] = dict(script=script, div=div)
 
     #- Raw flux
-    if flavor.upper() in ['ARC', 'FLAT'] and 'PER_CAMFIBER' in qadata:
+    if obstype.upper() in ['ARC', 'FLAT','TESTARC', 'TESTFLAT'] and 'PER_CAMFIBER' in qadata:
         cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_RAW_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_RAW_FLUX', cameras,
@@ -72,7 +76,7 @@ def get_summary_plots(qadata, qprocdir=None):
         html_components['RAWFLUX'] = dict(script=script, div=div)
 
     #- Calib flux
-    if flavor.upper() in ['SCIENCE'] and 'PER_CAMFIBER' in qadata:
+    if obstype.upper() in ['SCIENCE','SKY','TWILIGHT'] and 'PER_CAMFIBER' in qadata:
         cameras = np.unique(qadata['PER_CAMFIBER']['CAM'].astype(str))
         cds = camfiber.get_cds(qadata['PER_CAMFIBER'], ['INTEG_CALIB_FLUX',], cameras)
         figs_list = camfiber.plot_per_fibernum(cds, 'INTEG_CALIB_FLUX', cameras,
@@ -85,7 +89,7 @@ def get_summary_plots(qadata, qprocdir=None):
             html_components['CALIBFLUX'] = dict(script=script, div=div)
 
     #- Random Spectra
-    if flavor.upper() in ['ARC', 'FLAT', 'SCIENCE'] and \
+    if obstype.upper() in ['ARC','FLAT','TESTARC','TESTFLAT','SCIENCE','SKY','TWILIGHT'] and \
             'PER_CAMFIBER' in qadata and \
             qprocdir is not None:
         downsample = 4

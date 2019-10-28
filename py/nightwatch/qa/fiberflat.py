@@ -19,8 +19,8 @@ class QAFiberflat(QA):
         self.output_type = "PER_CAMFIBER"
         pass
 
-    def valid_flavor(self, flavor):
-        return ( flavor.upper() == "FLAT" )
+    def valid_obstype(self, obstype):
+        return ( obstype.upper() == "FLAT" )
 
     def run(self, indir):
         '''TODO: document'''

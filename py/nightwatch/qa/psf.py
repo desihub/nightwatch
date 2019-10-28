@@ -17,8 +17,8 @@ class QAPSF(QA):
         self.output_type = "PER_CAMERA"
         pass
         
-    def valid_flavor(self, flavor):
-        return flavor.upper() == "ARC"
+    def valid_obstype(self, obstype):
+        return obstype.upper() == "ARC"
 
     def run(self, indir):
         '''TODO: document'''

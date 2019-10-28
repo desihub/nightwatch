@@ -17,9 +17,9 @@ class QATraceShift(QA):
         self.output_type = "PER_CAMERA"
         pass
         
-    def valid_flavor(self, flavor):
+    def valid_obstype(self, obstype):
         # trace shift measured for all exposure except zero and dark
-        return (flavor.upper() != "ZERO") and (flavor.upper() != "DARK")
+        return (obstype.upper() != "ZERO") and (obstype.upper() != "DARK")
 
     def run(self, indir):
         '''TODO: document'''

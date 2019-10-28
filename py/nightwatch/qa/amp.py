@@ -39,8 +39,8 @@ class QAAmp(QA):
         self.output_type = "PER_AMP"
         pass
 
-    def valid_flavor(self, flavor):
-        '''PER_AMP QA metrics work for all flavors of exposures'''
+    def valid_obstype(self, obstype):
+        '''PER_AMP QA metrics work for all obstypes of exposures'''
         return True
 
     def count_cosmics(self, mask):
