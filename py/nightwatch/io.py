@@ -3,6 +3,7 @@ I/O routines for QA
 '''
 
 import os
+import glob
 import numpy as np
 import fitsio
 
@@ -41,6 +42,46 @@ def findfile(filetype, night, expid=None, basedir=None):
         filename = os.path.join(basedir, filename)
 
     return filename
+
+def findfibers(datadir, fibers):
+    '''
+    Searches fibermaps in datadir/qframe*.fits for fibers
+
+    Args:
+        datadir : directory with qframe*.fits files
+        fibers : array of fiber numbers to look for
+
+    Returns (fibergroups, missingfibers) where
+        fibergroups[spectroid] = list of fibers on that spectrograph, and
+        missingfibers = array of fibers not found in any of the qframe files
+
+    We're in a state of transition for how [brz]N maps to fiber numbers,
+    such that nightwatch can't apriori know which fibers will be in which
+    files, so this is a brute force search.
+    '''
+    fibers = np.asarray(fibers)
+
+    #- Pick one framefile per spectrograph
+    #- Use sorted(glob(...)) for reproducibility of which file is picked
+    framefiles = dict()
+    for filename in sorted(glob.glob(os.path.join(datadir, 'qframe-*.fits'))):
+        prefix, camera, suffix = os.path.basename(filename).split('-')
+        spectro = int(camera[1])
+        framefiles[spectro] = filename
+
+    #- Look for fibers in those framefiles
+    fibergroups = dict()
+    missing = np.ones(len(fibers), dtype=bool)
+    for spectro, filename in framefiles.items():
+        fm = fitsio.read(filename, 'FIBERMAP', columns=['FIBER'])
+        ii = np.in1d(fibers, fm['FIBER'])
+        if np.any(ii):
+            prefix, camera, suffix = os.path.basename(filename).split('-')
+            spectro = int(camera[1])
+            fibergroups[spectro] = fibers[ii]
+            missing[ii] = False
+
+    return fibergroups, fibers[missing]
 
 def get_night_expid(filename):
     '''
