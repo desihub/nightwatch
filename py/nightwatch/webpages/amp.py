@@ -8,6 +8,7 @@ from ..plots.amp import plot_amp_qa
 from ..thresholds import pick_threshold_file, get_thresholds
 
 import os 
+from desiutil.log import get_logger
 
 def write_amp_html(outfile, data, header):
     '''Write CCD amp QA webpage
@@ -20,7 +21,7 @@ def write_amp_html(outfile, data, header):
     Returns:
         html_components dict with keys 'script', 'div' from bokeh
     '''
-    
+    log = get_logger() 
     night = header['NIGHT']
     expid = header['EXPID']
     if 'OBSTYPE' in header :
