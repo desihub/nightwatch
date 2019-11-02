@@ -171,7 +171,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
     for night in nights:
         log.debug('{} Generating exposures table for {}'.format(
             time.asctime(), night))
-        ii = (exposures['NIGHT'] == night)
+        ii = (exposures['NIGHT'] == int(night))
         explist = list()
         
         night_exps = exposures[ii]
