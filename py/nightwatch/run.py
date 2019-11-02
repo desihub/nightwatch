@@ -439,14 +439,17 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
                                         error_colors=error_colors)
 
 
-def write_tables(indir, outdir):
+def write_tables(indir, outdir, expnights=None):
     '''
     Parses directory for available nights, exposures to generate
     nights and exposures tables
     
     Args:
         indir : directory of nights
-        outdir : directory where to write nights table 
+        outdir : directory where to write nights table
+
+    Options:
+        expnights (list) : only update exposures tables for these nights
     '''
     import re
     from astropy.table import Table
@@ -503,7 +506,7 @@ def write_tables(indir, outdir):
     nightsfile = os.path.join(outdir, 'nights.html')
     web_tables.write_nights_table(nightsfile, exposures)
 
-    web_tables.write_exposures_tables(indir, outdir, exposures)
+    web_tables.write_exposures_tables(indir, outdir, exposures, nights=expnights)
     
 
 def write_nights_summary(indir, last):

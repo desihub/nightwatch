@@ -2,7 +2,7 @@
 Pages summarizing QA results
 """
 
-import os, json, re
+import os, json, re, time
 from collections import OrderedDict, Counter
 
 import numpy as np
@@ -169,7 +169,9 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
         nights = np.unique(exposures['NIGHT'])
 
     for night in nights:
-        ii = (exposures['NIGHT'] == night)
+        log.debug('{} Generating exposures table for {}'.format(
+            time.asctime(), night))
+        ii = (exposures['NIGHT'] == int(night))
         explist = list()
         
         night_exps = exposures[ii]
@@ -239,6 +241,6 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
         with open(outfile, 'w') as fx:
             fx.write(html)
 
-        _write_expid_links(outdir, exposures, nights)
-
+    #- Update expid and night links only once at the end
+    _write_expid_links(outdir, exposures, nights)
     _write_night_links(outdir)

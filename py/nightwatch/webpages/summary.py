@@ -13,6 +13,8 @@ from ..plots.spectra import plot_spectra_input
 from . import camfiber
 from ..thresholds import pick_threshold_file, get_thresholds
 
+from desiutil.log import get_logger
+
 import bokeh
 from bokeh.embed import components
 from bokeh.layouts import gridplot, layout
@@ -27,7 +29,7 @@ def get_summary_plots(qadata, qprocdir=None):
     Returns:
         dict of html_components to embed in a summary webpage
     '''
-
+    log = get_logger()
     header = qadata['HEADER']
     night = header['NIGHT']
     expid = header['EXPID']
