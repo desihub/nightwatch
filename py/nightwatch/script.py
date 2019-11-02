@@ -179,7 +179,7 @@ def main_monitor(options=None):
                 run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
                                cameras=cameras)
 
-                run.write_tables(args.outdir, args.plotdir)
+                run.write_tables(args.outdir, args.plotdir, expnights=[night,])
 
                 time_end = time.time()
                 dt = (time_end - time_start) / 60
@@ -233,7 +233,7 @@ def main_run(options=None):
     run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, cameras=cameras)
 
     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
-    run.write_tables(args.outdir, args.outdir)
+    run.write_tables(args.outdir, args.outdir, expnights=[night,])
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
