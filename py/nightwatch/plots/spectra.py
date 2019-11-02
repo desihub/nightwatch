@@ -6,6 +6,8 @@ from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool, NumeralTic
 import numpy as np
 import random, os, sys, re
 
+from .. import io
+
 def downsample(data, n, agg=np.mean):
     '''
     Produces downsampled data of data
@@ -274,35 +276,16 @@ def lister(string):
                 result += range(lower, upper, 1)
             else:
                 result += [int(sub)]
-        return result
+        return np.array(result)
     except:
         return None
 
-def grouper(lst):
-    '''
-    Produces a dictionary of spectrographs, with each entry including the fibers
-    within the input list
-
-    Args:
-        lst: int list of fibers (eg [1, 3, 5, 501])
-
-    Returns a dictionary of spectrographs with each entry including the fibers
-    within the input list (eg {0: [1, 3, 5], 1: [501]})
-    '''
-    result = {}
-    for i in range(500, 5001, 500):
-        sub = [j for j in lst if j < i]
-        if len(sub) > 0:
-            result[int(i/500)-1] = sub
-        lst = [j for j in lst if j >= i]
-    return result
-
-def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, width=1000):
+def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, width=1000):
     '''
     Produces plot displaying the specific fibers requested.
 
     Args:
-        data: night directory that contains the expid we want to process spectra for
+        datadir: night directory that contains the expid we want to process spectra for
         expid_num: string or int of the expid we want to process spectra for
         frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
@@ -326,47 +309,38 @@ def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, wid
     expid = str(expid_num).zfill(8)
     colors = {"R":"red", "B":"blue", "Z":"green"}
 
-    group = grouper(fibers)
+    expdir = os.path.join(datadir, expid)
+    fibergroups, missingfibers = io.findfibers(expdir, fibers)
+    if len(missingfibers) < len(fibers):
+        foundfibers = np.concatenate(list(fibergroups.values()))
+    else:
+        foundfibers = []
 
     fig=bk.figure(plot_height = height, plot_width = width)
 
-    for spectro in group:
+    for spectro in fibergroups:
 
-        exists = os.path.isfile(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))) or \
-        os.path.isfile(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))) or \
-        os.path.isfile(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)))
-
-        if not exists:
-            result_not += group[spectro]
-            continue
-
-
-        rbz_none = [False]*len(group[spectro])
+        # rbz_none = [False]*len(fibergroups[spectro])
 
         for cam in colors:
-            if not os.path.isfile(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid))):
+            framefile = os.path.join(datadir, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid))
+            if not os.path.isfile(framefile):
                 continue
-            fibs = list(fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), 5)["FIBER"])
 
-            fib = []
-            for f in fibs:
-                fib += [f in group[spectro]]
+            fibermap = fits.getdata(framefile, 'FIBERMAP')
 
-            c_none = []
-            for f in group[spectro]:
-                c_none += [f in fibs]
+            wavelength = fits.getdata(framefile, "WAVELENGTH")
+            flux = fits.getdata(framefile, "FLUX")
+            spectrofibers = fibergroups[spectro]
+            indexes = np.where(np.in1d(fibermap['FIBER'], spectrofibers))[0]
+            assert len(spectrofibers) == len(indexes)
 
-            rbz_none = np.any([rbz_none, c_none], axis=0)
-            indexes = np.nonzero(fib)[0]
-
-            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
-            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
-            for i in indexes:
+            for i, ifiber in zip(indexes, spectrofibers):
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 length = len(dwavelength)
                 source = ColumnDataSource(data=dict(
-                            fiber = [fibs[i]]*length,
+                            fiber = [ifiber]*length,
                             cam = [cam]*length,
                             wave = dwavelength,
                             flux = dflux
@@ -375,27 +349,20 @@ def plot_spectra_input(data, expid_num, frame, n, select_string, height=500, wid
                 #print(str(i), file=sys.stderr)
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
 
-        for i in range(0, len(group[spectro]), 1):
-            if rbz_none[i]:
-                result_able += [group[spectro][i]]
-            else:
-                result_not += [group[spectro][i]]
-
     # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-    if len(result_not) > 0:
-        fig.add_layout(Title(text= "Not Found: {}".format(result_not),
+    if len(missingfibers) > 0:
+        fig.add_layout(Title(text= "Not Found: {}".format(missingfibers),
             text_font_style="italic"), 'above')
 
-    fig.add_layout(Title(text= "Fibers: {}".format(', '.join(map(str, result_able))),
+    fig.add_layout(Title(text= "Fibers: {}".format(', '.join(map(str, foundfibers))),
         text_font_size="12pt"), 'above')
 
-    if len(result_able) == 0:
+    if len(foundfibers) == 0:
         print('ERROR: Unable to find any input spectra in {} for {}'.format(
-            data, select_string))
+            datadir, select_string))
 
     tooltips = tooltips=[
         ("Fiber", "@fiber"),
-        ("Cam", "@cam"),
         ("Wavelength", "@wave"),
         ("Flux", "@flux")
     ]
