@@ -93,7 +93,14 @@ def get_night_expid(filename):
         return int(hdr['NIGHT']), int(hdr['EXPID'])
 
     #- not found there, try HDU 1 before giving up
-    hdr = fitsio.read_header(filename, 1)
+    try:
+        hdr = fitsio.read_header(filename, 1)
+    except OSError:
+        from desiutil.log import get_logger
+        log = get_logger()
+        log.error('fitsio error reading HDU 1; trying HDU 2 before giving up')
+        hdr = fitsio.read_header(filename, 2)
+
     if 'NIGHT' in hdr and 'EXPID' in hdr:
         return int(hdr['NIGHT']), int(hdr['EXPID'])
 
