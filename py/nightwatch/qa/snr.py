@@ -128,7 +128,8 @@ class QASNR(QA):
                 
                 rflux = swf/(sw+(sw==0))
                 # interpolate over masked pixels
-                rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
+                if np.count_nonzero(sw>0) > 2:
+                    rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
 
                 fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
                 for c in ["G","R","Z"] :
