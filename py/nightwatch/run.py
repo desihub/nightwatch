@@ -1,6 +1,7 @@
 import os, re, time
 import multiprocessing as mp
 import subprocess
+import time
 
 import fitsio
 import numpy as np
@@ -95,6 +96,8 @@ def find_latest_expdir(basedir, processed, startdate=None):
         startdate = ''
 
     log = desiutil.log.get_logger()
+    log.debug('Looking for unprocessed exposures at {}'.format(time.asctime()))
+
     #- Search for most recent basedir/YEARMMDD
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
@@ -115,13 +118,13 @@ def find_latest_expdir(basedir, processed, startdate=None):
         expid = dirname
         datafilename = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
         if os.path.isfile(datafilename):
-            log.debug('Found {}'.format(datafilename))
+            log.debug('Found {} at {}'.format(datafilename, time.asctime()))
             return expdir
         else:
             log.debug('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
             processed.add(expdir)  #- so that we won't check again
     else:
-        log.debug('No new exposures found')
+        log.debug('No new exposures found at {}'.format(time.asctime()))
         return None  #- no basename/YEARMMDD directory was found
 
 def which_cameras(rawfile):
@@ -231,7 +234,11 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     hdr = fitsio.read_header(rawfile, 0)
     if ( 'OBSTYPE' not in hdr ) and ( 'FLAVOR' not in hdr ) :
         log.warning("no obstype nor flavor keyword in first hdu header, moving to the next one")
-        hdr = fitsio.read_header(rawfile, 1)
+        try:
+            hdr = fitsio.read_header(rawfile, 1)
+        except OSError as err:
+            log.error("fitsio error reading HDU 1, trying 2 then giving up")
+            hdr = fitsio.read_header(rawfile, 2)
     try :
         if 'OBSTYPE' in hdr :
             obstype = hdr['OBSTYPE'].rstrip().upper()
