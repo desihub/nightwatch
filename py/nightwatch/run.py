@@ -2,6 +2,7 @@ import os, re, time
 import multiprocessing as mp
 import subprocess
 import time
+import glob
 
 import fitsio
 import numpy as np
@@ -115,42 +116,20 @@ def find_latest_expdir(basedir, processed, startdate=None):
     night = dirname
     log.debug('{} Looking for exposures in {}'.format(timestamp(), nightdir))
 
-    # spectrofiles = sorted(glob.glob(nightdir + '/*/desi*.fits.fz'))
+    spectrofiles = sorted(glob.glob(nightdir + '/*/desi*.fits.fz'))
+    log.debug('{} found {} desi spectro files {}..{}'.format(
+        timestamp(), len(spectrofiles),
+        os.path.basename(spectrofiles[0]),
+        os.path.basename(spectrofiles[1])))
 
-    dirlist = sorted(os.listdir(nightdir))
-    log.debug('{} Found {}'.format(timestamp(), ' '.join(dirlist)))
-    procset = ' '.join(sorted([os.path.basename(x) for x in processed]))
-    log.debug('{} Already processed {}'.format(
-        timestamp(), procset))
-    for dirname in dirlist:
-        expdir = os.path.join(nightdir, dirname)
-        if expdir in processed:
-            ### log.debug('Already processed {}'.format(expdir))
-            continue
-
-        expid = dirname
-        datafilename = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
-        #- 20200214 HACK
-        #- sometimes the link is written slightly before the desi file
-        #- appears, so try a few times before giving up
-        for i in range(3):
-            if os.path.isfile(datafilename):
-                log.debug('{} selected {}'.format(timestamp(), datafilename))
-                return expdir
-            else:
-                log.debug('no {}/{}/desi*.fits.fz; try again in 30 sec'.format(
-                    night, expid))
-                time.sleep(30)
-
-        #- else on the for loop means it finished without finding a desi file
-        else:
-            log.debug('Skipping {}/{} with no desi*.fits.fz'.format(night, expid))
-            processed.add(expdir)  #- so that we won't check again
-
-    #- else on foor loop over directories means no new exposures found
+    for filename in spectrofiles:
+        dirname = os.path.dirname(filename)
+        if dirname not in processed:
+            log.debug('{} selected {}'.format(timestamp(), filename))
+            return dirname
     else:
-        log.debug('{} No new exposures found'.format(timestamp()))
-        return None  #- no basename/YEARMMDD directory was found
+        log.debug('{} no new spectro files found'.format(timestamp()))
+        return None
 
 def which_cameras(rawfile):
     '''
