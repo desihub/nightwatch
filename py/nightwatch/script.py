@@ -7,6 +7,7 @@ import argparse
 import traceback
 import subprocess
 from . import run, plots, io
+from .run import timestamp
 from .qa.runner import QARunner
 from desiutil.log import get_logger
 
@@ -66,7 +67,7 @@ def main_monitor(options=None):
     parser.add_argument("--plotdir", type=str, help="QA plot output directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
-    parser.add_argument("--waittime", type=int, default=5, help="Seconds to wait between checks for new data")
+    parser.add_argument("--waittime", type=int, default=10, help="Seconds to wait between checks for new data")
     parser.add_argument("--startdate", type=int, default=None, help="Earliest startdate to check for unprocessed nights (YYYYMMDD)")
     parser.add_argument("--batch", "-b", type=bool, default=False, help="Bool, qproc data processing to batch job")
     parser.add_argument("--nodes", "-N", type=int, default=1, help="Number of nodes for qproc batch job, batch=True")
@@ -97,12 +98,20 @@ def main_monitor(options=None):
 
     #- TODO: figure out a way to print how many nights are being skipped before startdate
     while True:        
+
+        if os.path.exists('nightwatch.stop'):
+            print("Found nightwatch.stop file; exiting now")
+            sys.exit(0)
+
         if args.catchup:
             expdir = run.find_unprocessed_expdir(args.indir, args.outdir, processed, startdate=args.startdate)
         else:
             expdir = run.find_latest_expdir(args.indir, processed, startdate=args.startdate)
 
         if expdir is None:
+            print('{} No new exposures found; sleeping {} sec'.format(
+                    timestamp(), args.waittime))
+            sys.stdout.flush()
             time.sleep(args.waittime)
             continue
 
@@ -120,13 +129,14 @@ def main_monitor(options=None):
                 os.makedirs(outdir, exist_ok=True)
 
             time_start = time.time()
-            print('\n{} Found new exposure {}/{}'.format(
-                time.strftime('%H:%M'), night, expid))
+            print('\n{} Found new exposure {}/{}'.format(timestamp(), night, expid))
+            sys.stdout.flush()
             try :
                 run_batch_qproc=args.batch
 
                 if run_batch_qproc:
-                    print('Spawning qproc of {} to batch processes'.format(rawfile))
+                    print('{} Spawning qproc of {} to batch processes'.format(
+                        timestamp(), rawfile))
 
                     sep = os.path.sep
                     dirfile = sep.join(['..', 'code', 'nightwatch', 'py', 'nightwatch', 'wrap_qproc.py'])
@@ -160,10 +170,12 @@ def main_monitor(options=None):
 
 
                 if not run_batch_qproc:
-                    print('Running qproc on {}'.format(rawfile))
+                    print('{} Running qproc on {}'.format(time.strftime('%H:%M'), rawfile))
+                    sys.stdout.flush()
                     header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
-                print('Running QA on {}/{}'.format(night, expid))
+                print('{} Running QA on {}/{}'.format(timestamp(), night, expid))
+                sys.stdout.flush()
                 qafile = "{}/qa-{}.fits".format(outdir,expid)
 
                 caldir = os.path.join(args.plotdir, "static")
@@ -185,7 +197,7 @@ def main_monitor(options=None):
                 time_end = time.time()
                 dt = (time_end - time_start) / 60
                 print('{} Finished exposure {}/{} ({:.1f} min)'.format(
-                    time.strftime('%H:%M'), night, expid, dt))
+                    timestamp(), night, expid, dt))
 
             except Exception as e :
                 print("Failed to process or QA or plot exposure {}".format(expid))
@@ -194,7 +206,7 @@ def main_monitor(options=None):
                 traceback.print_exception(*exc_info)
                 del exc_info
                 print("Now moving on ...")
-                
+                sys.stdout.flush()
 
             processed.add(expdir)
 
