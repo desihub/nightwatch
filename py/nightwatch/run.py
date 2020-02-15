@@ -484,9 +484,10 @@ def write_tables(indir, outdir, expnights=None):
                     qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
                     
                     #- gets the list of failed qprocs for each expid
-                    preproc_cams = [i.split("-")[1] for i in os.listdir(expdir) 
+                    expfiles = os.listdir(expdir)
+                    preproc_cams = [i.split("-")[1] for i in expfiles
                                     if re.match(r'preproc-.*-.*.fits', i)]
-                    log_cams = [i.split("-")[1] for i in os.listdir(expdir) if re.match(r'.*\.log', i)]
+                    log_cams = [i.split("-")[1] for i in expfiles if re.match(r'.*\.log', i)]
                     qfails = [i for i in log_cams if i not in preproc_cams]
                     
                     if os.path.exists(qafile):
