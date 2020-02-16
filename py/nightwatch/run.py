@@ -117,10 +117,13 @@ def find_latest_expdir(basedir, processed, startdate=None):
     log.debug('{} Looking for exposures in {}'.format(timestamp(), nightdir))
 
     spectrofiles = sorted(glob.glob(nightdir + '/*/desi*.fits.fz'))
-    log.debug('{} found {} desi spectro files {}..{}'.format(
-        timestamp(), len(spectrofiles),
-        os.path.basename(spectrofiles[0]),
-        os.path.basename(spectrofiles[1])))
+    if len(spectrofiles) > 0:
+        log.debug('{} found {} desi spectro files though {}'.format(
+            timestamp(), len(spectrofiles),
+            $os.path.basename(spectrofiles[-1])))
+    else:
+        log.debug('{} no new spectro files yet'.format(timestamp))
+        return None
 
     for filename in spectrofiles:
         dirname = os.path.dirname(filename)
