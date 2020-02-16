@@ -120,7 +120,7 @@ def find_latest_expdir(basedir, processed, startdate=None):
     if len(spectrofiles) > 0:
         log.debug('{} found {} desi spectro files though {}'.format(
             timestamp(), len(spectrofiles),
-            $os.path.basename(spectrofiles[-1])))
+            os.path.basename(spectrofiles[-1])))
     else:
         log.debug('{} no new spectro files yet'.format(timestamp))
         return None
