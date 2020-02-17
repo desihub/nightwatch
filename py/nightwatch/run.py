@@ -122,7 +122,7 @@ def find_latest_expdir(basedir, processed, startdate=None):
             timestamp(), len(spectrofiles),
             os.path.basename(spectrofiles[-1])))
     else:
-        log.debug('{} no new spectro files yet'.format(timestamp))
+        log.debug('{} no new spectro files yet'.format(timestamp()))
         return None
 
     for filename in spectrofiles:
