@@ -104,31 +104,48 @@ class QASNR(QA):
                     stars       = (desi_target & desi_mask.mask('STD_WD|STD_FAINT|STD_BRIGHT')) != 0
                     qsos        = (desi_target & desi_mask.QSO) != 0
             
+            sw  = np.zeros(self.rwave.size)
+            swf = np.zeros(self.rwave.size)
+
+            #- we need a ridiculously large array to cover the r filter, but precache
+            #- what wavelength ranges matter for each band
+            iiband = dict()
+            for c in ["B", "R", "Z"]:
+                if c in qframes:
+                    qframe = qframes[c]
+                    iiband[c] = (qframe.wave[0][0] < self.rwave)
+                    iiband[c] &= (self.rwave < qframe.wave[0][-1])
+
             for f,fiber in enumerate(fmap["FIBER"]) :
-                
                 dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"FIBER":fiber}
                 for k in ["FLUX_G","FLUX_R","FLUX_Z"] :
                     dico[k]=fmap[k][f]
                 
                 photsys=fmap["PHOTSYS"][f]
-                
-                sw  = np.zeros(self.rwave.size)
-                swf = np.zeros(self.rwave.size)
+
+                #- clear previous fiber results
+                sw  *= 0.0
+                swf *= 0.0
                 
                 for c in ["B","R","Z"] :
                     
                     if c in qframes :
                         qframe=qframes[c]
                         dico["SNR_"+c] = np.median(qframe.flux[f] * np.sqrt(qframe.ivar[f]))
-                        cf , cw = resample_flux(self.rwave,qframe.wave[f],qframe.flux[f],qframe.ivar[f])
-                        sw  += cw
-                        swf += cw*cf
+                        ### cf , cw = resample_flux(self.rwave,qframe.wave[f],qframe.flux[f],qframe.ivar[f])
+                        ### sw  += cw
+                        ### swf += cw*cf
+                        ii = iiband[c]
+                        cf, cw = resample_flux(self.rwave[ii],qframe.wave[f],qframe.flux[f],qframe.ivar[f])
+                        sw[ii]  += cw
+                        swf[ii] += cw*cf
                     else :
                         dico["SNR_"+c] = 0.
                 
                 rflux = swf/(sw+(sw==0))
                 # interpolate over masked pixels
-                rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
+                if np.count_nonzero(sw>0) > 2:
+                    rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
 
                 fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
                 for c in ["G","R","Z"] :

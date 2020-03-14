@@ -20,6 +20,7 @@ from .traceshift import QATraceShift
 from .psf import QAPSF
 from .fiberflat import QAFiberflat
 from .snr import QASNR
+from ..run import timestamp
 
 class QARunner(object):
 
@@ -82,7 +83,7 @@ class QARunner(object):
         results = dict()
         for qa in self.qalist:
             if qa.valid_obstype(obstype):
-                log.debug('Running {} {}'.format(qa, qa.output_type))
+                log.info('{} Running {} {}'.format(timestamp(), qa, qa.output_type))
                 qa_results = None
                 try:
                     qa_results = qa.run(indir)
@@ -167,6 +168,7 @@ class QARunner(object):
                 break
 
             #- To do: consider propagating header from indir/desi*.fits.fz
+            log.info('{} Writing {}'.format(timestamp(), outfile))
             with fitsio.FITS(outfile, 'rw', clobber=True) as fx:
                 fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
                 for qatype, qatable in results.items():
