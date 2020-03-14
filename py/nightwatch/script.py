@@ -99,8 +99,8 @@ def main_monitor(options=None):
     #- TODO: figure out a way to print how many nights are being skipped before startdate
     while True:        
 
-        if os.path.exists('nightwatch.stop'):
-            print("Found nightwatch.stop file; exiting now")
+        if os.path.exists('stop.nightwatch'):
+            print("Found stop.nightwatch file; exiting now")
             sys.exit(0)
 
         if args.catchup:
