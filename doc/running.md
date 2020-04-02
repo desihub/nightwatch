@@ -12,16 +12,6 @@ steps before going back to watching for additional new data.
 Run `nightwatch --help` for an overview, or `nightwatch <command> --help`
 for help on individual commands.
 
-## Automated Nightwatch
-
-To run nightwatch in automated mode:
-```
-nightwatch monitor --indir INDIR --outdir OUTDIR
-```
-This will monitor INDIR/YEARMMDD/EXPID/ for new raw data, and when it appears
-monitor will run qproc, qa, and make plots, outputting them to
-OUTDIR/YEARMMDD/EXPID/
-
 ## Processing a single exposure
 
 To process a single exposure (qproc, qa, plots):
@@ -36,9 +26,22 @@ steps for individual exposures without having to run all the other steps:
 
 ```
 nightwatch qproc --infile RAWDATAFILE --outdir QPROCDIR
-nightwatch qa --indir QPROCDIR --outdir QADIR
-nightwatch plot --indir QADIR --outdir QAPLOTDIR
+nightwatch qa --indir QPROCDIR --outfile QADIR/NIGHT/EXPID/qa-EXPID.fits
+nightwatch plot --infile QADIR/NIGHT/EXPID/qa-EXPID.fits --outdir QADIR
 ```
+
+Normally QPROCDIR is the same as the QADIR, but it is possible to keep
+these in separate directory trees.
+
+## Automated Nightwatch
+
+To run nightwatch in automated mode:
+```
+nightwatch monitor --indir INDIR --outdir OUTDIR
+```
+This will monitor INDIR/YEARMMDD/EXPID/ for new raw data, and when it appears
+monitor will run qproc, qa, and make plots, outputting them to
+OUTDIR/YEARMMDD/EXPID/
 
 
 
