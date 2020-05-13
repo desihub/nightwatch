@@ -1,4 +1,6 @@
 import numpy as np
+import fitsio
+import os, fnmatch
 import jinja2
 import bokeh
 import desimodel.io
@@ -11,7 +13,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.models import Panel, Tabs
 from astropy.table import Table, join, vstack, hstack
 
-from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum
+from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
 
 
 def write_camfiber_html(outfile, data, header):
@@ -32,7 +34,8 @@ def write_camfiber_html(outfile, data, header):
     PERCENTILES = {'B':(0, 95), 'R':(0, 95), 'Z':(0, 98)}
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
               'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibrated Flux',
-              'MEDIAN_CALIB_FLUX':'Median Calibrated Flux', 'MEDIAN_CALIB_SNR':'Median Calibrated S/N'}
+              'MEDIAN_CALIB_FLUX':'Median Calibrated Flux', 'MEDIAN_CALIB_SNR':'Median Calibrated S/N',
+              'ON_TARGET': 'Fibers On Target'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,tap,reset'
 
@@ -51,6 +54,12 @@ def write_camfiber_html(outfile, data, header):
     fp_outfile = outfile[:index_fp_file] + '-focalplane_plots.html'
     fp_template = env.get_template('focalplane.html')
     write_focalplane_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+
+    #- POSITIONER ACCURACY PLOTS
+    index_pa_file = outfile.index('.html')
+    pa_outfile = outfile[:index_pa_file] + '-posacc_plots.html'
+    pa_template = env.get_template('posacc.html')
+    write_posacc_plots(data, pa_template, pa_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
 
     return dict({})
 
@@ -125,6 +134,73 @@ def write_focalplane_plots(data, template, outfile, header,
 
 
 
+def write_posacc_plots(data, template, outfile, header,
+        ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
+        TOOLS='pan,box_select,reset',pos_acc=True):
+    '''
+    Args:
+        data : fits file of per_camfiber data
+        template : html template
+        outfile : output directory for generated html file
+        header : fits file header
+        ATTRIBUTES : list of attributes to plot
+        CAMERAS : list of camera filters to plot
+        PERCENTILES : list of percentiles to clip histogram data per camera
+        TITLESPERCAM : titles for plots
+        TOOLS : supported features
+        pos_acc : Option to not include the POsitioner Accuracy plots
+
+    Writes the focalplane plots to OUTFILE
+    '''
+    focalplane_gridlist = []
+
+    #- Gets a shared ColumnDataSource of for just our ON-TARGET attribute 
+    cds = get_cds(data,['ON_TARGET'], CAMERAS)
+
+    figs_list = plot_camfib_fot(cds, 'ON_TARGET', CAMERAS, percentiles=PERCENTILES,
+                                     titles=TITLESPERCAM, tools=TOOLS)
+    focalplane_gridlist.extend([figs_list])
+
+    #- Positioner Accuracy Plots
+    if pos_acc:
+        pcd = get_posacc_cd(header)##
+        if pcd is not None:
+            for attr in ['BLIND','FINAL_MOVE']:
+                figs_list,hfigs_list = plot_camfib_posacc(pcd,attr, percentiles=PERCENTILES,tools=TOOLS)
+                focalplane_gridlist.extend([figs_list,hfigs_list])
+
+    #- Organizes the layout of the plots
+    pa_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+
+    #- Writes the htmlfile
+    write_file = write_htmlfile(pa_camfiber_layout, template, outfile, header)
+
+def get_posacc_cd(header):
+    '''
+    Creates column data source from coordinates.fits file
+    Merges coordinate data with fiberpos data for X,Y plotting
+    Args:
+        header : from data file
+    '''
+    fiberpos = Table(desimodel.io.load_fiberpos()).to_pandas()
+    fiberpos.PETAL = fiberpos.PETAL.astype(int)
+    fiberpos.DEVICE = fiberpos.DEVICE.astype(int)
+    night = header['NIGHT']
+    expid = header['EXPID']
+    coordfile = '{}/{}/coordinates-{}.fits'.format(night, str(expid).zfill(8), str(expid).zfill(8))
+
+    if os.path.isfile(coordfile):
+        df = Table(fitsio.read(coordfile)).to_pandas()
+        final_move = np.sort(fnmatch.filter(df.columns, 'OFFSET_*'))[-1]
+        df = df.merge(fiberpos, how='left',left_on=['PETAL_LOC','DEVICE_LOC'], right_on=['PETAL','DEVICE'])
+        df['BLIND'] = df['OFFSET_0']*1000
+        df['FINAL_MOVE'] = df[final_move]*1000
+        df['CAM'] = ''
+        df = df.fillna(-1)
+        return ColumnDataSource(data=df)
+    else:
+        return None
+
 def get_cds(data, attributes, cameras):
     '''
     Creates a column data source from DATA
@@ -172,6 +248,23 @@ def create_cds(data, attributes, bin_size=25):
             data_dict[colname] = data[colname].astype(np.float32)
         else:
             data_dict[colname] = data[colname]
+
+    #- Create ON_TARGET attribute with SNR > 1. Prefer to use CALIB_SNR
+    if 'ON_TARGET' in attributes:
+        if 'MEDIAN_CALIB_SNR' in data.dtype.names:
+            attr = 'MEDIAN_CALIB_SNR'
+        elif 'MEDIAN_RAW_SNR' in data.dtype.names:
+            attr = 'MEDIAN_RAW_SNR'
+
+        try:
+            d = np.array(data[attr])
+            on_target = np.where(d>1)
+            new_d = np.zeros(len(d))
+            new_d[on_target] = 1
+            data_dict['ON_TARGET'] = new_d
+        except:
+            print("Didn't add ON TARGET")
+
 
     cds = ColumnDataSource(data=data_dict)
     return cds
