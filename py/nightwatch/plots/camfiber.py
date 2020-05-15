@@ -160,14 +160,14 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
     metric = np.array(pcd.data.get(attribute), copy=True)
     metric = metric[np.where(metric>0)] #removed nan values
     pmin, pmax = np.percentile(metric, (0, 95))
-    hist_x_range = (pmin * 0.99, pmax * 1.01)
+    #hist_x_range = (pmin * 0.99, pmax * 1.01)
 
     if attribute == 'BLIND':
         title = "Max Blind Move: {:.2f}um".format(np.max(metric))
-        upper_cmap = 200
+        zmax = 200
     elif attribute == 'FINAL_MOVE':
         title = 'RMS Final Move: {:.2f}um'.format(np.sqrt(np.square(metric).mean()))
-        upper_cmap = 30
+        zmax = 30
 
 
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
@@ -185,12 +185,12 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
         fig_x_range = figs_list[0].x_range
         fig_y_range = figs_list[0].y_range
 
+    hist_x_range = (pmin * 0.99, zmax)
     c = '' # So not to change plot_fibers_focalplane code
     fig, hfig = plot_fibers_focalplane(pcd, attribute,cam=c, 
                         percentile=percentiles.get(c),
                         palette = bp.Magma256,
-                        upper_cmap=upper_cmap,
-                        title=title,
+                        title=title,zmin=0, zmax=zmax,
                         tools=tools, hist_x_range=hist_x_range,
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=True)
