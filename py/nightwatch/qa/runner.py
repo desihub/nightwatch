@@ -39,7 +39,7 @@ class QARunner(object):
         '''TODO: document'''
         log = desiutil.log.get_logger()
         log.debug('Running QA in {}'.format(indir))
-
+        print('here qa.runner', indir)
         preprocfiles = sorted(glob.glob('{}/preproc-*.fits'.format(indir)))
         if len(preprocfiles) == 0:
             log.error('No preproc files found in {}'.format(indir))

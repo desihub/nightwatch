@@ -9,6 +9,7 @@ import numpy as np
 import scipy as sp
 
 from astropy.table import Table, vstack
+from shutil import copyfile
 
 import desiutil.log
 
@@ -233,10 +234,10 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     returns header of HDU 0 of the input rawfile
     '''
     log = desiutil.log.get_logger()
-
     if not os.path.isdir(outdir):
         log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
+
 
     hdr = fitsio.read_header(rawfile, 0)
     if ( 'OBSTYPE' not in hdr ) and ( 'FLAVOR' not in hdr ) :
@@ -257,7 +258,18 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     except KeyError as e :
         log.error(str(e))
         raise(e)
+
+    #- copy coordfile to new folder for pos accuracy
     indir = os.path.abspath(os.path.dirname(rawfile))
+    coord_infile = '{}/coordinates-{:08d}.fits'.format(indir,expid)
+    coord_outfile = '{}/coordinates-{:08d}.fits'.format(outdir,expid)
+    print(coord_infile)
+    if os.path.isfile(coord_infile):
+        print('copying coordfile')
+        copyfile(coord_infile, coord_outfile)
+    else:
+        log.warning('No coordinate file for positioner accuracy')
+
 
     #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
     if night == '        ':
@@ -355,7 +367,6 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     from . import io
 
     log = desiutil.log.get_logger()
-
     qadata = io.read_qa(infile)
     header = qadata['HEADER']
 

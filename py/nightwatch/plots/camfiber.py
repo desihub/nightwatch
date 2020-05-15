@@ -85,6 +85,120 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
     return figs_list, hfigs_list
 
 
+def plot_camfib_fot(cds, attribute, cameras, percentiles={},
+                      zmaxs={}, zmins={}, titles={},
+                      tools='pan,box_zoom,reset'):
+    '''
+    ARGS:
+        cds : ColumnDataSource of data
+        attribute : string corresponding to column name in DATA
+        cameras : list of string representing unique camera values
+
+    Options:
+        percentiles : dictionary of cameras corresponding to (min,max)
+            to clip data for histogram
+        zmaxs : dictionary of cameras corresponding to hardcoded max values
+            to clip data for histogram
+        zmins : dictionary of cameras corresponding to hardcoded min values
+            to clip data for histogram
+        titles : dictionary of titles per camera for a group of camfiber plots
+            where key-value pairs represent a camera-attribute plot title
+        tools, tooltips : supported plot interactivity features
+    '''
+    if attribute not in list(cds.data.keys()):
+        raise ValueError('{} not in cds.data.keys'.format(attribute))
+
+    metric = np.array(cds.data.get(attribute), copy=True)
+
+    #- adjusts for outliers on the full scale
+    #- change back to (2.5, 97.5) for the middle 95% for real data...?
+    pmin, pmax = np.percentile(metric, (0, 95))
+
+    #- common scale for all histograms for this metric
+    hist_x_range = (pmin * 0.99, pmax * 1.01)
+
+    #- for hover tool
+    attr_formatted_str = "@" + attribute + '{(0.00 a)}'
+    tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
+                (attribute, attr_formatted_str)]
+
+    figs_list = []
+
+    for i in range(len(cameras)):
+        c = cameras[i]
+
+        first_x_range = bokeh.models.Range1d(-420, 420)
+        first_y_range = bokeh.models.Range1d(-420, 420)
+
+        #- shared ranges to support linked features
+        if not figs_list:
+            fig_x_range = first_x_range
+            fig_y_range = first_y_range
+        else:
+            fig_x_range = figs_list[0].x_range
+            fig_y_range = figs_list[0].y_range
+
+        fig, hfig = plot_fibers_focalplane(cds, attribute, cam=c,
+                        percentile=percentiles.get(c),
+                        zmin=zmins.get(c), zmax=zmaxs.get(c),
+                        title=titles.get(c, {}).get(attribute),
+                        palette = list(np.flip(bp.YlGnBu[5])),
+                        tools=tools, hist_x_range=hist_x_range,
+                        fig_x_range=fig_x_range, fig_y_range=fig_y_range,
+                        colorbar=False, on_target=True)
+
+        figs_list.append(fig)
+
+
+    return figs_list
+
+def plot_camfib_posacc(pcd,attribute,percentiles={},
+                      tools='pan,box_zoom,reset'):
+
+    figs_list = []
+    hfigs_list = []
+    metric = np.array(pcd.data.get(attribute), copy=True)
+    metric = metric[np.where(metric>0)] #removed nan values
+    pmin, pmax = np.percentile(metric, (0, 95))
+    #hist_x_range = (pmin * 0.99, pmax * 1.01)
+
+    if attribute == 'BLIND':
+        title = "Max Blind Move: {:.2f}um".format(np.max(metric))
+        zmax = 200
+    elif attribute == 'FINAL_MOVE':
+        title = 'RMS Final Move: {:.2f}um'.format(np.sqrt(np.square(metric).mean()))
+        zmax = 30
+
+
+    attr_formatted_str = "@" + attribute + '{(0.00 a)}'
+    tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
+                (attribute, attr_formatted_str)]
+
+
+    first_x_range = bokeh.models.Range1d(-420, 420)
+    first_y_range = bokeh.models.Range1d(-420, 420)
+
+    if not figs_list:
+        fig_x_range = first_x_range
+        fig_y_range = first_y_range
+    else:
+        fig_x_range = figs_list[0].x_range
+        fig_y_range = figs_list[0].y_range
+
+    hist_x_range = (pmin * 0.99, zmax)
+    c = '' # So not to change plot_fibers_focalplane code
+    fig, hfig = plot_fibers_focalplane(pcd, attribute,cam=c, 
+                        percentile=percentiles.get(c),
+                        palette = bp.Magma256,
+                        title=title,zmin=0, zmax=zmax,
+                        tools=tools, hist_x_range=hist_x_range,
+                        fig_x_range=fig_x_range, fig_y_range=fig_y_range,
+                        colorbar=True)
+
+    figs_list.append(fig)
+    hfigs_list.append(hfig)
+    return figs_list, hfigs_list
+
 
 def plot_per_fibernum(cds, attribute, cameras, titles={},
         tools='pan,box_zoom,tap,reset', width=700, height=80,

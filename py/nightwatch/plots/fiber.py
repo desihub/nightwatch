@@ -24,7 +24,7 @@ def plot_fibers_focalplane(source, name, cam='',
                 width=250, height=270, zmin=None, zmax=None,
                 percentile=None, title=None, hist_x_range=None,
                 fig_x_range=None, fig_y_range=None,
-                colorbar=False, palette=None, plot_hist=True,
+                colorbar=False, palette=None, plot_hist=True, on_target=False,
                 tools=['pan','box_select','reset','tap'], tooltips=None):
     '''
     ARGS:
@@ -44,20 +44,23 @@ def plot_fibers_focalplane(source, name, cam='',
         palette : bokeh palette of colors
         colorbar : boolean value to add a color bar
         plot_hist : boolean value to add a histogram
+        on_target : boolean value to make fibers on target plot
 
 
     Generates a focal plane plot with data per fiber color-coded based on its value
     Generates a histogram of NAME values per fiber
     '''
-    full_metric = np.array(source.data.get(name), copy=True)
+    full_metric =np.array(source.data.get(name), copy=True)
+
     #- adjusts for outliers on the full scale
     pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
 
     #- Generate colors for both plots
     if not palette:
         palette = np.array(bp.RdYlBu[11])
-    mapper = linear_cmap(name, palette, low=pmin_full, high=pmax_full, nan_color='gray')
-
+    if not zmax:
+        zmax = pmax_full
+    mapper = linear_cmap(name, palette, low=pmin_full, high=zmax, nan_color='gray')
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
                     x_range=fig_x_range, y_range=fig_y_range)
@@ -96,6 +99,11 @@ def plot_fibers_focalplane(source, name, cam='',
                     line_color=color, line_alpha=0.5, line_width=2)
         fig.text([-350,], [350,], [cam.upper(),],
             text_align='center', text_baseline='middle')
+    if on_target:
+        d = source.data['ON_TARGET'][booleans_metric]
+        on_fib = len(d[d == 1])
+        fig.text([-350,], [-400,], ['{}'.format(on_fib),],
+                text_align='center',text_baseline='middle')
 
     #- style visual attributes of the figure
     fig.xgrid.grid_line_color = None
@@ -139,7 +147,6 @@ def plot_fibers_focalplane(source, name, cam='',
             metric = np.clip(metric, pmin, pmax)
         if zmin or zmax:
             metric = np.clip(metric, zmin, zmax)
-
     hfig = plot_histogram(metric, title=name, width=width, x_range=hist_x_range, num_bins=50,
                          palette=mapper['transform'].palette, low=pmin_full, high=pmax_full)
 
