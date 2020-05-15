@@ -23,7 +23,7 @@ def plot_fibers_focalplane(source, name, cam='',
                 camcolors=dict(B='steelblue', R='firebrick', Z='green'),
                 width=250, height=270, zmin=None, zmax=None,
                 percentile=None, title=None, hist_x_range=None,
-                upper_cmap = None, fig_x_range=None, fig_y_range=None,
+                fig_x_range=None, fig_y_range=None,
                 colorbar=False, palette=None, plot_hist=True, on_target=False,
                 tools=['pan','box_select','reset','tap'], tooltips=None):
     '''
@@ -40,7 +40,6 @@ def plot_fibers_focalplane(source, name, cam='',
         title : title for the plot
         tools : string of supported features for the plot
         tooltips : hovertool info
-        upper_cmap : max value for cmap (used primarily for pos acc plots)
         hist_x_range, fig_x_range, fig_y_range : figure ranges to support linking
         palette : bokeh palette of colors
         colorbar : boolean value to add a color bar
@@ -59,9 +58,9 @@ def plot_fibers_focalplane(source, name, cam='',
     #- Generate colors for both plots
     if not palette:
         palette = np.array(bp.RdYlBu[11])
-    if not upper_cmap:
-        upper_cmap = pmax_full
-    mapper = linear_cmap(name, palette, low=pmin_full, high=upper_cmap, nan_color='gray')
+    if not zmax:
+        zmax = pmax_full
+    mapper = linear_cmap(name, palette, low=pmin_full, high=zmax, nan_color='gray')
     #- Focal plane colored scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
                     x_range=fig_x_range, y_range=fig_y_range)
