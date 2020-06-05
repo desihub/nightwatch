@@ -311,6 +311,7 @@ def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input QA fits file")
     parser.add_argument("-o", "--outdir", type=str, help="output base directory (not including YEARMMDD/EXPID/)")
+    parser.add_argument("-r", "--rawdir", type=str, help="directory conatining raw data (not including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]
@@ -322,8 +323,10 @@ def main_plot(options=None):
             outdir = os.path.dirname(infile)
         else:
             outdir = args.outdir
-
-        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile), guidedir=os.path.dirname(infile))
+        
+        rawdir = args.rawdir
+        
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile), guidedir=rawdir)
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

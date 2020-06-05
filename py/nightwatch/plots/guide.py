@@ -11,16 +11,6 @@ import astropy
 from astropy.table import Table
 from astropy.io import fits as fits
 
-def get_guide_data(night, expid):
-    '''Given a night and exposure, dumps centroid-*.json file into a dictionary. Note: no padding zeros for expid argument.'''
-      
-    infile = "/global/cfs/cdirs/desi/spectro/data/{night}/{expid:08d}/centroids-{expid:08d}.json".format(night=night, expid=expid)
-
-    with open(infile) as fx:
-        guidedata = json.load(fx)
-    
-    return guidedata
-
 def get_all_guide_scatter(data, cam, width=700, height=300, title=None):
     '''Returns plot of x and y errors for all guide stars on one guide camera for all frames taken during an exposure.
     Args:
@@ -138,19 +128,16 @@ def get_all_stars_hist(data, cam, width=300, height=300, title=None):
         
     return xfig, yfig
 
-def guide_scatter_combined(night, expid, cams, width=600, height=300, ncols=2):
+def guide_scatter_combined(data, cams, width=600, height=300, ncols=2):
     '''Returns a multi-plot with both line plots and histograms, across all guide cameras and all guide stars.
     Args:
-        night:
-        expid:
+        data:
         cams:
     Options:
         width:
         height:
         ncols: 
     Returns bokeh Layout object.'''
-    
-    data = get_guide_data(night, expid)
     
     figs = []
     xhists = []

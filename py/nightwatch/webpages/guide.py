@@ -4,11 +4,12 @@ import jinja2
 import bokeh
 from bokeh.embed import components
 
-from ..plots.guide import guide_scatter_combined, get_guide_data, get_all_guide_scatter, get_all_stars_hist
+from ..plots.guide import guide_scatter_combined, get_all_guide_scatter, get_all_stars_hist
+from ..io import get_guide_data
 
 import os 
 
-def write_guide_html(outfile, header):
+def write_guide_html(outfile, header, guidedata):
     '''add real docstring'''
      
     night = header['NIGHT']
@@ -42,8 +43,7 @@ def write_guide_html(outfile, header):
     plot_components = dict()
 
     #- Generate the bokeh figure
-    data = get_guide_data(night, expid)
-    fig = guide_scatter_combined(night, expid, [0, 2, 3, 5, 7, 8], width=370, height=230, ncols=3)
+    fig = guide_scatter_combined(guidedata, [0, 2, 3, 5, 7, 8], width=370, height=230, ncols=3)
     
     #- Convert that into the components to embed in the HTML
     script, div = components(fig)

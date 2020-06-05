@@ -6,6 +6,7 @@ import os
 import glob
 import numpy as np
 import fitsio
+import json
 
 def read_qa(filename):
     '''
@@ -105,3 +106,26 @@ def get_night_expid(filename):
         return int(hdr['NIGHT']), int(hdr['EXPID'])
 
     raise ValueError('NIGHT and/or EXPID not found in HDU 0 or 1 of {}'.format(filename))
+    
+def get_guide_data(night, expid, basedir):
+    '''Given a night and exposure, dumps centroid-*.json file into a dictionary. Note: no padding zeros for expid argument.
+    Args:
+        night:
+        expid:
+        basedir:
+    returns dictionary object.'''
+    guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid)) 
+    infile = os.path.join(guidedir, 'centroids-{expid:08d}.json'.format(night=night, expid=expid))
+
+    with open(infile) as fx:
+        guidedata = json.load(fx)
+    
+    return guidedata
+
+def get_guide_images(night, expid, basedir):
+    '''Docstring here'''
+    guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid))
+    infile = os.path.join(guidedir, 'guide-rois-{expid:08d}.fits.fz'.format(night=night, expid=expid))
+    return infile
+    
+    

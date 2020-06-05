@@ -21,7 +21,7 @@ def guide_star_timelapse(infile, cam, star, height=400, width=400, title=None):
         width:
         title:
     Returns bokeh layout object.'''
-
+    
     name = 'GUIDE{cam}_{star}'.format(cam=cam, star=star)
     
     try:
@@ -56,10 +56,6 @@ def guide_star_timelapse(infile, cam, star, height=400, width=400, title=None):
     im_glyph = Image(image='image', x=0, y=0, dw=50, dh=50)
     im_renderer = im.add_glyph(renderer_source, im_glyph)
 
-    #im.x_range.range_padding = im.y_range.range_padding = 0
-    im.xaxis.axis_label = 'arc seconds'
-    im.yaxis.axis_label = 'arc seconds'
-
     tooltips = [
             ('(x, y)', '($x, $y)'),
         ]
@@ -87,7 +83,7 @@ def guide_star_timelapse(infile, cam, star, height=400, width=400, title=None):
     
     return layout
 
-def all_stars_timelapse(infile, cam, height=400, width=400, title=None):
+def all_stars_timelapse(infile, cam, height=300, width=300, title=None):
     
     figs = []
     for star in range(4):
@@ -96,5 +92,5 @@ def all_stars_timelapse(infile, cam, height=400, width=400, title=None):
             figs.append(fig)
         except:
             continue
-    grid = gridplot(figs, ncols=2)
+    grid = gridplot(figs, ncols=len(figs))
     return grid
