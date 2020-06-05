@@ -18,7 +18,6 @@ def write_guide_image_html(infile, outfile, night, cam):
     html_components = dict(
         bokeh_version=bokeh.__version__, night=night,
         expid=int(str(expid)), zexpid=expid, num_dirs=2, qatype='guiding',
-        current=cam, available=[0, 2, 3, 5, 7, 8]
     )
     
     fig = all_stars_timelapse(infile, cam)

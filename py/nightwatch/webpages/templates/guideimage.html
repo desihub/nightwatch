@@ -48,19 +48,11 @@ table {
     <tr>
     {% for c in ["0", "2", "3", "5", "7", "8"] %}
         <td {% if c == current %} bgcolor="#6495ed" {% endif %}>
-          {% if (c != current) and (c in available) %}
             <a href="guide-image-{{c}}-{{zexpid}}.html">
-          {% endif %}
-          {% if not current %}
             <font size="5pt">
-          {% endif %}
-          <text {% if c in available %} style="font-weight:bold" {% endif %}>{{c}}<text>
-          {% if not current %}
+              <text {% if c in available %} style="font-weight:bold" {% endif %}>{{c}}</text>
             </font>
-          {% endif %}
-          {% if (c != current) and (c in available) %}
             </a>
-          {% endif %}
         </td>
     </tr>
     {% endfor %}
