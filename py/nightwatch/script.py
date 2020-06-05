@@ -243,7 +243,7 @@ def main_run(options=None):
     qaresults = run.run_qa(expdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, cameras=cameras)
+    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, guidedir=expdir, cameras=cameras)
 
     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
     run.write_tables(args.outdir, args.outdir, expnights=[night,])
@@ -323,7 +323,7 @@ def main_plot(options=None):
         else:
             outdir = args.outdir
 
-        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile))
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile), guidedir=os.path.dirname(infile))
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

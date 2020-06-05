@@ -341,7 +341,7 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
+def make_plots(infile, basedir, preprocdir=None, logdir=None, guidedir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
@@ -354,6 +354,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
             preproc fits file.
         logdir: directory to where the "qproc-*-*.log" are located. If
             not provided, function will NOT display any logfiles.
+        guidedir: directory to where the "centroid-*.json" are located. If
+            not provided, the function will not plot guide camera plots.
         cameras: list of cameras (strings) to generate image files of. If not
             provided, will generate a cameras list from parcing through the
             preproc fits files in the preprocdir
@@ -364,6 +366,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     from nightwatch.webpages import camera as web_camera
     from nightwatch.webpages import summary as web_summary
     from nightwatch.webpages import lastexp as web_lastexp
+    from nightwatch.webpages import guide as web_guide
     from . import io
 
     log = desiutil.log.get_logger()
@@ -462,6 +465,12 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
                                         error_colors=error_colors)
+    
+    if (guidedir is not None):
+        
+        htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+        web_guide.write_guide_html(htmlfile, header)
+        print('Wrote {}'.format(htmlfile))
 
 
 def write_tables(indir, outdir, expnights=None):
