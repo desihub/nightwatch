@@ -354,8 +354,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, guidedir=None, cam
             preproc fits file.
         logdir: directory to where the "qproc-*-*.log" are located. If
             not provided, function will NOT display any logfiles.
-        guidedir: directory to where the "centroid-*.json" are located. If
-            not provided, the function will not plot guide camera plots.
+        guidedir: directory to where the "guide-rois-*.fits" are located. If
+            not provided, the function will not plot the guide star movie plots.
         cameras: list of cameras (strings) to generate image files of. If not
             provided, will generate a cameras list from parcing through the
             preproc fits files in the preprocdir
@@ -367,6 +367,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, guidedir=None, cam
     from nightwatch.webpages import summary as web_summary
     from nightwatch.webpages import lastexp as web_lastexp
     from nightwatch.webpages import guide as web_guide
+    from nightwatch.webpages import guideimage as web_guideimage
     from . import io
 
     log = desiutil.log.get_logger()
@@ -417,6 +418,11 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, guidedir=None, cam
     htmlfile = '{}/qa-lastexp.html'.format(basedir)
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
+    
+    #- plot guide metric plots
+    htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+    web_guide.write_guide_html(htmlfile, header)
+    print('Wrote {}'.format(htmlfile))
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
@@ -465,13 +471,16 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, guidedir=None, cam
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
                                         error_colors=error_colors)
-    
-    if (guidedir is not None):
-        
-        htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
-        web_guide.write_guide_html(htmlfile, header)
-        print('Wrote {}'.format(htmlfile))
-
+         
+    #- plot guide image movies
+    for cam in [0, 2, 3, 5, 7, 8]:
+        try:
+            htmlfile = '{expdir}/guide-image-{cam}-{expid:08d}.html'.format(expdir=expdir, cam=cam, expid=expid)
+            infile = '/global/cfs/cdirs/desi/spectro/data/{night}/{expid:08d}/guide-rois-{expid:08d}.fits.fz'.format(night=night, expid=expid)
+            web_guideimage.write_guide_image_html(infile, htmlfile, night, cam)
+            print('Wrote {}'.format(htmlfile))
+        except ValueError:
+            print('No data for cam {}'.format(cam))
 
 def write_tables(indir, outdir, expnights=None):
     '''

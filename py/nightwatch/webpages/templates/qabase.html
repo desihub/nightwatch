@@ -14,7 +14,11 @@
   <li style="float:left"><a href="{% for i in range(num_dirs) %}../{% endfor %}qa-lastexp.html">latest</a></li>
 
   {# Right side navigations links (from right to left)#}
-  <li><a id="guiding" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-guide-{{ zexpid }}.html">guiding</a></li>
+  <li class="dropdown"><a id="guiding" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-guide-{{ zexpid }}.html">guiding</a>
+      <ul class="dropdown-content">
+          <a id="guide_images" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/guide-image-0-{{ zexpid }}.html">guide_images</a>
+      </ul>
+  </li>
   
   <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">spectra</a>
       <ul class="dropdown-content">
