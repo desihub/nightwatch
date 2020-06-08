@@ -1,7 +1,7 @@
 import jinja2
 import bokeh, os, re, sys
 
-from ..plots.guideimage import guide_star_timelapse, all_stars_timelapse
+from ..plots.guideimage import guide_star_timelapse
 from bokeh.embed import components
 
 def write_guide_image_html(infile, outfile, night, cam):
@@ -20,7 +20,7 @@ def write_guide_image_html(infile, outfile, night, cam):
         expid=int(str(expid)), zexpid=expid, num_dirs=2, qatype='guiding',
     )
     
-    fig = all_stars_timelapse(infile, cam)
+    fig = guide_star_timelapse(infile, cam)
     script, div = components(fig)
     html_components["GUIDE_IMAGE"] = dict(script=script, div=div)
    
