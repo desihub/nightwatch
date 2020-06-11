@@ -431,8 +431,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         for cam in [0, 2, 3, 5, 7, 8]:
             try:
                 htmlfile = '{expdir}/guide-image-{cam}-{expid:08d}.html'.format(expdir=expdir, cam=cam, expid=expid)
-                infile = io.get_guide_images(night, expid, rawdir)
-                web_guideimage.write_guide_image_html(infile, htmlfile, night, cam)
+                image_data = io.get_guide_images(night, expid, cam, rawdir)
+                web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid, cam)
                 print('Wrote {}'.format(htmlfile))
             except ValueError:
                 print('No data for cam {}'.format(cam))

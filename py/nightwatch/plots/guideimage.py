@@ -10,10 +10,10 @@ from bokeh.models import ColumnDataSource, OpenURL, HoverTool, CustomJS, Slider,
 from bokeh.layouts import column, gridplot
 from bokeh.palettes import gray
 
-def guide_star_timelapse(infile, cam, height=300, width=300, title=None):
+def guide_star_timelapse(image_data, cam, height=300, width=300, title=None):
     '''
     Args:
-        infile: file containing guide-rois image data
+        image_data: dictionary containing guide-rois image data
         cam: specify camera (int)
     Options:
         height: height of plot (default = 300)
@@ -21,31 +21,6 @@ def guide_star_timelapse(infile, cam, height=300, width=300, title=None):
         title: title of plot, only needed if you want a different one than is hardcoded(default = None)
     Returns bokeh layout object.'''
     
-    name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
-    name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
-    name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
-    name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
-    #name = 'GUIDE{cam}'.format(cam=cam)
-
-    image_data = dict()
-
-    try:
-        image_data['0'] = fits.getdata(infile, extname=name0)
-    except KeyError:
-        print('no images for {name}'.format(name=name0))
-    try:
-        image_data['1'] = fits.getdata(infile, extname=name1)
-    except KeyError:
-        print('no images for {name}'.format(name=name1))
-    try:
-        image_data['2'] = fits.getdata(infile, extname=name2)
-    except KeyError:
-        print('no images for {name}'.format(name=name2))
-    try:
-        image_data['3'] = fits.getdata(infile, extname=name3)
-    except KeyError:
-        print('no images for {name}'.format(name=name3))
-
     keys = list(image_data.keys())
     indices = range(len(image_data[keys[0]]))
 

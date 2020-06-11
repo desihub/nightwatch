@@ -7,6 +7,7 @@ import glob
 import numpy as np
 import fitsio
 import json
+from astropy.io import fits
 
 def read_qa(filename):
     '''
@@ -122,15 +123,42 @@ def get_guide_data(night, expid, basedir):
     
     return guidedata
 
-def get_guide_images(night, expid, basedir):
+def get_guide_images(night, expid, cam, basedir):
     '''Given a night and exposure, return file containing raw guide images.
     Args:
         night: int
         expid: int (no padding zeros)
+        cam: camera (int)
         basedir: directory of where raw data is kept
     returns path to file.'''
     guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid))
     infile = os.path.join(guidedir, 'guide-rois-{expid:08d}.fits.fz'.format(night=night, expid=expid))
-    return infile
+    
+    name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
+    name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
+    name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
+    name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
+    #name = 'GUIDE{cam}'.format(cam=cam)
+
+    image_data = dict()
+
+    try:
+        image_data['0'] = fits.getdata(infile, extname=name0)
+    except KeyError:
+        print('no images for {name}'.format(name=name0))
+    try:
+        image_data['1'] = fits.getdata(infile, extname=name1)
+    except KeyError:
+        print('no images for {name}'.format(name=name1))
+    try:
+        image_data['2'] = fits.getdata(infile, extname=name2)
+    except KeyError:
+        print('no images for {name}'.format(name=name2))
+    try:
+        image_data['3'] = fits.getdata(infile, extname=name3)
+    except KeyError:
+        print('no images for {name}'.format(name=name3))
+    
+    return image_data
     
     

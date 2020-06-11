@@ -4,10 +4,10 @@ import bokeh, os, re, sys
 from ..plots.guideimage import guide_star_timelapse
 from bokeh.embed import components
 
-def write_guide_image_html(infile, outfile, night, cam):
+def write_guide_image_html(image_data, outfile, night, expid, cam):
     '''Writes html file with guide timelapse movie plots for all guide stars on one camera.
     Args:
-        infile: file containing guide-rois image data (str)
+        image_data: dictionary containing guide-rois image data
         outfile: file to write html to (str)
         night: night of exposure (int)
         cam: camera to generate plots for (int)
@@ -17,16 +17,16 @@ def write_guide_image_html(infile, outfile, night, cam):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
     )
     
-    template = env.get_template('guideimage.html')
+    zexpid = '{expid:08d}'.format(expid=expid)
     
-    expid = os.path.basename(infile).split("-")[2].split(".")[0]
+    template = env.get_template('guideimage.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, night=night,
-        expid=int(str(expid)), zexpid=expid, num_dirs=2, qatype='guiding',
+        expid=int(str(zexpid)), zexpid=zexpid, num_dirs=2, qatype='guiding',
     )
     
-    fig = guide_star_timelapse(infile, cam)
+    fig = guide_star_timelapse(image_data, cam)
     script, div = components(fig)
     html_components["GUIDE_IMAGE"] = dict(script=script, div=div)
    
