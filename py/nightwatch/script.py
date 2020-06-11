@@ -243,7 +243,7 @@ def main_run(options=None):
     qaresults = run.run_qa(expdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, guidedir=expdir, cameras=cameras)
+    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, rawdir=expdir, cameras=cameras)
 
     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
     run.write_tables(args.outdir, args.outdir, expnights=[night,])
