@@ -131,12 +131,12 @@ def get_all_stars_hist(data, cam, width=300, height=300, title=None):
 def guide_scatter_combined(data, cams, width=600, height=300, ncols=2):
     '''Returns a multi-plot with both line plots and histograms, across all guide cameras and all guide stars.
     Args:
-        data:
-        cams:
+        data: dictionary of centroid-*.json data, must have entries x_error and y_error.
+        cams: list of cameras
     Options:
-        width:
-        height:
-        ncols: 
+        width: width of plot (default = 600)
+        height: height of plot (default = 300)
+        ncols: 1/2 number of columns to arrange plots in
     Returns bokeh Layout object.'''
     
     figs = []

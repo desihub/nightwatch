@@ -16,9 +16,9 @@ def guide_star_timelapse(infile, cam, height=300, width=300, title=None):
         infile: file containing guide-rois image data
         cam: specify camera (int)
     Options:
-        height:
-        width:
-        title:
+        height: height of plot (default = 300)
+        width: width of plot (default = 300)
+        title: title of plot, only needed if you want a different one than is hardcoded(default = None)
     Returns bokeh layout object.'''
     
     name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)

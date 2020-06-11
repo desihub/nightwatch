@@ -10,7 +10,12 @@ from ..io import get_guide_data
 import os 
 
 def write_guide_html(outfile, header, guidedata):
-    '''add real docstring'''
+    '''Writes html file with guide line/histogram plots. 
+    Args:
+        outfile: file to write output, string
+        header: header containing metadata on exposure
+        guidedata: dictionary of centroid-*.json data, must have entries x_error and y_error
+    Returns html components of plot. '''
      
     night = header['NIGHT']
     expid = header['EXPID']

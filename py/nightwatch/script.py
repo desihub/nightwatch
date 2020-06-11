@@ -326,7 +326,7 @@ def main_plot(options=None):
         
         rawdir = args.rawdir
         
-        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile), guidedir=rawdir)
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile), rawdir=rawdir)
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

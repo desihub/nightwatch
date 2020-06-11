@@ -110,9 +110,9 @@ def get_night_expid(filename):
 def get_guide_data(night, expid, basedir):
     '''Given a night and exposure, dumps centroid-*.json file into a dictionary. Note: no padding zeros for expid argument.
     Args:
-        night:
-        expid:
-        basedir:
+        night: int
+        expid: int (no padding zeros)
+        basedir: directory of where to look for centroids-*.json files (without YYYYMMDD/EXPID)
     returns dictionary object.'''
     guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid)) 
     infile = os.path.join(guidedir, 'centroids-{expid:08d}.json'.format(night=night, expid=expid))
@@ -123,7 +123,12 @@ def get_guide_data(night, expid, basedir):
     return guidedata
 
 def get_guide_images(night, expid, basedir):
-    '''Docstring here'''
+    '''Given a night and exposure, return file containing raw guide images.
+    Args:
+        night: int
+        expid: int (no padding zeros)
+        basedir: directory of where raw data is kept
+    returns path to file.'''
     guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid))
     infile = os.path.join(guidedir, 'guide-rois-{expid:08d}.fits.fz'.format(night=night, expid=expid))
     return infile
