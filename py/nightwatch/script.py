@@ -233,7 +233,8 @@ def main_run(options=None):
 
     night, expid = io.get_night_expid(args.infile)
     expdir = io.findfile('expdir', night=night, expid=expid, basedir=args.outdir)
-
+    rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
+    
     time_start = time.time()
     print('{} Running qproc'.format(time.strftime('%H:%M')))
     header = run.run_qproc(args.infile, expdir, cameras=cameras)
@@ -243,7 +244,7 @@ def main_run(options=None):
     qaresults = run.run_qa(expdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, rawdir=expdir, cameras=cameras)
+    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
 
     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
     run.write_tables(args.outdir, args.outdir, expnights=[night,])

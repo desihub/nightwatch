@@ -18,12 +18,13 @@ def write_guide_image_html(image_data, outfile, night, expid, cam):
     )
     
     zexpid = '{expid:08d}'.format(expid=expid)
-    
+    qatype = 'guide-image-{}'.format(cam)
     template = env.get_template('guideimage.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, night=night,
-        expid=int(str(zexpid)), zexpid=zexpid, num_dirs=2, qatype='guiding',
+        expid=int(str(zexpid)), zexpid=zexpid, num_dirs=2, qatype=qatype,
+        guideimage=True
     )
     
     fig = guide_star_timelapse(image_data, cam)

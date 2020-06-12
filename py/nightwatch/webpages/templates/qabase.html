@@ -73,6 +73,8 @@ function get_explinks(links) {
         document.getElementById("next").href =
         {% if preproc %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/preproc-{{current}}-"+next_item.zexpid+"-{{downsample}}x.html";
+        {% elif guideimage %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/{{ qatype }}-"+next_item.zexpid+".html";
         {% elif spectra and input %}
         "../../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{select_str}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif spectra %}
@@ -93,6 +95,8 @@ function get_explinks(links) {
         document.getElementById("prev").href =
         {% if preproc %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/preproc-{{current}}-"+prev_item.zexpid+"-{{downsample}}x.html";
+        {% elif guideimage %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/{{ qatype }}-"+next_item.zexpid+".html";
         {% elif spectra and input %}
         "../../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{select_str}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif spectra %}
