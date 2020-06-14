@@ -10,11 +10,10 @@ from bokeh.models import ColumnDataSource, OpenURL, HoverTool, CustomJS, Slider,
 from bokeh.layouts import column, gridplot
 from bokeh.palettes import gray
 
-def guide_star_timelapse(image_data, cam, height=300, width=300, title=None):
+def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8):
     '''
     Args:
         image_data: dictionary containing guide-rois image data
-        cam: specify camera (int)
     Options:
         height: height of plot (default = 300)
         width: width of plot (default = 300)
@@ -32,7 +31,7 @@ def guide_star_timelapse(image_data, cam, height=300, width=300, title=None):
         for key in keys:
             img = [image_data[key][idx]]
             imgs.append(img)
-            image_names.append('image{}'.format(key))
+            image_names.append(key)
         sources['_' + str(idx)] = ColumnDataSource(data = dict(zip(
             [name for name in image_names],
             [img for img in imgs],
@@ -51,11 +50,11 @@ def guide_star_timelapse(image_data, cam, height=300, width=300, title=None):
     im_renderers = []
 
     for key in keys:
-        name_key = 'image{}'.format(key)
-        title = 'Cam {} Star {}'.format(cam, key)
-        im = bk.figure(plot_width=width, plot_height=height, x_range = (0, 50), y_range=(0, 50), title=title)
-        im.xaxis.axis_label = 'pixels'
-        im.yaxis.axis_label = 'pixels'
+        name_key = key
+        title = 'Cam {} Star {}'.format(key[5], key[7])
+        im = bk.figure(plot_width=width, plot_height=height+15, x_range = (0, 50), y_range=(0, 50), title=title)
+        im.xaxis.visible = False
+        im.yaxis.visible = False
         im_glyph = Image(image=name_key, x=0, y=0, dw=50, dh=50)
         im_renderer = im.add_glyph(renderer_source, im_glyph)
 
@@ -71,10 +70,11 @@ def guide_star_timelapse(image_data, cam, height=300, width=300, title=None):
     """ % js_source_array
 
     callback = CustomJS(args=sources, code=code)
-    slider = Slider(start=0, end=indices[-1], value=0, step=1, title="Frame", callback=callback, width=int(width*0.9))
+    slider = Slider(start=0, end=indices[-1], value=0, step=1, title="Frame", callback=callback, width=width*4)
     callback.args['renderer_source'] = renderer_source
     callback.args['slider'] = slider
 
-    slider_row = [slider] + [None]*(len(ims)-1)
-    layout = gridplot([slider_row, ims])
+    ims_plot = gridplot(ims, ncols=ncols, toolbar_location=None)
+    layout = column([slider, ims_plot])
+    
     return layout

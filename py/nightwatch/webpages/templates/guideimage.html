@@ -41,25 +41,6 @@ table {
       <div>{{GUIDE_IMAGE.script}} {{GUIDE_IMAGE.div}}</div>
   </div>
 
-  {# Table of links to different guide images #}
-  <div class=flex-item style="padding-right:10px">
-  <br>
-  <table border="1" cellpadding="8">
-    <tr>
-    {% for c in ["0", "2", "3", "5", "7", "8"] %}
-        <td {% if c == current %} bgcolor="#6495ed" {% endif %}>
-            <a href="guide-image-{{c}}-{{zexpid}}.html">
-            <font size="5pt">
-              <text {% if c in available %} style="font-weight:bold" {% endif %}>{{c}}</text>
-            </font>
-            </a>
-        </td>
-    </tr>
-    {% endfor %}
-  </table>
-  <br>
-
-  </div>
 </div>
 {% endblock %}
 

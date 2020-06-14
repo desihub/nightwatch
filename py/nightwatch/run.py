@@ -428,14 +428,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         print('Wrote {}'.format(htmlfile))
         
         #- plot guide image movies
-        for cam in [0, 2, 3, 5, 7, 8]:
-            try:
-                htmlfile = '{expdir}/guide-image-{cam}-{expid:08d}.html'.format(expdir=expdir, cam=cam, expid=expid)
-                image_data = io.get_guide_images(night, expid, cam, rawdir)
-                web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid, cam)
-                print('Wrote {}'.format(htmlfile))
-            except ValueError:
-                print('No data for cam {}'.format(cam))
+        htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+        image_data = io.get_guide_images(night, expid, rawdir)
+        web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
+        print('Wrote {}'.format(htmlfile))
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
