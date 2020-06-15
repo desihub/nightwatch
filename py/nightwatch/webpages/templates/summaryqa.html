@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<style>
+    body {
+        margin: 0;
+    }
+    .header {
+        font-family: "Open Serif", Arial, Helvetica, sans-serif;
+        background-color: #f1f1f1;
+        padding: 10px;
+        text-align: left;
+        justify: space-around;
+    }
+    .column {
+        float: center;
+    }
+    .column.side {
+        width = 10%;
+    }
+    .column.middle {
+        width = 80%;
+    }
+    .flex-container {
+        display: flex;
+        flex-direction: row;
+        flex-flow: row wrap;
+        justify-content: flex-start;
+        padding: 10px;
+        align-items: flex-end;
+    }
+    p.sansserif {
+        font-family: "Open Serif", Helvetica, sans-serif;
+    }
+</style>
+
+<div class="flex-container">
+    <div class="column side"></div>
+    <div class="column middle">
+        <div class="header">
+            <p class='sansserif'>DESI Survey QA through {{ last_night }}</p>
+        </div>
+            
+        <div class="flex-container">
+            <div>{{ skyplot_script }} {{ skyplot_div }}</div>
+        </div>
+            
+        <div class="header">
+            <p class="sansserif">Observing Conditions</p>
+        </div>
+            
+        <div class="flex-container">
+            <div>{{ airmass_script }} {{ airmass_div }}</div>
+            <div>{{ seeing_script }} {{ seeing_div }}</div>
+            <div>{{ transp_hist_script }} {{ transp_hist_div }}</div>
+            <div>{{ exposePerTile_hist_script }} {{ exposePerTile_hist_div }}</div>
+            <div>{{ brightness_script }} {{ brightness_div }}</div>
+            <div>{{ exptime_script }} {{ exptime_div }}</div>
+        </div>
+                
+        <div class="header">
+            <p class="sansserif">Summary Table</p>
+        </div>
+                
+        <div class="flex-container">
+            {{ summarytable_script }}
+            {{ summarytable_div }}
+        </div>
+            
+    </div>
+    <div class="column side"></div>
+</div>
+{% endblock %}
+        
+    
