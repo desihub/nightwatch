@@ -8,6 +8,7 @@ import numpy as np
 import fitsio
 import json
 from astropy.io import fits
+from astropy.table import Table
 
 def read_qa(filename):
     '''
@@ -177,3 +178,109 @@ def get_guide_images(night, expid, basedir):
     
     return image_data
     
+def get_surveyqa_data(infile, name_dict, rawdir, program=True):
+    '''Given surveyqa data file, file of tile data, and dictionary containing equivalent columns, returns
+    table of data to feed into surveyqa code.
+    Args:
+        infile: (str) path to file containing surveyqa data
+        name_dict: dictionary with column equivalents
+            Must have equivalents for AIRMASS, SKY, SEEING, TRANSP, RA, DEC, MJD, NIGHT, EXPID.
+        rawdir: directory containing raw data files
+    Options:
+        program: whether or not to use hardcoded information to assign programs to tileids, default=True'''
+    
+    table = Table.read(infile, hdu=1)
+    
+    new_table = Table()
+    for key in name_dict.keys():
+        new_table[key] = table[name_dict[key]]
+    
+    table_by_expid = new_table.group_by('EXPID')
+    table_mean = table_by_expid.groups.aggregate(np.nanmean)
+    table_min = table_by_expid.groups.aggregate(np.nanmin)
+
+    exposures = Table()
+    for attr in ["AIRMASS", "SKY", "SEEING", "TRANSP"]:
+        exposures[attr] = table_mean[attr]
+    for attr in ['RA', "DEC", "MJD", "NIGHT", "EXPID"]:
+        exposures[attr] = table_min[attr]
+        
+    flavors = []
+    tiles = []
+    exptimes = []
+
+    for idx in range(len(exposures['EXPID'])):
+
+        night = exposures["NIGHT"][idx]
+        #print(night)
+        expid = exposures['EXPID'][idx]
+        raw_file = os.path.join(rawdir, '{night}/{expid:08d}/desi-{expid:08d}.fits.fz'.format(night=night, expid=expid))
+
+        try:
+            hdul = fits.open(raw_file)
+            header = hdul[1].header
+            hdul.close()
+            try:
+                tiles.append(header['TILEID'])
+            except KeyError:
+                tiles.append(-1)
+            try:
+                flavors.append(header["FLAVOR"])
+            except KeyError:
+                flavors.append('None')
+            try:
+                exptimes.append(header['EXPTIME'])
+            except:
+                exptimes.append(-1)
+        except:
+            flavors.append('None')
+            exptimes.append(-1)
+            tiles.append(-1)
+
+    exposures["FLAVOR"] = flavors
+    exposures['TILEID'] = tiles
+    exposures['EXPTIME'] = exptimes
+
+    if program:
+        programs = []
+        for row_ in exposures:
+            tileid = row_["TILEID"]
+            if (tileid >= 65000 and tileid < 67000):
+                programs.append('BRIGHT')
+                continue
+            if (tileid >= 67000 and tileid < 68000):
+                programs.append('GRAY')
+                continue
+            if (tileid >= 68000 and tileid < 69000):
+                programs.append("DARK")
+                continue
+            if (tileid >= 70000 and tileid < 70500):
+                programs.append('DARK')
+                continue
+            if (tileid >= 70500 and tileid < 71000):
+                programs.append("BRIGHT")
+                continue
+            if (tileid >= 71000 and tileid < 71100):
+                programs.append("DARK")
+                continue
+            if (tileid >= 72000 and tileid < 72100):
+                programs.append("DARK")
+                continue
+            if (tileid >= 73000 and tileid < 73100):
+                programs.append("GRAY")
+                continue
+            if (tileid >= 74000 and tileid < 74100):
+                programs.append("DARK")
+                continue
+            if (tileid >= 75000 and tileid < 75100):
+                programs.append("BRIGHT")
+                continue
+            if tileid == -1:
+                programs.append('CALIB')
+                continue
+            else:
+                programs.append('OTHER')
+
+        exposures['PROGRAM'] = programs
+    
+    return exposures

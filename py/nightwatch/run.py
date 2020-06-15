@@ -772,3 +772,14 @@ def write_thresholds(indir, outdir, start_date, end_date):
     plot_components.update(pc)
     print('Wrote {}'.format(htmlfile))
 
+def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir):
+    
+    from .webpages import summaryqa as web_summaryqa
+    from . import io
+    
+    exposures = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
+    tiles = Table.read(tilefile, hdu=1)
+    
+    htmlfile = '{outdir}/summaryqa.html'.format(outdir=outdir)
+    web_summaryqa.get_summaryqa_html(exposures, tiles, htmlfile)
+    print('Wrote {}'.format(htmlfile))
