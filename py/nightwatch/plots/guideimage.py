@@ -3,12 +3,34 @@ import numpy as np
 from bokeh.embed import components
 import jinja2
 from astropy.io import fits
+from astropy.visualization import ZScaleInterval
 
 import bokeh
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource, OpenURL, HoverTool, CustomJS, Slider, Image, Legend
+from bokeh.models.mappers import LinearColorMapper
 from bokeh.layouts import column, gridplot
 from bokeh.palettes import gray
+
+def get_all_values(d):
+    vals = []
+    for key in d.keys():
+        for k in d[key].keys():
+            vals.append(d[key][k])
+    return vals
+
+def subtract_medians(image_data):
+    scaled_images = dict()
+    keys = image_data.keys()
+    for key in keys:
+        ims = image_data[key]
+        ims_new = dict()
+        for idx in ims.keys():
+            im = ims[idx]
+            med = med = np.median(im[10:40:, 10:40:])
+            ims_new[idx] = im - med
+        scaled_images[key] = ims_new
+    return scaled_images
 
 def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8):
     '''
@@ -20,8 +42,10 @@ def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8)
         title: title of plot, only needed if you want a different one than is hardcoded(default = None)
     Returns bokeh layout object.'''
     
-    keys = list(image_data.keys())
-    indices = range(len(image_data[keys[0]]))
+    scaled_data = subtract_medians(image_data)
+    zmin, zmax = np.percentile(get_all_values(scaled_data), (1, 99))
+    keys = list(scaled_data.keys())
+    indices = range(len(scaled_data[keys[0]]))
 
     sources = {}
 
@@ -29,8 +53,10 @@ def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8)
         imgs = []
         image_names = []
         for key in keys:
-            img = [image_data[key][idx]]
-            imgs.append(img)
+            img = scaled_data[key][idx]
+            u8img = (255*(img.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
+            colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
+            imgs.append([u8img])
             image_names.append(key)
         sources['_' + str(idx)] = ColumnDataSource(data = dict(zip(
             [name for name in image_names],

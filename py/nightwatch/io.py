@@ -143,22 +143,37 @@ def get_guide_images(night, expid, basedir):
         #name = 'GUIDE{cam}'.format(cam=cam)
         
         try:
-            image_data[name0] = fits.getdata(infile, extname=name0)
+            data = fits.getdata(infile, extname=name0)
+            image_dict = dict()
+            for idx in range(len(data)):
+                image_dict[idx] = data[idx]
+            image_data[name0] = image_dict
         except KeyError:
             print('no images for {name}'.format(name=name0))
         try:
-            image_data[name1] = fits.getdata(infile, extname=name1)
+            data = fits.getdata(infile, extname=name1)
+            image_dict = dict()
+            for idx in range(len(data)):
+                image_dict[idx] = data[idx]
+            image_data[name1] = image_dict
         except KeyError:
             print('no images for {name}'.format(name=name1))
         try:
-            image_data[name2] = fits.getdata(infile, extname=name2)
+            data = fits.getdata(infile, extname=name2)
+            image_dict = dict()
+            for idx in range(len(data)):
+                image_dict[idx] = data[idx]
+            image_data[name2] = image_dict
         except KeyError:
             print('no images for {name}'.format(name=name2))
         try:
-            image_data[name3] = fits.getdata(infile, extname=name3)
+            data = fits.getdata(infile, extname=name3)
+            image_dict = dict()
+            for idx in range(len(data)):
+                image_dict[idx] = data[idx]
+            image_data[name3] = image_dict
         except KeyError:
             print('no images for {name}'.format(name=name3))
     
     return image_data
-    
     
