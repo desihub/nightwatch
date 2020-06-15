@@ -9,13 +9,19 @@ from bokeh.models import ColumnDataSource
 
 from ..plots.nightlyqa import find_night, get_timeseries, plot_timeseries, get_nightlytable, get_moonloc, get_skypathplot, overlaid_hist, get_exptype_counts
 
-def get_nightlyqa_html(night, exposures, tiles, outdir, height=250, width=250):
+def get_nightlyqa_html(night, exposures, tiles, outdir, link_dict, height=250, width=250):
+    '''docstring'''
     
     #getting path for the previous and next night links, first and last night links, link back to summary page
     #[prev_str, next_str] = get_night_link(night, exposures)
     #first_str = get_night_link(exposures['NIGHT'][0], exposures)[0]
     #last_str = get_night_link(exposures['NIGHT'][-1], exposures)[1]
     summary_str = "summaryqa.html"
+    last_str = link_dict['last']
+    first_str = link_dict['first']
+    night_links = link_dict['n{}'.format(night)]
+    next_str = night_links['next']
+    prev_str = night_links['prev']
 
     #- Separate calibration exposures
     all_exposures = exposures[exposures['PROGRAM'] != 'CALIB']
@@ -87,7 +93,8 @@ def get_nightlyqa_html(night, exposures, tiles, outdir, height=250, width=250):
     template = env.get_template('nightlyqa.html')
     
     html_components = dict(
-        bokeh_version=bokeh.__version__, night=night, summary_str = summary_str, 
+        bokeh_version=bokeh.__version__, night=night, summary_str = summary_str,
+        next_str = next_str, prev_str = prev_str, first_str = first_str, last_str = last_str,
         #skypathplot_script=skypathplot_script, skypathplot_div=skypathplot_div,
         #exptypecounts_script=exptypecounts_script, exptypecounts_div=exptypecounts_div,
         timeseries_script=timeseries_script, timeseries_div=timeseries_div,

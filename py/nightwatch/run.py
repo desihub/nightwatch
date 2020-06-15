@@ -802,11 +802,11 @@ def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, sh
         raise ValueError('show_summary should be "all", "subset", or "no". The value of show_summary was: {}'.format(show_summary))
 
     nights_sub = sorted(set(exposures_sub['NIGHT']))
-    io.write_night_linkage(outdir, nights_sub, nights != None)
+    link_dict = io.write_night_linkage(outdir, nights_sub, nights != None)
 
     print('Running surveyqa serially for {} nights'.format(len(all_nights)))
     for night in all_nights:
-        web_nightlyqa.get_nightlyqa_html(night, exposures, tiles, outdir)
+        web_nightlyqa.get_nightlyqa_html(night, exposures, tiles, outdir, link_dict)
         print('Wrote file for {}'.format(night))
         
     print('Done')

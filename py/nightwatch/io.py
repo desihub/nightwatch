@@ -355,6 +355,8 @@ def write_night_linkage(outdir, nights, subset):
 
     print('Wrote {}'.format(outfile))
     
+    return file_js
+    
 def check_offline_files(dir):
     '''
     Checks if the Bokeh .js and .css files are present (so that the page works offline).

@@ -60,47 +60,27 @@
     </style>
 
 <body>
-    <ul>
-        <li style="float:left"><a>DESI Survey QA Night {{ night }}</a></li>
-        <li><a id="last">Last</a></li>
-        <li><a id="next">Next</a></li>
-        <li><a id="prev">Previous</a></li>
-        <li><a id="first">First</a></li>
-        <li><a href={{ summary_str }}>Summary Page</a></li>
-    </ul>
+
+<ul class="navigationbar">
+  {# Left side navigations links (from left to right)#}
+  <li style="float:left"><a>DESI Survey QA Night {{ night }}</a></li>
+  <li><a id="last" href={{ last_str }}>Last</a></li>
+  <li><a id="next" href={{ next_str }}>Next</a></li>
+  <li><a id="prev" href={{ prev_str }}>Prev</a></li>
+  <li><a id="first" href={{ first_str }}>First</a></li>
+    <li><a href = {{ summary_str }}>Summary Page</a></li>
+</ul>
     
-    <script>
-        function get_linking_json_dict(dict) {
-            document.getElementById("last").href = dict.last;
-            document.getElementById("first").href = dict.first;
-            var next_prev = dict.n"""+night+""";
-            var next_item = next_prev.next;
-            if (next_item=="none") {
-                document.getElementById("next").className = "noHover";
-            } else {
-                document.getElementById("next").href = next_prev.next;
-            }
-            var prev_item = next_prev.prev;
-            if (prev_item=="none") {
-                document.getElementById("prev").className = "noHover";
-            } else {
-                document.getElementById("prev").href = next_prev.prev;
-            }
-        }
-    </script>
-    
-    <script src="linking.js"></script>
-    
-    <div class="flex-container">
-        <div class="column middle">
+<div class="flex-container">
+    <div class="column middle">
             
-            <div class="flex-container">
-                <div>{{ timeseries_script }} {{ timeseries_div }}</div>
-                <div>{{ overlaidhists_script }} {{ overlaidhists_div }}</div>
-            </div>
-        
-            <div class="flex-container">{{ table_script }}{{ table_div }}</div>
+        <div class="flex-container">
+            <div>{{ timeseries_script }} {{ timeseries_div }}</div>
+            <div>{{ overlaidhists_script }} {{ overlaidhists_div }}</div>
         </div>
+        
+        <div class="flex-container">{{ table_script }}{{ table_div }}</div>
     </div>
+</div>
     
 {% endblock %}
