@@ -772,14 +772,45 @@ def write_thresholds(indir, outdir, start_date, end_date):
     plot_components.update(pc)
     print('Wrote {}'.format(htmlfile))
 
-def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir):
+def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, show_summary='all'):
     
     from .webpages import summaryqa as web_summaryqa
+    from .webpages import nightlyqa as web_nightlyqa
     from . import io
+    
+    io.check_offline_files(outdir)
     
     exposures = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
     tiles = Table.read(tilefile, hdu=1)
+
+    exposures_sub = exposures
+    if nights is not None:
+        nights = [str(i) for i in nights]
+        exposures_sub = exposures[[x in nights for x in exposures['NIGHT']]]
     
-    htmlfile = '{outdir}/summaryqa.html'.format(outdir=outdir)
-    web_summaryqa.get_summaryqa_html(exposures, tiles, htmlfile)
-    print('Wrote {}'.format(htmlfile))
+    all_nights = np.unique(exposures['NIGHT'])
+
+    exptiles = np.unique(exposures['TILEID'])
+    print('Generating QA for {} exposures on {} tiles'.format(
+        len(exposures), len(exptiles)))
+
+    if show_summary=="subset":
+        web_summaryqa.get_summaryqa_html(exposures_sub, tiles, outdir)
+    elif show_summary=="all":
+        web_summaryqa.get_summaryqa_html(exposures, tiles, outdir)
+    elif show_summary!="no":
+        raise ValueError('show_summary should be "all", "subset", or "no". The value of show_summary was: {}'.format(show_summary))
+
+    nights_sub = sorted(set(exposures_sub['NIGHT']))
+    io.write_night_linkage(outdir, nights_sub, nights != None)
+
+    print('Running surveyqa serially for {} nights'.format(len(all_nights)))
+    for night in all_nights:
+        web_nightlyqa.get_nightlyqa_html(night, exposures, tiles, outdir)
+        print('Wrote file for {}'.format(night))
+        
+    print('Done')
+    
+    
+    
+    
