@@ -23,6 +23,7 @@ Supported commands are:
     plot       Generate webpages with plots of QA output
     tables     Generate webpages with tables of nights and exposures
     webapp     Run a nightwatch Flask webapp server
+    surveyqa   Generate surveyqa webpages
 Run "nightwatch <command> --help" for details options about each command
 """)
 
@@ -53,6 +54,8 @@ def main():
         main_summary()
     elif command == 'threshold':
         main_threshold()
+    elif command == 'surveyqa':
+        main_surveyqa()
     else:
         print('ERROR: unrecognized command "{}"'.format(command))
         print_help()
@@ -371,3 +374,22 @@ def main_threshold(options=None):
     
     run.write_thresholds(args.indir, args.outdir, args.start, args.end)
     print('Wrote threshold jsons for each night to {}'.format('nightwatch/py/nightwatch/threshold_files'))
+
+def main_surveyqa(options=None):
+    parser = argparse.ArgumentParser(usage = '{prog} [options]')
+    
+    parser.add_argument('-i', '--infile', type=str, required=True, help='file containing data to feed into surveyqa')
+    parser.add_argument('-t', '--tilefile', type=str, required=True, help='file containing data on tiles')
+    parser.add_argument('-r', '--rawdir', type=str, required=True, help='directory containing raw data files (without YYYMMDD/EXPID/)')
+    parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold json/html files should be written to')
+    
+    if options is None:
+        options = sys.argv[2:]
+    args = parser.parse_args(options)
+    
+    name_dict = {"EXPID": "EXPID", "MJD": "MJD", 
+             "AIRMASS": "AIRMASS", "TRANSP": "TRANSPARENCY", "NIGHT": "NIGHT", 
+             "MOONSEP": "MOON_SEP_DEG", "RA": "SKYRA", "DEC": "SKYDEC",
+             "SKY": "SKY_MAG_AB", "SEEING": "FWHM_ASEC"}
+
+    run.write_summaryqa(args.infile, args.tilefile, name_dict, args.rawdir, args.outdir)
