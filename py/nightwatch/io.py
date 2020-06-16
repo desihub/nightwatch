@@ -184,16 +184,18 @@ def get_guide_images(night, expid, basedir):
     
     return image_data
     
+
 def get_surveyqa_data(infile, name_dict, rawdir, program=True):
     '''Given surveyqa data file, file of tile data, and dictionary containing equivalent columns, returns
-    table of data to feed into surveyqa code.
+    two tables of data to feed into surveyqa code.
     Args:
         infile: (str) path to file containing surveyqa data
         name_dict: dictionary with column equivalents
             Must have equivalents for AIRMASS, SKY, SEEING, TRANSP, RA, DEC, MJD, NIGHT, EXPID.
         rawdir: directory containing raw data files
     Options:
-        program: whether or not to use hardcoded information to assign programs to tileids, default=True'''
+        program: whether or not to use hardcoded information to assign programs to tileids, default=True
+    Returns: two tables, one with aggregated data by exposure, and one with the finer scaled data.'''
     
     table = Table.read(infile, hdu=1)
     
@@ -201,23 +203,9 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
     for key in name_dict.keys():
         new_table[key] = table[name_dict[key]]
     
-    table_by_expid = new_table.group_by('EXPID')
-    table_mean = table_by_expid.groups.aggregate(np.nanmean)
-    table_min = table_by_expid.groups.aggregate(np.nanmin)
-
-    exposures = Table()
-    for attr in ["AIRMASS", "SKY", "SEEING", "TRANSP"]:
-        exposures[attr] = table_mean[attr]
-    for attr in ['RA', "DEC", "MJD", "NIGHT", "EXPID"]:
-        exposures[attr] = table_min[attr]
-        
-    flavors = []
-    tiles = []
-    exptimes = []
-    
-    D = exposures["MJD"] - 51544.5
+    D = new_table["MJD"] - 51544.5
     LST = (168.86072948111115 + 360.98564736628623 * D) % 360
-    exposures["HOURANGLE"] = LST - exposures["RA"]
+    new_table["HOURANGLE"] = LST - new_table["RA"]
     
     def change_range(i):
         if i > 180:
@@ -226,7 +214,22 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
             return 360 + i
         return i
 
-    exposures["HOURANGLE"] = [change_range(i) for i in exposures["HOURANGLE"]]
+    new_table["HOURANGLE"] = [change_range(i) for i in new_table["HOURANGLE"]]
+    
+    table_by_expid = new_table.group_by('EXPID')
+    
+    table_mean = table_by_expid.groups.aggregate(np.nanmean)
+    table_min = table_by_expid.groups.aggregate(np.nanmin)
+
+    exposures = Table()
+    for attr in ["AIRMASS", "SKY", "SEEING", "TRANSP"]:
+        exposures[attr] = table_mean[attr]
+    for attr in ['RA', "DEC", "MJD", "NIGHT", "EXPID", "HOURANGLE"]:
+        exposures[attr] = table_min[attr]
+        
+    flavors = []
+    tiles = []
+    exptimes = []
 
     for idx in range(len(exposures['EXPID'])):
 
@@ -244,7 +247,7 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
             except KeyError:
                 tiles.append(-1)
             try:
-                flavors.append(header["FLAVOR"])
+                flavors.append(header["OBSTYPE"])
             except KeyError:
                 flavors.append('None')
             try:
@@ -302,7 +305,7 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
 
         exposures['PROGRAM'] = programs
     
-    return exposures
+    return exposures, table_by_expid
 
 def write_night_linkage(outdir, nights, subset):
     '''

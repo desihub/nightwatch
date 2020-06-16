@@ -7,15 +7,11 @@ import bokeh.plotting as bk
 from bokeh.embed import components
 from bokeh.models import ColumnDataSource
 
-from ..plots.nightlyqa import find_night, get_timeseries, plot_timeseries, get_nightlytable, get_moonloc, get_skypathplot, overlaid_hist, get_exptype_counts
+from ..plots.nightlyqa import find_night, get_timeseries, plot_timeseries, get_nightlytable, get_moonloc, get_skypathplot, overlaid_hist, overlaid_hist_fine, get_exptype_counts, plot_timeseries_fine
 
-def get_nightlyqa_html(night, exposures, tiles, outdir, link_dict, height=250, width=250):
+def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, height=250, width=250):
     '''docstring'''
     
-    #getting path for the previous and next night links, first and last night links, link back to summary page
-    #[prev_str, next_str] = get_night_link(night, exposures)
-    #first_str = get_night_link(exposures['NIGHT'][0], exposures)[0]
-    #last_str = get_night_link(exposures['NIGHT'][-1], exposures)[1]
     summary_str = "summaryqa.html"
     last_str = link_dict['last']
     first_str = link_dict['first']
@@ -30,16 +26,19 @@ def get_nightlyqa_html(night, exposures, tiles, outdir, link_dict, height=250, w
     #- Filter exposures to just this night and adds columns DATETIME and MJD_hour
     exposures = find_night(all_exposures, night)
     calibs = find_night(all_calibs, night)
+    night_fine_data = find_night(fine_data, night)
 
     #- Plot options
     #title='Airmass, Seeing, Exptime vs. Time for {}/{}/{}'.format(night[4:6], night[6:], night[:4])
     TOOLS = ['box_zoom', 'reset', 'wheel_zoom']
-    TOOLTIPS = [("EXPID", "@EXPID"), ("Airmass", "@AIRMASS"), ("Seeing", "@SEEING"),
-                ("Exposure Time", "@EXPTIME"), ("Transparency", "@TRANSP"), ('Hour Angle', '@HOURANGLE')]
-
+    TOOLTIPS = [("EXPID", "@EXPID"), ("Exposure Time", "@EXPTIME"), ("Airmass", "@AIRMASS"), 
+                ("Seeing", "@SEEING"), ("Transparency", "@TRANSP"), ('Hour Angle', '@HOURANGLE')]
+    
     #- Create ColumnDataSource for linking timeseries plots
     COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'EXPTIME', 'TRANSP', 'SKY', 'HOURANGLE']
-    src = ColumnDataSource(data={c:np.array(exposures[c]) for c in COLS})
+    fine_COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'TRANSP', 'SKY', 'HOURANGLE']
+    exp_src = ColumnDataSource(data={c:np.array(exposures[c]) for c in COLS})
+    fine_src = ColumnDataSource(data={c:np.array(night_fine_data[c]) for c in fine_COLS})
 
     #- Get timeseries plots for several variables
     min_border_right_time = 0
@@ -52,16 +51,21 @@ def get_nightlyqa_html(night, exposures, tiles, outdir, link_dict, height=250, w
     min_border_left_sky = 60
 
     time_hist_plot_height = 160
-
-    airmass = plot_timeseries(src, 'AIRMASS', 'green', tools=TOOLS, x_range=None, title=None, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
-    seeing = plot_timeseries(src, 'SEEING', 'navy', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
-    exptime = plot_timeseries(src, 'EXPTIME', 'darkorange', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
-    transp = plot_timeseries(src, 'TRANSP', 'purple', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
-    hourangle = plot_timeseries(src, 'HOURANGLE', 'maroon', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
-    brightness = plot_timeseries(src, 'SKY', 'pink', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
+    
+    airmass = plot_timeseries_fine(fine_src, exp_src, 'AIRMASS', 'green', tools=TOOLS, x_range=None, title=None, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
+    
+    seeing = plot_timeseries_fine(fine_src, exp_src, 'SEEING', 'navy', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
+    
+    transp = plot_timeseries_fine(fine_src, exp_src, 'TRANSP', 'purple', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
+    
+    hourangle = plot_timeseries_fine(fine_src, exp_src, 'HOURANGLE', 'maroon', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
+    
+    brightness = plot_timeseries_fine(fine_src, exp_src, 'SKY', 'pink', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
+    
+    exptime = plot_timeseries(exp_src, 'EXPTIME', 'darkorange', tools=TOOLS, x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, min_border_left=min_border_left_time, min_border_right=min_border_right_time)
 
     #- Convert these to the components to include in the HTML
-    timeseries_script, timeseries_div = components(bk.Column(airmass, seeing, exptime, transp, hourangle, brightness))
+    timeseries_script, timeseries_div = components(bk.Column(exptime, airmass, seeing, transp, hourangle, brightness))
 
     #making the nightly table of values
     nightlytable = get_nightlytable(exposures)
@@ -76,15 +80,20 @@ def get_nightlyqa_html(night, exposures, tiles, outdir, link_dict, height=250, w
     #exptypecounts_script, exptypecounts_div = components(exptypecounts)
 
     #- Get overlaid histograms for several variables
-    airmasshist = overlaid_hist(all_exposures, exposures, 'AIRMASS', 'green', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
-    seeinghist = overlaid_hist(all_exposures, exposures, 'SEEING', 'navy', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
+    airmasshist = overlaid_hist_fine(fine_data, night_fine_data, 'AIRMASS', 'green', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
+    
+    seeinghist = overlaid_hist_fine(fine_data, night_fine_data, 'SEEING', 'navy', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
+    
+    transphist = overlaid_hist_fine(fine_data, night_fine_data, 'TRANSP', 'purple', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
+    
+    hourangle = overlaid_hist_fine(fine_data, night_fine_data, "HOURANGLE", "maroon", 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
+    
+    brightnesshist = overlaid_hist_fine(fine_data, night_fine_data, 'SKY', 'pink', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
+    
     exptimehist = overlaid_hist(all_exposures, exposures, 'EXPTIME', 'darkorange', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
-    transphist = overlaid_hist(all_exposures, exposures, 'TRANSP', 'purple', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
-    hourangle = overlaid_hist(all_exposures, exposures, "HOURANGLE", "maroon", 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
-    brightnesshist = overlaid_hist(all_exposures, exposures, 'SKY', 'pink', 250, time_hist_plot_height, min_border_left=min_border_left_hist, min_border_right=min_border_right_hist)
 
     #adding in the components of the overlaid histograms
-    overlaidhists_script, overlaidhists_div = components(bk.Column(airmasshist, seeinghist, exptimehist, transphist, hourangle, brightnesshist))
+    overlaidhists_script, overlaidhists_div = components(bk.Column(exptimehist, airmasshist, seeinghist, transphist, hourangle, brightnesshist))
     
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')

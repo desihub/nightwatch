@@ -183,7 +183,7 @@ def get_summarytable(exposures):
     summary_table = DataTable(source=source, columns=columns, width=900, sortable=True, fit_columns=False)
     return summary_table
 
-def get_hist(exposures, attribute, color, width=250, height=250, min_border_left=50, min_border_right=50):
+def get_hist(fine_data, attribute, color, width=250, height=250, min_border_left=50, min_border_right=50):
     '''
     Generates a histogram of the attribute provided for the given exposures table
     Args:
@@ -195,10 +195,13 @@ def get_hist(exposures, attribute, color, width=250, height=250, min_border_left
         min_border_left, min_border_right: set minimum width for external labels in pixels
     Returns bokeh Figure object
     '''
-    keep = exposures['PROGRAM'] != 'CALIB'
-    exposures_nocalib = exposures[keep]
+    #keep = exposures['PROGRAM'] != 'CALIB'
+    #exposures_nocalib = exposures[keep]
+    
+    attr_data = np.array(fine_data[attribute])
+    attr_data = attr_data[~np.isnan(attr_data)]
 
-    hist, edges = np.histogram(exposures[attribute], density=True, bins=50)
+    hist, edges = np.histogram(attr_data, density=True, bins=25)
 
     fig = bk.figure(plot_width=width, plot_height=height,
                     x_axis_label = attribute.title(),

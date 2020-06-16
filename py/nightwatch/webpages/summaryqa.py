@@ -8,7 +8,7 @@ from bokeh.embed import components
 from ..plots.summaryqa import get_skyplot, get_summarytable, get_hist, get_exposuresPerTile_hist, get_median
 
 
-def get_summaryqa_html(exposures, tiles, outdir, height=250, width=250):   
+def get_summaryqa_html(exposures, fine_data, tiles, outdir, height=250, width=250):   
     '''docstring'''
     
     env = jinja2.Environment(
@@ -25,19 +25,19 @@ def get_summaryqa_html(exposures, tiles, outdir, height=250, width=250):
     summarytable = get_summarytable(exposures)
     summarytable_script, summarytable_div = components(summarytable)
 
-    seeing_hist = get_hist(exposures, "SEEING", "navy", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
+    seeing_hist = get_hist(fine_data, "SEEING", "navy", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
     seeing_script, seeing_div = components(seeing_hist)
 
-    airmass_hist = get_hist(exposures, "AIRMASS", "green", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
+    airmass_hist = get_hist(fine_data, "AIRMASS", "green", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
     airmass_script, airmass_div = components(airmass_hist)
 
-    transp_hist = get_hist(exposures, "TRANSP", "purple", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
+    transp_hist = get_hist(fine_data, "TRANSP", "purple", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
     transp_hist_script, transp_hist_div = components(transp_hist)
     
     exptime_hist = get_hist(exposures, "EXPTIME", "darkorange", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
     exptime_script, exptime_div = components(exptime_hist)
     
-    brightnessplot = get_hist(exposures, "SKY", "pink", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
+    brightnessplot = get_hist(fine_data, "SKY", "pink", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
     brightness_script, brightness_div = components(brightnessplot)
     
     exposePerTile_hist = get_exposuresPerTile_hist(exposures, "orange", height=height, width=width, min_border_left=min_border, min_border_right=min_border)
@@ -64,6 +64,8 @@ def get_summaryqa_html(exposures, tiles, outdir, height=250, width=250):
     outfile = os.path.join(outdir, 'summaryqa.html')
     with open(outfile, 'w') as fx:
         fx.write(html)
+        
+    print('Wrote {}'.format(outfile))
 
     return html_components
 

@@ -114,6 +114,41 @@ def plot_timeseries(source, name, color, tools=None, x_range=None, title=None, t
 
     return fig
 
+def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, x_range=None, title=None, tooltips=None, width=400, height=150, min_border_left=50, min_border_right=50):
+    
+#     source = ColumnDataSource(data=dict(
+#         time = fine_data['TIME'],
+#         attr = fine_data[name]
+#     ))
+    
+#     exp_source = ColumnDataSource(data=dict(
+#         time = exposures['TIME'],
+#         med_attr = exposures[name]
+#     ))
+    
+    fig =  bk.figure(plot_height=height, plot_width=width, 
+                     x_range=x_range, x_axis_type='datetime',
+                     active_scroll='wheel_zoom', title=title,
+                     x_axis_label='Time', min_border_left=min_border_left,
+                     min_border_right=min_border_right)
+    fig.circle('TIME', name, size=2, alpha=0.25, color=color, source=fine_data_src)
+    medians = fig.circle('TIME', name, size=8, line_color=color, fill_color='white', 
+                         source=exposures_src, hover_color='firebrick', line_width=2)
+    fig.grid.visible = False
+    
+    fig.yaxis.axis_label = name.title()
+    
+    if name == 'TRANSP':
+        fig.yaxis.axis_label = 'Transparency'
+    if name == 'HOURANGLE':
+        fig.yaxis.axis_label = 'Hour Angle'
+         
+    hover = HoverTool(renderers = [medians], tooltips = tooltips)
+    fig.add_tools(hover)
+    
+    return fig
+    
+
 def get_nightlytable(exposures):
     '''
     Generates a summary table of the exposures from the night observed.
@@ -238,7 +273,6 @@ def get_skypathplot(exposures, tiles, width=600, height=300, min_border_left=50,
 
     return fig
 
-
 def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, height=150, min_border_left=50, min_border_right=50):
     """
     Generates an overlaid histogram for a single attribute comparing the distribution
@@ -253,8 +287,60 @@ def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, h
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
     Returns a bokeh figure object
     """
-    hist_all, edges_all = np.histogram(np.array(all_exposures[attribute]), density=True, bins=50)
-    hist_night, edges_night = np.histogram(np.array(night_exposures[attribute]), density=True, bins=50)
+    all_attr = np.array(all_exposures[attribute])
+    night_attr = np.array(night_exposures[attribute])
+    
+    all_attr = all_attr[~np.isnan(all_attr)]
+    night_attr = night_attr[~np.isnan(night_attr)]
+    
+    hist_all, edges_all = np.histogram(all_attr, density=True, bins=25)
+    hist_night, edges_night = np.histogram(night_attr, density=True, bins=25)
+
+    fig = bk.figure(plot_width=width, plot_height=height,
+                    x_axis_label = attribute.title(), y_axis_label = 'title',
+                    min_border_left=min_border_left, min_border_right=min_border_right)
+    fig.quad(top=hist_all, bottom=0, left=edges_all[:-1], right=edges_all[1:], fill_color=color, alpha=0.2)
+    fig.quad(top=hist_night, bottom=0, left=edges_night[:-1], right=edges_night[1:], fill_color=color, alpha=0.6)
+
+    if attribute == 'TRANSP':
+        fig.xaxis.axis_label = 'Transparency'
+    if attribute == 'HOURANGLE':
+        fig.xaxis.axis_label = 'Hour Angle'
+    if attribute == 'EXPTIME':
+        fig.xaxis.axis_label = 'Exposure Time'
+
+    fig.yaxis.major_label_text_font_size = '0pt'
+    fig.yaxis.major_tick_line_color = None
+    fig.yaxis.minor_tick_line_color = None
+    fig.yaxis.axis_label_text_color = '#ffffff'
+    fig.ygrid.grid_line_color = None
+    fig.xgrid.grid_line_color = None
+    fig.toolbar_location = None
+
+    return fig
+
+def overlaid_hist_fine(all_data, night_data, attribute, color, width=300, height=150, min_border_left=50, min_border_right=50):
+    """
+    Generates an overlaid histogram for a single attribute comparing the distribution
+    for all of the exposures vs. those from just one night
+    ARGS:
+        all_data : a table of all the exposures + finer data
+        night_data : a table of all the exposures + finer data for a single night
+        attribute : a string name of a column in the exposures tables
+        color : color of histogram
+    Options:
+        height, width: height and width of the graph in pixels
+        min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
+    Returns a bokeh figure object
+    """
+    all_attr = np.array(all_data[attribute])
+    night_attr = np.array(night_data[attribute])
+    
+    all_attr = all_attr[~np.isnan(all_attr)]
+    night_attr = night_attr[~np.isnan(night_attr)]
+    
+    hist_all, edges_all = np.histogram(all_attr, density=True, bins=25)
+    hist_night, edges_night = np.histogram(night_attr, density=True, bins=25)
 
     fig = bk.figure(plot_width=width, plot_height=height,
                     x_axis_label = attribute.title(), y_axis_label = 'title',

@@ -780,24 +780,26 @@ def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, sh
     
     io.check_offline_files(outdir)
     
-    exposures = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
+    exposures, fine_data = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
     tiles = Table.read(tilefile, hdu=1)
 
     exposures_sub = exposures
+    fine_data_sub = fine_data
     if nights is not None:
         nights = [str(i) for i in nights]
         exposures_sub = exposures[[x in nights for x in exposures['NIGHT']]]
+        fine_data_sub = fine_data[[x in nights for x in fine_data['NIGHT']]]
     
     all_nights = np.unique(exposures['NIGHT'])
 
     exptiles = np.unique(exposures['TILEID'])
-    print('Generating QA for {} exposures on {} tiles'.format(
-        len(exposures), len(exptiles)))
+    print('Generating QA for {} exposures on {} nights'.format(
+        len(exposures), len(all_nights)))
 
     if show_summary=="subset":
-        web_summaryqa.get_summaryqa_html(exposures_sub, tiles, outdir)
+        web_summaryqa.get_summaryqa_html(exposures_sub, fine_data_sub, tiles, outdir)
     elif show_summary=="all":
-        web_summaryqa.get_summaryqa_html(exposures, tiles, outdir)
+        web_summaryqa.get_summaryqa_html(exposures, fine_data, tiles, outdir)
     elif show_summary!="no":
         raise ValueError('show_summary should be "all", "subset", or "no". The value of show_summary was: {}'.format(show_summary))
 
@@ -806,7 +808,7 @@ def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, sh
 
     print('Running surveyqa serially for {} nights'.format(len(all_nights)))
     for night in all_nights:
-        web_nightlyqa.get_nightlyqa_html(night, exposures, tiles, outdir, link_dict)
+        web_nightlyqa.get_nightlyqa_html(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict)
         print('Wrote file for {}'.format(night))
         
     print('Done')
