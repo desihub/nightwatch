@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<style>
+    body {
+        margin: 0;
+    }
+    .header {
+        font-family: "Open Serif", Arial, Helvetica, sans-serif;
+        background-color: #f1f1f1;
+        padding: 10px;
+        text-align: center;
+        justify: space-around;
+    }
+    .column {
+        float: center;
+        padding: 10px
+    }
+    .column.side {
+        width = 5%;
+    }
+    .column.middle {
+        width = 90%;
+    }
+    .flex-container {
+        display: flex;
+        flex-direction: row;
+        flex-flow: row wrap;
+        justify-content: center;
+        padding: 10px;
+    }
+    p.sansserif {
+        font-family: "Open Serif", Helvetica, sans-serif;
+    }
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #333;
+    }
+    li {
+      float: right;
+    }
+    li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      text-decoration: none;
+      font-family: "Open Serif", "Arial", sans-serif;
+    }
+    li a:hover {
+      background-color: #111;
+    }
+    li a.noHover{
+      pointer-events: none;
+    }
+    </style>
+
+<body>
+
+<ul class="navigationbar">
+  {# Left side navigations links (from left to right)#}
+  <li style="float:left"><a>DESI Survey QA Night {{ night }}</a></li>
+  <li><a id="last" href={{ last_str }}>Last</a></li>
+  <li><a id="next" href={{ next_str }}>Next</a></li>
+  <li><a id="prev" href={{ prev_str }}>Prev</a></li>
+  <li><a id="first" href={{ first_str }}>First</a></li>
+    <li><a href = {{ summary_str }}>Summary Page</a></li>
+</ul>
+    
+<div class="flex-container">
+    <div class="column middle">
+            
+        <div class="flex-container">
+            <div>{{ timeseries_script }} {{ timeseries_div }}</div>
+            <div>{{ overlaidhists_script }} {{ overlaidhists_div }}</div>
+        </div>
+        
+        <div class="flex-container">{{ table_script }}{{ table_div }}</div>
+    </div>
+</div>
+    
+{% endblock %}
