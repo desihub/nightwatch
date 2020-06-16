@@ -773,11 +773,11 @@ def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, sh
         exposures_sub = exposures[[x in nights for x in exposures['NIGHT']]]
         fine_data_sub = fine_data[[x in nights for x in fine_data['NIGHT']]]
     
-    all_nights = np.unique(exposures['NIGHT'])
+    nights_sub = sorted(set(exposures_sub['NIGHT']))
 
     exptiles = np.unique(exposures['TILEID'])
-    print('Generating QA for {} exposures on {} nights'.format(
-        len(exposures), len(all_nights)))
+    print('Generating QA for {} exposures, {} nights'.format(
+        len(exposures), len(nights_sub)))
 
     if show_summary=="subset":
         web_summaryqa.get_summaryqa_html(exposures_sub, fine_data_sub, tiles, outdir)
@@ -786,12 +786,21 @@ def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, sh
     elif show_summary!="no":
         raise ValueError('show_summary should be "all", "subset", or "no". The value of show_summary was: {}'.format(show_summary))
 
-    nights_sub = sorted(set(exposures_sub['NIGHT']))
     link_dict = io.write_night_linkage(outdir, nights_sub, nights != None)
 
-    print('Running surveyqa serially for {} nights'.format(len(all_nights)))
-    for night in all_nights:
-        web_nightlyqa.get_nightlyqa_html(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict)
-        print('Wrote file for {}'.format(night))
+    ncpu = get_ncpu(None)
+    argslist = [(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict) for night in nights_sub]
+    
+    if ncpu > 1:
+        print('Running surveyqa in parallel on {} cores for {} nights'.format(ncpu, len(nights_sub)))
+        pool = mp.Pool(ncpu)
+        pool.starmap(web_nightlyqa.get_nightlyqa_html, argslist)
+        pool.close()
+        pool.join()
+    
+    else:
+        print('Running surveyqa serially for {} nights'.format(len(nights_sub)))
+        for night in nights_sub:
+            web_nightlyqa.get_nightlyqa_html(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict)
         
     print('Done')

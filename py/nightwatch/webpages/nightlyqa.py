@@ -119,5 +119,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     
     with open(outfile, 'w') as fx:
         fx.write(html)
+    
+    print('Wrote {}'.format(outfile))
 
     return html_components
