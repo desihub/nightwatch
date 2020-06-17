@@ -756,6 +756,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
     print('Wrote {}'.format(htmlfile))
 
 def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, show_summary='all'):
+    '''docstring'''
     
     from .webpages import summaryqa as web_summaryqa
     from .webpages import nightlyqa as web_nightlyqa

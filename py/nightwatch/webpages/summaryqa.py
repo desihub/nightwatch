@@ -9,7 +9,7 @@ from ..plots.summaryqa import get_skyplot, get_summarytable, get_hist, get_expos
 
 
 def get_summaryqa_html(exposures, fine_data, tiles, outdir, height=250, width=250):   
-    '''docstring'''
+    '''outdir: same as directory where nightwatch files are generated. will be created in a new surveyqa subdirectory.'''
     
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
@@ -61,7 +61,7 @@ def get_summaryqa_html(exposures, fine_data, tiles, outdir, height=250, width=25
     html = template.render(**html_components)
 
     #- Write HTML text to the output file
-    outfile = os.path.join(outdir, 'summaryqa.html')
+    outfile = os.path.join(outdir, 'surveyqa/summaryqa.html')
     with open(outfile, 'w') as fx:
         fx.write(html)
         

@@ -6,13 +6,7 @@
     body {
         margin: 0;
     }
-    .header {
-        font-family: "Open Serif", Arial, Helvetica, sans-serif;
-        background-color: #f1f1f1;
-        padding: 10px;
-        text-align: left;
-        justify: space-around;
-    }
+    
     .column {
         float: center;
     }
@@ -30,25 +24,27 @@
         padding: 10px;
         align-items: flex-end;
     }
-    p.sansserif {
-        font-family: "Open Serif", Helvetica, sans-serif;
-    }
 </style>
 
 <div class="flex-container">
     <div class="column side"></div>
     <div class="column middle">
-        <div class="header">
-            <p class='sansserif'>DESI Survey QA through {{ last_night }}</p>
-        </div>
+        
+        <ul class="titlebar">
+           <li><a>DESI SurveyQA through {{ last_night }}</a></li>
+        </ul>
+        
+        <ul class="navigationbar">
+          <li style="float:left"><a id="nights" href = "../nights.html">calendar</a></li>
+        </ul>
             
         <div class="flex-container">
             <div>{{ skyplot_script }} {{ skyplot_div }}</div>
         </div>
             
-        <div class="header">
-            <p class="sansserif">Observing Conditions</p>
-        </div>
+        <ul class="titlebar">
+            <li><a>Observing Conditions</a></li>
+        </ul>
             
         <div class="flex-container">
             <div>{{ airmass_script }} {{ airmass_div }}</div>
@@ -59,9 +55,9 @@
             <div>{{ exptime_script }} {{ exptime_div }}</div>
         </div>
                 
-        <div class="header">
-            <p class="sansserif">Summary Table</p>
-        </div>
+         <ul class="titlebar">
+            <li><a>Summary Table</a></li>
+        </ul>
                 
         <div class="flex-container">
             {{ summarytable_script }}

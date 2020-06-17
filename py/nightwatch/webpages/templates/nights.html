@@ -17,22 +17,47 @@
 <div id="titlebar">
   <center><font size="6" text_align="center">DESI Nightwatch</font></center>
 </div>
+    
+<div class="container">
+    <div id="button">
+        <a href="surveyqa/summaryqa.html" target="_blank">SurveyQA</a>
+    </div>
+</div>
+    
+{#
+<div class="container" padding=6px>
+    <a href="timeseries">timeseries plots</a>
+</div>
+#}
 
 <div class="container">
     <div class="calendar"></div>
 </div>
-
-{#
-<div class="container">
-    <a href="timeseries">timeseries plots</a>
-</div>
-#}
 
 <style>
 #titlebar {
     padding: 6px;
     color: gold;
     background-color: #333;
+}
+
+a:link, a:visited {
+  background-color: gold;
+  color: #333;
+  padding: 6px 24px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 18px;
+}
+
+a:hover, a:active {
+  background-color: #FFEB65;
+}
+
+#button {
+    padding: 6px;
+    float: left;
 }
 </style>
 

@@ -30,47 +30,32 @@
         justify-content: center;
         padding: 10px;
     }
+    .flex-container.title{
+        justify-content: space-around;
+        flex-direction: column;
+    }
     p.sansserif {
         font-family: "Open Serif", Helvetica, sans-serif;
     }
-    ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background-color: #333;
-    }
-    li {
-      float: right;
-    }
-    li a {
-      display: block;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      text-decoration: none;
-      font-family: "Open Serif", "Arial", sans-serif;
-    }
-    li a:hover {
-      background-color: #111;
-    }
-    li a.noHover{
-      pointer-events: none;
-    }
-    </style>
+</style>
 
-<body>
+<div class="flex-container title">
+    <ul class="titlebar">
+        <li><a>DESI SurveyQA Night {{ night }}</a></li>
+    </ul>
 
-<ul class="navigationbar">
-  {# Left side navigations links (from left to right)#}
-  <li style="float:left"><a>DESI Survey QA Night {{ night }}</a></li>
-  <li><a id="last" href={{ last_str }}>Last</a></li>
-  <li><a id="next" href={{ next_str }}>Next</a></li>
-  <li><a id="prev" href={{ prev_str }}>Prev</a></li>
-  <li><a id="first" href={{ first_str }}>First</a></li>
-    <li><a href = {{ summary_str }}>Summary Page</a></li>
-</ul>
-    
+    <ul class="navigationbar">
+        {# Left side navigations links (from left to right)#}
+        <li style="float:left"><a href="../nights.html">Calendar</a></li>
+        <li style="float:left"><a href="../{{ night }}/exposures.html">Nightwatch</a></li>
+        <li><a id="last" href={{ last_str }}>Last</a></li>
+        <li><a id="next" href={{ next_str }}>Next</a></li>
+        <li><a id="prev" href={{ prev_str }}>Prev</a></li>
+        <li><a id="first" href={{ first_str }}>First</a></li>
+        <li><a id="summary" href = {{ summary_str }}>Summary Page</a></li>
+    </ul>
+</div>
+
 <div class="flex-container">
     <div class="column middle">
             

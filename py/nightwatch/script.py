@@ -381,7 +381,7 @@ def main_surveyqa(options=None):
     parser.add_argument('-i', '--infile', type=str, required=True, help='file containing data to feed into surveyqa')
     parser.add_argument('-t', '--tilefile', type=str, required=True, help='file containing data on tiles')
     parser.add_argument('-r', '--rawdir', type=str, required=True, help='directory containing raw data files (without YYYMMDD/EXPID/)')
-    parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold json/html files should be written to')
+    parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold json/html files should be written to (will be written to outdir/surveyqa, outdir should be same location as other nightwatch files)')
     
     if options is None:
         options = sys.argv[2:]

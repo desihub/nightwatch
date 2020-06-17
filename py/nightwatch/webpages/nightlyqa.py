@@ -10,7 +10,7 @@ from bokeh.models import ColumnDataSource
 from ..plots.nightlyqa import find_night, get_timeseries, plot_timeseries, get_nightlytable, get_moonloc, get_skypathplot, overlaid_hist, overlaid_hist_fine, get_exptype_counts, plot_timeseries_fine
 
 def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, height=250, width=250):
-    '''docstring'''
+    '''outdir: same as directory where nightwatch files are generated. will be created in a new surveyqa subdirectory.'''
     
     summary_str = "summaryqa.html"
     last_str = link_dict['last']
@@ -115,7 +115,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     html = template.render(**html_components)
 
     #- Write HTML text to the output file
-    outfile = os.path.join(outdir, 'nightqa-{}.html'.format(night))
+    outfile = os.path.join(outdir, 'surveyqa/nightqa-{}.html'.format(night))
     
     with open(outfile, 'w') as fx:
         fx.write(html)
