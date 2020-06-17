@@ -58,7 +58,8 @@ def get_skyplot(exposures, tiles, width=500, height=250, min_border_left=50, min
     color_mapper = LinearColorMapper(palette="Viridis256", low=exposures_sorted['MJD'].min(), high=exposures_sorted['MJD'].max())
 
     #making figure
-    fig = bk.figure(width=width, height=height, min_border_left=min_border_left, min_border_right=min_border_right)
+    fig = bk.figure(width=width, height=height, min_border_left=min_border_left, 
+                    min_border_right=min_border_right, output_backend="webgl")
 
     #observed tiles
     tile_renderer = fig.circle('RA', "DEC", color='gray', size=1, alpha=0.1, source=tiles_source)

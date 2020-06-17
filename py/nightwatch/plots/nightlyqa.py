@@ -88,7 +88,7 @@ def plot_timeseries(source, name, color, tools=None, x_range=None, title=None, t
     fig = bk.figure(width=width, height=height, tools=tools,
                     x_axis_type='datetime', x_range=x_range,
                     active_scroll='wheel_zoom', title=title,
-                    x_axis_label='Time',
+                    x_axis_label='Time', output_backend="webgl",
                     min_border_left=min_border_left,
                     min_border_right=min_border_right)
     fig.xaxis.axis_label_text_color='#ffffff'
@@ -130,7 +130,7 @@ def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, 
                      x_range=x_range, x_axis_type='datetime',
                      active_scroll='wheel_zoom', title=title,
                      x_axis_label='Time', min_border_left=min_border_left,
-                     min_border_right=min_border_right)
+                     min_border_right=min_border_right, output_backend="webgl")
     fig.circle('TIME', name, size=2, alpha=0.25, color=color, source=fine_data_src)
     medians = fig.circle('TIME', name, size=8, line_color=color, fill_color='white', 
                          source=exposures_src, hover_color='firebrick', line_width=2)
