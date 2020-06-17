@@ -151,10 +151,10 @@ def get_summarytable(exposures):
     source = ColumnDataSource(data=dict(
         nights = list(nights),
         totals = totals,
-        brights = brights,
-        grays = grays,
-        darks = darks,
-        calibs = calibs,
+        #brights = brights,
+        #grays = grays,
+        #darks = darks,
+        #calibs = calibs,
         med_air = med_air,
         med_seeing = med_seeing,
         med_exptime = med_exptime,
@@ -168,11 +168,11 @@ def get_summarytable(exposures):
 
     columns = [
         TableColumn(field='nights', title='NIGHT', width=100, formatter=HTMLTemplateFormatter(template=template_str)),
-        TableColumn(field='totals', title='Total', width=50),
-        TableColumn(field='brights', title='Bright', width=50),
-        TableColumn(field='grays', title='Gray', width=50),
-        TableColumn(field='darks', title='Dark', width=50),
-        TableColumn(field='calibs', title='Calibs', width=50),
+        TableColumn(field='totals', title='Total Exposures', width=100),
+        #TableColumn(field='brights', title='Bright', width=50),
+        #TableColumn(field='grays', title='Gray', width=50),
+        #TableColumn(field='darks', title='Dark', width=50),
+        #TableColumn(field='calibs', title='Calibs', width=50),
         TableColumn(field='med_exptime', title='Median Exp. Time', width=100),
         TableColumn(field='med_air', title='Median Airmass', width=100, formatter=formatter),
         TableColumn(field='med_seeing', title='Median Seeing', width=100, formatter=formatter),
@@ -181,7 +181,7 @@ def get_summarytable(exposures):
         TableColumn(field='med_angle', title='Median Hour Angle', width=115, formatter=formatter),
     ]
 
-    summary_table = DataTable(source=source, columns=columns, width=900, sortable=True, fit_columns=False)
+    summary_table = DataTable(source=source, columns=columns, width=750, sortable=True, fit_columns=False)
     return summary_table
 
 def get_hist(fine_data, attribute, color, width=250, height=250, min_border_left=50, min_border_right=50):

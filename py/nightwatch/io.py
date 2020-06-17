@@ -148,12 +148,12 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
     
     table_by_expid = new_table.group_by('EXPID')
     
-    table_mean = table_by_expid.groups.aggregate(np.nanmean)
+    table_med = table_by_expid.groups.aggregate(np.nanmedian)
     table_min = table_by_expid.groups.aggregate(np.nanmin)
 
     exposures = Table()
     for attr in ["AIRMASS", "SKY", "SEEING", "TRANSP"]:
-        exposures[attr] = table_mean[attr]
+        exposures[attr] = table_med[attr]
     for attr in ['RA', "DEC", "MJD", "NIGHT", "EXPID", "HOURANGLE"]:
         exposures[attr] = table_min[attr]
         
