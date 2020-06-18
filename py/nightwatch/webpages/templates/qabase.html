@@ -14,6 +14,13 @@
   <li style="float:left"><a href="{% for i in range(num_dirs) %}../{% endfor %}qa-lastexp.html">latest</a></li>
 
   {# Right side navigations links (from right to left)#}
+  <li class="dropdown"><a id="guiding" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-guide-{{ zexpid }}.html">guiding</a>
+      <ul class="dropdown-content">
+          <a id="guide_QA" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-guide-{{ zexpid }}.html">GFA</a>
+          <a id="guide_images" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/guide-image-{{ zexpid }}.html">images</a>
+      </ul>
+  </li>
+  
   <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">spectra</a>
       <ul class="dropdown-content">
         <a id="input" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">input</a>
@@ -66,6 +73,8 @@ function get_explinks(links) {
         document.getElementById("next").href =
         {% if preproc %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/preproc-{{current}}-"+next_item.zexpid+"-{{downsample}}x.html";
+        {% elif guideimage %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/{{ qatype }}-"+next_item.zexpid+".html";
         {% elif spectra and input %}
         "../../../../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/{{view}}/{{select_str}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif spectra %}
@@ -86,6 +95,8 @@ function get_explinks(links) {
         document.getElementById("prev").href =
         {% if preproc %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/preproc-{{current}}-"+prev_item.zexpid+"-{{downsample}}x.html";
+        {% elif guideimage %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/{{ qatype }}-"+next_item.zexpid+".html";
         {% elif spectra and input %}
         "../../../../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/{{view}}/{{select_str}}/{{frame}}/{{downsample}}x/".toLowerCase();;
         {% elif spectra %}
