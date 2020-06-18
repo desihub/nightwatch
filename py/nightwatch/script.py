@@ -236,7 +236,8 @@ def main_run(options=None):
 
     night, expid = io.get_night_expid(args.infile)
     expdir = io.findfile('expdir', night=night, expid=expid, basedir=args.outdir)
-
+    rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
+    
     time_start = time.time()
     print('{} Running qproc'.format(time.strftime('%H:%M')))
     header = run.run_qproc(args.infile, expdir, cameras=cameras)
@@ -246,7 +247,7 @@ def main_run(options=None):
     qaresults = run.run_qa(expdir, outfile=qafile)
 
     print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, cameras=cameras)
+    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
 
     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
     run.write_tables(args.outdir, args.outdir, expnights=[night,])
@@ -314,6 +315,7 @@ def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input QA fits file")
     parser.add_argument("-o", "--outdir", type=str, help="output base directory (not including YEARMMDD/EXPID/)")
+    parser.add_argument("-r", "--rawdir", type=str, help="directory conatining raw data (not including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]
@@ -325,8 +327,10 @@ def main_plot(options=None):
             outdir = os.path.dirname(infile)
         else:
             outdir = args.outdir
-
-        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile))
+        
+        rawdir = args.rawdir
+        
+        run.make_plots(infile, outdir, preprocdir=os.path.dirname(infile), logdir=os.path.dirname(infile), rawdir=rawdir)
         print("Done making plots for {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_tables(options=None):

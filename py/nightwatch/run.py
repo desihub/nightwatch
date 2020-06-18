@@ -341,7 +341,7 @@ def run_qa(indir, outfile=None, qalist=None):
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
 
-def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
+def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, cameras=None):
     '''Make plots for a single exposure
 
     Args:
@@ -354,6 +354,9 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
             preproc fits file.
         logdir: directory to where the "qproc-*-*.log" are located. If
             not provided, function will NOT display any logfiles.
+        rawdir: directory to where the raw data files are located, including 
+        "guide-rois-*.fits" and "centroid-*.json" files, are located. If
+            not provided, the function will not plot the guide plots.
         cameras: list of cameras (strings) to generate image files of. If not
             provided, will generate a cameras list from parcing through the
             preproc fits files in the preprocdir
@@ -364,6 +367,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     from nightwatch.webpages import camera as web_camera
     from nightwatch.webpages import summary as web_summary
     from nightwatch.webpages import lastexp as web_lastexp
+    from nightwatch.webpages import guide as web_guide
+    from nightwatch.webpages import guideimage as web_guideimage
     from . import io
 
     log = desiutil.log.get_logger()
@@ -414,6 +419,19 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
     htmlfile = '{}/qa-lastexp.html'.format(basedir)
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print('Wrote {}'.format(htmlfile))
+    
+    if rawdir:
+        #- plot guide metric plots
+        guidedata = io.get_guide_data(night, expid, rawdir)
+        htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+        web_guide.write_guide_html(htmlfile, header, guidedata)
+        print('Wrote {}'.format(htmlfile))
+        
+        #- plot guide image movies
+        htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+        image_data = io.get_guide_images(night, expid, rawdir)
+        web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
+        print('Wrote {}'.format(htmlfile))
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
@@ -462,7 +480,6 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, cameras=None):
         htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
                                         error_colors=error_colors)
-
 
 def write_tables(indir, outdir, expnights=None):
     '''
