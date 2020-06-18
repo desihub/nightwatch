@@ -58,13 +58,23 @@
 
 <div class="flex-container">
     <div class="column middle">
+        
+        {% if SKYPATHPLOT %}
+        <div class='flex-container'>{{ SKYPATHPLOT.script }} {{ SKYPATHPLOT.div }}</div>
+        {% endif %}
             
         <div class="flex-container">
-            <div>{{ timeseries_script }} {{ timeseries_div }}</div>
-            <div>{{ overlaidhists_script }} {{ overlaidhists_div }}</div>
+            {% if TIMESERIES %}
+            <div>{{ TIMESERIES.script }} {{ TIMESERIES.div }}</div>
+            {% endif %}
+            {% if HIST %}
+            <div>{{ HIST.script }} {{ HIST.div }}</div>
+            {% endif %}
         </div>
         
-        <div class="flex-container">{{ table_script }}{{ table_div }}</div>
+        {% if TABLE %}
+        <div class="flex-container">{{ TABLE.script }}{{ TABLE.div }}</div>
+        {% endif %}
     </div>
 </div>
     

@@ -160,7 +160,6 @@ def get_nightlytable(exposures):
     source = ColumnDataSource(data=dict(
         expid = np.array(exposures['EXPID']),
         flavor = np.array(exposures['FLAVOR'], dtype='str'),
-        program = np.array(exposures['PROGRAM'], dtype='str'),
         exptime = np.array(exposures['EXPTIME']),
         tileid = np.array(exposures['TILEID']),
         airmass = np.array(exposures['AIRMASS']),
@@ -174,7 +173,6 @@ def get_nightlytable(exposures):
     columns = [
         TableColumn(field='expid', title='Exposure ID'),
         TableColumn(field='flavor', title='Flavor'),
-        TableColumn(field='program', title='Program'),
         TableColumn(field='exptime', title='Exposure Time'),
         TableColumn(field='tileid', title='Tile ID'),
         TableColumn(field='airmass', title='Airmass', formatter=formatter),
@@ -209,30 +207,26 @@ def get_moonloc(night):
 
     return moon_loc
 
-def get_skypathplot(exposures, tiles, width=600, height=300, min_border_left=50, min_border_right=50):
+def get_skypathplot(exposures, tiles, night, width=600, height=300, min_border_left=50, min_border_right=50):
     """
     Generate a plot which maps the location of tiles observed on NIGHT
     ARGS:
         exposures : Table of exposures with columns specific to a single night
         tiles: Table of tile locations with columns ...
+        night: int
     Options:
         height, width: height and width of the graph in pixels
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
     Returns a bokeh figure object
     """
-    #- Merges tiles data for all exposures on a single night N
-    tiles_and_exps = join(exposures, tiles['STAR_DENSITY', 'EXPOSEFAC', 'OBSCONDITIONS', 'TILEID'], keys='TILEID')
-    tiles_and_exps.sort('TIME')
-
     #- Converts data format into ColumnDataSource
-    src = ColumnDataSource(data={'RA':np.array(tiles_and_exps['RA']),
-                                 'DEC':np.array(tiles_and_exps['DEC']),
-                                 'EXPID':np.array(tiles_and_exps['EXPID']),
-                                 'PROGRAM':np.array([str(n) for n in tiles_and_exps['PROGRAM']])})
+    src = ColumnDataSource(data={'RA':np.array(exposures['RA']),
+                                 'DEC':np.array(exposures['DEC']),
+                                 'EXPID':np.array(exposures['EXPID']),
+                                 'PROGRAM':np.array([str(n) for n in exposures['PROGRAM']])})
 
     #- Plot options
-    night_name = exposures['NIGHT'][0]
-    string_date = night_name[4:6] + "-" + night_name[6:] + "-" + night_name[:4]
+    string_date = str(night)[4:6] + "-" + str(night)[6:] + "-" + str(night)[:4]
 
     fig = bk.figure(width=width, height=height, title='Tiles observed on ' + string_date,
                     min_border_left=min_border_left, min_border_right=min_border_right)
@@ -240,31 +234,30 @@ def get_skypathplot(exposures, tiles, width=600, height=300, min_border_left=50,
     fig.xaxis.axis_label = 'Right Ascension (degrees)'
 
     #- Plots all tiles
-    unobs = fig.circle(tiles['RA'], tiles['DEC'], color='gray', size=1)
-
-    #- Color-coding for program
-    EXPTYPES = ['DARK', 'GRAY', 'BRIGHT']
-    COLORS = ['red', 'blue', 'green']
-    mapper = factor_cmap(field_name='PROGRAM', palette=COLORS, factors=EXPTYPES)
+    unobs = fig.circle(tiles['RA'], tiles['DEC'], color='gray', size=1, alpha=0.1)
 
     #- Plots tiles observed on NIGHT
-    obs = fig.scatter('RA', 'DEC', size=5, fill_alpha=0.7, legend='PROGRAM', source=src, color=mapper)
+    obs = fig.scatter('RA', 'DEC', size=5, fill_alpha=0.7, source=src)
     fig.line(src.data['RA'], src.data['DEC'], color='navy', alpha=0.4)
 
     #- Stars the first point observed on NIGHT
-    first = tiles_and_exps[0]
-    fig.asterisk(first['RA'], first['DEC'], size=10, line_width=1.5, fill_color=None, color='orange')
+    try:
+        ra = src.data['RA']
+        dec = src.data['DEC']
+        fig.asterisk(ra[0], dec[0], size=10, line_width=1.5, fill_color=None, color='orange')
+    except:
+        print('No data for {night}'.format(night=night))
 
     #- Adds moon location at midnight on NIGHT
-    night = exposures['NIGHT'][0]
-    moon_loc = get_moonloc(night)
-    ra, dec = float(moon_loc.ra.to_string(decimal=True)), float(moon_loc.dec.to_string(decimal=True))
-    fig.circle(ra, dec, size=10, color='gold')
+#     night = str(exposures['NIGHT'][0])
+#     moon_loc = get_moonloc(night)
+#     ra, dec = float(moon_loc.ra.to_string(decimal=True)), float(moon_loc.dec.to_string(decimal=True))
+#     fig.circle(ra, dec, size=10, color='gold')
 
 
     #- Circles the first point observed on NIGHT
-    first = tiles_and_exps[0]
-    fig.asterisk(first['RA'], first['DEC'], size=10, line_width=1.5, fill_color=None, color='gold')
+#     first = exposures[0]
+#     fig.asterisk(first['RA'], first['DEC'], size=10, line_width=1.5, fill_color=None, color='gold')
 
     #- Adds hover tool
     TOOLTIPS = [("(RA, DEC)", "(@RA, @DEC)"), ("EXPID", "@EXPID")]
