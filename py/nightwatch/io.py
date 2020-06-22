@@ -250,9 +250,9 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
     table_min = table_by_expid.groups.aggregate(np.nanmin)
 
     exposures = Table()
-    for attr in ["AIRMASS", "SKY", "SEEING", "TRANSP"]:
+    for attr in ["AIRMASS", "SKY", "SEEING", "TRANSP", "MJD"]:
         exposures[attr] = table_med[attr]
-    for attr in ['RA', "DEC", "MJD", "NIGHT", "EXPID", "HOURANGLE"]:
+    for attr in ['RA', "DEC", "NIGHT", "EXPID", "HOURANGLE"]:
         exposures[attr] = table_min[attr]
         
     flavors = []
