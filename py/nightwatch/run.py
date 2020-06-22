@@ -779,6 +779,9 @@ def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_
     from .webpages import nightlyqa as web_nightlyqa
     from . import io
     
+    if not os.path.isdir(os.path.join(outdir, 'surveyqa')):
+        os.mkdir(os.path.join(outdir, 'surveyqa'))
+    
     io.check_offline_files(outdir)
     
     exposures, fine_data = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
