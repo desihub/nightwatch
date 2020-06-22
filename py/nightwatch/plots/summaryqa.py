@@ -97,7 +97,7 @@ def get_skyplot(exposures, tiles, width=500, height=250, min_border_left=50, min
 
     return fig
 
-def get_median(attribute, exposures):
+def get_median(attribute, exposures, nights):
     '''Get the median value for a given attribute for all nights for all exposures taken each night.
     Input:
         attributes: one of the labels in the exposure column, string
@@ -106,7 +106,7 @@ def get_median(attribute, exposures):
         returns a numpy array of the median values for each night
     '''
     medians = []
-    for n in np.unique(exposures['NIGHT']):
+    for n in nights:
         ii = (exposures['NIGHT'] == n)
         attrib = np.asarray(exposures[attribute])[ii]
         medians.append(np.ma.median(attrib))  #- use masked median
@@ -120,33 +120,31 @@ def get_summarytable(exposures):
         exposures: Table of exposures with columns...
     Returns a bokeh DataTable object.
     '''
+    #exposures_reversed = exposures.reverse()
+    
     nights = np.unique(exposures['NIGHT'])
 
-    isbright = (exposures['PROGRAM'] == 'BRIGHT')
-    isgray = (exposures['PROGRAM'] == 'GRAY')
-    isdark = (exposures['PROGRAM'] == 'DARK')
-    iscalib = (exposures['PROGRAM'] == 'CALIB')
+#     isbright = (exposures['PROGRAM'] == 'BRIGHT')
+#     isgray = (exposures['PROGRAM'] == 'GRAY')
+#     isdark = (exposures['PROGRAM'] == 'DARK')
+#     iscalib = (exposures['PROGRAM'] == 'CALIB')
 
     num_nights = len(nights)
-    brights = list()
-    grays = list()
-    darks = list()
-    calibs = list()
     totals = list()
     for n in nights:
         thisnight = exposures['NIGHT'] == n
         totals.append(np.count_nonzero(thisnight))
-        brights.append(np.count_nonzero(thisnight & isbright))
-        grays.append(np.count_nonzero(thisnight & isgray))
-        darks.append(np.count_nonzero(thisnight & isdark))
-        calibs.append(np.count_nonzero(thisnight & iscalib))
+#         brights.append(np.count_nonzero(thisnight & isbright))
+#         grays.append(np.count_nonzero(thisnight & isgray))
+#         darks.append(np.count_nonzero(thisnight & isdark))
+#         calibs.append(np.count_nonzero(thisnight & iscalib))
 
-    med_air = get_median('AIRMASS', exposures)
-    med_seeing = get_median('SEEING', exposures)
-    med_exptime = get_median('EXPTIME', exposures)
-    med_transp = get_median('TRANSP', exposures)
-    med_sky = get_median('SKY', exposures)
-    med_angle = get_median('HOURANGLE', exposures)
+    med_air = get_median('AIRMASS', exposures, nights)
+    med_seeing = get_median('SEEING', exposures, nights)
+    med_exptime = get_median('EXPTIME', exposures, nights)
+    med_transp = get_median('TRANSP', exposures, nights)
+    med_sky = get_median('SKY', exposures, nights)
+    med_angle = get_median('HOURANGLE', exposures, nights)
 
     source = ColumnDataSource(data=dict(
         nights = list(nights),

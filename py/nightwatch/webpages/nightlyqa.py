@@ -32,11 +32,11 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     #- Plot options
     #title='Airmass, Seeing, Exptime vs. Time for {}/{}/{}'.format(night[4:6], night[6:], night[:4])
     TOOLS = ['box_zoom', 'reset', 'wheel_zoom']
-    TOOLTIPS = [("EXPID", "@EXPID"), ("Exposure Time", "@EXPTIME"), ("Airmass", "@AIRMASS"), 
+    TOOLTIPS = [("EXPID", "@EXPID"), ("TILEID", "@TILEID"), ("Exposure Time", "@EXPTIME"), ("Airmass", "@AIRMASS"), 
                 ("Seeing", "@SEEING"), ("Transparency", "@TRANSP"), ('Hour Angle', '@HOURANGLE')]
     
     #- Create ColumnDataSource for linking timeseries plots
-    COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'EXPTIME', 'TRANSP', 'SKY', 'HOURANGLE']
+    COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'EXPTIME', 'TRANSP', 'SKY', 'HOURANGLE', "TILEID", "RA", "DEC"]
     fine_COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'TRANSP', 'SKY', 'HOURANGLE']
     exp_src = ColumnDataSource(data={c:np.array(night_exposures[c]) for c in COLS})
     fine_src = ColumnDataSource(data={c:np.array(night_fine_data[c]) for c in fine_COLS})
@@ -82,27 +82,26 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
         exptime = plot_timeseries(exp_src, 'EXPTIME', 'darkorange', tools=TOOLS, x_range=airmass.x_range,
                                   tooltips=TOOLTIPS, width=600, height=time_hist_plot_height,
                                   min_border_left=min_border_left_time, min_border_right=min_border_right_time)
-
+        
+        #adding in the skyplot components
+        skyplot = get_skypathplot(exp_src, tiles, night, width=600, height=250, tools=TOOLS, 
+                                  tooltips=TOOLTIPS, min_border_left=min_border_left_sky,
+                                  min_border_right=min_border_right_sky)
+        
         #- Convert these to the components to include in the HTML
-        script, div = components(bk.Column(exptime, airmass, seeing, transp, hourangle, brightness))
+        script, div = components(bk.Column(skyplot, exptime, airmass, seeing, transp, hourangle, brightness))
         html_components['TIMESERIES'] = dict(script=script, div=div)
     
     else:
         #- Convert these to the components to include in the HTML
         script, div = components(bk.Column(airmass, seeing, transp, hourangle, brightness))
         html_components['TIMESERIES'] = dict(script=script, div=div)
-
+        
     if len(exposures) != 0:
         #making the nightly table of values
         nightlytable = get_nightlytable(night_exposures)
         script, div = components(nightlytable)
         html_components['TABLE'] = dict(script=script, div=div)
-
-        #adding in the skyplot components
-        skyplot = get_skypathplot(night_exposures, tiles, night, width=650, height=250, 
-                                  min_border_left=min_border_left_sky, min_border_right=min_border_right_sky)
-        script, div = components(skyplot)
-        html_components['SKYPATHPLOT'] = dict(script=script, div=div)
 
     #adding in the components of the exposure types bar plot
     #exptypecounts = get_exptype_counts(exposures, calibs, width=250, height=250, min_border_left=min_border_left_count, min_border_right=min_border_right_count)
@@ -130,13 +129,16 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
                                         min_border_right=min_border_right_hist)
     
     if len(exposures) != 0:
-    
         exptimehist = overlaid_hist(exposures, night_exposures, 'EXPTIME', 'darkorange', 250, 
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
                                     min_border_right=min_border_right_hist)
+        
+        empty_plot = bk.figure(plot_width=250, plot_height=250)
+        empty_plot.outline_line_color = None
+        empty_plot.toolbar_location = None
 
         #adding in the components of the overlaid histograms
-        script, div = components(bk.Column(exptimehist, airmasshist, seeinghist, transphist, hourangle, brightnesshist))
+        script, div = components(bk.Column(empty_plot, exptimehist, airmasshist, seeinghist, transphist, hourangle, brightnesshist))
         html_components['HIST'] = dict(script=script, div=div)
     
     else:
