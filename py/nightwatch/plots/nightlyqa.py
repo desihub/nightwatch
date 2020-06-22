@@ -80,9 +80,12 @@ def plot_timeseries(source, name, color, tools=None, x_range=None, y_range=None,
     Options:
         height, width: height and width of the graph in pixels
         x_range: x-axis range of the graph
+        y_range : a range of y values for the plot
         tools: interactive features
         title: graph title
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
+        tools : list of bokeh tools for the toolbar
+        tooltips : a bokeh tooltip object for the plot hover
     Returns bokeh figure object
     """
 
@@ -118,6 +121,25 @@ def plot_timeseries(source, name, color, tools=None, x_range=None, y_range=None,
     return fig
 
 def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, x_range=None, y_range=None, title=None, tooltips=None, width=400, height=150, min_border_left=50, min_border_right=50):
+    """
+    Plots values corresponding to NAME from SOURCE vs. time with TOOLS. Both per-exposure and finer-scaled data are plotted.
+    ARGS:
+        fine_data_src : ColumnDataSource of gfa_reduce level data
+        exposures_src : ColumnDataSource of per-exposure level data
+        name : string name of this timeseries
+        color : color for plotted data points
+        x_range : a range of x values to link multiple plots together
+    Options:
+        height, width: height and width of the graph in pixels
+        x_range: x-axis range of the graph
+        y_range : a range of y values for the plot
+        tools: interactive features
+        title: graph title
+        min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
+        tools : list of bokeh tools for the toolbar
+        tooltips : a bokeh tooltip object for the plot hover
+    Returns bokeh figure object
+    """
     
 #     source = ColumnDataSource(data=dict(
 #         time = fine_data['TIME'],
@@ -217,11 +239,13 @@ def get_skypathplot(src, tiles, night, width=600, height=300, tools=None, toolti
     """
     Generate a plot which maps the location of tiles observed on NIGHT
     ARGS:
-        exposures : Table of exposures with columns specific to a single night
+        src : ColumnDataSource of exposures with columns specific to a single night
         tiles: Table of tile locations with columns ...
         night: int
     Options:
         height, width: height and width of the graph in pixels
+        tools : list of bokeh tools for plot
+        tooltips : Bokeh tooltips object to configure hover tool
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
     Returns a bokeh figure object
     """
@@ -284,10 +308,10 @@ def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, h
         night_exposures : a table of all the science exposures for a single night
         attribute : a string name of a column in the exposures tables
         color : color of histogram
-        hist_range : (min, max) to clip values.
     Options:
         height, width: height and width of the graph in pixels
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
+        hist_min, hist_max : min, max to clip values (int). Default is None for both.
     Returns a bokeh figure object
     """
     all_attr = np.array(all_exposures[attribute])
@@ -338,6 +362,7 @@ def overlaid_hist_fine(all_data, night_data, attribute, color, width=300, height
     Options:
         height, width: height and width of the graph in pixels
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
+        hist_min, hist_max : min, max to clip values (int). Default is None for both.
     Returns a bokeh figure object
     """
     all_attr = np.array(all_data[attribute])

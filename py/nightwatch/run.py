@@ -773,7 +773,17 @@ def write_thresholds(indir, outdir, start_date, end_date):
     print('Wrote {}'.format(htmlfile))
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
-    '''docstring'''
+    '''Writes surveyqa html files.
+    Args:
+        infile: path to gfa_reduce files containing data that will be used to generate surveyqa files. (str)
+        name_dict: translates between columns in given infile and between those readable by surveyqa code.
+            Must have equivalents for AIRMASS, SKY, SEEING, TRANSP, RA, DEC, MJD, NIGHT, EXPID.
+        tiles: table of data on DESI tiles.
+        rawdir: directory containing raw data files.
+        outdir: directory to write files.
+    Options:
+        nights: subset of nights to generate nightly pages for.
+        show_summary: Whether to generate summary page for all available nights, a given subset, or not at all. Either "no", "all", or "subset". Default "all".'''
     
     from .webpages import summaryqa as web_summaryqa
     from .webpages import nightlyqa as web_nightlyqa

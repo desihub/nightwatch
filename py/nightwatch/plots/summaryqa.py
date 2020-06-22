@@ -100,8 +100,9 @@ def get_skyplot(exposures, tiles, width=500, height=250, min_border_left=50, min
 def get_median(attribute, exposures, nights):
     '''Get the median value for a given attribute for all nights for all exposures taken each night.
     Input:
-        attributes: one of the labels in the exposure column, string
+        attribute: one of the labels in the exposure column, string
         exposures: table with the exposures data
+        nights: list of nights to retrieve medians for
     Output:
         returns a numpy array of the median values for each night
     '''

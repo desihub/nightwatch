@@ -223,7 +223,7 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
         infile: (str) path to file containing surveyqa data
         name_dict: dictionary with column equivalents
             Must have equivalents for AIRMASS, SKY, SEEING, TRANSP, RA, DEC, MJD, NIGHT, EXPID.
-        rawdir: directory containing raw data files
+        rawdir: directory containing raw data files.
     Options:
         program: whether or not to use hardcoded information to assign programs to tileids, default=True
     Returns: two tables, one with aggregated data by exposure, and one with the finer scaled data.'''
