@@ -66,7 +66,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     transp = plot_timeseries_fine(fine_src, exp_src, 'TRANSP', 'purple', tools=TOOLS, 
                                   x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, 
                                   height=time_hist_plot_height, min_border_left=min_border_left_time,
-                                  min_border_right=min_border_right_time, y_range=(0, 2.5))
+                                  min_border_right=min_border_right_time, y_range=(0, 2.2))
     
     hourangle = plot_timeseries_fine(fine_src, exp_src, 'HOURANGLE', 'maroon', tools=TOOLS, 
                                      x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, 
@@ -118,7 +118,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     
     transphist = overlaid_hist_fine(fine_data, night_fine_data, 'TRANSP', 'purple', 250, 
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
-                                    min_border_right=min_border_right_hist, hist_min=0, hist_max=2)
+                                    min_border_right=min_border_right_hist, hist_min=0, hist_max=1.05)
     
     hourangle = overlaid_hist_fine(fine_data, night_fine_data, "HOURANGLE", "maroon", 250, 
                                    time_hist_plot_height, min_border_left=min_border_left_hist,
