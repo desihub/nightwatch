@@ -30,6 +30,9 @@ import warnings
 warnings.filterwarnings('ignore', 'ERFA function.*dubious year.*')
 warnings.filterwarnings('ignore', 'Tried to get polar motions for times after IERS data is valid.*')
 
+from bokeh.core.validation.warnings import MISSING_RENDERERS
+warnings_set = bokeh.core.validation.silence(MISSING_RENDERERS, True)
+
 utc_offset = -7*u.hour
 
 def find_night(exposures, night):

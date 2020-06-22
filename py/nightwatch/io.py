@@ -15,6 +15,9 @@ import bokeh
 import urllib.request
 from pathlib import PurePath
 
+import warnings
+warnings.filterwarnings('once', category=RuntimeWarning)
+
 def read_qa(filename):
     '''
     Read QA data from qa-EXPID.fits file
