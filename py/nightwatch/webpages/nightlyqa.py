@@ -56,17 +56,17 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     airmass = plot_timeseries_fine(fine_src, exp_src, 'AIRMASS', 'green', tools=TOOLS, 
                                    x_range=None, title=None, tooltips=TOOLTIPS, width=600, 
                                    height=time_hist_plot_height, min_border_left=min_border_left_time,
-                                   min_border_right=min_border_right_time)
+                                   min_border_right=min_border_right_time, y_range=(1, 2.5))
     
     seeing = plot_timeseries_fine(fine_src, exp_src, 'SEEING', 'navy', tools=TOOLS, 
                                   x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, 
                                   height=time_hist_plot_height, min_border_left=min_border_left_time,
-                                  min_border_right=min_border_right_time)
+                                  min_border_right=min_border_right_time, y_range=(0, 3.5))
     
     transp = plot_timeseries_fine(fine_src, exp_src, 'TRANSP', 'purple', tools=TOOLS, 
                                   x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, 
                                   height=time_hist_plot_height, min_border_left=min_border_left_time,
-                                  min_border_right=min_border_right_time)
+                                  min_border_right=min_border_right_time, y_range=(0, 2.5))
     
     hourangle = plot_timeseries_fine(fine_src, exp_src, 'HOURANGLE', 'maroon', tools=TOOLS, 
                                      x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, 
@@ -76,11 +76,11 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     brightness = plot_timeseries_fine(fine_src, exp_src, 'SKY', 'pink', tools=TOOLS, 
                                       x_range=airmass.x_range, tooltips=TOOLTIPS, width=600, 
                                       height=time_hist_plot_height, min_border_left=min_border_left_time,
-                                      min_border_right=min_border_right_time)
+                                      min_border_right=min_border_right_time, y_range=(17, 23))
     
     if len(exposures) != 0:
         exptime = plot_timeseries(exp_src, 'EXPTIME', 'darkorange', tools=TOOLS, x_range=airmass.x_range,
-                                  tooltips=TOOLTIPS, width=600, height=time_hist_plot_height,
+                                  tooltips=TOOLTIPS, width=600, height=time_hist_plot_height, y_range=(0, 950),
                                   min_border_left=min_border_left_time, min_border_right=min_border_right_time)
         
         #adding in the skyplot components
@@ -110,15 +110,15 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     #- Get overlaid histograms for several variables
     airmasshist = overlaid_hist_fine(fine_data, night_fine_data, 'AIRMASS', 'green', 250, 
                                      time_hist_plot_height, min_border_left=min_border_left_hist,
-                                     min_border_right=min_border_right_hist)
+                                     min_border_right=min_border_right_hist, hist_min=1, hist_max=2.5)
     
     seeinghist = overlaid_hist_fine(fine_data, night_fine_data, 'SEEING', 'navy', 250, 
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
-                                    min_border_right=min_border_right_hist)
+                                    min_border_right=min_border_right_hist, hist_min=0, hist_max=3.2)
     
     transphist = overlaid_hist_fine(fine_data, night_fine_data, 'TRANSP', 'purple', 250, 
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
-                                    min_border_right=min_border_right_hist)
+                                    min_border_right=min_border_right_hist, hist_min=0, hist_max=2)
     
     hourangle = overlaid_hist_fine(fine_data, night_fine_data, "HOURANGLE", "maroon", 250, 
                                    time_hist_plot_height, min_border_left=min_border_left_hist,
@@ -126,12 +126,12 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     
     brightnesshist = overlaid_hist_fine(fine_data, night_fine_data, 'SKY', 'pink', 250, 
                                         time_hist_plot_height, min_border_left=min_border_left_hist,
-                                        min_border_right=min_border_right_hist)
+                                        min_border_right=min_border_right_hist, hist_min=0, hist_max=23)
     
     if len(exposures) != 0:
         exptimehist = overlaid_hist(exposures, night_exposures, 'EXPTIME', 'darkorange', 250, 
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
-                                    min_border_right=min_border_right_hist)
+                                    min_border_right=min_border_right_hist, hist_min=0)
         
         empty_plot = bk.figure(plot_width=250, plot_height=250)
         empty_plot.outline_line_color = None

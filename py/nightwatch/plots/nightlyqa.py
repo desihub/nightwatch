@@ -66,7 +66,7 @@ def get_timeseries(cds, name):
 
     return x, y
 
-def plot_timeseries(source, name, color, tools=None, x_range=None, title=None, tooltips=None, width=400, height=150, min_border_left=50, min_border_right=50):
+def plot_timeseries(source, name, color, tools=None, x_range=None, y_range=None, title=None, tooltips=None, width=400, height=150, min_border_left=50, min_border_right=50):
     """
     Plots values corresponding to NAME from SOURCE vs. time with TOOLS
     ARGS:
@@ -87,8 +87,8 @@ def plot_timeseries(source, name, color, tools=None, x_range=None, title=None, t
 
     fig = bk.figure(width=width, height=height, tools=tools,
                     x_axis_type='datetime', x_range=x_range,
-                    active_scroll='wheel_zoom', title=title,
-                    x_axis_label='Time', output_backend="webgl",
+                    y_range=y_range, active_scroll='wheel_zoom', 
+                    title=title, x_axis_label='Time', output_backend="webgl",
                     min_border_left=min_border_left,
                     min_border_right=min_border_right)
     fig.xaxis.axis_label_text_color='#ffffff'
@@ -114,7 +114,7 @@ def plot_timeseries(source, name, color, tools=None, x_range=None, title=None, t
 
     return fig
 
-def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, x_range=None, title=None, tooltips=None, width=400, height=150, min_border_left=50, min_border_right=50):
+def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, x_range=None, y_range=None, title=None, tooltips=None, width=400, height=150, min_border_left=50, min_border_right=50):
     
 #     source = ColumnDataSource(data=dict(
 #         time = fine_data['TIME'],
@@ -127,7 +127,7 @@ def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, 
 #     ))
     
     fig =  bk.figure(plot_height=height, plot_width=width, 
-                     x_range=x_range, x_axis_type='datetime',
+                     x_range=x_range, y_range=y_range, x_axis_type='datetime',
                      active_scroll='wheel_zoom', title=title,
                      x_axis_label='Time', min_border_left=min_border_left,
                      min_border_right=min_border_right, output_backend="webgl",
@@ -272,7 +272,7 @@ def get_skypathplot(src, tiles, night, width=600, height=300, tools=None, toolti
 
     return fig
 
-def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, height=150, min_border_left=50, min_border_right=50):
+def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, height=150, min_border_left=50, min_border_right=50, hist_min=None, hist_max=None):
     """
     Generates an overlaid histogram for a single attribute comparing the distribution
     for all of the exposures vs. those from just one night
@@ -281,6 +281,7 @@ def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, h
         night_exposures : a table of all the science exposures for a single night
         attribute : a string name of a column in the exposures tables
         color : color of histogram
+        hist_range : (min, max) to clip values.
     Options:
         height, width: height and width of the graph in pixels
         min_border_left, min_border_right: set minimum width of surrounding labels (in pixels)
@@ -291,6 +292,10 @@ def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, h
     
     all_attr = all_attr[~np.isnan(all_attr)]
     night_attr = night_attr[~np.isnan(night_attr)]
+    
+    if (hist_min is not None and hist_max is not None):
+        all_attr = np.clip(all_attr, hist_min, hist_max)
+        night_attr = np.clip(night_attr, hist_min, hist_max)
     
     hist_all, edges_all = np.histogram(all_attr, density=True, bins=25)
     hist_night, edges_night = np.histogram(night_attr, density=True, bins=25)
@@ -318,7 +323,7 @@ def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, h
 
     return fig
 
-def overlaid_hist_fine(all_data, night_data, attribute, color, width=300, height=150, min_border_left=50, min_border_right=50):
+def overlaid_hist_fine(all_data, night_data, attribute, color, width=300, height=150, min_border_left=50, min_border_right=50, hist_min=None, hist_max=None):
     """
     Generates an overlaid histogram for a single attribute comparing the distribution
     for all of the exposures vs. those from just one night
@@ -337,6 +342,10 @@ def overlaid_hist_fine(all_data, night_data, attribute, color, width=300, height
     
     all_attr = all_attr[~np.isnan(all_attr)]
     night_attr = night_attr[~np.isnan(night_attr)]
+    
+    if (hist_min is not None and hist_max is not None):
+        all_attr = np.clip(all_attr, hist_min, hist_max)
+        night_attr = np.clip(night_attr, hist_min, hist_max)
     
     hist_all, edges_all = np.histogram(all_attr, density=True, bins=25)
     hist_night, edges_night = np.histogram(night_attr, density=True, bins=25)
