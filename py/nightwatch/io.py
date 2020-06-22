@@ -236,12 +236,10 @@ def get_surveyqa_data(infile, name_dict, rawdir, program=True):
     new_table["HOURANGLE"] = LST - new_table["RA"]
     
     def change_range(i):
-
         if i > 180:
-           return i - 360
+            return i - 360
         if i < -180:
-           return 360 + i
-
+            return 360 + i
         return i
 
     new_table["HOURANGLE"] = [change_range(i) for i in new_table["HOURANGLE"]]

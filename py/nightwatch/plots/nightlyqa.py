@@ -134,8 +134,10 @@ def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, 
     fig.circle('TIME', name, size=2, alpha=0.25, color=color, source=fine_data_src)
     medians = fig.circle('TIME', name, size=8, line_color=color, fill_color='white', 
                          source=exposures_src, hover_color='firebrick', line_width=2)
-    fig.grid.visible = False
     
+    #formatting
+    fig.xgrid.grid_line_color = None
+    fig.outline_line_color = None
     fig.yaxis.axis_label = name.title()
     
     if name == 'TRANSP':

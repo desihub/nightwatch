@@ -772,7 +772,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
     plot_components.update(pc)
     print('Wrote {}'.format(htmlfile))
 
-def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, show_summary='all'):
+def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
     '''docstring'''
     
     from .webpages import summaryqa as web_summaryqa
@@ -782,8 +782,7 @@ def write_summaryqa(infile, tilefile, name_dict, rawdir, outdir, nights=None, sh
     io.check_offline_files(outdir)
     
     exposures, fine_data = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
-    tiles = Table.read(tilefile, hdu=1)
-
+    
     exposures_sub = exposures
     fine_data_sub = fine_data
     if nights is not None:

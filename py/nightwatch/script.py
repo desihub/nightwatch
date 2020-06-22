@@ -6,6 +6,9 @@ import os, sys, time, glob
 import argparse
 import traceback
 import subprocess
+from desimodel.io import load_tiles
+from desispec.io import meta
+
 from . import run, plots, io
 from .run import timestamp
 from .qa.runner import QARunner
@@ -383,17 +386,25 @@ def main_surveyqa(options=None):
     parser = argparse.ArgumentParser(usage = '{prog} [options]')
     
     parser.add_argument('-i', '--infile', type=str, required=True, help='file containing data to feed into surveyqa')
-    parser.add_argument('-t', '--tilefile', type=str, required=True, help='file containing data on tiles')
-    parser.add_argument('-r', '--rawdir', type=str, required=True, help='directory containing raw data files (without YYYMMDD/EXPID/)')
     parser.add_argument('-o', '--outdir', type=str, required=True, help='directory threshold json/html files should be written to (will be written to outdir/surveyqa, outdir should be same location as other nightwatch files)')
+    parser.add_argument('-t', '--tilefile', type=str, help='file containing data on tiles')
+    parser.add_argument('-r', '--rawdir', type=str, help='directory containing raw data files (without YYYMMDD/EXPID/)')
     
     if options is None:
         options = sys.argv[2:]
     args = parser.parse_args(options)
+    
+    if args.tilefile is None:
+        tiles = load_tiles()
+    else:
+        tiles = Table.read(args.tilefile, hdu=1)
+        
+    if args.rawdir is None:
+        args.rawdir = meta.rawdata_root()
     
     name_dict = {"EXPID": "EXPID", "MJD": "MJD", 
              "AIRMASS": "AIRMASS", "TRANSP": "TRANSPARENCY", "NIGHT": "NIGHT", 
              "MOONSEP": "MOON_SEP_DEG", "RA": "SKYRA", "DEC": "SKYDEC",
              "SKY": "SKY_MAG_AB", "SEEING": "FWHM_ASEC"}
 
-    run.write_summaryqa(args.infile, args.tilefile, name_dict, args.rawdir, args.outdir)
+    run.write_summaryqa(args.infile, name_dict, tiles, args.rawdir, args.outdir)

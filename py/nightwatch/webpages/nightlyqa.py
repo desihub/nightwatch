@@ -19,13 +19,8 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     next_str = night_links['next']
     prev_str = night_links['prev']
 
-    #- Separate calibration exposures
-    all_exposures = exposures[exposures['PROGRAM'] != 'CALIB']
-    all_calibs = exposures[exposures['PROGRAM'] == 'CALIB']
-
     #- Filter exposures to just this night and adds columns DATETIME and MJD_hour
-    exposures = find_night(all_exposures, night)
-    calibs = find_night(all_calibs, night)
+    night_exposures = find_night(exposures, night)
     night_fine_data = find_night(fine_data, night)
 
     html_components = dict(
@@ -43,7 +38,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     #- Create ColumnDataSource for linking timeseries plots
     COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'EXPTIME', 'TRANSP', 'SKY', 'HOURANGLE']
     fine_COLS = ['EXPID', 'TIME', 'AIRMASS', 'SEEING', 'TRANSP', 'SKY', 'HOURANGLE']
-    exp_src = ColumnDataSource(data={c:np.array(exposures[c]) for c in COLS})
+    exp_src = ColumnDataSource(data={c:np.array(night_exposures[c]) for c in COLS})
     fine_src = ColumnDataSource(data={c:np.array(night_fine_data[c]) for c in fine_COLS})
 
     #- Get timeseries plots for several variables
@@ -99,12 +94,12 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
 
     if len(exposures) != 0:
         #making the nightly table of values
-        nightlytable = get_nightlytable(exposures)
+        nightlytable = get_nightlytable(night_exposures)
         script, div = components(nightlytable)
         html_components['TABLE'] = dict(script=script, div=div)
 
         #adding in the skyplot components
-        skyplot = get_skypathplot(exposures, tiles, night, width=700, height=300, 
+        skyplot = get_skypathplot(night_exposures, tiles, night, width=650, height=250, 
                                   min_border_left=min_border_left_sky, min_border_right=min_border_right_sky)
         script, div = components(skyplot)
         html_components['SKYPATHPLOT'] = dict(script=script, div=div)
@@ -136,7 +131,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
     
     if len(exposures) != 0:
     
-        exptimehist = overlaid_hist(all_exposures, exposures, 'EXPTIME', 'darkorange', 250, 
+        exptimehist = overlaid_hist(exposures, night_exposures, 'EXPTIME', 'darkorange', 250, 
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
                                     min_border_right=min_border_right_hist)
 
