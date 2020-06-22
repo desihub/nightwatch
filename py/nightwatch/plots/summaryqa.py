@@ -120,9 +120,8 @@ def get_summarytable(exposures):
         exposures: Table of exposures with columns...
     Returns a bokeh DataTable object.
     '''
-    #exposures_reversed = exposures.reverse()
     
-    nights = np.unique(exposures['NIGHT'])
+    nights = np.unique(exposures['NIGHT'])[::-1]
 
 #     isbright = (exposures['PROGRAM'] == 'BRIGHT')
 #     isgray = (exposures['PROGRAM'] == 'GRAY')
@@ -175,11 +174,11 @@ def get_summarytable(exposures):
         TableColumn(field='med_air', title='Median Airmass', width=100, formatter=formatter),
         TableColumn(field='med_seeing', title='Median Seeing', width=100, formatter=formatter),
         TableColumn(field='med_sky', title='Median Sky', width=100, formatter=formatter),
-        TableColumn(field='med_transp', title='Median Transparency', width=115, formatter=formatter),
-        TableColumn(field='med_angle', title='Median Hour Angle', width=115, formatter=formatter),
+        TableColumn(field='med_transp', title='Median Transparency', width=125, formatter=formatter),
+        TableColumn(field='med_angle', title='Median Hour Angle', width=125, formatter=formatter),
     ]
 
-    summary_table = DataTable(source=source, columns=columns, width=750, sortable=True, fit_columns=False)
+    summary_table = DataTable(source=source, columns=columns, width=850, sortable=True, fit_columns=True)
     return summary_table
 
 def get_hist(fine_data, attribute, color, width=250, height=250, min_border_left=50, min_border_right=50):
