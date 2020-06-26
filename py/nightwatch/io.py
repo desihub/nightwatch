@@ -118,12 +118,15 @@ def get_guide_data(night, expid, basedir):
     returns dictionary object.'''
     guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid)) 
     infile = os.path.join(guidedir, 'centroids-{expid:08d}.json'.format(night=night, expid=expid))
-
-    with open(infile) as fx:
-        guidedata = json.load(fx)
     
-    return guidedata
-
+    if os.path.isfile(infile):
+        with open(infile) as fx:
+            guidedata = json.load(fx)
+        return guidedata
+        
+    else:
+        raise FileNotFoundError('centroids-{expid:08d}.json not found'.format(expid=expid))
+    
 def get_guide_images(night, expid, basedir, rot=False):
     '''Given a night and exposure, return file containing raw guide images.
     Args:
@@ -133,62 +136,65 @@ def get_guide_images(night, expid, basedir, rot=False):
     returns path to file.'''
     guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid))
     infile = os.path.join(guidedir, 'guide-rois-{expid:08d}.fits.fz'.format(night=night, expid=expid))
-    print(infile)
     
-    image_data = dict()
-    
-    gfa_file = os.path.expandvars('$DESIMODEL/data/focalplane/gfa.ecsv')
-    rotdict = rot_dict(gfa_file)
-    
-    for cam in [0, 2, 3, 5, 7, 8]:
-        name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
-        name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
-        name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
-        name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
-        #name = 'GUIDE{cam}'.format(cam=cam)
+    if not os.path.isfile(infile):
+        raise FileNotFoundError('guide-rois-{expid:08d}.fits.fz not found'.format(expid=expid))
         
-        angle = rotdict[str(cam)]
-        
-        try:
-            data = fits.getdata(infile, extname=name0)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name0] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name0))
-        try:
-            data = fits.getdata(infile, extname=name1)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name1] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name1))
-        try:
-            data = fits.getdata(infile, extname=name2)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name2] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name2))
-        try:
-            data = fits.getdata(infile, extname=name3)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name3] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name3))
+    else:
+        image_data = dict()
+
+        gfa_file = os.path.expandvars('$DESIMODEL/data/focalplane/gfa.ecsv')
+        rotdict = rot_dict(gfa_file)
+
+        for cam in [0, 2, 3, 5, 7, 8]:
+            name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
+            name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
+            name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
+            name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
+            #name = 'GUIDE{cam}'.format(cam=cam)
+
+            angle = rotdict[str(cam)]
+
+            try:
+                data = fits.getdata(infile, extname=name0)
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name0] = image_dict
+            except KeyError:
+                print('no images for {name}'.format(name=name0))
+            try:
+                data = fits.getdata(infile, extname=name1)
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name1] = image_dict
+            except KeyError:
+                print('no images for {name}'.format(name=name1))
+            try:
+                data = fits.getdata(infile, extname=name2)
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name2] = image_dict
+            except KeyError:
+                print('no images for {name}'.format(name=name2))
+            try:
+                data = fits.getdata(infile, extname=name3)
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name3] = image_dict
+            except KeyError:
+                print('no images for {name}'.format(name=name3))
     
     return image_data
     
