@@ -21,13 +21,12 @@ def get_all_values(d):
 
 def subtract_medians(image_data):
     scaled_images = dict()
-    keys = image_data.keys()
-    for key in keys:
+    for key in image_data.keys():
         ims = image_data[key]
         ims_new = dict()
         for idx in ims.keys():
             im = ims[idx]
-            med = med = np.median(im[10:40:, 10:40:])
+            med = np.median(im[10:40:, 10:40:])
             ims_new[idx] = im - med
         scaled_images[key] = ims_new
     return scaled_images
@@ -50,14 +49,15 @@ def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8)
     sources = {}
 
     for idx in indices:
-        imgs = []
-        image_names = []
-        for key in keys:
-            img = scaled_data[key][idx]
-            u8img = (255*(img.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
-            colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
-            imgs.append([u8img])
-            image_names.append(key)
+        imgs = [[(255*(scaled_data[key][idx].clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)] for key in keys]
+        image_names = [key for key in keys]
+#         image_names = []
+#         for key in keys:
+#             img = scaled_data[key][idx]
+#             u8img = (255*(img.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
+#             colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
+#             imgs.append([u8img])
+#             image_names.append(key)
         sources['_' + str(idx)] = ColumnDataSource(data = dict(zip(
             [name for name in image_names],
             [img for img in imgs],

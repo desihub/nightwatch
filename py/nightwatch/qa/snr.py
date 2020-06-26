@@ -68,10 +68,6 @@ class QASNR(QA):
             log.error("no qcframe in {}".format(indir))
             return None
 
-        
-
-        
-
         # find number of spectros
         spectros=[]
         for filename in infiles:
@@ -79,7 +75,6 @@ class QASNR(QA):
             s=int(hdr['CAMERA'][1])
             spectros.append(s)
         spectros=np.unique(spectros)
-        
         
         for spectro in spectros :
             
