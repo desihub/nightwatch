@@ -149,47 +149,48 @@ def get_guide_images(night, expid, basedir, rot=False):
         
         angle = rotdict[str(cam)]
         
-        try:
-            data = fits.getdata(infile, extname=name0)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name0] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name0))
-        try:
-            data = fits.getdata(infile, extname=name1)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name1] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name1))
-        try:
-            data = fits.getdata(infile, extname=name2)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name2] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name2))
-        try:
-            data = fits.getdata(infile, extname=name3)
-            if rot == True:
-                data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
-            image_dict = dict()
-            for idx in range(len(data)):
-                image_dict[idx] = data[idx]
-            image_data[name3] = image_dict
-        except KeyError:
-            print('no images for {name}'.format(name=name3))
-    
+        with fitsio.FITS(infile) as f:
+            try:
+                data = f[name0].read()
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name0] = image_dict
+            except IOError:
+                print('no images for {name}'.format(name=name0))
+            try:
+                data = f[name1].read()
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name1] = image_dict
+            except IOError:
+                print('no images for {name}'.format(name=name1))
+            try:
+                data = f[name2].read()
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name2] = image_dict
+            except IOError:
+                print('no images for {name}'.format(name=name2))
+            try:
+                data = f[name3].read()
+                if rot == True:
+                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                image_dict = dict()
+                for idx in range(len(data)):
+                    image_dict[idx] = data[idx]
+                image_data[name3] = image_dict
+            except IOError:
+                print('no images for {name}'.format(name=name3))
+
     return image_data
     
 def rot_dict(gfa_file):
