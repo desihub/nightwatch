@@ -422,16 +422,22 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     
     if rawdir:
         #- plot guide metric plots
-        guidedata = io.get_guide_data(night, expid, rawdir)
-        htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
-        web_guide.write_guide_html(htmlfile, header, guidedata)
-        print('Wrote {}'.format(htmlfile))
+        try:
+            guidedata = io.get_guide_data(night, expid, rawdir)
+            htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+            web_guide.write_guide_html(htmlfile, header, guidedata)
+            print('Wrote {}'.format(htmlfile))
+        except FileNotFoundError:
+            print('Unable to find guide data, not plotting guide plots')
         
         #- plot guide image movies
-        htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
-        image_data = io.get_guide_images(night, expid, rawdir)
-        web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
-        print('Wrote {}'.format(htmlfile))
+        try:
+            htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+            image_data = io.get_guide_images(night, expid, rawdir)
+            web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
+            print('Wrote {}'.format(htmlfile))
+        except FileNotFoundError:
+            print('Unable to find guide data, not plotting guide image plots')
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
