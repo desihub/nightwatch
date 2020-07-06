@@ -422,16 +422,22 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     
     if rawdir:
         #- plot guide metric plots
-        guidedata = io.get_guide_data(night, expid, rawdir)
-        htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
-        web_guide.write_guide_html(htmlfile, header, guidedata)
-        print('Wrote {}'.format(htmlfile))
+        try:
+            guidedata = io.get_guide_data(night, expid, rawdir)
+            htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+            web_guide.write_guide_html(htmlfile, header, guidedata)
+            print('Wrote {}'.format(htmlfile))
+        except FileNotFoundError:
+            print('Unable to find guide data, not plotting guide plots')
         
         #- plot guide image movies
-        htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
-        image_data = io.get_guide_images(night, expid, rawdir)
-        web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
-        print('Wrote {}'.format(htmlfile))
+        try:
+            htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+            image_data = io.get_guide_images(night, expid, rawdir)
+            web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
+            print('Wrote {}'.format(htmlfile))
+        except FileNotFoundError:
+            print('Unable to find guide data, not plotting guide image plots')
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
@@ -467,6 +473,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             pool.starmap(web_plotimage.write_image_html, argslist)
             pool.close()
             pool.join()
+            
+        else:
+            for args in arglist:
+                web_plotimage.write_image_html(*args)
 
         #- plot preproc nav table
         navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
@@ -779,3 +789,65 @@ def write_thresholds(indir, outdir, start_date, end_date):
     plot_components.update(pc)
     print('Wrote {}'.format(htmlfile))
 
+def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
+    '''Writes surveyqa html files.
+    Args:
+        infile: path to gfa_reduce files containing data that will be used to generate surveyqa files. (str)
+        name_dict: translates between columns in given infile and between those readable by surveyqa code.
+            Must have equivalents for AIRMASS, SKY, SEEING, TRANSP, RA, DEC, MJD, NIGHT, EXPID.
+        tiles: table of data on DESI tiles.
+        rawdir: directory containing raw data files.
+        outdir: directory to write files.
+    Options:
+        nights: subset of nights to generate nightly pages for.
+        show_summary: Whether to generate summary page for all available nights, a given subset, or not at all. Either "no", "all", or "subset". Default "all".'''
+    
+    from .webpages import summaryqa as web_summaryqa
+    from .webpages import nightlyqa as web_nightlyqa
+    from . import io
+    
+    if not os.path.isdir(os.path.join(outdir, 'surveyqa')):
+        os.mkdir(os.path.join(outdir, 'surveyqa'))
+    
+    io.check_offline_files(outdir)
+    
+    exposures, fine_data = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
+    
+    exposures_sub = exposures
+    fine_data_sub = fine_data
+    if nights is not None:
+        nights = [str(i) for i in nights]
+        exposures_sub = exposures[[x in nights for x in exposures['NIGHT']]]
+        fine_data_sub = fine_data[[x in nights for x in fine_data['NIGHT']]]
+    
+    nights_sub = sorted(set(exposures_sub['NIGHT']))
+
+    exptiles = np.unique(exposures['TILEID'])
+    print('Generating QA for {} exposures, {} nights'.format(
+        len(exposures), len(nights_sub)))
+
+    if show_summary=="subset":
+        web_summaryqa.get_summaryqa_html(exposures_sub, fine_data_sub, tiles, outdir)
+    elif show_summary=="all":
+        web_summaryqa.get_summaryqa_html(exposures, fine_data, tiles, outdir)
+    elif show_summary!="no":
+        raise ValueError('show_summary should be "all", "subset", or "no". The value of show_summary was: {}'.format(show_summary))
+
+    link_dict = io.write_night_linkage(outdir, nights_sub, nights != None)
+
+    ncpu = get_ncpu(None)
+    argslist = [(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict) for night in nights_sub]
+    
+    if ncpu > 1:
+        print('Running surveyqa in parallel on {} cores for {} nights'.format(ncpu, len(nights_sub)))
+        pool = mp.Pool(ncpu)
+        pool.starmap(web_nightlyqa.get_nightlyqa_html, argslist)
+        pool.close()
+        pool.join()
+    
+    else:
+        print('Running surveyqa serially for {} nights'.format(len(nights_sub)))
+        for night in nights_sub:
+            web_nightlyqa.get_nightlyqa_html(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict)
+        
+    print('Done')
