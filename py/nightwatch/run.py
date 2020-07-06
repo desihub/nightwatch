@@ -455,11 +455,22 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     if (preprocdir is not None):
         #- plot preprocessed images
         downsample = 4
-
-        for camera in cameras:
-            input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits".format(camera, expid))
-            output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html".format(camera, expid))
-            web_plotimage.write_image_html(input, output, downsample, night)
+        
+        ncpu = get_ncpu(None)
+        input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits")
+        output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html")
+        
+        argslist = [(input.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
+    
+        if ncpu > 1:
+            pool = mp.Pool(ncpu)
+            pool.starmap(web_plotimage.write_image_html, argslist)
+            pool.close()
+            pool.join()
+            
+        else:
+            for args in arglist:
+                web_plotimage.write_image_html(*args)
 
         #- plot preproc nav table
         navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
