@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<style>
+    body {
+        margin: 0;
+    }
+    .header {
+        font-family: "Open Serif", Arial, Helvetica, sans-serif;
+        background-color: #f1f1f1;
+        padding: 10px;
+        text-align: center;
+        justify: space-around;
+    }
+    .column {
+        float: center;
+        padding: 10px
+    }
+    .column.side {
+        width = 5%;
+    }
+    .column.middle {
+        width = 90%;
+    }
+    .flex-container {
+        display: flex;
+        flex-direction: row;
+        flex-flow: row wrap;
+        justify-content: center;
+        padding: 10px;
+    }
+    .flex-container.title{
+        justify-content: space-around;
+        flex-direction: column;
+    }
+    p.sansserif {
+        font-family: "Open Serif", Helvetica, sans-serif;
+    }
+</style>
+
+<div class="flex-container title">
+    <ul class="titlebar">
+        <li><a>DESI SurveyQA Night {{ night }}</a></li>
+    </ul>
+
+    <ul class="navigationbar">
+        {# Left side navigations links (from left to right)#}
+        <li style="float:left"><a href="../nights.html">Calendar</a></li>
+        <li style="float:left"><a href="../{{ night }}/exposures.html">Nightwatch</a></li>
+        <li><a id="last" href={{ last_str }}>Last</a></li>
+        <li><a id="next" href={{ next_str }}>Next</a></li>
+        <li><a id="prev" href={{ prev_str }}>Prev</a></li>
+        <li><a id="first" href={{ first_str }}>First</a></li>
+        <li><a id="summary" href = {{ summary_str }}>Summary Page</a></li>
+    </ul>
+</div>
+
+<div class="flex-container">
+    <div class="column middle">
+        
+        {% if SKYPATHPLOT %}
+        <div class='flex-container'>{{ SKYPATHPLOT.script }} {{ SKYPATHPLOT.div }}</div>
+        {% endif %}
+            
+        <div class="flex-container">
+            {% if TIMESERIES %}
+            <div>{{ TIMESERIES.script }} {{ TIMESERIES.div }}</div>
+            {% endif %}
+            {% if HIST %}
+            <div>{{ HIST.script }} {{ HIST.div }}</div>
+            {% endif %}
+        </div>
+        
+        {% if TABLE %}
+        <div class="flex-container">{{ TABLE.script }}{{ TABLE.div }}</div>
+        {% endif %}
+    </div>
+</div>
+    
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<style>
+    body {
+        margin: 0;
+    }
+    
+    .column {
+        float: center;
+    }
+    .column.side {
+        width = 10%;
+    }
+    .column.middle {
+        width = 80%;
+    }
+    .flex-container {
+        display: flex;
+        flex-direction: row;
+        flex-flow: row wrap;
+        justify-content: flex-start;
+        padding: 10px;
+        align-items: flex-end;
+    }
+</style>
+
+<div class="flex-container">
+    <div class="column side"></div>
+    <div class="column middle">
+        
+        <ul class="titlebar">
+           <li><a>DESI SurveyQA through {{ last_night }}</a></li>
+        </ul>
+        
+        <ul class="navigationbar">
+          <li style="float:left"><a id="nights" href = "../nights.html">calendar</a></li>
+        </ul>
+            
+        <div class="flex-container">
+            <div>{{ skyplot_script }} {{ skyplot_div }}</div>
+        </div>
+            
+        <ul class="titlebar">
+            <li><a>Observing Conditions</a></li>
+        </ul>
+            
+        <div class="flex-container">
+            <div>{{ airmass_script }} {{ airmass_div }}</div>
+            <div>{{ seeing_script }} {{ seeing_div }}</div>
+            <div>{{ transp_hist_script }} {{ transp_hist_div }}</div>
+            <div>{{ exposePerTile_hist_script }} {{ exposePerTile_hist_div }}</div>
+            <div>{{ brightness_script }} {{ brightness_div }}</div>
+            <div>{{ exptime_script }} {{ exptime_div }}</div>
+        </div>
+                
+         <ul class="titlebar">
+            <li><a>Summary Table</a></li>
+        </ul>
+                
+        <div class="flex-container">
+            {{ summarytable_script }}
+            {{ summarytable_div }}
+        </div>
+            
+    </div>
+    <div class="column side"></div>
+</div>
+{% endblock %}
