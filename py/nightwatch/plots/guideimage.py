@@ -27,7 +27,7 @@ def subtract_medians(image_data):
         ims_new = dict()
         for idx in ims.keys():
             im = ims[idx]
-            med = med = np.median(im[10:40:, 10:40:])
+            med = np.median(im[10:40:, 10:40:])
             ims_new[idx] = im - med
         scaled_images[key] = ims_new
     return scaled_images
