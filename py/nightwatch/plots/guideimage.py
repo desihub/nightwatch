@@ -12,6 +12,10 @@ from bokeh.models.mappers import LinearColorMapper
 from bokeh.layouts import column, gridplot
 from bokeh.palettes import gray
 
+from scipy.ndimage import rotate
+
+from ..io import rot_dict
+
 def get_all_values(d):
     vals = []
     for key in d.keys():
@@ -19,18 +23,43 @@ def get_all_values(d):
             vals.append(d[key][k])
     return vals
 
-def subtract_medians(image_data):
+def subtract_medians(image_data, return_medians=False):
     scaled_images = dict()
+    medians = dict()
     keys = image_data.keys()
     for key in keys:
         ims = image_data[key]
         ims_new = dict()
+        meds = dict()
         for idx in ims.keys():
             im = ims[idx]
             med = np.median(im[10:40:, 10:40:])
             ims_new[idx] = im - med
+            meds[idx] = med
         scaled_images[key] = ims_new
-    return scaled_images
+        medians[key] = meds
+    
+    if return_medians:
+        return scaled_images, medians
+    
+    else:
+        return scaled_images
+
+def rotate_guide_images(image_data, rotdict):
+    '''rotate images to align along same axis given dictionary of angles.'''
+    images_rotated = dict()
+    for key in image_data.keys():
+        cam = key[5]
+        angle = rotdict[cam]
+        data = image_data[key]
+        ims = dict()
+        for idx in data.keys():
+            zmin = np.percentile(data[idx], 10)
+            im = rotate(data[idx], angle, reshape=False, mode='constant', cval=zmin)
+            ims[idx] = im
+        images_rotated[key] = ims
+    return images_rotated
+        
 
 def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8):
     '''
@@ -42,7 +71,16 @@ def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8)
         title: title of plot, only needed if you want a different one than is hardcoded(default = None)
     Returns bokeh layout object.'''
     
-    scaled_data = subtract_medians(image_data)
+    scaled_data = subtract_medians(image_data, return_medians=False)
+    
+    #get dictionary of angles to rotate different GFAs to align images along same axis
+    gfa_file = os.path.expandvars('$DESIMODEL/data/focalplane/gfa.ecsv')
+    rotdict = rot_dict(gfa_file)
+    
+    #rotate images
+    scaled_data = rotate_guide_images(scaled_data, rotdict)
+    
+    #data to rescale colors later for readability
     zmin, zmax = np.percentile(get_all_values(scaled_data), (1, 99))
     keys = list(scaled_data.keys())
     indices = range(len(scaled_data[keys[0]]))
