@@ -54,7 +54,7 @@ def rotate_guide_images(image_data, rotdict):
         data = image_data[key]
         ims = dict()
         for idx in data.keys():
-            zmin = np.percentile(data[idx], 10)
+            zmin = np.percentile(data[idx], 5)
             im = rotate(data[idx], angle, reshape=False, mode='constant', cval=zmin)
             ims[idx] = im
         images_rotated[key] = ims
