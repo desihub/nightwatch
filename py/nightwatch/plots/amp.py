@@ -6,7 +6,7 @@ from bokeh.models.tickers import FixedTicker
 from bokeh.models.ranges import FactorRange
 from bokeh.models import (
     LinearColorMapper, ColorBar, ColumnDataSource, OpenURL,
-    NumeralTickFormatter,
+    NumeralTickFormatter, AdaptiveTicker,
     TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band,
     ResetTool, BoxZoomTool, OpenURL)
 from bokeh.models.callbacks import CustomJS
@@ -277,7 +277,17 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
         if cam == 'Z':
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[2], ymax=ymax[2])
             
-        fig.yaxis.formatter = NumeralTickFormatter(format='a')
+        
+        if name == "BIAS":
+            fig.yaxis.ticker = AdaptiveTicker(base=10, desired_num_ticks=5, 
+                                              mantissas=np.arange(1, 5.5, 0.5), 
+                                              min_interval=1)
+            fig.yaxis.formatter = NumeralTickFormatter(format='e')
+        else:
+            fig.yaxis.ticker = AdaptiveTicker(base=10, desired_num_ticks=5, 
+                                              mantissas=np.arange(1, 5.5, 0.5), 
+                                              min_interval=1)
+            fig.yaxis.formatter = NumeralTickFormatter(format='a')
         figs.append(fig)
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
