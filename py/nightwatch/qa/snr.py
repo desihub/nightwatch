@@ -114,7 +114,8 @@ class QASNR(QA):
                     iiband[c] = (qframe.wave[0][0] < self.rwave)
                     iiband[c] &= (self.rwave < qframe.wave[0][-1])
                     
-            argslist = [(self, qframes, fmap, f, fiber, iiband, night, expid, spectro, stars, qsos) for f, fiber in enumerate(fmap["FIBER"])]
+            
+            argslist = [(self, iiband, get_fiber_data(qframes, fmap, f, fiber, night, expid, spectro, stars, qsos)) for f, fiber in enumerate(fmap["FIBER"])]
             ncpu = get_ncpu(None)
             
             if ncpu > 1:
@@ -123,6 +124,104 @@ class QASNR(QA):
             else:
                 for args in argslist:
                     results.append(get_dico(**args))
+            
+        if len(results)==0 :
+            return None
+        return Table(results, names=results[0].keys())
+
+def get_fiber_data(qframes, fmap, f, fiber, night, expid, spectro, stars, qsos):
+    
+    dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"FIBER":fiber}
+    for k in ["FLUX_G","FLUX_R","FLUX_Z"] :
+        dico[k]=fmap[k][f]
+    
+    dico["MORPHTYPE"] = fmap["MORPHTYPE"][f]
+    if fmap["OBJTYPE"][f] == "SKY" :
+        dico["MORPHTYPE"] = b"SKY"
+    elif dico["MORPHTYPE"] == "" : # not filled in some sims
+        if stars[f] or qsos[f] :
+            dico["MORPHTYPE"] = b"PSF"
+        else :
+            dico["MORPHTYPE"] = b"OTHER"
+    
+    data = dict()
+    data["photsys"]=fmap["PHOTSYS"][f]
+    
+    for c in ["B","R","Z"] :
+        if c in qframes :
+            data[c] = dict()
+            
+            qframe=qframes[c]
+            data[c]['flux'] = qframe.flux[f]
+            data[c]['ivar'] = qframe.ivar[f]
+            data[c]['wave'] = qframe.wave[f]
+            data[c]['meta'] = qframe.meta
+    
+    return (dico, data)
+
+def get_dico(self, iiband, dicts):
+    
+    dico = dicts[0]
+    data = dicts[1]
+    
+    photsys = data['photsys']
+
+    sw  = np.zeros(self.rwave.size)
+    swf = np.zeros(self.rwave.size)
+
+    for c in ["B","R","Z"] :
+
+        if c in data.keys() :
+            cdata = data[c]
+            dico["SNR_"+c] = np.median(cdata['flux'] * np.sqrt(cdata['ivar']))
+            ### cf , cw = resample_flux(self.rwave,qframe.wave[f],qframe.flux[f],qframe.ivar[f])
+            ### sw  += cw
+            ### swf += cw*cf
+            ii = iiband[c]
+            cf, cw = resample_flux(self.rwave[ii], cdata['wave'],cdata['flux'], cdata['ivar'])
+            sw[ii]  += cw
+            swf[ii] += cw*cf
+        else :
+            dico["SNR_"+c] = 0.
+
+    rflux = swf/(sw+(sw==0))
+    # interpolate over masked pixels
+    if np.count_nonzero(sw>0) > 2:
+        rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
+
+    fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
+    for c in ["G","R","Z"] :
+        dico["SPECFLUX_"+c]=self.filters[c+photsys].get_ab_maggies(rflux*fluxunits,self.rwave)*1e9 # nano maggies 
+
+
+    for c in ["B","R","Z"] :
+
+        dico["THRU_{}".format(c)] = 0.
+
+        if c in data.keys() :                            
+
+            cdata=data[c]
+            if not "CALVALUE" in cdata['meta'] : 
+                continue
+            calwave  = cdata['meta']["CALWAVE"] # reference wavelength for 'CALVALUE'
+            calvalue = cdata['meta']["CALVALUE"] # calibration used in qproc
+            if c=="B" : 
+                photometric_band = "G"
+            else :
+                photometric_band = c
+
+            if dico["FLUX_"+photometric_band] < 10. :
+                continue
+
+            # the throughput is proportional to the calibration value used in qproc ( flux = electrons/calvalue) 
+            thru = calvalue*self.thru_conversion_factor_ergs_per_cm2 * self.thru_conversion_wavelength / calwave / cdata['meta']["EXPTIME"]
+
+            # multiply by ratio of calibrated spec flux to photom flux
+            dico["THRU_{}".format(c)] = thru * dico["SPECFLUX_"+photometric_band] / dico["FLUX_"+photometric_band]
+
+    return collections.OrderedDict(**dico)
+
+
 
 #             for f,fiber in enumerate(fmap["FIBER"]) :
 #                 dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"FIBER":fiber}
@@ -196,81 +295,3 @@ class QASNR(QA):
 #                         dico["MORPHTYPE"] = b"OTHER"
                 
 #                 results.append(collections.OrderedDict(**dico))
-            
-        if len(results)==0 :
-            return None
-        return Table(results, names=results[0].keys())
-
-def get_dico(self, qframes, fmap, f, fiber, iiband, night, expid, spectro, stars, qsos):
-    
-    dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"FIBER":fiber}
-    for k in ["FLUX_G","FLUX_R","FLUX_Z"] :
-        dico[k]=fmap[k][f]
-
-    photsys=fmap["PHOTSYS"][f]
-
-    #- clear previous fiber results
-    sw  = np.zeros(self.rwave.size)
-    swf = np.zeros(self.rwave.size)
-
-    for c in ["B","R","Z"] :
-
-        if c in qframes :
-            qframe=qframes[c]
-            dico["SNR_"+c] = np.median(qframe.flux[f] * np.sqrt(qframe.ivar[f]))
-            ### cf , cw = resample_flux(self.rwave,qframe.wave[f],qframe.flux[f],qframe.ivar[f])
-            ### sw  += cw
-            ### swf += cw*cf
-            ii = iiband[c]
-            cf, cw = resample_flux(self.rwave[ii],qframe.wave[f],qframe.flux[f],qframe.ivar[f])
-            sw[ii]  += cw
-            swf[ii] += cw*cf
-        else :
-            dico["SNR_"+c] = 0.
-
-    rflux = swf/(sw+(sw==0))
-    # interpolate over masked pixels
-    if np.count_nonzero(sw>0) > 2:
-        rflux[sw==0] = np.interp(self.rwave[sw==0],self.rwave[sw>0],rflux[sw>0],left=0,right=0)
-
-    fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
-    for c in ["G","R","Z"] :
-        dico["SPECFLUX_"+c]=self.filters[c+photsys].get_ab_maggies(rflux*fluxunits,self.rwave)*1e9 # nano maggies 
-
-
-    for c in ["B","R","Z"] :
-
-        dico["THRU_{}".format(c)] = 0.
-
-        if c in qframes :                            
-
-            qframe=qframes[c]
-            if not "CALVALUE" in qframe.meta : 
-                continue
-            calwave  = qframe.meta["CALWAVE"] # reference wavelength for 'CALVALUE'
-            calvalue = qframe.meta["CALVALUE"] # calibration used in qproc
-            if c=="B" : 
-                photometric_band = "G"
-            else :
-                photometric_band = c
-
-            if dico["FLUX_"+photometric_band] < 10. :
-                continue
-
-            # the throughput is proportional to the calibration value used in qproc ( flux = electrons/calvalue) 
-            thru = calvalue*self.thru_conversion_factor_ergs_per_cm2 * self.thru_conversion_wavelength / calwave / qframe.meta["EXPTIME"]
-
-            # multiply by ratio of calibrated spec flux to photom flux
-            dico["THRU_{}".format(c)] = thru * dico["SPECFLUX_"+photometric_band] / dico["FLUX_"+photometric_band]
-
-
-    dico["MORPHTYPE"] = fmap["MORPHTYPE"][f]
-    if fmap["OBJTYPE"][f] == "SKY" :
-        dico["MORPHTYPE"] = b"SKY"
-    elif dico["MORPHTYPE"] == "" : # not filled in some sims
-        if stars[f] or qsos[f] :
-            dico["MORPHTYPE"] = b"PSF"
-        else :
-            dico["MORPHTYPE"] = b"OTHER"
-
-    return collections.OrderedDict(**dico)
