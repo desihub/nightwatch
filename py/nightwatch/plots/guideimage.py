@@ -24,6 +24,13 @@ def get_all_values(d):
     return vals
 
 def subtract_medians(image_data, return_medians=False):
+    '''Subtracts median value of an image stack from each image in the stack. 
+    Args:
+        image_data: dictionary of ndarrays containing image data for each GFA
+    Options:
+        return_medians: (bool) whether to return a dictionary of the median of each stack. If True, returns median-scaled images, medians. Default = False.
+    Returns dictionary with median scaled images, and if return_medians, returns dictionary of medians as well.'''
+    
     scaled_images = dict()
     medians = dict()
     keys = image_data.keys()
