@@ -193,7 +193,8 @@ def get_guide_images(night, expid, basedir): #, rot=False):
     return image_data
     
 def rot_dict(gfa_file):
-    '''returns dictionary of angles to rotate gfas to global X, Y coord system.'''
+    '''Returns dictionary of angles to rotate gfas to global X, Y coord system. Angles are in degrees, GFAs rotated clockwise. 
+    Dictionary structure: {'GFA number' (str): angle (float)}. '''
     
     table = Table.read(gfa_file, format='ascii.ecsv')
     
