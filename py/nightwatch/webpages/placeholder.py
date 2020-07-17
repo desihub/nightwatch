@@ -2,6 +2,13 @@ import jinja2
 import bokeh
 
 def write_placeholder_html(outfile, header, attr):
+    '''Writes placeholder page for missing plots.
+    Args:
+        outfile: path to write html file to (str)
+        header: header data for the exposure (night, expid, exptime, etc)
+        attr: the type of missing plot (str); like PER_AMP, PER_CAMERA, etc.
+   Returns html components.
+        '''
     
     night = header['NIGHT']
     expid = header['EXPID']
