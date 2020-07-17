@@ -151,22 +151,14 @@ def get_guide_images(night, expid, basedir): #, rot=False):
     else:
         image_data = dict()
 
-#         gfa_file = os.path.expandvars('$DESIMODEL/data/focalplane/gfa.ecsv')
-#         rotdict = rot_dict(gfa_file)
-
         for cam in [0, 2, 3, 5, 7, 8]:
             name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
             name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
             name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
             name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
-            #name = 'GUIDE{cam}'.format(cam=cam)
-
-            #angle = rotdict[str(cam)]
 
             try:
                 data = fits.getdata(infile, extname=name0)
-#                 if rot == True:
-#                     data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -175,8 +167,6 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 print('no images for {name}'.format(name=name0))
             try:
                 data = fits.getdata(infile, extname=name1)
-#                 if rot == True:
-#                     data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -185,8 +175,6 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 print('no images for {name}'.format(name=name1))
             try:
                 data = fits.getdata(infile, extname=name2)
-#                 if rot == True:
-#                     data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -195,8 +183,6 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 print('no images for {name}'.format(name=name2))
             try:
                 data = fits.getdata(infile, extname=name3)
-#                 if rot == True:
-#                     data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
