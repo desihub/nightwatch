@@ -369,6 +369,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     from nightwatch.webpages import lastexp as web_lastexp
     from nightwatch.webpages import guide as web_guide
     from nightwatch.webpages import guideimage as web_guideimage
+    from nightwatch.webpages import placeholder as web_placeholder
     from . import io
 
     log = desiutil.log.get_logger()
@@ -398,18 +399,27 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
 #         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+    else:
+        htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_AMP")
 
     if 'PER_CAMFIBER' in qadata:
         htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
         pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
 #         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+    else:
+        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMFIBER")
 
     if 'PER_CAMERA' in qadata:
         htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
         pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
 #         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+    else:
+        htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
@@ -429,6 +439,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             print('Wrote {}'.format(htmlfile))
         except (FileNotFoundError, OSError, IOError):
             print('Unable to find guide data, not plotting guide plots')
+            htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+            pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDING")
         
         #- plot guide image movies
         try:
@@ -438,6 +450,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             print('Wrote {}'.format(htmlfile))
         except (FileNotFoundError, OSError, IOError):
             print('Unable to find guide data, not plotting guide image plots')
+            htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+            pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDE_IMAGES")
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
