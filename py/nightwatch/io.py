@@ -135,7 +135,7 @@ def get_guide_data(night, expid, basedir):
     else:
         raise FileNotFoundError('centroids-{expid:08d}.json not found'.format(expid=expid))
     
-def get_guide_images(night, expid, basedir, rot=False):
+def get_guide_images(night, expid, basedir): #, rot=False):
     '''Given a night and exposure, return file containing raw guide images.
     Args:
         night: int
@@ -144,27 +144,21 @@ def get_guide_images(night, expid, basedir, rot=False):
     returns path to file.'''
     guidedir = os.path.join(basedir, '{night}/{expid:08d}'.format(night=night, expid=expid))
     infile = os.path.join(guidedir, 'guide-rois-{expid:08d}.fits.fz'.format(night=night, expid=expid))
-    print(infile)
     
-    image_data = dict()
-    
-    gfa_file = os.path.expandvars('$DESIMODEL/data/focalplane/gfa.ecsv')
-    rotdict = rot_dict(gfa_file)
-    
-    for cam in [0, 2, 3, 5, 7, 8]:
-        name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
-        name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
-        name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
-        name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
-        #name = 'GUIDE{cam}'.format(cam=cam)
+    if not os.path.isfile(infile):
+        raise FileNotFoundError('guide-rois-{expid:08d}.fits.fz not found'.format(expid=expid))
         
-        angle = rotdict[str(cam)]
-        
-        with fitsio.FITS(infile) as f:
+    else:
+        image_data = dict()
+    
+        for cam in [0, 2, 3, 5, 7, 8]:
+            name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
+            name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
+            name2 = 'GUIDE{cam}_{star}'.format(cam=cam, star=2)
+            name3 = 'GUIDE{cam}_{star}'.format(cam=cam, star=3)
+
             try:
-                data = f[name0].read()
-                if rot == True:
-                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                data = fits.getdata(infile, extname=name0)
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -172,9 +166,7 @@ def get_guide_images(night, expid, basedir, rot=False):
             except IOError:
                 print('no images for {name}'.format(name=name0))
             try:
-                data = f[name1].read()
-                if rot == True:
-                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                data = fits.getdata(infile, extname=name1)
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -182,9 +174,7 @@ def get_guide_images(night, expid, basedir, rot=False):
             except IOError:
                 print('no images for {name}'.format(name=name1))
             try:
-                data = f[name2].read()
-                if rot == True:
-                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                data = fits.getdata(infile, extname=name2)
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -192,9 +182,7 @@ def get_guide_images(night, expid, basedir, rot=False):
             except IOError:
                 print('no images for {name}'.format(name=name2))
             try:
-                data = f[name3].read()
-                if rot == True:
-                    data = rotate(data, angle, axes=(1, 2), reshape=False, mode='nearest')
+                data = fits.getdata(infile, extname=name3)
                 image_dict = dict()
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
@@ -205,7 +193,8 @@ def get_guide_images(night, expid, basedir, rot=False):
     return image_data
     
 def rot_dict(gfa_file):
-    '''returns dictionary of angles to rotate gfas to global X, Y coord system.'''
+    '''Returns dictionary of angles to rotate gfas to global X, Y coord system. Angles are in degrees, GFAs rotated clockwise. 
+    Dictionary structure: {'GFA number' (str): angle (float)}. '''
     
     table = Table.read(gfa_file, format='ascii.ecsv')
     
