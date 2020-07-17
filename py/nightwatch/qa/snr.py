@@ -152,7 +152,6 @@ def get_fiber_data(qframes, fmap, f, fiber, night, expid, spectro, stars, qsos):
         else :
             data["MORPHTYPE"] = b"OTHER"
     
-    data = dict()
     data["photsys"]=fmap["PHOTSYS"][f]
     
     for c in ["B","R","Z"] :
