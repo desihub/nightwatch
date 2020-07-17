@@ -176,7 +176,7 @@ def get_dico(self, iiband, data):
     dico = {}
     
     #initializing dico with values from the input data dictionary that don't need to be calculated
-    for key in ["NIGHT", "EXPID", "SPECTRO", "FIBER", "FLUX_G", "FLUX_R", "FLUX_Z", "MORPHTYPE"]
+    for key in ["NIGHT", "EXPID", "SPECTRO", "FIBER", "FLUX_G", "FLUX_R", "FLUX_Z", "MORPHTYPE"]:
         dico[key] = data[key]
     
     photsys = data['photsys']
