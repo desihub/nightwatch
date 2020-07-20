@@ -20,12 +20,13 @@ from .traceshift import QATraceShift
 from .psf import QAPSF
 from .fiberflat import QAFiberflat
 from .snr import QASNR
+from .qprocstatus import QAQPROCStatus
 from ..run import timestamp
 
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF,QAFiberflat,QASNR)
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF,QAFiberflat,QASNR, QAQPROCStatus)
 
     def __init__(self, qalist=None):
         '''TODO: document'''
@@ -81,6 +82,7 @@ class QARunner(object):
         log.debug('Found OBSTYPE={} files'.format(obstype))
 
         results = dict()
+        
         for qa in self.qalist:
             if qa.valid_obstype(obstype):
                 log.info('{} Running {} {}'.format(timestamp(), qa, qa.output_type))
@@ -110,6 +112,7 @@ class QARunner(object):
             PER_CAMFIBER = ['NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'FIBER'],
             PER_SPECTRO = ['NIGHT', 'EXPID', 'SPECTRO'],
             PER_EXP = ['NIGHT', 'EXPID'],
+            QPROC_STATUS = ['NIGHT', 'EXPID']
         )
 
         if jsonfile is not None:
