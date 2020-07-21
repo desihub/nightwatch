@@ -553,10 +553,13 @@ def write_tables(indir, outdir, expnights=None):
                     qfails = [i for i in log_cams if i not in preproc_cams]
                     
                     if os.path.exists(qafile):
-                        with fitsio.FITS(qafile) as fits:
-                            qproc_status = fits['QPROC_STATUS'].read()
+                        try:
+                            with fitsio.FITS(qafile) as fits:
+                                qproc_status = fits['QPROC_STATUS'].read()
+                                exitcode = qproc_status[0][2]
+                        except IOError:
+                            exitcode = 0
                         
-                        exitcode = qproc_status[0][2]
                         rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails, QPROC_EXIT=exitcode))
                     else:
                         log.error('Missing {}'.format(qafile))
