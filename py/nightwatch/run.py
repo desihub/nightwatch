@@ -334,6 +334,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     jsonfile = '{}/errorcodes-{:08d}.txt'.format(outdir, expid)
     with open(jsonfile, 'w') as outfile:
         json.dump(errorcodes, outfile)
+        print('Wrote {}'.format(jsonfile))
 
     return hdr
 
