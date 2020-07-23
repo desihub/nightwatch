@@ -63,7 +63,7 @@ class QAAmp(QA):
         '''TODO: document'''
         infiles = glob.glob(os.path.join(indir, 'preproc-*.fits'))
         results = list()
-        argslist = [(self, infile) for infile in infiles]
+        argslist = [(self, infile, amp) for infile in infiles for amp in ['A', 'B', 'C', 'D']]
         
         ncpu = get_ncpu(None)
         
@@ -76,55 +76,12 @@ class QAAmp(QA):
         else:
             for args in argslist:
                 results.append(get_dico(**args))
+
+        table = Table(results, names=results[0].keys())
         
-        
-#         for filename in infiles:
-#             hdr = fitsio.read_header(filename, 'IMAGE') #- for readnoise, bias
-#             mask = fitsio.read(filename, 'MASK')        #- for cosmics
-#             _fix_amp_names(hdr)
-#             night = hdr['NIGHT']
-#             expid = hdr['EXPID']
-#             cam = hdr['CAMERA'][0].upper()
-#             spectro = int(hdr['CAMERA'][1])
-
-#             #- for cosmics, use exposure time + half of readout time
-#             exptime = hdr['EXPTIME']
-#             if 'DIGITIME' in hdr:
-#                 exptime += hdr['DIGITIME']/2
-#             else:
-#                 exptime += 30.0
-
-#             ny, nx = mask.shape
-#             npix_amp = nx*ny//4
-#             for amp in ['A', 'B', 'C', 'D']:
-#                 #- CCD read noise and overscan offset (bias) level
-#                 readnoise = hdr['OBSRDN'+amp]
-#                 biaslevel = hdr['OVERSCN'+amp]
-                    
-#                 #- Subregion of mask covered by this amp
-#                 if amp == 'A':
-#                     submask = mask[0:ny//2, 0:nx//2]
-#                 elif amp == 'B':
-#                     submask = mask[0:ny//2, nx//2:]
-#                 elif amp == 'C':
-#                     submask = mask[ny//2:, 0:nx//2]
-#                 else:
-#                     submask = mask[ny//2:, nx//2:]
-        
-#                 #- Number of cosmics per minute on this amplifier
-#                 num_cosmics = self.count_cosmics(submask)
-#                 cosmics_rate = (num_cosmics / (exptime/60) )
-
-#                 results.append(collections.OrderedDict(
-#                     NIGHT=night, EXPID=expid, SPECTRO=spectro, CAM=cam, AMP=amp,
-#                     READNOISE=readnoise,
-#                     BIAS=biaslevel,
-#                     COSMICS_RATE=cosmics_rate)
-#                     )
-
-        return Table(results, names=results[0].keys())
+        return table
            
-def get_dico(self, filename):
+def get_dico(self, filename, amp):
     '''docstring'''
     
     hdr = fitsio.read_header(filename, 'IMAGE') #- for readnoise, bias
@@ -144,29 +101,28 @@ def get_dico(self, filename):
 
     ny, nx = mask.shape
     npix_amp = nx*ny//4
-    for amp in ['A', 'B', 'C', 'D']:
-        #- CCD read noise and overscan offset (bias) level
-        readnoise = hdr['OBSRDN'+amp]
-        biaslevel = hdr['OVERSCN'+amp]
+    #- CCD read noise and overscan offset (bias) level
+    readnoise = hdr['OBSRDN'+amp]
+    biaslevel = hdr['OVERSCN'+amp]
 
-        #- Subregion of mask covered by this amp
-        if amp == 'A':
-            submask = mask[0:ny//2, 0:nx//2]
-        elif amp == 'B':
-            submask = mask[0:ny//2, nx//2:]
-        elif amp == 'C':
-            submask = mask[ny//2:, 0:nx//2]
-        else:
-            submask = mask[ny//2:, nx//2:]
+    #- Subregion of mask covered by this amp
+    if amp == 'A':
+        submask = mask[0:ny//2, 0:nx//2]
+    elif amp == 'B':
+        submask = mask[0:ny//2, nx//2:]
+    elif amp == 'C':
+        submask = mask[ny//2:, 0:nx//2]
+    else:
+        submask = mask[ny//2:, nx//2:]
 
-        #- Number of cosmics per minute on this amplifier
-        num_cosmics = self.count_cosmics(submask)
-        cosmics_rate = (num_cosmics / (exptime/60) )
+    #- Number of cosmics per minute on this amplifier
+    num_cosmics = self.count_cosmics(submask)
+    cosmics_rate = (num_cosmics / (exptime/60) )
 
-        dico = {'NIGHT': night, 'EXPID': expid, 'SPECTRO': spectro, 'CAM': cam, 'AMP': amp,
-                'READNOISE': readnoise, 'BIAS': biaslevel, 'COSMICS_RATE': cosmics_rate
-               }
+    dico = {'NIGHT': night, 'EXPID': expid, 'SPECTRO': spectro, 'CAM': cam, 'AMP': amp,
+            'READNOISE': readnoise, 'BIAS': biaslevel, 'COSMICS_RATE': cosmics_rate
+           }
         
-        return collections.OrderedDict(**dico)
+    return collections.OrderedDict(**dico)
 
         
