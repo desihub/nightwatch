@@ -33,14 +33,23 @@ class QAQPROCStatus(QA):
         
         #get qproc status data
         infiles = glob.glob(os.path.join(indir, 'qproc-*.log'))
-        results = dict()
+        results = []
         
-        qexits = [errorcodes[os.path.basename(i)] for i in infiles]
-        qexit = max(qexits)
-        
-        results['NIGHT'] = night
-        results['EXPID'] = expid
-        results['QPROC_EXIT'] = qexit
-        
-        return Table([results], names=results.keys())
+        for infile in infiles:
+            dico = dict()
+            
+            filename = os.path.basename(infile)
+            qexit = errorcodes[filename]
+            spectro = int(filename[7])
+            cam = filename[6].upper()
+            
+            dico['NIGHT'] = night
+            dico['EXPID'] = expid
+            dico['SPECTRO'] = spectro
+            dico['CAM'] = cam
+            dico['QPROC_EXIT'] = qexit
+            
+            results.append(collections.OrderedDict(**dico))
+            
+        return Table(results, names=results[0].keys())
         

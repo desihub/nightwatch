@@ -112,7 +112,7 @@ class QARunner(object):
             PER_CAMFIBER = ['NIGHT', 'EXPID', 'SPECTRO', 'CAM', 'FIBER'],
             PER_SPECTRO = ['NIGHT', 'EXPID', 'SPECTRO'],
             PER_EXP = ['NIGHT', 'EXPID'],
-            QPROC_STATUS = ['NIGHT', 'EXPID']
+            QPROC_STATUS = ['NIGHT', 'EXPID', 'SPECTRO', 'CAM']
         )
 
         if jsonfile is not None:

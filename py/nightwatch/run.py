@@ -557,7 +557,7 @@ def write_tables(indir, outdir, expnights=None):
                         try:
                             with fitsio.FITS(qafile) as fits:
                                 qproc_status = fits['QPROC_STATUS'].read()
-                                exitcode = qproc_status[0][2]
+                                exitcode = np.count_nonzero(qproc_status['QPROC_EXIT'])
                         except IOError:
                             exitcode = 0
                         
