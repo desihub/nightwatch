@@ -206,10 +206,10 @@ def write_logfile_html(input, output, night):
     template = env.get_template('logfile.html')
 
     input_dir = os.path.dirname(input)
-    available = []
     logfiles = [i for i in os.listdir(input_dir) if re.match(r'.*\.log', i)]
-    for file in logfiles:
-        available += [file.split("-")[1]]
+    available = [file.split("-")[1] for file in logfiles]
+#     for file in logfiles:
+#         available += [file.split("-")[1]]
 
     current = os.path.basename(input).split("-")[1]
     expid = os.path.basename(input).split("-")[2].split(".")[0]
@@ -217,8 +217,8 @@ def write_logfile_html(input, output, night):
     error_level = 0
     error_colors = dict({0:'green', 1:'orange', 2:'red', 3:'black'})
 
-    lines = []
-    lines.append('qproc logfile {}'.format(os.path.abspath(input)))
+    lines = ['qproc logfile {}'.format(os.path.abspath(input))]
+    #lines.append('qproc logfile {}'.format(os.path.abspath(input)))
     f = open(input, "rb")
     for line in f.readlines():
         #- byte to str
