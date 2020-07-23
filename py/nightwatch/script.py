@@ -10,12 +10,14 @@ from desimodel.io import load_tiles
 from desispec.io import meta
 
 from . import run, plots, io
-from .run import timestamp
+from .run import timestamp, get_ncpu
 from .qa.runner import QARunner
 from desiutil.log import get_logger
 
 import tempfile
 import shutil
+
+import multiprocessing as mp
 
 def print_help():
     print("""USAGE: nightwatch <command> [options]
@@ -264,12 +266,23 @@ def main_run(options=None):
         shutil.move(os.path.join(tmpdr, 'nights.html'), os.path.join(args.outdir, 'nights.html'))
         shutil.move(os.path.join(tmpdr, '{}/exposures.html'.format(night)), os.path.join(args.outdir, '{}/exposures.html'.format(night)))
         
+        
+        argslist = []
         for file in os.listdir(os.path.join(tmpdr, '{}/{:08d}'.format(night, expid))):
             filename = os.path.basename(file)
             src = os.path.join(tmpdr, '{}/{:08d}/{}'.format(night, expid, filename))
             dest = os.path.join(args.outdir, '{}/{:08d}/{}'.format(night, expid, filename))
-            shutil.move(src, dest)
-            print('Copied {} to {}'.format(src, dest))
+            argslist.append((src, dest))
+        
+        ncpu = get_ncpu(None)
+        if ncpu > 1:
+            pool = mp.Pool(ncpu)
+            pool.starmap(shutil.move, argslist)
+            pool.close()
+            pool.join()
+        else:
+            for args in argslist:
+                shutil.move(**args)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
