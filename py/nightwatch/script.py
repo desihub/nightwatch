@@ -262,7 +262,7 @@ def main_run(options=None):
         print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
         run.write_tables(tmpdr, tmpdr, expnights=[night,])
         
-        print('Copying files from temporary directory.')
+        print('Copying files from temporary directory to {}'.format(args.outdir))
         shutil.move(os.path.join(tmpdr, 'nights.html'), os.path.join(args.outdir, 'nights.html'))
         shutil.move(os.path.join(tmpdr, '{}/exposures.html'.format(night)), os.path.join(args.outdir, '{}/exposures.html'.format(night)))
         
