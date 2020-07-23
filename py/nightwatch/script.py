@@ -14,6 +14,9 @@ from .run import timestamp
 from .qa.runner import QARunner
 from desiutil.log import get_logger
 
+import tempfile
+import shutil
+
 def print_help():
     print("""USAGE: nightwatch <command> [options]
 
@@ -236,27 +239,42 @@ def main_run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
+        
+    with tempfile.TemporaryDirectory() as tmpdr:
 
-    night, expid = io.get_night_expid(args.infile)
-    expdir = io.findfile('expdir', night=night, expid=expid, basedir=args.outdir)
-    rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
-    
-    time_start = time.time()
-    print('{} Running qproc'.format(time.strftime('%H:%M')))
-    header = run.run_qproc(args.infile, expdir, cameras=cameras)
+        night, expid = io.get_night_expid(args.infile)
+        expdir = io.findfile('expdir', night=night, expid=expid, basedir=tmpdr)
+        rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
 
-    print('{} Running QA analysis'.format(time.strftime('%H:%M')))
-    qafile = io.findfile('qa', night=night, expid=expid, basedir=args.outdir)
-    qaresults = run.run_qa(expdir, outfile=qafile)
+        time_start = time.time()
+        print('{} Running qproc'.format(time.strftime('%H:%M')))
+        header = run.run_qproc(args.infile, expdir, cameras=cameras)
 
-    print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
+        print('{} Running QA analysis'.format(time.strftime('%H:%M')))
+        qafile = io.findfile('qa', night=night, expid=expid, basedir=tmpdr)
+        qaresults = run.run_qa(expdir, outfile=qafile)
 
-    print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
-    run.write_tables(args.outdir, args.outdir, expnights=[night,])
+        print('{} Making plots'.format(time.strftime('%H:%M')))
+        run.make_plots(qafile, tmpdr, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
+
+        print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
+        run.write_tables(tmpdr, tmpdr, expnights=[night,])
+        
+        print('Copying files from temporary directory.')
+        shutil.move(os.path.join(tmpdr, 'nights.html'), os.path.join(args.outdir, 'nights.html'))
+        shutil.move(os.path.join(tmpdr, '{}/exposures.html'.format(night)), os.path.join(args.outdir, '{}/exposures.html'.format(night)))
+        
+        for file in os.listdir(os.path.join(tmpdr, '{}/{:08d}'.format(night, expid))):
+            filename = os.path.basename(file)
+            src = os.path.join(tmpdr, '{}/{:08d}/{}'.format(night, expid, filename))
+            dest = os.path.join(args.outdir, '{}/{:08d}/{}'.format(night, expid, filename))
+            shutil.move(src, dest)
+            print('Copied {} to {}'.format(src, dest))
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
+        
+    
 
 
 def main_preproc(options=None):
