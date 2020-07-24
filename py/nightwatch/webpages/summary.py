@@ -222,7 +222,10 @@ def write_logfile_html(input, output, night):
     f = open(input, "rb")
     for line in f.readlines():
         #- byte to str
-        line = line.decode("utf-8").strip()
+        if isinstance(line, bytes):
+            line = line.decode("utf-8").strip()
+        else:
+            line = line.strip()
         if 'WARNING' in line:
             line = '<span style="color:{};">'.format(error_colors.get(1)) + line + '</span>'
             error_level = max(error_level, 1)

@@ -117,10 +117,16 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     data_val = []
     for row in data:
         if row['CAM'] in (cam, cam.encode('utf-8')):
-            amp_loc.append(row['AMP'].decode('utf-8'))
+            if isinstace(row['AMP'], bytes):
+                amp_loc.append(row['AMP'].decode('utf-8'))
+            else:
+                amp_loc.append(row['AMP'])
             spec_loc.append(str(row['SPECTRO']))
             data_val.append(row[name])
-            cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+            if isinstance(row['CAM'], bytes):
+                cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+            else:
+                cam_spect = row['CAM'].lower() + str(row['SPECTRO'])
             name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         else:
             continue
