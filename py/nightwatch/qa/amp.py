@@ -6,12 +6,15 @@ import collections
 import numpy as np
 import fitsio
 
+import multiprocessing as mp
+
 import scipy.ndimage
 
 from astropy.table import Table
 
 import desiutil.log
 from desispec.maskbits import ccdmask
+from ..run import get_ncpu
 
 def _fix_amp_names(hdr):
     '''In-place fix of header `hdr` amp names 1-4 to A-D if needed.'''
@@ -57,55 +60,76 @@ class QAAmp(QA):
         return num_cosmics
 
     def run(self, indir):
-        '''TODO: document'''
+        '''Generates table of PER_AMP qa metrics (READNOISE, BIAS, COSMICS_RATE).
+        Args:
+            indir: path to directory containing preproc-*.fits files for the given exposure
+        Returns an astropy Table object.'''
         infiles = glob.glob(os.path.join(indir, 'preproc-*.fits'))
         results = list()
-        for filename in infiles:
-            hdr = fitsio.read_header(filename, 'IMAGE') #- for readnoise, bias
-            mask = fitsio.read(filename, 'MASK')        #- for cosmics
-            _fix_amp_names(hdr)
-            night = hdr['NIGHT']
-            expid = hdr['EXPID']
-            cam = hdr['CAMERA'][0].upper()
-            spectro = int(hdr['CAMERA'][1])
-
-            #- for cosmics, use exposure time + half of readout time
-            exptime = hdr['EXPTIME']
-            if 'DIGITIME' in hdr:
-                exptime += hdr['DIGITIME']/2
-            else:
-                exptime += 30.0
-
-            ny, nx = mask.shape
-            npix_amp = nx*ny//4
-            for amp in ['A', 'B', 'C', 'D']:
-                #- CCD read noise and overscan offset (bias) level
-                readnoise = hdr['OBSRDN'+amp]
-                biaslevel = hdr['OVERSCN'+amp]
-                    
-                #- Subregion of mask covered by this amp
-                if amp == 'A':
-                    submask = mask[0:ny//2, 0:nx//2]
-                elif amp == 'B':
-                    submask = mask[0:ny//2, nx//2:]
-                elif amp == 'C':
-                    submask = mask[ny//2:, 0:nx//2]
-                else:
-                    submask = mask[ny//2:, nx//2:]
+        argslist = [(self, infile, amp) for infile in infiles for amp in ['A', 'B', 'C', 'D']]
         
-                #- Number of cosmics per minute on this amplifier
-                num_cosmics = self.count_cosmics(submask)
-                cosmics_rate = (num_cosmics / (exptime/60) )
-
-                results.append(collections.OrderedDict(
-                    NIGHT=night, EXPID=expid, SPECTRO=spectro, CAM=cam, AMP=amp,
-                    READNOISE=readnoise,
-                    BIAS=biaslevel,
-                    COSMICS_RATE=cosmics_rate)
-                    )
-
-        return Table(results, names=results[0].keys())
-
+        ncpu = get_ncpu(None)
+        
+        if ncpu > 1:
+            pool = mp.Pool(ncpu)
+            results = pool.starmap(get_dico, argslist)
+            pool.close()
+            pool.join()
             
-            
+        else:
+            for args in argslist:
+                results.append(get_dico(**args))
+
+        table = Table(results, names=results[0].keys())
+        
+        return table
+           
+def get_dico(self, filename, amp):
+    '''Function to generate per amp metrics given a preproc file to analyze, and a specific amp.
+    Args:
+        filename: path to preproc file (str)
+        amp: name of amp to analyze (str), either A, B, C, or D
+    Returns an OrderedDict object.'''
+    
+    hdr = fitsio.read_header(filename, 'IMAGE') #- for readnoise, bias
+    mask = fitsio.read(filename, 'MASK')        #- for cosmics
+    _fix_amp_names(hdr)
+    night = hdr['NIGHT']
+    expid = hdr['EXPID']
+    cam = hdr['CAMERA'][0].upper()
+    spectro = int(hdr['CAMERA'][1])
+
+    #- for cosmics, use exposure time + half of readout time
+    exptime = hdr['EXPTIME']
+    if 'DIGITIME' in hdr:
+        exptime += hdr['DIGITIME']/2
+    else:
+        exptime += 30.0
+
+    ny, nx = mask.shape
+    npix_amp = nx*ny//4
+    #- CCD read noise and overscan offset (bias) level
+    readnoise = hdr['OBSRDN'+amp]
+    biaslevel = hdr['OVERSCN'+amp]
+
+    #- Subregion of mask covered by this amp
+    if amp == 'A':
+        submask = mask[0:ny//2, 0:nx//2]
+    elif amp == 'B':
+        submask = mask[0:ny//2, nx//2:]
+    elif amp == 'C':
+        submask = mask[ny//2:, 0:nx//2]
+    else:
+        submask = mask[ny//2:, nx//2:]
+
+    #- Number of cosmics per minute on this amplifier
+    num_cosmics = self.count_cosmics(submask)
+    cosmics_rate = (num_cosmics / (exptime/60) )
+
+    dico = {'NIGHT': night, 'EXPID': expid, 'SPECTRO': spectro, 'CAM': cam, 'AMP': amp,
+            'READNOISE': readnoise, 'BIAS': biaslevel, 'COSMICS_RATE': cosmics_rate
+           }
+        
+    return collections.OrderedDict(**dico)
+
         

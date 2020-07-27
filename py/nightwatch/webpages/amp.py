@@ -21,6 +21,7 @@ def write_amp_html(outfile, data, header):
     Returns:
         html_components dict with keys 'script', 'div' from bokeh
     '''
+    
     log = get_logger() 
     night = header['NIGHT']
     expid = header['EXPID']
