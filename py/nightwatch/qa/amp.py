@@ -60,7 +60,10 @@ class QAAmp(QA):
         return num_cosmics
 
     def run(self, indir):
-        '''TODO: document'''
+        '''Generates table of PER_AMP qa metrics (READNOISE, BIAS, COSMICS_RATE).
+        Args:
+            indir: path to directory containing preproc-*.fits files for the given exposure
+        Returns an astropy Table object.'''
         infiles = glob.glob(os.path.join(indir, 'preproc-*.fits'))
         results = list()
         argslist = [(self, infile, amp) for infile in infiles for amp in ['A', 'B', 'C', 'D']]
@@ -82,7 +85,11 @@ class QAAmp(QA):
         return table
            
 def get_dico(self, filename, amp):
-    '''docstring'''
+    '''Function to generate per amp metrics given a preproc file to analyze, and a specific amp.
+    Args:
+        filename: path to preproc file (str)
+        amp: name of amp to analyze (str), either A, B, C, or D
+    Returns an OrderedDict object.'''
     
     hdr = fitsio.read_header(filename, 'IMAGE') #- for readnoise, bias
     mask = fitsio.read(filename, 'MASK')        #- for cosmics

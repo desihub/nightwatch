@@ -66,7 +66,7 @@ def get_amp_size(data, lower_err, lower, upper, upper_err):
     return sizes
 
 def isolate_spec_lines(data_locs, data):
-    '''function to generate isolated data sets so that each spectrograph has an isolated line. Data must be sorted by amp.
+    '''function to generate isolated data sets so that each spectrograph has an isolated line.
     Inputs:
         data_locs: list of (spec, amp) pairs
         data: the metric data to be plotted (array)
