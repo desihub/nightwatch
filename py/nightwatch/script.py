@@ -274,6 +274,8 @@ def main_run(options=None):
             dest = os.path.join(args.outdir, '{}/{:08d}/{}'.format(night, expid, filename))
             argslist.append((src, dest))
         
+        #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
+        #- parallel copying performs better than copying serially
         ncpu = get_ncpu(None)
         if ncpu > 1:
             pool = mp.Pool(ncpu)
@@ -287,9 +289,6 @@ def main_run(options=None):
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
         
-    
-
-
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
