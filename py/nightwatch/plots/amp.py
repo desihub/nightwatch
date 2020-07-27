@@ -117,7 +117,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     data_val = []
     for row in data:
         if row['CAM'] in (cam, cam.encode('utf-8')):
-            if isinstace(row['AMP'], bytes):
+            if isinstance(row['AMP'], bytes):
                 amp_loc.append(row['AMP'].decode('utf-8'))
             else:
                 amp_loc.append(row['AMP'])
