@@ -16,6 +16,7 @@ from desiutil.log import get_logger
 
 import tempfile
 import shutil
+import contextlib
 
 import multiprocessing as mp
 
@@ -223,6 +224,7 @@ def main_monitor(options=None):
 
         sys.stdout.flush()
         time.sleep(args.waittime)
+        
 
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
@@ -241,7 +243,7 @@ def main_run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
-        
+    
     with tempfile.TemporaryDirectory() as tmpdr:
 
         night, expid = io.get_night_expid(args.infile)
@@ -258,33 +260,33 @@ def main_run(options=None):
 
         print('{} Making plots'.format(time.strftime('%H:%M')))
         run.make_plots(qafile, tmpdr, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
-
-        print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
-        run.write_tables(tmpdr, tmpdr, expnights=[night,])
         
         print('Copying files from temporary directory to {}'.format(args.outdir))
-        shutil.move(os.path.join(tmpdr, 'nights.html'), os.path.join(args.outdir, 'nights.html'))
-        shutil.move(os.path.join(tmpdr, '{}/exposures.html'.format(night)), os.path.join(args.outdir, '{}/exposures.html'.format(night)))
         
+        #get all files in tempdir
+        expdir = os.path.join(tmpdr, "{}/{:08d}".format(night, expid))
         
-        argslist = []
-        for file in os.listdir(os.path.join(tmpdr, '{}/{:08d}'.format(night, expid))):
-            filename = os.path.basename(file)
-            src = os.path.join(tmpdr, '{}/{:08d}/{}'.format(night, expid, filename))
-            dest = os.path.join(args.outdir, '{}/{:08d}/{}'.format(night, expid, filename))
-            argslist.append((src, dest))
-        
+        if not os.path.isdir(expdir.replace(tmpdr, args.outdir)):
+            os.mkdir(expdir.replace(tmpdr, args.outdir))
+    
+        src = [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
+        dest = [file.replace(tmpdr, args.outdir) for file in src]
+        argslist = list(zip(src, dest))
+        print(argslist[0])
         #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
         #- parallel copying performs better than copying serially
         ncpu = get_ncpu(None)
         if ncpu > 1:
             pool = mp.Pool(ncpu)
-            pool.starmap(shutil.move, argslist)
+            pool.starmap(shutil.copyfile, argslist)
             pool.close()
             pool.join()
         else:
             for args in argslist:
-                shutil.move(**args)
+                shutil.copyfile(**args)
+        
+        print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
+        run.write_tables(args.outdir, args.outdir, expnights=[night,])
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
