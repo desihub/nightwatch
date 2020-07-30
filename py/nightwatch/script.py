@@ -225,7 +225,49 @@ def main_monitor(options=None):
         sys.stdout.flush()
         time.sleep(args.waittime)
         
-
+class TempDirManager():
+    def __init__(self, outdir, night, expid):
+        self.outdir = outdir
+        self.night = night
+        self.expid = expid
+        self.tempdir = None
+    def __enter__(self):
+        self.tempdir = tempfile.TemporaryDirectory()
+        return self.tempdir.name
+    def __exit__(self, *exc):
+        outdir = self.outdir
+        night = self.night
+        expid = self.expid
+        tempdir = self.tempdir
+        
+        print('Copying files from temporary directory to {}'.format(outdir))
+        
+        #get all files in tempdir
+        expdir = os.path.join(tempdir.name, "{}/{:08d}".format(night, expid))
+        
+        if not os.path.isdir(expdir.replace(tempdir.name, outdir)):
+            os.mkdir(expdir.replace(tempdir.name, outdir))
+    
+        src = [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
+        night_src = os.path.join(tempdir.name, "nights.html")
+        exp_src = os.path.join(tempdir.name, "{}/exposures.html".format(night))
+        src += [night_src, exp_src]
+        
+        dest = [file.replace(tempdir.name, outdir) for file in src]
+        argslist = list(zip(src, dest))
+        
+        #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
+        #- parallel copying performs better than copying serially
+        ncpu = get_ncpu(None)
+        if ncpu > 1:
+            pool = mp.Pool(ncpu)
+            pool.starmap(shutil.move, argslist)
+            pool.close()
+            pool.join()
+        else:
+            for args in argslist:
+                shutil.move(**args)
+        
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
@@ -243,50 +285,49 @@ def main_run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
+        
+    night, expid = io.get_night_expid(args.infile)
+    rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
     
-    with tempfile.TemporaryDirectory() as tmpdr:
-
-        night, expid = io.get_night_expid(args.infile)
-        expdir = io.findfile('expdir', night=night, expid=expid, basedir=tmpdr)
-        rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
+    with TempDirManager(args.outdir, night, expid) as tempdir:
+        
+        expdir = io.findfile('expdir', night=night, expid=expid, basedir=tempdir)
 
         time_start = time.time()
         print('{} Running qproc'.format(time.strftime('%H:%M')))
         header = run.run_qproc(args.infile, expdir, cameras=cameras)
 
         print('{} Running QA analysis'.format(time.strftime('%H:%M')))
-        qafile = io.findfile('qa', night=night, expid=expid, basedir=tmpdr)
+        qafile = io.findfile('qa', night=night, expid=expid, basedir=tempdir)
         qaresults = run.run_qa(expdir, outfile=qafile)
 
         print('{} Making plots'.format(time.strftime('%H:%M')))
-        run.make_plots(qafile, tmpdr, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
-        
-        print('Copying files from temporary directory to {}'.format(args.outdir))
-        
-        #get all files in tempdir
-        expdir = os.path.join(tmpdr, "{}/{:08d}".format(night, expid))
-        
-        if not os.path.isdir(expdir.replace(tmpdr, args.outdir)):
-            os.mkdir(expdir.replace(tmpdr, args.outdir))
-    
-        src = [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
-        dest = [file.replace(tmpdr, args.outdir) for file in src]
-        argslist = list(zip(src, dest))
-        print(argslist[0])
-        #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
-        #- parallel copying performs better than copying serially
-        ncpu = get_ncpu(None)
-        if ncpu > 1:
-            pool = mp.Pool(ncpu)
-            pool.starmap(shutil.copyfile, argslist)
-            pool.close()
-            pool.join()
-        else:
-            for args in argslist:
-                shutil.copyfile(**args)
+        run.make_plots(qafile, tempdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
         
         print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
-        run.write_tables(args.outdir, args.outdir, expnights=[night,])
+        run.write_tables(args.outdir, tempdir, expnights=[night,])
+        
+#         #get all files in tempdir
+#         expdir = os.path.join(tmpdr, "{}/{:08d}".format(night, expid))
+        
+#         if not os.path.isdir(expdir.replace(tmpdr, args.outdir)):
+#             os.mkdir(expdir.replace(tmpdr, args.outdir))
+    
+#         src = [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
+#         dest = [file.replace(tmpdr, args.outdir) for file in src]
+#         argslist = list(zip(src, dest))
+        
+#         #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
+#         #- parallel copying performs better than copying serially
+#         ncpu = get_ncpu(None)
+#         if ncpu > 1:
+#             pool = mp.Pool(ncpu)
+#             pool.starmap(shutil.move, argslist)
+#             pool.close()
+#             pool.join()
+#         else:
+#             for args in argslist:
+#                 shutil.move(**args)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
