@@ -243,17 +243,22 @@ class TempDirManager():
         print('Copying files from temporary directory to {}'.format(outdir))
         
         #get all files in tempdir
-        expdir = os.path.join(tempdir.name, "{}/{:08d}".format(night, expid))
+        topdir = tempdir.name
+        nightdir = os.path.join(topdir, str(night))
+        expdir = os.path.join(topdir, "{}/{:08d}".format(night, expid))
         
-        if not os.path.isdir(expdir.replace(tempdir.name, outdir)):
-            os.mkdir(expdir.replace(tempdir.name, outdir))
-    
-        src = [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
-        night_src = os.path.join(tempdir.name, "nights.html")
-        exp_src = os.path.join(tempdir.name, "{}/exposures.html".format(night))
-        src += [night_src, exp_src]
+        if not os.path.isdir(expdir.replace(topdir, outdir)):
+            os.mkdir(expdir.replace(topdir, outdir))
         
-        dest = [file.replace(tempdir.name, outdir) for file in src]
+        src = [os.path.join(topdir, file) for file in os.listdir(topdir) if os.path.isfile(os.path.join(topdir, file))]
+        src += [os.path.join(nightdir, file) for file in os.listdir(nightdir) if os.path.isfile(os.path.join(nightdir, file))]
+        src += [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
+        
+        if os.path.isdir(os.path.join(topdir, "static")):
+            staticdir = os.path.join(topdir, "static")
+            src += [os.path.join(staticdir, file) for file in os.listdir(staticdir) if os.path.isfile(os.path.join(staticdir, file))]
+        
+        dest = [file.replace(topdir, outdir) for file in src]
         argslist = list(zip(src, dest))
         
         #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
