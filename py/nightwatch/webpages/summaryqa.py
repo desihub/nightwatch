@@ -12,7 +12,10 @@ def get_summaryqa_html(exposures, fine_data, tiles, outdir, height=250, width=25
     '''outdir: same as directory where nightwatch files are generated. will be created in a new surveyqa subdirectory.'''
     
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     
     template = env.get_template('summaryqa.html')

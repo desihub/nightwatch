@@ -36,8 +36,11 @@ def write_amp_html(outfile, data, header):
         program = header['PROGRAM'].rstrip()
     exptime = header['EXPTIME']
 
-    env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+      env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('amp.html')
 

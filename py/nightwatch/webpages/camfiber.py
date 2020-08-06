@@ -42,7 +42,10 @@ def write_camfiber_html(outfile, data, header):
     
     #- Sets environment to get get templates
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
 
     #- FIBERNUM PLOTS (default camfiber page)
