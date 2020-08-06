@@ -22,7 +22,7 @@ def write_nights_table(outfile, exposures):
         exposures: table with columns NIGHT, EXPID
     Returns: HTML file written to outfile path
     """    
-   env = jinja2.Environment(
+    env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
