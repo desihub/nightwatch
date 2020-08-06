@@ -20,7 +20,10 @@ def write_threshold_html(outfile, outdir, datadir, start_date, end_date):
     '''
     
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('thresholds.html')
 

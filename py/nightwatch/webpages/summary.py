@@ -124,7 +124,10 @@ def write_summary_html(outfile, qadata, qprocdir):
 #     update_camfib_pc(plot_components, qadata)
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('summary.html')
 
@@ -155,7 +158,10 @@ def write_logtable_html(outfile, logdir, night, expid, available=None, error_col
         None
     """
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('logfile.html')
 
@@ -201,7 +207,10 @@ def write_logfile_html(input, output, night):
     """
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('logfile.html')
 
