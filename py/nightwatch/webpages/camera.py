@@ -37,7 +37,10 @@ def write_camera_html(outfile, data, header):
     exptime = header['EXPTIME']
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('camera.html')
 

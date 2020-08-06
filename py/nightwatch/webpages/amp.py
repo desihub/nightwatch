@@ -36,9 +36,13 @@ def write_amp_html(outfile, data, header):
     exptime = header['EXPTIME']
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
-    template = env.get_template('amp.html')
+    
+        template = env.get_template('amp.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),

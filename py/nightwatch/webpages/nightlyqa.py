@@ -146,7 +146,10 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
         html_components['HIST'] = dict(script=script, div=div)
     
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     
     template = env.get_template('nightlyqa.html')

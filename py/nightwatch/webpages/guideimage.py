@@ -13,7 +13,10 @@ def write_guide_image_html(image_data, outfile, night, expid):
     Returns html components.'''
     
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     
     zexpid = '{expid:08d}'.format(expid=expid)
