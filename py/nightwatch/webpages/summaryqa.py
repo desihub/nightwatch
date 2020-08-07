@@ -2,6 +2,7 @@ import numpy as np
 import os
 
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 from bokeh.embed import components
 
@@ -15,7 +16,7 @@ def get_summaryqa_html(exposures, fine_data, tiles, outdir, height=250, width=25
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
     
     template = env.get_template('summaryqa.html')

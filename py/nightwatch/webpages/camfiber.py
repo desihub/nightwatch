@@ -2,6 +2,7 @@ import numpy as np
 import fitsio
 import os, fnmatch
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 import desimodel.io
 
@@ -45,7 +46,7 @@ def write_camfiber_html(outfile, data, header):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
 
     #- FIBERNUM PLOTS (default camfiber page)
