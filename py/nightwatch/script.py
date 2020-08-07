@@ -226,39 +226,27 @@ def main_monitor(options=None):
         time.sleep(args.waittime)
         
 class TempDirManager():
-    def __init__(self, outdir, night, expid):
+    '''Custom context manager that creates a temporary directory, and upon exiting the context copies all files (regardless if the code written inside the context runs properly or exits with some error) into a specified output directory.'''
+    def __init__(self, outdir):
+        '''Initializes TempDirManager with the directory specified to copy all files written.'''
         self.outdir = outdir
-        self.night = night
-        self.expid = expid
         self.tempdir = None
     def __enter__(self):
-        self.tempdir = tempfile.TemporaryDirectory()
-        return self.tempdir.name
+        self.tempdir = tempfile.TemporaryDirectory().name
+        return self.tempdir
     def __exit__(self, *exc):
+        '''Copies files over when context is exited.'''
         outdir = self.outdir
-        night = self.night
-        expid = self.expid
         tempdir = self.tempdir
         
         print('Copying files from temporary directory to {}'.format(outdir))
         
-        #get all files in tempdir
-        topdir = tempdir.name
-        nightdir = os.path.join(topdir, str(night))
-        expdir = os.path.join(topdir, "{}/{:08d}".format(night, expid))
+        src = []
+        for dirpath, dirnames, files in os.walk(tempdir, topdown=True):
+            for file_name in files:
+                src.append(os.path.join(dirpath, file_name))
         
-        if not os.path.isdir(expdir.replace(topdir, outdir)):
-            os.mkdir(expdir.replace(topdir, outdir))
-        
-        src = [os.path.join(topdir, file) for file in os.listdir(topdir) if os.path.isfile(os.path.join(topdir, file))]
-        src += [os.path.join(nightdir, file) for file in os.listdir(nightdir) if os.path.isfile(os.path.join(nightdir, file))]
-        src += [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
-        
-        if os.path.isdir(os.path.join(topdir, "static")):
-            staticdir = os.path.join(topdir, "static")
-            src += [os.path.join(staticdir, file) for file in os.listdir(staticdir) if os.path.isfile(os.path.join(staticdir, file))]
-        
-        dest = [file.replace(topdir, outdir) for file in src]
+        dest = [file.replace(tempdir, outdir) for file in src]
         argslist = list(zip(src, dest))
         
         #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
@@ -294,7 +282,7 @@ def main_run(options=None):
     night, expid = io.get_night_expid(args.infile)
     rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
     
-    with TempDirManager(args.outdir, night, expid) as tempdir:
+    with TempDirManager(args.outdir) as tempdir:
         
         expdir = io.findfile('expdir', night=night, expid=expid, basedir=tempdir)
 
@@ -311,28 +299,6 @@ def main_run(options=None):
         
         print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
         run.write_tables(args.outdir, tempdir, expnights=[night,])
-        
-#         #get all files in tempdir
-#         expdir = os.path.join(tmpdr, "{}/{:08d}".format(night, expid))
-        
-#         if not os.path.isdir(expdir.replace(tmpdr, args.outdir)):
-#             os.mkdir(expdir.replace(tmpdr, args.outdir))
-    
-#         src = [os.path.join(expdir, file) for file in os.listdir(expdir) if os.path.isfile(os.path.join(expdir, file))]
-#         dest = [file.replace(tmpdr, args.outdir) for file in src]
-#         argslist = list(zip(src, dest))
-        
-#         #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
-#         #- parallel copying performs better than copying serially
-#         ncpu = get_ncpu(None)
-#         if ncpu > 1:
-#             pool = mp.Pool(ncpu)
-#             pool.starmap(shutil.move, argslist)
-#             pool.close()
-#             pool.join()
-#         else:
-#             for args in argslist:
-#                 shutil.move(**args)
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
