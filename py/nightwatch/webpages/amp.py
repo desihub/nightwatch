@@ -21,6 +21,7 @@ def write_amp_html(outfile, data, header):
     Returns:
         html_components dict with keys 'script', 'div' from bokeh
     '''
+    
     log = get_logger() 
     night = header['NIGHT']
     expid = header['EXPID']
@@ -36,7 +37,10 @@ def write_amp_html(outfile, data, header):
     exptime = header['EXPTIME']
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('amp.html')
 

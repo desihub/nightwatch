@@ -150,7 +150,7 @@ def get_guide_images(night, expid, basedir): #, rot=False):
         
     else:
         image_data = dict()
-
+    
         for cam in [0, 2, 3, 5, 7, 8]:
             name0 = 'GUIDE{cam}_{star}'.format(cam=cam, star=0)
             name1 = 'GUIDE{cam}_{star}'.format(cam=cam, star=1)
@@ -163,7 +163,7 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
                 image_data[name0] = image_dict
-            except KeyError:
+            except (IOError, KeyError):
                 print('no images for {name}'.format(name=name0))
             try:
                 data = fits.getdata(infile, extname=name1)
@@ -171,7 +171,7 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
                 image_data[name1] = image_dict
-            except KeyError:
+            except (IOError, KeyError):
                 print('no images for {name}'.format(name=name1))
             try:
                 data = fits.getdata(infile, extname=name2)
@@ -179,7 +179,7 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
                 image_data[name2] = image_dict
-            except KeyError:
+            except (IOError, KeyError):
                 print('no images for {name}'.format(name=name2))
             try:
                 data = fits.getdata(infile, extname=name3)
@@ -187,9 +187,9 @@ def get_guide_images(night, expid, basedir): #, rot=False):
                 for idx in range(len(data)):
                     image_dict[idx] = data[idx]
                 image_data[name3] = image_dict
-            except KeyError:
+            except (IOError, KeyError):
                 print('no images for {name}'.format(name=name3))
-    
+
     return image_data
     
 def rot_dict(gfa_file):

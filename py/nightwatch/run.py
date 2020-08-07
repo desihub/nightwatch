@@ -7,6 +7,7 @@ import glob
 import fitsio
 import numpy as np
 import scipy as sp
+import json
 
 from astropy.table import Table, vstack
 from shutil import copyfile
@@ -157,7 +158,7 @@ def runcmd(command, logfile, msg):
         msg: name of the process (str)
     
     Returns: 
-        nothing, prints status messages to the console
+        dictionary of error codes: {logfile: returncode}. Prints status messages to the console
     '''
     args = command.split()
     print('Logging {} to {}'.format(msg, logfile))
@@ -175,8 +176,9 @@ def runcmd(command, logfile, msg):
         print('ERROR {} while running {}'.format(err, msg))
         print('See {}'.format(logfile))
     
+    return {os.path.basename(logfile):err}
     
-
+    
 def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
     '''Runs preproc on the input raw data file, outputting to outdir
 
@@ -231,7 +233,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     cameras can be a list
 
-    returns header of HDU 0 of the input rawfile
+    returns header of HDU 0 of the input rawfile, plus dictionary of return codes for each qproc process run.
     '''
     log = desiutil.log.get_logger()
     if not os.path.isdir(outdir):
@@ -314,13 +316,25 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     if ncpu > 1 and len(cameras)>1 :
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
-        pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
+        errs = pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
         pool.close()
         pool.join()
     else:
+        errs = []
         log.info('Running qproc serially for {} cameras'.format(len(cameras)))
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
-            runcmd(cmd, logfile, msg)
+            err = runcmd(cmd, logfile, msg)
+            errs.append(err)
+            
+    errorcodes = dict()
+    for err in errs:
+        for key in err.keys():
+            errorcodes[key] = err[key]
+    
+    jsonfile = '{}/errorcodes-{:08d}.txt'.format(outdir, expid)
+    with open(jsonfile, 'w') as outfile:
+        json.dump(errorcodes, outfile)
+        print('Wrote {}'.format(jsonfile))
 
     return hdr
 
@@ -369,6 +383,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     from nightwatch.webpages import lastexp as web_lastexp
     from nightwatch.webpages import guide as web_guide
     from nightwatch.webpages import guideimage as web_guideimage
+    from nightwatch.webpages import placeholder as web_placeholder
     from . import io
 
     log = desiutil.log.get_logger()
@@ -398,18 +413,27 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
 #         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+    else:
+        htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_AMP")
 
     if 'PER_CAMFIBER' in qadata:
         htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
         pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
 #         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+    else:
+        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMFIBER")
 
     if 'PER_CAMERA' in qadata:
         htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
         pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
 #         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
+    else:
+        htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
@@ -429,6 +453,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             print('Wrote {}'.format(htmlfile))
         except (FileNotFoundError, OSError, IOError):
             print('Unable to find guide data, not plotting guide plots')
+            htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+            pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDING")
         
         #- plot guide image movies
         try:
@@ -438,6 +464,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             print('Wrote {}'.format(htmlfile))
         except (FileNotFoundError, OSError, IOError):
             print('Unable to find guide data, not plotting guide image plots')
+            htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+            pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDE_IMAGES")
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
@@ -515,6 +543,7 @@ def write_tables(indir, outdir, expnights=None):
     from nightwatch.webpages import tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
+    
 
     log = desiutil.log.get_logger()
 
@@ -539,10 +568,17 @@ def write_tables(indir, outdir, expnights=None):
                     qfails = [i for i in log_cams if i not in preproc_cams]
                     
                     if os.path.exists(qafile):
-                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails))
+                        try:
+                            with fitsio.FITS(qafile) as fits:
+                                qproc_status = fits['QPROC_STATUS'].read()
+                                exitcode = np.count_nonzero(qproc_status['QPROC_EXIT'])
+                        except IOError:
+                            exitcode = 0
+                        
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails, QPROC_EXIT=exitcode))
                     else:
                         log.error('Missing {}'.format(qafile))
-                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None))
+                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None, QPROC_EXIT=None))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)

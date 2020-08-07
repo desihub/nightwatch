@@ -66,7 +66,7 @@ def get_amp_size(data, lower_err, lower, upper, upper_err):
     return sizes
 
 def isolate_spec_lines(data_locs, data):
-    '''function to generate isolated data sets so that each spectrograph has an isolated line
+    '''function to generate isolated data sets so that each spectrograph has an isolated line.
     Inputs:
         data_locs: list of (spec, amp) pairs
         data: the metric data to be plotted (array)
@@ -117,10 +117,16 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     data_val = []
     for row in data:
         if row['CAM'] in (cam, cam.encode('utf-8')):
-            amp_loc.append(row['AMP'].decode('utf-8'))
+            if isinstance(row['AMP'], bytes):
+                amp_loc.append(row['AMP'].decode('utf-8'))
+            else:
+                amp_loc.append(row['AMP'])
             spec_loc.append(str(row['SPECTRO']))
             data_val.append(row[name])
-            cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+            if isinstance(row['CAM'], bytes):
+                cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
+            else:
+                cam_spect = row['CAM'].lower() + str(row['SPECTRO'])
             name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         else:
             continue

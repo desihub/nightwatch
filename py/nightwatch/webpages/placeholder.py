@@ -1,22 +1,15 @@
-import numpy as np
-
 import jinja2
 import bokeh
-from bokeh.embed import components
 
-from ..plots.guide import guide_scatter_combined, get_all_guide_scatter, get_all_stars_hist
-from ..io import get_guide_data
-
-import os 
-
-def write_guide_html(outfile, header, guidedata):
-    '''Writes html file with guide line/histogram plots. 
+def write_placeholder_html(outfile, header, attr):
+    '''Writes placeholder page for missing plots.
     Args:
-        outfile: file to write output, string
-        header: header containing metadata on exposure
-        guidedata: dictionary of centroid-*.json data, must have entries x_error and y_error
-    Returns html components of plot. '''
-     
+        outfile: path to write html file to (str)
+        header: header data for the exposure (night, expid, exptime, etc)
+        attr: the type of missing plot (str); like PER_AMP, PER_CAMERA, etc.
+   Returns html components.
+        '''
+    
     night = header['NIGHT']
     expid = header['EXPID']
     
@@ -31,34 +24,22 @@ def write_guide_html(outfile, header, guidedata):
         program = header['PROGRAM'].rstrip()
     
     exptime = header['EXPTIME']
-
+    
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
                                      default=True,
     )
-    template = env.get_template('guide.html')
+    template = env.get_template('placeholder.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        obstype=obstype, program=program, qatype='guide',
+        obstype=obstype, program=program, qatype=attr,
         num_dirs=2,
     )
     
-    #- Add a basic set of guide plots
-    plot_components = dict()
-
-    #- Generate the bokeh figure
-    fig = guide_scatter_combined(guidedata, [0, 2, 3, 5, 7, 8], width=370, height=230, ncols=3)
-    
-    #- Convert that into the components to embed in the HTML
-    script, div = components(fig)
-    #- Save those in a dictionary to use later
-    html_components['PER_FRAME_GUIDE'] = dict(script=script, div=div)
-    
-    #- Combine template + components -> HTML
     html = template.render(**html_components)
 
     #- Write HTML text to the output file

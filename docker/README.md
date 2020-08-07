@@ -50,9 +50,9 @@ RUN pip install -r requirements.txt
 EXPOSE 5000
 
 ENTRYPOINT [ "uwsgi" ]
-CMD [ "--ini", "app.ini", "--pyargv", "-s ./static -d ./data"]
+CMD [ "--ini", "app.ini"]
 ```
-The first line tells Docker which image the new image is based off of- in general, this should be a standardized, well-maintained image, to ensure greatest stability. The next line creates a directory *inside* the container, in which we will mount all of our external files. The `ENV` lines add our desi models to the pythonpath inside the container, and the `ADD` line copies the files in the same directory as the docker file to the container. In this case, that was the uWSGI app.ini file, and the Flask app.py code, in addition to the requirements.txt file, which contains all of the dependencies we need to run the app. These requirements get installed in the next `RUN` line. `EXPOSE` tells the container to expose port 5000, on which the app will listen for requests from the user. The final two lines tell the container how to start up the application, with the entrypoint `uwsgi` and the arguments `"--ini app.ini --pyargv -s ./static -d ./data`. These tell uWSGI to look for the app.ini file for configurations, as well as to pass the `pygarv` arguments into the Flask app.
+The first line tells Docker which image the new image is based off of- in general, this should be a standardized, well-maintained image, to ensure greatest stability. The next line creates a directory *inside* the container, in which we will mount all of our external files. The `ENV` lines add our desi models to the pythonpath inside the container, and the `ADD` line copies the files in the same directory as the docker file to the container. In this case, that was just the requirements.txt file, which contains all of the dependencies we need to run the app. These requirements get installed in the next `RUN` line. `EXPOSE` tells the container to expose port 5000, on which the app will listen for requests from the user. The final two lines tell the container how to start up the application, with the entrypoint `uwsgi` and the arguments `"--ini app.ini --pyargv -s ./static -d ./data`. These tell uWSGI to look for the app.ini file for configurations, as well as to pass the `pygarv` arguments into the Flask app.
 
 #### uWSGI Configuration
 The uWSGI image also contains an app.ini file with uWSGI specific configurations:
@@ -62,6 +62,7 @@ protocol = http
 module = app
 callable = app
 master = true
+pyargv = "webapp -i ./static -d ./data"
 
 processes = 5
 single-interpreter = true
@@ -122,7 +123,7 @@ Once you're happy with your image, you need to publish it to the spin registry t
 user@laptop: $ docker image list [image-name]
 REPOSITORY              TAG     IMAGE ID      CREATED            SIZE
 my-first-container-app  latest  c4f1cd0eb01c  About an hour ago  165MB
-user@laptop: $ docker image tag [image-name] registry.spin.nersc.gov/[username]/[image-name]
+user@laptop: $ docker image tag [image-name] registry.spin.nersc.gov/[username]/[image-name]:[version]
 ```
 Now, if you list the images again, you should see an additional image with the same ID, but with a different name. Now, login to the Spin registry with your NERSC username and password:
 ```
@@ -134,7 +135,7 @@ user@laptop: $
 ```
 Then, push your image to the registry, but with the relevant info replaced in the brackets.
 ```
-user@laptop: $ docker image push registry.spin.nersc.gov/[username]/[image-name]
+user@laptop: $ docker image push registry.spin.nersc.gov/[username]/[image-name]:[version]
 ```
 Now, the images are available to be pulled in the rancher environment, and we can start up an application stack at NERSC.
 
@@ -166,6 +167,8 @@ This directory should be in the global project system, as directories in scratch
 │   ├── output (static html files)
 │   ├── data (data for dynamic stuff)
 │   │   ├── output
+|   ├── app.py
+|   ├── app.ini
 ├── nightwatch
 |   ├── docker
 |   |   ├── nightwatch-stack
@@ -202,6 +205,12 @@ DESIMODEL_DIR=../desimodel
 
 #Directory containing desiutil code
 DESIUTIL_DIR=../desiutil
+
+#path to Flask app code
+APP=../nightwatch-spin/docker/app.py
+
+#path to uWSGI ini file
+APP_INI=../nightwatch-spin/docker/app.ini
 ```    
 Edit the values of each of the environment variables to point to the correct directory; they can be relative to the docker-compose directory, or they can be absolute. User id is not included here, we will just export that value directly from the shell:
 ```
@@ -230,13 +239,15 @@ services:
      - ${DESIMODEL_DIR}:/app/desimodel:ro
      - ${DESIUTIL_DIR}:/app/desiutil:ro
      - ${DATA_DIR}:/app/data:ro
+     - ${APP}:/app/app.py:ro
+     - ${APP_INI}:/app/app.ini:ro
     user: ${UID}:58102
     entrypoint: uwsgi
     command:
      - --ini
      - app.ini
      - --pyargv
-     - '-s ./static -d ./data'
+     - 'webapp -i ./static -d ./data'
      - --uid
      - '${UID}'
      - --gid
@@ -284,8 +295,8 @@ should return that both of our services, app and web, are healthy.
 ```bash
 user@cori01:SPIN_DIRECTORY $ rancher ps
 ID        TYPE      NAME                       IMAGE                                                             STATE      SCALE     SYSTEM    ENDPOINTS   DETAIL
-1s13343   service   stack-name/web       registry.spin.nersc.gov/alyons18/web-nginx:latest                 healthy    1/1       false                 
-1s13368   service   stack-name/app       registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest           healthy    1/1       false                 
+1s13343   service   stack-name/web       registry.spin.nersc.gov/alyons18/web-nginx:latest                       healthy    1/1       false                 
+1s13368   service   stack-name/app       registry.spin.nersc.gov/alyons18/app-uwsgi-flask:version7               healthy    1/1       false                 
 ```
 To check the logs if there is an issue:
 ```
@@ -326,7 +337,10 @@ The path to the external directory (relative to the docker-compose.yml!), then t
 1. Static html files, mounted to /app/static
 2. Processed data files, mounted to /app/data
 3. Nightwatch, desimodel, and desiutil code, mounted to respective directories inside the /app directory
-4. The nginx.conf file created above, mounted into the nginx container (you can copy and paste what I have below, as it should have the same relative directory structure)
+4. The actual code for the flask app we are running (in this case, a Flask version of nightwatch)
+5. A uWSGI configuration file, called app.ini (default version found in this repository)
+6. The nginx.conf file created above, mounted into the nginx container (you can copy and paste what I have below, as it should have the same relative directory structure)
+
 We set the external paths to each of these through the nightwatch.env file.
 
 ### Setting Permissions
@@ -339,7 +353,7 @@ We took care of the permissions issue by putting our uid and group id into the d
      - --ini
      - app.ini
      - --pyargv
-     - '-s ./static -d ./data'
+     - 'webapp -i ./static -d ./data'
      - --uid
      - '${UID}'
      - --gid
@@ -403,6 +417,8 @@ Note: if you want to learn more about the rancher CLI and what you can do with i
 #### Troubleshooting
 These are a couple of the things I noticed were most likely to have gone wrong when I was trying to get Nightwatch up and running.
  1. **User permissions:** who can access the files you are trying to get to? Are all the directories top to bottom set properly? Who is the container running as, who does the image expect to be running as?
+ ADD EXAMPLES OF ISSUES THAT YOU CAN RUN INTO WITH PERMISSIONS ISSUES
  2. **Ports:** is the port you are accessing internal or external? Where are the services connected and how?
  3. **Correct directory?:** When starting a stack, make sure you are in the directory with the same name
+ 4. **uWSGI loading app correctly** ADD DETAIL HERE
 

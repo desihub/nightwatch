@@ -6,12 +6,15 @@ import collections
 import numpy as np
 import fitsio
 
-
 from astropy.table import Table
 
 import desiutil.log
 from desispec.preproc import _overscan
 from .amp import _fix_amp_names
+
+import multiprocessing as mp
+
+from ..run import get_ncpu
 
 def corr(img,d0=4,d1=4,nrand=50000) :
     """
@@ -62,40 +65,52 @@ class QANoiseCorr(QA):
         log = desiutil.log.get_logger()
         infiles = glob.glob(os.path.join(indir, 'preproc-*.fits'))
         results = list()
-        for filename in infiles:
-            img,hdr = fitsio.read(filename, 'IMAGE',header=True) 
-            _fix_amp_names(hdr)
-            night = hdr['NIGHT']
-            expid = hdr['EXPID']
-            cam = hdr['CAMERA'][0].upper()
-            spectro = int(hdr['CAMERA'][1])
-
-            ny, nx = img.shape
-            npix_amp = nx*ny//4
-            for amp in ['A', 'B', 'C', 'D']:
-                #- Subregion of mask covered by this amp
-                if amp == 'A':
-                    subimg  = img[0:ny//2, 0:nx//2].astype(float)
-                elif amp == 'B':
-                    subimg  = img[0:ny//2, nx//2:].astype(float)
-                elif amp == 'C':
-                    subimg  = img[ny//2:, 0:nx//2].astype(float)
-                else:
-                    subimg  = img[ny//2:, nx//2:].astype(float)
+        
+        ncpu = get_ncpu(None)
+        
+        if ncpu > 1:
+            pool = mp.Pool(ncpu)
+            results = pool.map(get_dico, infiles)
+            pool.close()
+            pool.join()
+        else:
+            for filename in infiles:
+                results.append(get_dico(filename))
                 
-                n0=4
-                n1=4
-                corrimg = corr(subimg,n0,n1)
-
-                dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"CAM":cam,"AMP":amp}
-                for i0 in range(n0) :
-                    for i1 in range(n1) :
-                        dico["CORR-{}-{}".format(i0,i1)]=corrimg[i0,i1]
-                
-                results.append(collections.OrderedDict(**dico))
-
         return Table(results, names=results[0].keys())
 
             
-            
-        
+def get_dico(filename):
+    '''Return dictionary of noisecorr qa metrics for a single amp, given path to a preproc-*.fits file.'''
+
+    img,hdr = fitsio.read(filename, 'IMAGE',header=True) 
+    _fix_amp_names(hdr)
+    night = hdr['NIGHT']
+    expid = hdr['EXPID']
+    cam = hdr['CAMERA'][0].upper()
+    spectro = int(hdr['CAMERA'][1])
+
+    ny, nx = img.shape
+    npix_amp = nx*ny//4
+    for amp in ['A', 'B', 'C', 'D']:
+        #- Subregion of mask covered by this amp
+        if amp == 'A':
+            subimg  = img[0:ny//2, 0:nx//2].astype(float)
+        elif amp == 'B':
+            subimg  = img[0:ny//2, nx//2:].astype(float)
+        elif amp == 'C':
+            subimg  = img[ny//2:, 0:nx//2].astype(float)
+        else:
+            subimg  = img[ny//2:, nx//2:].astype(float)
+
+        n0=4
+        n1=4
+        corrimg = corr(subimg,n0,n1)
+
+        dico={"NIGHT":night,"EXPID":expid,"SPECTRO":spectro,"CAM":cam,"AMP":amp}
+        for i0 in range(n0) :
+            for i1 in range(n1) :
+                dico["CORR-{}-{}".format(i0,i1)]=corrimg[i0,i1]
+                
+    return dico
+    

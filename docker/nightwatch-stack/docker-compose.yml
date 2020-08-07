@@ -4,7 +4,7 @@ services:
   app:
     env_file: ./nightwatch.env #environment variables set in this file
     # this image is tagged latest, but you can change the tag to choose a different version to base the container on
-    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest
+    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:version7
     # the volumes mount an external directory to a location inside the container
     # format is: external/path:/internal/path:option (ro = read only, etc.)
     # the external paths are relative to the docker-compose file
@@ -14,13 +14,15 @@ services:
      - ${DESIMODEL_DIR}:/app/desimodel:ro
      - ${DESIUTIL_DIR}:/app/desiutil:ro
      - ${DATA_DIR}:/app/data:ro
+     - ${APP}:/app/app.py:ro
+     - ${APP_INI}:/app/app.ini:ro
     user: ${UID}:${GROUP_ID}   # make sure to export your UID, (58102 = desi group)
     entrypoint: uwsgi          # specifying what command should be run when this container runs
     command:
      - --ini
      - app.ini
      - --pyargv
-     - '-s ./static -d ./data' # should reflect dir structure of static, data volumes (relative to /app dir)
+     - 'webapp -i ./static -d ./data' # should reflect dir structure of static, data volumes (relative to /app dir)
      - --uid                   # need uid, gid here to tell uwsgi to expect a non-root user to start
      - '${UID}'
      - --gid

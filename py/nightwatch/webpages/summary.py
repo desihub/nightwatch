@@ -124,7 +124,10 @@ def write_summary_html(outfile, qadata, qprocdir):
 #     update_camfib_pc(plot_components, qadata)
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('summary.html')
 
@@ -155,7 +158,10 @@ def write_logtable_html(outfile, logdir, night, expid, available=None, error_col
         None
     """
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('logfile.html')
 
@@ -201,15 +207,18 @@ def write_logfile_html(input, output, night):
     """
 
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('logfile.html')
 
     input_dir = os.path.dirname(input)
-    available = []
     logfiles = [i for i in os.listdir(input_dir) if re.match(r'.*\.log', i)]
-    for file in logfiles:
-        available += [file.split("-")[1]]
+    available = [file.split("-")[1] for file in logfiles]
+#     for file in logfiles:
+#         available += [file.split("-")[1]]
 
     current = os.path.basename(input).split("-")[1]
     expid = os.path.basename(input).split("-")[2].split(".")[0]
@@ -217,12 +226,15 @@ def write_logfile_html(input, output, night):
     error_level = 0
     error_colors = dict({0:'green', 1:'orange', 2:'red', 3:'black'})
 
-    lines = []
-    lines.append('qproc logfile {}'.format(os.path.abspath(input)))
+    lines = ['qproc logfile {}'.format(os.path.abspath(input))]
+    #lines.append('qproc logfile {}'.format(os.path.abspath(input)))
     f = open(input, "rb")
     for line in f.readlines():
         #- byte to str
-        line = line.decode("utf-8").strip()
+        if isinstance(line, bytes):
+            line = line.decode("utf-8").strip()
+        else:
+            line = line.strip()
         if 'WARNING' in line:
             line = '<span style="color:{};">'.format(error_colors.get(1)) + line + '</span>'
             error_level = max(error_level, 1)

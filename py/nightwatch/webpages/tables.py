@@ -23,7 +23,10 @@ def write_nights_table(outfile, exposures):
     Returns: HTML file written to outfile path
     """    
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('nights.html')
 
@@ -147,7 +150,6 @@ The first and last exposure have prev/next as [null, null]
 get_explinks({})
 """.format(json.dumps(links[night], indent=2)))
 
-            
 
 def write_exposures_tables(indir, outdir, exposures, nights=None):
     """
@@ -161,7 +163,10 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
 
     log = desiutil.log.get_logger()
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
     template = env.get_template('exposures.html')
 
@@ -213,7 +218,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
 
             #- Adds qproc to the expid status
             #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
-            if len(row['QPROC']) == 0:
+            if len(row['QPROC']) == 0 and row['QPROC_EXIT'] == 0:
                 expinfo['QPROC'] = 'ok'
             else:
                 expinfo['QPROC'] = 'error'

@@ -42,7 +42,10 @@ def write_camfiber_html(outfile, data, header):
     
     #- Sets environment to get get templates
     env = jinja2.Environment(
-        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates')
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True,
     )
 
     #- FIBERNUM PLOTS (default camfiber page)
@@ -62,7 +65,6 @@ def write_camfiber_html(outfile, data, header):
     write_posacc_plots(data, pa_template, pa_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
 
     return dict({})
-
 
 def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
         TITLESPERCAM, TOOLS='pan,box_select,reset'):
@@ -87,7 +89,6 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
     for attr in ATTRIBUTES:
         if attr in list(cds.data.keys()):
             figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
-
             fibernum_gridlist.extend(figs_list)
 
     #- Organizes the layout of the plots
@@ -95,7 +96,6 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
-
 
 def write_focalplane_plots(data, template, outfile, header,
         ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
@@ -133,7 +133,6 @@ def write_focalplane_plots(data, template, outfile, header,
     write_file = write_htmlfile(fp_camfiber_layout, template, outfile, header)
 
 
-
 def write_posacc_plots(data, template, outfile, header,
         ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
         TOOLS='pan,box_select,reset',pos_acc=True):
@@ -163,11 +162,11 @@ def write_posacc_plots(data, template, outfile, header,
 
     #- Positioner Accuracy Plots
     if pos_acc:
-        pcd = get_posacc_cd(header)##
+        pcd = get_posacc_cd(header)
         if pcd is not None:
             for attr in ['BLIND','FINAL_MOVE']:
-                figs_list,hfigs_list = plot_camfib_posacc(pcd,attr, percentiles=PERCENTILES,tools=TOOLS)
-                focalplane_gridlist.extend([figs_list,hfigs_list])
+                figs_list,hfigs_list = plot_camfib_posacc(pcd, attr, percentiles=PERCENTILES,tools=TOOLS)
+                focalplane_gridlist.extend([figs_list, hfigs_list])
 
     #- Organizes the layout of the plots
     pa_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')

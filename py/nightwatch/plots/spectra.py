@@ -21,15 +21,15 @@ def downsample(data, n, agg=np.mean):
 
     Returns a list of the downsampled data
     '''
-    resultx = []
     length = len(data)
-    for j in range(0, length, n):
-        if (j+n <= length):
-            samplex = data[j:(j+n)]
-            resultx += [agg(samplex)]
-        else:
-            samplex = data[j:length]
-            resultx += [agg(samplex)]
+    resultx = [agg(data[j:(j+n)]) if (j+n <= length) else agg(data[j:length]) for j in range(0, length, n)]
+#     for j in range(0, length, n):
+#         if (j+n <= length):
+#             samplex = data[j:(j+n)]
+#             resultx += [agg(samplex)]
+#         else:
+#             samplex = data[j:length]
+#             resultx += [agg(samplex)]
     return resultx
 
 def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
@@ -318,36 +318,35 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
 
     fig=bk.figure(plot_height = height, plot_width = width)
 
-    for spectro in fibergroups:
+    for spectro, cam in zip(fibergroups, colors):
+#          rbz_none = [False]*len(fibergroups[spectro])
 
-        # rbz_none = [False]*len(fibergroups[spectro])
+#         for cam in colors:
+        framefile = os.path.join(datadir, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid))
+        if not os.path.isfile(framefile):
+            continue
 
-        for cam in colors:
-            framefile = os.path.join(datadir, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid))
-            if not os.path.isfile(framefile):
-                continue
+        fibermap = fits.getdata(framefile, 'FIBERMAP')
 
-            fibermap = fits.getdata(framefile, 'FIBERMAP')
+        wavelength = fits.getdata(framefile, "WAVELENGTH")
+        flux = fits.getdata(framefile, "FLUX")
+        spectrofibers = fibergroups[spectro]
+        indexes = np.where(np.in1d(fibermap['FIBER'], spectrofibers))[0]
+        assert len(spectrofibers) == len(indexes)
 
-            wavelength = fits.getdata(framefile, "WAVELENGTH")
-            flux = fits.getdata(framefile, "FLUX")
-            spectrofibers = fibergroups[spectro]
-            indexes = np.where(np.in1d(fibermap['FIBER'], spectrofibers))[0]
-            assert len(spectrofibers) == len(indexes)
-
-            for i, ifiber in zip(indexes, spectrofibers):
-                dwavelength = downsample(wavelength[i], n)
-                dflux = downsample(flux[i], n)
-                length = len(dwavelength)
-                source = ColumnDataSource(data=dict(
-                            fiber = [ifiber]*length,
-                            cam = [cam]*length,
-                            wave = dwavelength,
-                            flux = dflux
-                        ))
-                flux_total += dflux
-                #print(str(i), file=sys.stderr)
-                fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
+        for i, ifiber in zip(indexes, spectrofibers):
+            dwavelength = downsample(wavelength[i], n)
+            dflux = downsample(flux[i], n)
+            length = len(dwavelength)
+            source = ColumnDataSource(data=dict(
+                        fiber = [ifiber]*length,
+                        cam = [cam]*length,
+                        wave = dwavelength,
+                        flux = dflux
+                    ))
+            flux_total += dflux
+            #print(str(i), file=sys.stderr)
+            fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
 
     # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
     if len(missingfibers) > 0:
