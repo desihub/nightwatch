@@ -409,8 +409,9 @@ Note: if you want to learn more about the rancher CLI and what you can do with i
 #### Troubleshooting
 These are a couple of the things I noticed were most likely to have gone wrong when I was trying to get Nightwatch up and running.
  1. **User permissions:** who can access the files you are trying to get to? Are all the directories top to bottom set properly? Who is the container running as, who does the image expect to be running as?
- ADD EXAMPLES OF ISSUES THAT YOU CAN RUN INTO WITH PERMISSIONS ISSUES
+      - If the container doesn't even start, and there is an error message saying some directory was unable to be mounted as a volume when you call rancher ps, check all the permissions on all directories in the path to that volume for the executable bit.
  2. **Ports:** is the port you are accessing internal or external? Where are the services connected and how?
  3. **Correct directory?:** When starting a stack, make sure you are in the directory with the same name
- 4. **uWSGI loading app correctly** ADD DETAIL HERE
+ 4. **uWSGI loading app correctly** If the app.py code isn't configured correctly, uWSGI won't be able to load it properly. You might see an error that says uWSGI was unable to find a mountpoint, or no module was found. Make sure that the app.py code isn't wrapped in a function (as it needs to be for running it as a plain Flask webapp, not a containerized service), and make sure that the uWSGI app.ini config file module:callable argument references the same name as the Flask app code itself.
+ 
 
