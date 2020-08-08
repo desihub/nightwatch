@@ -48,42 +48,42 @@
         <div class="flex-column">
             {% if READNOISE_time %}
             <div class="header sub"><h3>Readnoise</h3></div>
-            <div>{{ READNOISE_time.script }} {{ READNOISE_time.div }}</div>
+            <div>{{ READNOISE_time.script | safe }} {{ READNOISE_time.div | safe }}</div>
             {% endif %}
             {% if READNOISE_hist %}
-            <div>{{ READNOISE_hist.script }} {{ READNOISE_hist.div }}</div>
+            <div>{{ READNOISE_hist.script | safe }} {{ READNOISE_hist.div | safe }}</div>
             {% endif %}
             <div class='flex-row'></div>
             {% if READNOISE_table %}
-            <div>{{ READNOISE_table.script}} {{ READNOISE_table.div }}</div>
+            <div>{{ READNOISE_table.script | safe }} {{ READNOISE_table.div | safe }}</div>
             {% endif %}
         </div>
 
         <div class="flex-column">
             {% if BIAS_time %}
             <div class="header sub"><h3>Bias</h3></div>
-            <div>{{ BIAS_time.script }} {{ BIAS_time.div }}</div>
+            <div>{{ BIAS_time.script | safe }} {{ BIAS_time.div | safe }}</div>
             {% endif %}
             {% if BIAS_hist %}
-            <div>{{ BIAS_hist.script}} {{ BIAS_hist.div }}</div>
+            <div>{{ BIAS_hist.script | safe }} {{ BIAS_hist.div | safe }}</div>
             {% endif %}
             {% if BIAS_table %}
             <div class='flex-row'></div>
-            <div>{{ BIAS_table.script}} {{ BIAS_table.div }}</div>
+            <div>{{ BIAS_table.script | safe }} {{ BIAS_table.div | safe }}</div>
             {% endif %}
         </div>
 
         <div class="flex-column">
             {% if COSMICS_RATE_time %}
             <div class="header sub"><h3>Cosmics Rate</h3></div>
-            <div>{{ COSMICS_RATE_time.script }} {{ COSMICS_RATE_time.div }}</div>
+            <div>{{ COSMICS_RATE_time.script | safe }} {{ COSMICS_RATE_time.div | safe }}</div>
             {% endif %}
             {% if COSMICS_RATE_hist %}
-            <div>{{ COSMICS_RATE_hist.script}} {{ COSMICS_RATE_hist.div }}</div>
+            <div>{{ COSMICS_RATE_hist.script | safe }} {{ COSMICS_RATE_hist.div | safe }}</div>
             {% endif %}
             {% if COSMICS_RATE_table %}
             <div class='flex-row'></div>
-            <div>{{ COSMICS_RATE_table.script}} {{ COSMICS_RATE_table.div }}</div>
+            <div>{{ COSMICS_RATE_table.script | safe }} {{ COSMICS_RATE_table.div | safe }}</div>
             {% endif %}
         </div>
     </div>

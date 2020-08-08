@@ -39,7 +39,7 @@
         </ul>
             
         <div class="flex-container">
-            <div>{{ skyplot_script }} {{ skyplot_div }}</div>
+            <div>{{ skyplot_script | safe }} {{ skyplot_div | safe }}</div>
         </div>
             
         <ul class="titlebar">
@@ -47,12 +47,12 @@
         </ul>
             
         <div class="flex-container">
-            <div>{{ airmass_script }} {{ airmass_div }}</div>
-            <div>{{ seeing_script }} {{ seeing_div }}</div>
-            <div>{{ transp_hist_script }} {{ transp_hist_div }}</div>
-            <div>{{ exposePerTile_hist_script }} {{ exposePerTile_hist_div }}</div>
-            <div>{{ brightness_script }} {{ brightness_div }}</div>
-            <div>{{ exptime_script }} {{ exptime_div }}</div>
+            <div>{{ airmass_script | safe }} {{ airmass_div | safe }}</div>
+            <div>{{ seeing_script | safe }} {{ seeing_div | safe }}</div>
+            <div>{{ transp_hist_script | safe }} {{ transp_hist_div | safe }}</div>
+            <div>{{ exposePerTile_hist_script | safe }} {{ exposePerTile_hist_div | safe }}</div>
+            <div>{{ brightness_script | safe }} {{ brightness_div | safe }}</div>
+            <div>{{ exptime_script | safe }} {{ exptime_div | safe }}</div>
         </div>
                 
          <ul class="titlebar">
@@ -60,8 +60,8 @@
         </ul>
                 
         <div class="flex-container">
-            {{ summarytable_script }}
-            {{ summarytable_div }}
+            {{ summarytable_script | safe }}
+            {{ summarytable_div | safe }}
         </div>
             
     </div>
