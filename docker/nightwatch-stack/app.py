@@ -143,8 +143,7 @@ def getfile(filepath):
     fitsfilename = '{filebasename}.fits'.format(filebasename=filebasename)
     fitsfilepath = os.path.join(datadir, filedir, fitsfilename)
     exists_fits = os.path.isfile(fitsfilepath)
-
-    exists_fits = os.path.isfile(fitsfilepath)
+    
     if exists_fits:
         print("found " + fitsfilepath, file=sys.stderr)
         downsample = int(down[:len(down)-1])
