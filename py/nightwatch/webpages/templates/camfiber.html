@@ -11,7 +11,7 @@
 
 {% if CAMFIBER_PLOTS %}
     <div>
-        {{ CAMFIBER_PLOTS.script }} {{ CAMFIBER_PLOTS.div }}
+        {{ CAMFIBER_PLOTS.script | safe }} {{ CAMFIBER_PLOTS.div | safe}}
     </div>
 {% endif %}
 

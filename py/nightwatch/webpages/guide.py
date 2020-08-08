@@ -1,6 +1,7 @@
 import numpy as np
 
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 from bokeh.embed import components
 
@@ -36,8 +37,9 @@ def write_guide_html(outfile, header, guidedata):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('guide.html')
 
     html_components = dict(

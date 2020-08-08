@@ -10,9 +10,15 @@ from desimodel.io import load_tiles
 from desispec.io import meta
 
 from . import run, plots, io
-from .run import timestamp
+from .run import timestamp, get_ncpu
 from .qa.runner import QARunner
 from desiutil.log import get_logger
+
+import tempfile
+import shutil
+import contextlib
+
+import multiprocessing as mp
 
 def print_help():
     print("""USAGE: nightwatch <command> [options]
@@ -218,7 +224,43 @@ def main_monitor(options=None):
 
         sys.stdout.flush()
         time.sleep(args.waittime)
-
+        
+class TempDirManager():
+    '''Custom context manager that creates a temporary directory, and upon exiting the context copies all files (regardless if the code written inside the context runs properly or exits with some error) into a specified output directory.'''
+    def __init__(self, outdir):
+        '''Initializes TempDirManager with the directory specified to copy all files written.'''
+        self.outdir = outdir
+        self.tempdir = None
+    def __enter__(self):
+        self.tempdir = tempfile.TemporaryDirectory().name
+        return self.tempdir
+    def __exit__(self, *exc):
+        '''Copies files over when context is exited.'''
+        outdir = self.outdir
+        tempdir = self.tempdir
+        
+        print('Copying files from temporary directory to {}'.format(outdir))
+        
+        src = []
+        for dirpath, dirnames, files in os.walk(tempdir, topdown=True):
+            for file_name in files:
+                src.append(os.path.join(dirpath, file_name))
+        
+        dest = [file.replace(tempdir, outdir) for file in src]
+        argslist = list(zip(src, dest))
+        
+        #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
+        #- parallel copying performs better than copying serially
+        ncpu = get_ncpu(None)
+        if ncpu > 1:
+            pool = mp.Pool(ncpu)
+            pool.starmap(shutil.move, argslist)
+            pool.close()
+            pool.join()
+        else:
+            for args in argslist:
+                shutil.move(**args)
+        
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
@@ -236,29 +278,31 @@ def main_run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
-
+        
     night, expid = io.get_night_expid(args.infile)
-    expdir = io.findfile('expdir', night=night, expid=expid, basedir=args.outdir)
     rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
     
-    time_start = time.time()
-    print('{} Running qproc'.format(time.strftime('%H:%M')))
-    header = run.run_qproc(args.infile, expdir, cameras=cameras)
+    with TempDirManager(args.outdir) as tempdir:
+        
+        expdir = io.findfile('expdir', night=night, expid=expid, basedir=tempdir)
 
-    print('{} Running QA analysis'.format(time.strftime('%H:%M')))
-    qafile = io.findfile('qa', night=night, expid=expid, basedir=args.outdir)
-    qaresults = run.run_qa(expdir, outfile=qafile)
+        time_start = time.time()
+        print('{} Running qproc'.format(time.strftime('%H:%M')))
+        header = run.run_qproc(args.infile, expdir, cameras=cameras)
 
-    print('{} Making plots'.format(time.strftime('%H:%M')))
-    run.make_plots(qafile, args.outdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
+        print('{} Running QA analysis'.format(time.strftime('%H:%M')))
+        qafile = io.findfile('qa', night=night, expid=expid, basedir=tempdir)
+        qaresults = run.run_qa(expdir, outfile=qafile)
 
-    print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
-    run.write_tables(args.outdir, args.outdir, expnights=[night,])
+        print('{} Making plots'.format(time.strftime('%H:%M')))
+        run.make_plots(qafile, tempdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
+        
+        print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
+        run.write_tables(args.outdir, tempdir, expnights=[night,])
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
-
-
+        
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,

@@ -1,4 +1,5 @@
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 from bokeh.embed import components
 
@@ -21,8 +22,9 @@ def generate_timeseries_html(data, start_date, end_date, hdu, attribute, dropdow
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('timeseries.html')
 
     html_components = dict(

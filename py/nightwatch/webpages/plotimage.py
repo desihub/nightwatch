@@ -1,4 +1,5 @@
 import jinja2
+from jinja2 import select_autoescape
 import bokeh, os, re, sys
 
 from ..plots.plotimage import main
@@ -17,8 +18,9 @@ def write_image_html(input, output, downsample, night):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('preproc.html')
 
     plot_script, plot_div = main(input, None, downsample)
@@ -63,8 +65,9 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('preproc.html')
 
     available = []

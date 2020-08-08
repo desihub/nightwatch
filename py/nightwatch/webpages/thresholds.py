@@ -1,4 +1,5 @@
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 import sys, os, re
 from bokeh.embed import components
@@ -23,8 +24,9 @@ def write_threshold_html(outfile, outdir, datadir, start_date, end_date):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('thresholds.html')
 
     html_components = dict(

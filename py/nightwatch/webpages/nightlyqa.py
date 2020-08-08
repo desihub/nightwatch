@@ -2,6 +2,7 @@ import numpy as np
 import os
 
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 import bokeh.plotting as bk
 from bokeh.embed import components
@@ -149,7 +150,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
     
     template = env.get_template('nightlyqa.html')

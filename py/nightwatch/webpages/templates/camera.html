@@ -12,16 +12,16 @@
 
 <div class="flex-container">
   {% if DX %}
-      <div class=flex-item>{{ DX.script }} {{ DX.div }}</div>
+      <div class=flex-item>{{ DX.script | safe }} {{ DX.div | safe }}</div>
   {% endif %}
   {% if DY %}
-      <div class=flex-item>{{ DY.script }} {{ DY.div }}</div>
+      <div class=flex-item>{{ DY.script | safe }} {{ DY.div | safe }}</div>
   {% endif %}
   {% if XSIG %}
-      <div class=flex-item>{{ XSIG.script }} {{ XSIG.div }}</div>
+      <div class=flex-item>{{ XSIG.script | safe }} {{ XSIG.div | safe }}</div>
   {% endif %}
   {% if YSIG %}
-      <div class=flex-item>{{ YSIG.script }} {{ YSIG.div }}</div>
+      <div class=flex-item>{{ YSIG.script | safe }} {{ YSIG.div | safe }}</div>
   {% endif %}
 </div>
 

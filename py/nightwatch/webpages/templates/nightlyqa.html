@@ -60,20 +60,20 @@
     <div class="column middle">
         
         {% if SKYPATHPLOT %}
-        <div class='flex-container'>{{ SKYPATHPLOT.script }} {{ SKYPATHPLOT.div }}</div>
+        <div class='flex-container'>{{ SKYPATHPLOT.script | safe }} {{ SKYPATHPLOT.div | safe }}</div>
         {% endif %}
             
         <div class="flex-container">
             {% if TIMESERIES %}
-            <div>{{ TIMESERIES.script }} {{ TIMESERIES.div }}</div>
+            <div>{{ TIMESERIES.script | safe }} {{ TIMESERIES.div | safe }}</div>
             {% endif %}
             {% if HIST %}
-            <div>{{ HIST.script }} {{ HIST.div }}</div>
+            <div>{{ HIST.script | safe }} {{ HIST.div | safe }}</div>
             {% endif %}
         </div>
         
         {% if TABLE %}
-        <div class="flex-container">{{ TABLE.script }}{{ TABLE.div }}</div>
+        <div class="flex-container">{{ TABLE.script | safe }}{{ TABLE.div | safe }}</div>
         {% endif %}
     </div>
 </div>

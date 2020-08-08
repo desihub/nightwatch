@@ -7,6 +7,7 @@ from collections import OrderedDict, Counter
 
 import numpy as np
 import jinja2
+from jinja2 import select_autoescape
 from astropy.table import Table
 
 import desiutil.log
@@ -26,8 +27,9 @@ def write_nights_table(outfile, exposures):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('nights.html')
 
 
@@ -166,8 +168,9 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('exposures.html')
 
     if nights is None:

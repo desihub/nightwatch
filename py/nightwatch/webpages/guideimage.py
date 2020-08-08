@@ -1,4 +1,5 @@
 import jinja2
+from jinja2 import select_autoescape
 import bokeh, os, re, sys
 
 from ..plots.guideimage import guide_star_timelapse
@@ -16,7 +17,7 @@ def write_guide_image_html(image_data, outfile, night, expid):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
     
     zexpid = '{expid:08d}'.format(expid=expid)

@@ -22,7 +22,7 @@ header {
   </font>
 </header>
 
-    <div class=flex-item>{{ spectra.script }} {{ spectra.div }}</div>
+    <div class=flex-item>{{ spectra.script | safe }} {{ spectra.div | safe }}</div>
 {% endif %}
 <br>
 {% if input %}
@@ -38,7 +38,7 @@ header {
 </label>
 
 <label> Downsample:
-    <input type="int" id="down" size=4 {% if downsample %} value="{{downsample}}" {% endif %} >
+    <input type="int" id="down" size=4 {% if downsample %} value="{{ downsample | safe }}" {% endif %} >
 </label>
 
 <button onclick='
@@ -76,7 +76,7 @@ for (var i = 0, length = radios.length; i < length; i++)
 {% else %}
 
 <button onclick='
-  window.open("../../{% if frame=="qframe" %}qcframe{% else %}qframe{% endif %}/{{ downsample }}x", "_top")
+  window.open("../../{% if frame=="qframe" %}qcframe{% else %}qframe{% endif %}/{{ downsample | safe }}x", "_top")
 '>Generate with {% if frame=="qframe" %}qcframe{% else %}qframe{% endif %} (if avaliable)
 </button>
 

@@ -141,10 +141,12 @@ def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8)
     """ % js_source_array
 
     callback = CustomJS(args=sources, code=code)
-    slider = Slider(start=0, end=indices[-1], value=0, step=1, title="Frame", callback=callback, width=width*4)
+    slider = Slider(start=0, end=indices[-1], value=0, step=1, title="Frame", width=width*4)
     callback.args['renderer_source'] = renderer_source
     callback.args['slider'] = slider
-
+    
+    slider.js_on_event('value', callback)
+    
     ims_plot = gridplot(ims, ncols=ncols, toolbar_location=None)
     layout = column([slider, ims_plot])
     

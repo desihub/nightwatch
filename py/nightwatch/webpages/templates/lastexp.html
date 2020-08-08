@@ -37,19 +37,19 @@ Last exposure {{ night }}/{{ expid }}: {{ exptime }} sec {{ obstype }} ({{ progr
 <div class="flex-container">
 
 {% if READNOISE %}
-    <div>{{ READNOISE.script }} {{ READNOISE.div }}</div>
+    <div>{{ READNOISE.script | safe }} {{ READNOISE.div | safe }}</div>
 {% endif %}
 
 {% if RAWFLUX %}
-    <div>{{ RAWFLUX.script }} {{ RAWFLUX.div }}</div>
+    <div>{{ RAWFLUX.script | safe }} {{ RAWFLUX.div | safe }}</div>
 {% endif %}
 
 {% if CALIBFLUX %}
-    <div>{{ CALIBFLUX.script }} {{ CALIBFLUX.div }}</div>
+    <div>{{ CALIBFLUX.script | safe }} {{ CALIBFLUX.div | safe }}</div>
 {% endif %}
 
 {% if SPECTRA %}
-    <div>{{ SPECTRA.script }} {{ SPECTRA.div }}</div>
+    <div>{{ SPECTRA.script | safe }} {{ SPECTRA.div | safe }}</div>
 {% endif %}
 
 </div>

@@ -1,6 +1,7 @@
 import numpy as np
 
 import jinja2
+from jinja2 import select_autoescape
 import bokeh, sys
 from bokeh.embed import components
 
@@ -45,8 +46,9 @@ def get_spectra_html(data, night, expid, view, frame, downsample_str, select_str
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('spectra.html')
 
     html_components = dict(

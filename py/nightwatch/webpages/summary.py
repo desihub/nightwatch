@@ -5,6 +5,7 @@ Pages summarizing QA results
 import os, re
 import numpy as np
 import jinja2
+from jinja2 import select_autoescape
 
 from .. import io
 from ..plots.camfiber import plot_per_fibernum
@@ -127,8 +128,9 @@ def write_summary_html(outfile, qadata, qprocdir):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('summary.html')
 
     #- TODO: Add links to whatever detailed QA pages exist
@@ -161,8 +163,9 @@ def write_logtable_html(outfile, logdir, night, expid, available=None, error_col
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('logfile.html')
 
     if not logdir:
@@ -210,8 +213,9 @@ def write_logfile_html(input, output, night):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('logfile.html')
 
     input_dir = os.path.dirname(input)

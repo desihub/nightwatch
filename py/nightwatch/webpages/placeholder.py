@@ -1,4 +1,5 @@
 import jinja2
+from jinja2 import select_autoescape
 import bokeh
 
 def write_placeholder_html(outfile, header, attr):
@@ -29,8 +30,9 @@ def write_placeholder_html(outfile, header, attr):
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
                                      default_for_string=True, 
-                                     default=True,
+                                     default=True)
     )
+    
     template = env.get_template('placeholder.html')
 
     html_components = dict(
