@@ -161,14 +161,8 @@ Now, we will go to the directory we'll run the stack out of. First, create or go
 user@cori01: $ export PROJECTDIR=path/to/where/you/want/the/project/
 user@cori01: $ mkdir $PROJECTDIR && cd $PROJECTDIR
 ```
-This directory should be in the global project system, as directories in scratch will not be able to access the files we need to mount. For example, this is my own directory structure that I use, all within my own global project filesystem directory:
+This directory should be in the global project system, as directories in scratch will not be able to access the files we need to mount. We will work from the nightwatch/docker/nightwatch-stack directory, which has the needed files to start up a nightwatch spin service. 
 ```
-├── nightwatchtest
-│   ├── output (static html files)
-│   ├── data (data for dynamic stuff)
-│   │   ├── output
-|   ├── app.py
-|   ├── app.ini
 ├── nightwatch
 |   ├── docker
 |   |   ├── nightwatch-stack
@@ -176,8 +170,6 @@ This directory should be in the global project system, as directories in scratch
 |   |   |   ├── nightwatch.env.template
 |   |   |   ├── web
 |   |   │   │   ├── nginx.conf
-├── desimodel
-└── desiutil
 ```
 Now, pull the repo:
 ```
@@ -185,8 +177,8 @@ user@cori01:PROJECTDIR $ git pull https://github.com/sbailey/nightwatch/
 ```
 You should now have a nightwatch subdirectory with the same structure as outlined above. Go to the docker/nightwatch-stack directory. There should be a docker-compose.yml and nightwatch.env.template file. Copy the nightwatch.env.template file into another file called nightwatch.env, and open up the new file:
 ```
-user@cori01:PROJECTDIR $ cp nightwatch.env.template nightwatch.env
-user@cori01:PROJECTDIR $ vim nightwatch.env
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ cp nightwatch.env.template nightwatch.env
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ vim nightwatch.env
 
 #Default: DESI group id at NERSC
 GROUP_ID=58102
@@ -214,17 +206,17 @@ APP_INI=../nightwatch-spin/docker/app.ini
 ```    
 Edit the values of each of the environment variables to point to the correct directory; they can be relative to the docker-compose directory, or they can be absolute. User id is not included here, we will just export that value directly from the shell:
 ```
-user@cori01:PROJECTDIR $ echo $UID
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ echo $UID
 38305
-user@cori01:PROJECTDIR $ export UID
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ export UID
 ```
 Now, you should make sure that all of the directories that you are mounting to the docker-compose (that you just referenced in the nightwatch.env) have the correct permissions. Each directory and sub-directory that docker needs to get through to mount your external files needs to have the world executable bit (although not a world-readable bit).
 ```
-user@cori01:PROJECTDIR $ chmod o+x [directory 1] [directory 2] [etc...]
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ chmod o+x [directory 1] [directory 2] [etc...]
 ```
 Now, we will check that all of our environment variables are correctly assigned, and our docker-compose doesn't have any syntax errors.
 ```
-user@cori01:PROJECTDIR $ rancher up --render --env-file nightwatch.env
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ rancher up --render --env-file nightwatch.env
 ```
 This should print out the docker-compose.yml to the console if everything is correct.
 ```yaml
@@ -232,7 +224,7 @@ version: '2'
 services:
   app:
     env_file: ./nightwatch.env
-    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:latest
+    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:version8
     volumes:
      - ${STATIC_DIR}:/app/static
      - ${NIGHTWATCH_DIR}:/app/nightwatch:ro
@@ -287,20 +279,20 @@ server {
 So, after we've verified the docker-compose, we can start up the stack. The `-d` flag runs the process in the background, and `--stack` assigns a name to our stack. `--env-file` allows us to tell rancher which env file to reference. 
 Note: the name of the stack should follow naming conventions. See [Spin naming conventions](https://docs.nersc.gov/services/spin/best_practices/#naming-convention-for-stacks).
 ```
-user@cori01:PROJECTDIR $ rancher up -d --stack [stack-name] --env-file nightwatch.env
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ rancher up -d --stack [stack-name] --env-file nightwatch.env
 ```
 If everything is in order, then calling
 ```rancher ps```
 should return that both of our services, app and web, are healthy. 
 ```bash
-user@cori01:SPIN_DIRECTORY $ rancher ps
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ rancher ps
 ID        TYPE      NAME                       IMAGE                                                             STATE      SCALE     SYSTEM    ENDPOINTS   DETAIL
 1s13343   service   stack-name/web       registry.spin.nersc.gov/alyons18/web-nginx:latest                       healthy    1/1       false                 
-1s13368   service   stack-name/app       registry.spin.nersc.gov/alyons18/app-uwsgi-flask:version7               healthy    1/1       false                 
+1s13368   service   stack-name/app       registry.spin.nersc.gov/alyons18/app-uwsgi-flask:version8               healthy    1/1       false                 
 ```
 To check the logs if there is an issue:
 ```
-user@cori01:SPIN_DIRECTORY $ rancher logs service-name --follow --tail 100
+user@cori01:PROJECTDIR/nightwatch/docker/nightwatch-stack $ rancher logs service-name --follow --tail 100
 ```
 The `--follow` tag will print the logs out realtime to the console, while the `--tail` option will only print out the last, in this case 100, lines of the log. 
 In order to visit the service, you can check where it is being hosted:
@@ -417,8 +409,9 @@ Note: if you want to learn more about the rancher CLI and what you can do with i
 #### Troubleshooting
 These are a couple of the things I noticed were most likely to have gone wrong when I was trying to get Nightwatch up and running.
  1. **User permissions:** who can access the files you are trying to get to? Are all the directories top to bottom set properly? Who is the container running as, who does the image expect to be running as?
- ADD EXAMPLES OF ISSUES THAT YOU CAN RUN INTO WITH PERMISSIONS ISSUES
+      - If the container doesn't even start, and there is an error message saying some directory was unable to be mounted as a volume when you call rancher ps, check all the permissions on all directories in the path to that volume for the executable bit.
  2. **Ports:** is the port you are accessing internal or external? Where are the services connected and how?
  3. **Correct directory?:** When starting a stack, make sure you are in the directory with the same name
- 4. **uWSGI loading app correctly** ADD DETAIL HERE
+ 4. **uWSGI loading app correctly** If the app.py code isn't configured correctly, uWSGI won't be able to load it properly. You might see an error that says uWSGI was unable to find a mountpoint, or no module was found. Make sure that the app.py code isn't wrapped in a function (as it needs to be for running it as a plain Flask webapp, not a containerized service), and make sure that the uWSGI app.ini config file module:callable argument references the same name as the Flask app code itself.
+ 
 

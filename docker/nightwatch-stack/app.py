@@ -143,8 +143,7 @@ def getfile(filepath):
     fitsfilename = '{filebasename}.fits'.format(filebasename=filebasename)
     fitsfilepath = os.path.join(datadir, filedir, fitsfilename)
     exists_fits = os.path.isfile(fitsfilepath)
-
-    exists_fits = os.path.isfile(fitsfilepath)
+    
     if exists_fits:
         print("found " + fitsfilepath, file=sys.stderr)
         downsample = int(down[:len(down)-1])
@@ -161,7 +160,3 @@ def getfile(filepath):
 
 if __name__ == "__main__":
     app.run(debug=args.debug, host=args.host, port=args.port)
-
-
-
-                                                                                                                         164,0-1       Bot
