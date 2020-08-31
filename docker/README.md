@@ -118,16 +118,16 @@ docker container run --rm --publish [external port]:[internal port] [image-name-
 The `--rm` flag removes the container once we stop it, so we don't have unwanted containers hanging around. If you navigate to http://localhost:[external-port]/ you should see whatever your image is meant to run at that address. To stop the container, use `Control+C`.
 
 ### Ship Images to Spin
-Once you're happy with your image, you need to publish it to the spin registry to be able to use it at Spin. First, we need to tag the image properly on our local machine:
+Once you're happy with your image, you need to publish it to the NERSC registry to be able to use it at Spin (rancher1 or rancher2). First, we need to tag the image properly on our local machine:
 ```
 user@laptop: $ docker image list [image-name]
 REPOSITORY              TAG     IMAGE ID      CREATED            SIZE
 my-first-container-app  latest  c4f1cd0eb01c  About an hour ago  165MB
-user@laptop: $ docker image tag [image-name] registry.spin.nersc.gov/[username]/[image-name]:[version]
+user@laptop: $ docker image tag [image-name] registry.nersc.gov/desi/[namespace]/[image-name]:[version]
 ```
-Now, if you list the images again, you should see an additional image with the same ID, but with a different name. Now, login to the Spin registry with your NERSC username and password:
+The namespace should be nightwatch, but you can also create a new one. You can name the version whatever you want, but if this is an update to the nightwatch webapp image, you should tag it latest. Now, if you list the images again, you should see an additional image with the same ID, but with a different name. Now, login to the Spin registry with your NERSC username and password:
 ```
-user@laptop: $ docker login https://registry.spin.nersc.gov/
+user@laptop: $ docker login https://registry.nersc.gov/
 Username:
 Password:
 Login Succeeded
@@ -135,9 +135,9 @@ user@laptop: $
 ```
 Then, push your image to the registry, but with the relevant info replaced in the brackets.
 ```
-user@laptop: $ docker image push registry.spin.nersc.gov/[username]/[image-name]:[version]
+user@laptop: $ docker image push registry.spin.nersc.gov/desi/[namespace]/[image-name]:[version]
 ```
-Now, the images are available to be pulled in the rancher environment, and we can start up an application stack at NERSC.
+If the version is "latest", DON'T include it in the push. Otherwise, do include the version name. Now, the images are available to be pulled in the rancher environment, and we can start up an application stack at NERSC.
 
 ## Running at NERSC
 First step is accessing Spin, through Cori.
@@ -197,12 +197,6 @@ DESIMODEL_DIR=../desimodel
 
 #Directory containing desiutil code
 DESIUTIL_DIR=../desiutil
-
-#path to Flask app code
-APP=../nightwatch-spin/docker/app.py
-
-#path to uWSGI ini file
-APP_INI=../nightwatch-spin/docker/app.ini
 ```    
 Edit the values of each of the environment variables to point to the correct directory; they can be relative to the docker-compose directory, or they can be absolute. User id is not included here, we will just export that value directly from the shell:
 ```
@@ -224,15 +218,13 @@ version: '2'
 services:
   app:
     env_file: ./nightwatch.env
-    image: registry.spin.nersc.gov/alyons18/app-uwsgi-flask:version8
+    image: registry.nersc.gov/desi/nightwatch/app-uwsgi-flask:latest
     volumes:
      - ${STATIC_DIR}:/app/static
      - ${NIGHTWATCH_DIR}:/app/nightwatch:ro
      - ${DESIMODEL_DIR}:/app/desimodel:ro
      - ${DESIUTIL_DIR}:/app/desiutil:ro
      - ${DATA_DIR}:/app/data:ro
-     - ${APP}:/app/app.py:ro
-     - ${APP_INI}:/app/app.ini:ro
     user: ${UID}:58102
     entrypoint: uwsgi
     command:
