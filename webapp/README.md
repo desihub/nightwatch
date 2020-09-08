@@ -2,7 +2,7 @@
 This tutorial will go through the process of running Nightwatch with Rancher2 on Spin, in addition to documenting the configurations and default images built for Nightwatch.
 
 #### Useful resources:
-- Spin has some tutorials if you want to go through [building a Docker image](https://docs.nersc.gov/services/spin/getting_started/lesson-1/). As of right now, there aren't any tutorials I could find going through how to use Kubernetes or Rancher2 (besides the training for Spin users).
+- Spin has some tutorials if you want to go through [building a Docker image](https://docs.nersc.gov/services/spin/getting_started/lesson-1/). As of 08/20, there aren't any tutorials I could find going through how to use Kubernetes or Rancher2 (besides the training for Spin users).
 
 - [Rancher2 documentation](https://rancher.com/docs/rancher/v2.x/en/).
 
