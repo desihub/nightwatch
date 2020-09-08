@@ -21,12 +21,7 @@ This tutorial will go through the process of running Nightwatch with Rancher2 on
   - [Building new images](#building-new-images)
   - [Ship images to NERSC registry](#ship-images-to-spin)
 - [Running At NERSC (Spin and Rancher)](#running-at-nersc)
-  - [Setting up the service](#setting-up-the-service)
-  - [Configuring the ingress](#configuring-the-ingress)
 - [Rancher2 + Kubernetes Troubleshooting](#rancher2-kubernetes-troubleshooting)
-  - [Mounting Volumes](#mounting-volumes)
-  - [Setting Permissions](#setting-permissions)
-  - [Some Useful Tips and Tricks](#some-useful-tips-and-tricks)
 
 ## General Structure
 Rancher2 uses Kubernetes instead of Docker, so the structure of the web app is slightly different than previously (see documentation in /docker-rancher1 folder); instead of writing a docker-compose.yml file to specify the interaction between a uWSGI-flask container (the app) and a nginx container (server interfacing with internet), we will write a kubernetes deployment yaml file that configures one container/workload, and a separate yaml file to configure a load-balancer/ingress, which will act in the same way our nginx docker container did. We can do much of this “writing” through the rancher2 GUI. 
