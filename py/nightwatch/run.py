@@ -210,6 +210,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
     for camera in cameras:
         args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
         arglist.append(args)
+    print(arglist)
 
     ncpu = min(len(arglist), get_ncpu(ncpu))
 
@@ -503,7 +504,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             pool.join()
             
         else:
-            for args in arglist:
+            for args in argslist:
                 web_plotimage.write_image_html(*args)
 
         #- plot preproc nav table

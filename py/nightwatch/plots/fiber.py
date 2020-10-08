@@ -1,7 +1,7 @@
 import numpy as np
 import jinja2
 import desimodel.io
-
+import scipy.stats
 import bokeh
 import bokeh.plotting as bk
 import bokeh.models
@@ -52,8 +52,12 @@ def plot_fibers_focalplane(source, name, cam='',
     '''
     full_metric =np.array(source.data.get(name), copy=True)
 
-    #- adjusts for outliers on the full scale
-    pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
+    #- adjusts for outliers on each camera's scale
+
+    in_cam = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
+    cam_metric = full_metric[in_cam]
+
+    pmin_full, pmax_full = np.percentile(cam_metric, (2.5, 97.5))
 
     #- Generate colors for both plots
     if not palette:
@@ -135,9 +139,6 @@ def plot_fibers_focalplane(source, name, cam='',
     if not plot_hist:
         return fig, None
 
-    if not plot_hist:
-        return fig, None
-
     #- Histogram of values
     metric = full_metric[booleans_metric]
 
@@ -181,7 +182,7 @@ def plot_fibernums(source, name, cam='',
     #- Will that break when plotting fiber plots individually?
     full_metric = np.array(source.data.get(name), copy=True)
     #- adjusts for outliers on the full scale
-    pmin_full, pmax_full = np.percentile(full_metric, (0, 95))
+    pmin_full, pmax_full = np.percentile(full_metric, (2.5, 97.5))
 
     #- Fibernum scatter plot
     fig = bk.figure(width=width, height=height, title=title, tools=tools,
