@@ -210,7 +210,6 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
     for camera in cameras:
         args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
         arglist.append(args)
-    print(arglist)
 
     ncpu = min(len(arglist), get_ncpu(ncpu))
 

@@ -1,7 +1,6 @@
 import numpy as np
 import jinja2
 import desimodel.io
-import scipy.stats
 import bokeh
 import bokeh.plotting as bk
 import bokeh.models

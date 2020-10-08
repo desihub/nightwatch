@@ -38,12 +38,7 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
 
     metric = np.array(cds.data.get(attribute), copy=True)
 
-    #- adjusts for outliers on the full scale
-    #- change back to (2.5, 97.5) for the middle 95% for real data...?
-    #pmin, pmax = np.percentile(metric, (2.5, 97.5))
 
-    #- common scale for all histograms for this metric
-    #hist_x_range = (pmin * 0.99, pmax * 1.01)
 
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
@@ -67,18 +62,15 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
             fig_x_range = figs_list[0].x_range
             fig_y_range = figs_list[0].y_range
 
-        #if i == (len(cameras) - 1):
-        #    colorbar = True
-        #else:
-        #    colorbar = False
+        colorbar = True
+
+        # adjusts for outliers on the scale of the camera
 
         booleans_metric = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
         cam_metric = metric[booleans_metric]
 
 
         pmin, pmax = np.percentile(cam_metric, (2.5, 97.5))
-
-        colorbar = True
 
         hist_x_range = (pmin * 0.99, pmax * 1.01)
 
@@ -121,12 +113,7 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
 
     metric = np.array(cds.data.get(attribute), copy=True)
 
-    #- adjusts for outliers on the full scale
-    #- change back to (2.5, 97.5) for the middle 95% for real data...?
-    pmin, pmax = np.percentile(metric, (2.5, 97.5))
 
-    #- common scale for all histograms for this metric
-    hist_x_range = (pmin * 0.99, pmax * 1.01)
 
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
@@ -149,8 +136,10 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
             fig_x_range = figs_list[0].x_range
             fig_y_range = figs_list[0].y_range
 
-        booleans_metric = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
-        cam_metric = metric[booleans_metric]
+        # adjusts for outliers on the scale of the camera
+
+        in_cam = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
+        cam_metric = metric[in_cam]
 
 
         pmin, pmax = np.percentile(cam_metric, (2.5, 97.5))
@@ -181,7 +170,6 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
     metric = np.array(pcd.data.get(attribute), copy=True)
     metric = metric[np.where(metric>0)] #removed nan values
     pmin, pmax = np.percentile(metric, (2.5, 97.5))
-    #hist_x_range = (pmin * 0.99, pmax * 1.01)
 
     if attribute == 'BLIND':
         title = "Max Blind Move: {:.2f}um".format(np.max(metric))
@@ -242,10 +230,6 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
         return
 
     metric = np.array(cds.data.get(attribute), copy=True)
-
-    #- adjusts for outliers on the full scale
-    #- change back to (2.5, 97.5) for the middle 95% for real data...?
-    pmin, pmax = np.percentile(metric, (2.5, 97.5))
 
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
