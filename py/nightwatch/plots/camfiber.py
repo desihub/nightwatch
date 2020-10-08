@@ -7,7 +7,6 @@ import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
 from bokeh.models import TapTool, OpenURL
-from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
 
 from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
 # from ..plots.core import get_colors
@@ -66,8 +65,8 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
 
         # adjusts for outliers on the scale of the camera
 
-        booleans_metric = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
-        cam_metric = metric[booleans_metric]
+        in_cam = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
+        cam_metric = metric[in_cam]
 
 
         pmin, pmax = np.percentile(cam_metric, (2.5, 97.5))
