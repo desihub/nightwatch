@@ -503,7 +503,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             pool.join()
             
         else:
-            for args in arglist:
+            for args in argslist:
                 web_plotimage.write_image_html(*args)
 
         #- plot preproc nav table
