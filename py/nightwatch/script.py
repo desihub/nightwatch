@@ -239,15 +239,24 @@ class TempDirManager():
         outdir = self.outdir
         tempdir = self.tempdir
         
-        print('Copying files from temporary directory to {}'.format(outdir))
-        
+        print('{} Copying files from temporary directory to {}'.format(
+            time.strftime('%H:%M'), outdir))
+
         src = []
         for dirpath, dirnames, files in os.walk(tempdir, topdown=True):
             for file_name in files:
                 src.append(os.path.join(dirpath, file_name))
-        
         dest = [file.replace(tempdir, outdir) for file in src]
         argslist = list(zip(src, dest))
+
+        #- Check what output directories need to be made, but cache list
+        #- so that we don't check existence for the same dir N>>1 times
+        fullpath_outdirs = set()
+        for (src, dest) in argslist:
+            dirpath = os.path.dirname(dest)
+            if dirpath not in fullpath_outdirs:
+                if not os.path.exists(dirpath):
+                    os.makedirs(dirpath)
         
         #- using shutil.move in place of shutil.copytree, for instance, because copytree requires that the directory/file being copied to does not exist prior to the copying (option to supress this requirement only available in python 3.8+)
         #- parallel copying performs better than copying serially
@@ -261,6 +270,9 @@ class TempDirManager():
             for args in argslist:
                 shutil.move(**args)
         
+        print('{} Done copying {} files'.format(
+            time.strftime('%H:%M'), len(argslist)))
+
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
@@ -297,8 +309,8 @@ def main_run(options=None):
         print('{} Making plots'.format(time.strftime('%H:%M')))
         run.make_plots(qafile, tempdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
         
-        print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
-        run.write_tables(args.outdir, tempdir, expnights=[night,])
+    print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
+    run.write_tables(args.outdir, args.outdir, expnights=[night,])
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))

@@ -546,6 +546,7 @@ def write_tables(indir, outdir, expnights=None):
     
 
     log = desiutil.log.get_logger()
+    log.info(f'Tabulating exposures in {indir}')
 
     #- Hack: parse the directory structure to learn nights
     rows = list()
