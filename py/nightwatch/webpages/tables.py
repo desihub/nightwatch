@@ -51,8 +51,11 @@ def write_nights_table(outfile, exposures):
             })
 
     html = template.render(nights=nights_sep)
-    with open(outfile, 'w') as fx:
+    tmpfile = outfile + '.tmp' + str(os.getpid())
+    with open(tmpfile, 'w') as fx:
         fx.write(html)
+
+    os.rename(tmpfile, outfile)
 
 def _write_night_links(outdir):
     all_files = os.listdir(outdir)
@@ -78,7 +81,8 @@ def _write_night_links(outdir):
         links[night] = dict(prev_n = prev_n, next_n = next_n)
 
     outfile = os.path.join(outdir, 'nightlinks.js')
-    with open(outfile, 'w') as fx:
+    tmpfile = outfile + '.tmp' + str(os.getpid())
+    with open(tmpfile, 'w') as fx:
         fx.write("""/*
 Returns night prev/next links as a string
 
@@ -89,6 +93,8 @@ The first and last exposure have prev/next as [null, null]
 */
 get_nightlinks({})
 """.format(json.dumps(links, indent=2)))
+
+    os.rename(tmpfile, outfile)
 
 
 def _write_expid_links(outdir, exposures, nights=None):
@@ -140,7 +146,8 @@ def _write_expid_links(outdir, exposures, nights=None):
     #- Only update explinks files for nights in the nights list
     for night in nights:
         outfile = os.path.join(outdir, str(night), 'explinks-{}.js'.format(night))
-        with open(outfile, 'w') as fx:
+        tmpfile = outfile + '.tmp' + str(os.getpid())
+        with open(tmpfile, 'w') as fx:
             fx.write("""/*
 Returns exposure prev/next links for this night as a nested dictionary
 
@@ -151,6 +158,8 @@ The first and last exposure have prev/next as [null, null]
 */
 get_explinks({})
 """.format(json.dumps(links[night], indent=2)))
+
+        os.rename(tmpfile, outfile)
 
 
 def write_exposures_tables(indir, outdir, exposures, nights=None):
@@ -246,8 +255,11 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
         html = template.render(night=night, exposures=explist, autoreload=True,
             staticdir='../static')
         outfile = os.path.join(outdir, str(night), 'exposures.html')
-        with open(outfile, 'w') as fx:
+        tmpfile = outfile + '.tmp' + str(os.getpid())
+        with open(tmpfile, 'w') as fx:
             fx.write(html)
+
+        os.rename(tmpfile, outfile)
 
     #- Update expid and night links only once at the end
     _write_expid_links(outdir, exposures, nights)
