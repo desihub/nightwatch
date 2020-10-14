@@ -81,12 +81,10 @@ def main_monitor(options=None):
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=10, help="Seconds to wait between checks for new data")
     parser.add_argument("--startdate", type=int, default=None, help="Earliest startdate to check for unprocessed nights (YYYYMMDD)")
-    parser.add_argument("--batch", "-b", type=bool, default=False, help="Bool, qproc data processing to batch job")
-    parser.add_argument("--nodes", "-N", type=int, default=1, help="Number of nodes for qproc batch job, batch=True")
-    parser.add_argument("--ntasks", "-n", type=int, default=1, help="Number of tasks per node for qproc batch job, batch=True")
-    parser.add_argument("--constraint", "-C", type=str, default="haswell", help="Constraint for qproc batch job, batch=True")
-    parser.add_argument("--qos", "-q", type=str, default="interactive", help="Qos for qproc batch job, batch=True")
-    parser.add_argument("--time", "-t", type=int, default=5, help="time for qproc batch job, batch=True")
+    parser.add_argument("--batch", "-b", action='store_true', help="spawn qproc data processing to batch job")
+    parser.add_argument("--batch-queue", "-q", type=str, default="realtime", help="batch queue to use")
+    parser.add_argument("--batch-time", "-t", type=int, default=10, help="batch job time limit [minutes]")
+    parser.add_argument("--batch-opts", type=str, default="-N 1 -C haswell -A desi", help="Additional batch options")
 
     if options is None:
         options = sys.argv[2:]
@@ -144,72 +142,38 @@ def main_monitor(options=None):
             print('\n{} Found new exposure {}/{}'.format(timestamp(), night, expid))
             sys.stdout.flush()
             try :
-                run_batch_qproc=args.batch
-
-                if run_batch_qproc:
-                    print('{} Spawning qproc of {} to batch processes'.format(
-                        timestamp(), rawfile))
-
-                    sep = os.path.sep
-                    dirfile = sep.join(['..', 'code', 'nightwatch', 'py', 'nightwatch', 'wrap_qproc.py'])
-
-                    batch_dict = dict(
-                        nodes=args.nodes,
-                        ntasks=args.ntasks,
-                        constraint=args.constraint,
-                        qos=args.qos,
-                        time=args.time,
-                        dirfile=dirfile,
-                        rawfile=rawfile,
-                        outdir=outdir,
-                        cameras=cameras,
-                    )
-
-                    batchcmd = 'srun -N {nodes} -n {ntasks} -C {constraint} -q {qos} -t {time} '
-                    runfile = 'python {dirfile} wrap_qproc --rawfile {rawfile} --outdir {outdir}'
-                    if cameras:
-                        runfile += ' --cameras {cameras}'
-
-                    cmd = (batchcmd + runfile).format(**batch_dict)
-                    err = subprocess.call(cmd.split())
-
-                    if err == 0:
-                        print('SUCCESS {}'.format('running qproc as batch process'))
-                    if err != 0:
-                        print('ERROR {} while running {}'.format(err, 'qproc as batch process'))
-                        print('Failed to run qproc as batch process, switching to run locally')
-                        run_batch_qproc = False
-
-
-                if not run_batch_qproc:
+                if args.batch:
+                    print('{} Submitting batch job for {}'.format(time.strftime('%H:%M'), rawfile))
+                    batch_run(rawfile, args.outdir, cameras, args.batch_queue, args.batch_time, args.batch_opts)
+                else:
                     print('{} Running qproc on {}'.format(time.strftime('%H:%M'), rawfile))
                     sys.stdout.flush()
                     header = run.run_qproc(rawfile, outdir, cameras=cameras)
 
-                print('{} Running QA on {}/{}'.format(timestamp(), night, expid))
-                sys.stdout.flush()
-                qafile = "{}/qa-{}.fits".format(outdir,expid)
+                    print('{} Running QA on {}/{}'.format(timestamp(), night, expid))
+                    sys.stdout.flush()
+                    qafile = "{}/qa-{}.fits".format(outdir,expid)
 
-                caldir = os.path.join(args.plotdir, "static")
-                jsonfile = os.path.join(caldir, "timeseries_dropdown.json")
+                    caldir = os.path.join(args.plotdir, "static")
+                    jsonfile = os.path.join(caldir, "timeseries_dropdown.json")
 
-                if not os.path.isdir(caldir):
-                    os.makedirs(caldir)
-                qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
+                    if not os.path.isdir(caldir):
+                        os.makedirs(caldir)
+                    qarunner.run(indir=outdir, outfile=qafile, jsonfile=jsonfile)
 
-                print('Generating plots for {}/{}'.format(night, expid))
-                tmpdir = '{}/{}/{}'.format(args.plotdir, night, expid)
-                if not os.path.isdir(tmpdir) :
-                    os.makedirs(tmpdir)
-                run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
-                               cameras=cameras)
+                    print('Generating plots for {}/{}'.format(night, expid))
+                    tmpdir = '{}/{}/{}'.format(args.plotdir, night, expid)
+                    if not os.path.isdir(tmpdir) :
+                        os.makedirs(tmpdir)
+                    run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
+                                   cameras=cameras)
 
-                run.write_tables(args.outdir, args.plotdir, expnights=[night,])
+                    run.write_tables(args.outdir, args.plotdir, expnights=[night,])
 
-                time_end = time.time()
-                dt = (time_end - time_start) / 60
-                print('{} Finished exposure {}/{} ({:.1f} min)'.format(
-                    timestamp(), night, expid, dt))
+                    time_end = time.time()
+                    dt = (time_end - time_start) / 60
+                    print('{} Finished exposure {}/{} ({:.1f} min)'.format(
+                        timestamp(), night, expid, dt))
 
             except Exception as e :
                 print("Failed to process or QA or plot exposure {}".format(expid))
@@ -222,8 +186,9 @@ def main_monitor(options=None):
 
             processed.add(expdir)
 
-        sys.stdout.flush()
-        time.sleep(args.waittime)
+        else:
+            sys.stdout.flush()
+            time.sleep(args.waittime)
         
 class TempDirManager():
     '''Custom context manager that creates a temporary directory, and upon exiting the context copies all files (regardless if the code written inside the context runs properly or exits with some error) into a specified output directory.'''
@@ -273,6 +238,57 @@ class TempDirManager():
         print('{} Done copying {} files'.format(
             time.strftime('%H:%M'), len(argslist)))
 
+def batch_run(infile, outdir, cameras, queue, batchtime, batchopts):
+    """Submits batch job to `nightwatch run infile outdir ...`
+
+    Args:
+        infile (str): input DESI raw data file
+        outdir (str): base output directory
+        cameras (list or None): None, or list of cameras to include
+        queue (str): slurm queue name
+        batchtime (int): batch job time limit [minutes]
+        batchopts (str): additional batch options
+
+    Returns error code from sbatch submission
+
+    Note: this is a non-blocking call and will return before the batch
+    processing is finished
+    """
+    night, expid = io.get_night_expid(infile)
+    expdir = io.findfile('expdir', night=night, expid=expid, basedir=outdir)
+
+    infile = os.path.abspath(infile)
+    expdir = os.path.abspath(expdir)
+    outdir = os.path.abspath(outdir)
+
+    if cameras is None:
+        camera_options = ""
+    elif isinstance(cameras, (list, tuple)):
+        camera_options = "--cameras {}".format(','.join(cameras))
+    elif isinstance(cameras, str):
+        camera_options = f"--cameras {cameras}"
+    else:
+        raise ValueError('Unable to parse cameras {}'.format(cameras))
+
+    jobname = f'nightwatch-{expid:08d}'
+    batchfile = f'{expdir}/{jobname}.slurm'
+    with open(batchfile, 'w') as fx:
+        fx.write(f"""#!/bin/bash -l
+
+#SBATCH {batchopts}
+#SBATCH --qos {queue}
+#SBATCH --time {batchtime}
+#SBATCH --job-name {jobname}
+#SBATCH --output {expdir}/{jobname}-%j.joblog
+#SBATCH --exclusive
+
+nightwatch run --infile {infile} --outdir {outdir} {camera_options}
+""")
+
+    err = subprocess.call(["sbatch", batchfile])
+
+    return err
+
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
     parser.add_argument("-i", "--infile", type=str, required=True,
@@ -294,8 +310,9 @@ def main_run(options=None):
     night, expid = io.get_night_expid(args.infile)
     rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
     
-    with TempDirManager(args.outdir) as tempdir:
-        
+    # with TempDirManager(args.outdir) as tempdir:
+    tempdir = args.outdir
+    if True:
         expdir = io.findfile('expdir', night=night, expid=expid, basedir=tempdir)
 
         time_start = time.time()
