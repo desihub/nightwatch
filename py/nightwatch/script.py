@@ -309,7 +309,9 @@ def main_run(options=None):
         
     night, expid = io.get_night_expid(args.infile)
     rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
-    
+
+    #- Using a tempdir sometimes is better, and sometimes is way worse;
+    #- turn off for now
     # with TempDirManager(args.outdir) as tempdir:
     tempdir = args.outdir
     if True:
