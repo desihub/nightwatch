@@ -69,10 +69,10 @@ See the [uWSGI documentation](https://uwsgi-docs.readthedocs.io/en/latest/Custom
 
 ## Building and Shipping Images to NERSC
 ### Building New Images
-First, you need to set up a working directory to store all the files needed for the build, and create the Dockerfile that will provide the instructions for the image. You can just use the /Dockerfile subdirectory located in the same directory as this README, as it already contains all the files needed to build a copy of the uwsgi-flask Nightwatch image. Note, if you are re-building this image to include an update to the webapp code, make sure that the version of app.py you are building into the image is also updated. Now you can run this command from inside the /Dockerfiles directory:
+First, you need to set up a working directory to store all the files needed for the build, and create the Dockerfile that will provide the instructions for the image. You can just use the /Dockerfile subdirectory located in the same directory as this README, as it already contains all the files needed to build a copy of the uwsgi-flask Nightwatch image. Note, if you are re-building this image to include an update to the webapp code, make sure that the version of app.py you are building into the image is also updated. Now you can run this command from inside the nightwatch/webapp/Dockerfiles/app directory:
 
 ```
-user@localmachine:Dockerfiles $ docker image build --tag [image-name-here] .
+user@laptop $ docker image build --tag [image-name-here] .
 ```
 The `--tag` flag allows you to give a name to your image, and the last argument defines which directory Docker should look for the Dockerfile and other files it needs to build the image (here, it is set to the directory we are already in). Now, if you run `docker image list [image-name]` you should see the new container listed. 
 
