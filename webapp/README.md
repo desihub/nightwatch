@@ -94,7 +94,7 @@ user@laptop: $
 ```
 Then, push your image to the registry, but with the relevant info replaced in the brackets.
 ```
-user@laptop: $ docker image push registry.spin.nersc.gov/desi/[namespace]/[image-name]:[version]
+user@laptop: $ docker image push registry.nersc.gov/desi/[namespace]/[image-name]:[version]
 ```
 If the version is "latest", DON'T include it in the push. Otherwise, do include the version name. Now, the images are available to be pulled in the rancher environment, and we can start up an application stack at NERSC.
 
