@@ -185,6 +185,7 @@ def get_posacc_cd(header):
     fiberpos = Table(desimodel.io.load_fiberpos()).to_pandas()
     fiberpos.PETAL = fiberpos.PETAL.astype(int)
     fiberpos.DEVICE = fiberpos.DEVICE.astype(int)
+    fiberpos.DEVICE_TYPE = fiberpos.DEVICE_TYPE.astype(str)
     night = header['NIGHT']
     expid = header['EXPID']
     coordfile = '{}/{}/coordinates-{}.fits'.format(night, str(expid).zfill(8), str(expid).zfill(8))
