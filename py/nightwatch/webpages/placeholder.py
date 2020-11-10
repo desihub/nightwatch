@@ -1,6 +1,7 @@
 import jinja2
 from jinja2 import select_autoescape
 import bokeh
+from desiutil.log import get_logger
 
 def write_placeholder_html(outfile, header, attr):
     '''Writes placeholder page for missing plots.
@@ -10,6 +11,8 @@ def write_placeholder_html(outfile, header, attr):
         attr: the type of missing plot (str); like PER_AMP, PER_CAMERA, etc.
    Returns html components.
         '''
+
+    log=get_logger()
     
     night = header['NIGHT']
     expid = header['EXPID']
