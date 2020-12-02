@@ -543,43 +543,56 @@ def write_tables(indir, outdir, expnights=None):
     from nightwatch.webpages import tables as web_tables
     from pkg_resources import resource_filename
     from shutil import copyfile
-    
+    from collections import Counter
 
     log = desiutil.log.get_logger()
     log.info(f'Tabulating exposures in {indir}')
 
-    #- Hack: parse the directory structure to learn nights
-    rows = list()
-    for dirname in sorted(os.listdir(indir)):
-        nightdir = os.path.join(indir, dirname)
-        if re.match('20\d{6}', dirname) and os.path.isdir(nightdir):
-            night = int(dirname)
-            for dirname in sorted(os.listdir(nightdir), reverse=True):
-                expdir = os.path.join(nightdir, dirname)
+    #- Count night/expid directories to get num exp per night
+    expdirs = sorted(glob.glob(f"{indir}/20*/[0-9]*"))
+    nights = list()
+    re_expid = re.compile('^\d{8}$')
+    re_night = re.compile('^20\d{6}$')
+    for expdir in expdirs:
+        expid = os.path.basename(expdir)
+        night = os.path.basename(os.path.dirname(expdir))
+        if re_expid.match(expid) and re_night.match(night):
+            nights.append(night)
 
-                if re.match('\d{8}', dirname):
-                    expid = int(dirname)
-                    qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
-                    
-                    #- gets the list of failed qprocs for each expid
-                    expfiles = os.listdir(expdir)
-                    preproc_cams = [i.split("-")[1] for i in expfiles
-                                    if re.match(r'preproc-.*-.*.fits', i)]
-                    log_cams = [i.split("-")[1] for i in expfiles if re.match(r'.*\.log', i)]
-                    qfails = [i for i in log_cams if i not in preproc_cams]
-                    
-                    if os.path.exists(qafile):
-                        try:
-                            with fitsio.FITS(qafile) as fits:
-                                qproc_status = fits['QPROC_STATUS'].read()
-                                exitcode = np.count_nonzero(qproc_status['QPROC_EXIT'])
-                        except IOError:
-                            exitcode = 0
-                        
-                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails, QPROC_EXIT=exitcode))
-                    else:
-                        log.error('Missing {}'.format(qafile))
-                        rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None, QPROC_EXIT=None))
+    num_exp_per_night = Counter(nights)
+
+    #- Build the exposures table for the requested nights
+    rows = list()
+    for expdir in expdirs:
+        expid = os.path.basename(expdir)
+        night = os.path.basename(os.path.dirname(expdir))
+        if re_expid.match(expid) and re_night.match(night) and \
+           (expnights is None or int(night) in expnights):
+
+            night = int(night)
+            expid = int(expid)
+
+            qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
+
+            #- gets the list of failed qprocs for each expid
+            expfiles = os.listdir(expdir)
+            preproc_cams = [i.split("-")[1] for i in expfiles
+                            if re.match(r'preproc-.*-.*.fits', i)]
+            log_cams = [i.split("-")[1] for i in expfiles if re.match(r'.*\.log', i)]
+            qfails = [i for i in log_cams if i not in preproc_cams]
+
+            if os.path.exists(qafile):
+                try:
+                    with fitsio.FITS(qafile) as fits:
+                        qproc_status = fits['QPROC_STATUS'].read()
+                        exitcode = np.count_nonzero(qproc_status['QPROC_EXIT'])
+                except IOError:
+                    exitcode = 0
+
+                rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails, QPROC_EXIT=exitcode))
+            else:
+                log.error('Missing {}'.format(qafile))
+                rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None, QPROC_EXIT=None))
 
     if len(rows) == 0:
         msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
@@ -601,7 +614,7 @@ def write_tables(indir, outdir, expnights=None):
             copyfile(infile, outfile)
 
     nightsfile = os.path.join(outdir, 'nights.html')
-    web_tables.write_nights_table(nightsfile, exposures)
+    web_tables.write_calendar(nightsfile, num_exp_per_night)
 
     web_tables.write_exposures_tables(indir, outdir, exposures, nights=expnights)
     
