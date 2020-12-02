@@ -7,7 +7,7 @@ import argparse
 import traceback
 import subprocess
 from desimodel.io import load_tiles
-from desispec.io import meta
+import desispec.io
 
 from . import run, plots, io
 from .run import timestamp, get_ncpu
@@ -291,11 +291,15 @@ nightwatch run --infile {infile} --outdir {outdir} {camera_options}
 
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
-    parser.add_argument("-i", "--infile", type=str, required=True,
+    parser.add_argument("-i", "--infile", type=str, required=False,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
         help="output base directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+    parser.add_argument('-n', '--night', type=int,
+        help="YEARMMDD night")
+    parser.add_argument('-e', '--expid', type=int,
+        help="Exposure ID")
 
     if options is None:
         options = sys.argv[2:]
@@ -306,6 +310,13 @@ def main_run(options=None):
         cameras = args.cameras.split(',')
     else:
         cameras = None
+
+    if args.infile is None:
+        if args.night is None or args.expid is None:
+            print('ERROR: must provide --infile or --night AND --expid')
+            sys.exit(2)
+
+        args.infile = desispec.io.findfile('raw', args.night, args.expid)
         
     night, expid = io.get_night_expid(args.infile)
     rawdir = os.path.dirname(os.path.dirname(os.path.dirname(args.infile)))
@@ -393,7 +404,7 @@ def main_plot(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--infile", type=str, nargs='*', required=True, help="input QA fits file")
     parser.add_argument("-o", "--outdir", type=str, help="output base directory (not including YEARMMDD/EXPID/)")
-    parser.add_argument("-r", "--rawdir", type=str, help="directory conatining raw data (not including YEARMMDD/EXPID/)")
+    parser.add_argument("-r", "--rawdir", type=str, help="directory containing raw data (not including YEARMMDD/EXPID/)")
 
     if options is None:
         options = sys.argv[2:]
@@ -415,6 +426,7 @@ def main_tables(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} plot [options]")
     parser.add_argument("-i", "--indir", type=str, required=True, help="QA in indir/YEARMMDD/EXPID")
     parser.add_argument("-o", "--outdir", type=str, help="write summary tables to outdir/nights.html and outdir/YEARMMDD/exposures.html")
+    parser.add_argument("-n", "--nights", type=str, help="comma separated list of nights to process")
 
     if options is None:
         options = sys.argv[2:]
@@ -423,7 +435,11 @@ def main_tables(options=None):
     if args.outdir is None:
         args.outdir = args.indir
 
-    run.write_tables(args.indir, args.outdir)
+    nights = None
+    if args.nights is not None:
+        nights = [int(n) for n in args.nights.split(',')]
+
+    run.write_tables(args.indir, args.outdir, expnights=nights)
     print('Wrote summary tables to {}'.format(args.outdir))
 
 def main_summary(options=None):
@@ -475,7 +491,7 @@ def main_surveyqa(options=None):
         tiles = Table.read(args.tilefile, hdu=1)
         
     if args.rawdir is None:
-        args.rawdir = meta.rawdata_root()
+        args.rawdir = desispec.io.meta.rawdata_root()
     
     name_dict = {"EXPID": "EXPID", "MJD": "MJD", 
              "AIRMASS": "AIRMASS", "TRANSP": "TRANSPARENCY", "NIGHT": "NIGHT", 

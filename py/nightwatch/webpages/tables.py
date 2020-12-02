@@ -15,12 +15,14 @@ import desiutil.log
 from .. import io
 from ..qa.status import get_status, Status
 
-def write_nights_table(outfile, exposures):
+def write_calendar(outfile, nights):
     """
     Writes nights calendar html file
+
     Args:
         outfile: output HTML file
-        exposures: table with columns NIGHT, EXPID
+        nights: dict-like nights[night] = number_of_exposures
+
     Returns: HTML file written to outfile path
     """    
     env = jinja2.Environment(
@@ -32,15 +34,9 @@ def write_nights_table(outfile, exposures):
     
     template = env.get_template('nights.html')
 
-
-    expo = Table(exposures)
-
-    # Count exposures per night
-    expcounter = Counter(expo["NIGHT"])
-
     # Split night YEARMMDD into YEAR, MM-1, DD
     nights_sep = list()
-    for night, numexp in sorted(expcounter.items()):
+    for night, numexp in sorted(nights.items()):
         night = str(night)
         nights_sep.append({
             "name" : night,
