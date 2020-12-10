@@ -66,10 +66,8 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
     #- Generate histogram colors
     if palette is not None:
         if not low:
-            print('new low')
             low = min(metric)
         if not high:
-            print('new high')
             high = max(metric)
         mapper = linear_cmap('centers', palette, low=low, high=high, nan_color='gray')
     else:

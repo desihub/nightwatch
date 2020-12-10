@@ -1,8 +1,10 @@
 import os, re, time
+import sys
 import multiprocessing as mp
 import subprocess
 import time
 import glob
+import traceback
 
 import fitsio
 import numpy as np
@@ -407,32 +409,41 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         log.info('Creating {}'.format(expdir))
         os.makedirs(expdir, exist_ok=True)
 
-#     plot_components = dict()
     if 'PER_AMP' in qadata:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
         pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
-#         plot_components.update(pc)
         print('Wrote {}'.format(htmlfile))
     else:
         htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_AMP")
 
+    #- utility function to print tracebacks for failed plotting
+    def handle_failed_plot(htmlfile, header, qatype):
+        lines = traceback.format_exception(*sys.exc_info())
+        msg = f'ERROR generating {htmlfile}\n' + ''.join(lines)
+        print(msg)
+        print('Proceeding with making other plots')
+        pc = web_placeholder.write_placeholder_html(
+                htmlfile, header, "PER_CAMFIBER", message=msg)
+
+    htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
     if 'PER_CAMFIBER' in qadata:
-        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
-        pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
-#         plot_components.update(pc)
-        print('Wrote {}'.format(htmlfile))
+        try:
+            pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
+            print('Wrote {}'.format(htmlfile))
+        except Exception as err:
+            handle_failed_plot(htmlfile, header, "PER_CAMFIBER")
     else:
-        htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMFIBER")
 
+    htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
     if 'PER_CAMERA' in qadata:
-        htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
-        pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
-#         plot_components.update(pc)
-        print('Wrote {}'.format(htmlfile))
+        try:
+            pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
+            print('Wrote {}'.format(htmlfile))
+        except Exception as err:
+            handle_failed_plot(htmlfile, header, "PER_CAMERA")
     else:
-        htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 
     htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
@@ -833,10 +844,8 @@ def write_thresholds(indir, outdir, start_date, end_date):
     
     from nightwatch.webpages import thresholds as web_thresholds
     
-    plot_components = dict()
     htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
     pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
-    plot_components.update(pc)
     print('Wrote {}'.format(htmlfile))
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
