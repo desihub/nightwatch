@@ -4,7 +4,7 @@ import bokeh
 from bokeh.embed import components
 from flask import (Flask, send_from_directory, redirect)
 
-parser = argparse.ArgumentParser(usage = "{prog} webapp [options]")
+parser = argparse.ArgumentParser(usage = "{prog} [options]")
 parser.add_argument("-i", "--indir", type=str, required=True, help="input directory with pre-generated nightwatch webpages")
 parser.add_argument("-d", "--datadir", type=str, help="directory with qproc output data files (if different than --indir)")
 parser.add_argument("--host", type=str, default="0.0.0.0", help="hostname (e.g. localhost or 0.0.0.0")
