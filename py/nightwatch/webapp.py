@@ -25,8 +25,8 @@ def main_webapp(options=None):
     if args.datadir is None and args.indir is not None:
         args.datadir = args.indir
 
-    indir = args.indir
-    datadir = args.datadir
+    indir = os.path.abspath(args.indir)
+    datadir = os.path.abspath(args.datadir)
 
     app = Flask('nightwatch', static_folder=indir)
     app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
@@ -100,7 +100,6 @@ def main_webapp(options=None):
     @app.route('/<int:night>/<int:expid>/spectra/input/<string:select_string>/<string:frame>/<string:downsample>/')
     def getspectrainput(night, expid, select_string, frame, downsample):
         global datadir
-        datadir = os.path.abspath(datadir)
         from nightwatch.webpages import spectra
         return spectra.get_spectra_html(os.path.join(datadir, str(night)), night, expid, "input", frame, downsample, select_string)
 
@@ -109,7 +108,6 @@ def main_webapp(options=None):
     @app.route('/<int:night>/<int:expid>/spectra/<string:view>/<string:frame>/<string:downsample>/')
     def getspectra(night, expid, view, frame, downsample):
         global datadir
-        datadir = os.path.abspath(datadir)
 
         if downsample is None:
             if frame is None:
@@ -119,50 +117,50 @@ def main_webapp(options=None):
         from nightwatch.webpages import spectra
         return spectra.get_spectra_html(os.path.join(datadir, str(night)), night, expid, view, frame, downsample)
 
+    @app.route('/<int:night>/')
+    def getnight(night):
+        global indir
+        explist = os.path.join(str(night), 'exposures.html')
+        print(f'returning {explist}', file=sys.stderr)
+        return send_from_directory(indir, explist)
+
+    @app.route('/<int:night>/<int:expid>/')
+    def getexp(night, expid):
+        global indir
+        qaexp = f'{night}/{expid:08d}/qa-summary-{expid:08d}.html'
+        print(f'returning QA summary {qaexp}', file=sys.stderr)
+        return send_from_directory(indir, qaexp)
+
     @app.route('/<path:filepath>')
     def getfile(filepath):
         global indir
         global datadir
-        indir = os.path.abspath(indir)
-        datadir = os.path.abspath(datadir)
 
-        exists_html = os.path.isfile(os.path.join(indir, filepath))
-        if exists_html:
-            print("found " + os.path.join(indir, filepath), file=sys.stderr)
-            print("retrieving " + os.path.join(indir, filepath), file=sys.stderr)
+        fullpath = os.path.join(indir, filepath)
+        if os.path.isfile(fullpath):
+            print(f"found {fullpath}", file=sys.stderr)
             return send_from_directory(indir, filepath)
 
-        print("could NOT find " + os.path.join(indir, filepath), file=sys.stderr)
+        # Try YEARMMDD/EXPID06/preproc-CAM-EXPID-Nx.html that isn't generated yet
+        m = re.match('^(20\d{6})/(\d{8})/preproc-([brz]{1}\d{1})-(\d{8})-(\d*)x.html$', filepath)
+        if m:
+            night, expid, camera, expid2, downsample = m.groups()
+            if expid != expid2:
+                return f"expid mismatch in directory ({expid}) vs. filename ({expid2})"
 
-        # splits the url contents by '/'
-        filedir, filename = os.path.split(filepath)
+            fitsfilepath = f'{datadir}/{night}/{expid}/preproc-{camera}-{expid}.fits'
+            if os.path.isfile(fitsfilepath):
+                print("found " + fitsfilepath, file=sys.stderr)
+                downsample = int(downsample)
+                if downsample <= 0:
+                    return 'invalid downsample'
 
-        filebasename, fileext = os.path.splitext(filename)
+                from nightwatch.webpages import plotimage
+                plotimage.write_image_html(fitsfilepath, os.path.join(indir, filepath), downsample, night)
+                return send_from_directory(indir, filepath)
 
-        splitname = filebasename.split('-')
-        down = splitname.pop()
-        if down[len(down)-1] != 'x':
-            return 'no data for ' + os.path.join(indir, filepath)
-
-        filebasename = '-'.join(splitname)
-        fitsfilename = '{filebasename}.fits'.format(filebasename=filebasename)
-        fitsfilepath = os.path.join(datadir, filedir, fitsfilename)
-        exists_fits = os.path.isfile(fitsfilepath)
-
-        exists_fits = os.path.isfile(fitsfilepath)
-        if exists_fits:
-            print("found " + fitsfilepath, file=sys.stderr)
-            downsample = int(down[:len(down)-1])
-            if downsample <= 0:
-                return 'invalid downsample'
-
-            from nightwatch.webpages import plotimage
-            night = filedir.split("/")[0]
-            plotimage.write_image_html(fitsfilepath, os.path.join(indir, filepath), downsample, night)
-            return send_from_directory(indir, filepath)
-
-        print("could NOT find " + fitsfilepath, file=sys.stderr)
-        return 'no data for ' + os.path.join(indir, filepath)
+        print("could NOT find " + fullpath, file=sys.stderr)
+        return 'ERROR: no data found for input URL'
 
     app.run(debug=args.debug, host=args.host, port=args.port)
 
