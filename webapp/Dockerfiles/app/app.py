@@ -128,6 +128,7 @@ def getfile(filepath):
     global datadir
 
     fullpath = os.path.join(indir, filepath)
+    print(f"looking for {fullpath}", file=sys.stderr)
     if os.path.isfile(fullpath):
         print(f"found {fullpath}", file=sys.stderr)
         return send_from_directory(indir, filepath)
