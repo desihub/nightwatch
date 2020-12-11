@@ -3,14 +3,18 @@ from jinja2 import select_autoescape
 import bokeh
 from desiutil.log import get_logger
 
-def write_placeholder_html(outfile, header, attr):
+def write_placeholder_html(outfile, header, attr, message=None):
     '''Writes placeholder page for missing plots.
     Args:
         outfile: path to write html file to (str)
         header: header data for the exposure (night, expid, exptime, etc)
         attr: the type of missing plot (str); like PER_AMP, PER_CAMERA, etc.
-   Returns html components.
-        '''
+
+    Options:
+        message (str): optional message to include in placeholder file
+
+    Returns html components.
+    '''
 
     log=get_logger()
     
@@ -44,6 +48,8 @@ def write_placeholder_html(outfile, header, attr):
         obstype=obstype, program=program, qatype=attr,
         num_dirs=2,
     )
+    if message is not None:
+        html_components['message'] = message
     
     html = template.render(**html_components)
 

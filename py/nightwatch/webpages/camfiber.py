@@ -192,6 +192,10 @@ def get_posacc_cd(header):
 
     if os.path.isfile(coordfile):
         df = Table(fitsio.read(coordfile)).to_pandas()
+        if 'OFFSET_0' not in df:
+            print(f'WARNING positioner offsets not in {coordfile}; not making positioner accuracy plots')
+            return None
+
         final_move = np.sort(fnmatch.filter(df.columns, 'OFFSET_*'))[-1]
         df = df.merge(fiberpos, how='left',left_on=['PETAL_LOC','DEVICE_LOC'], right_on=['PETAL','DEVICE'])
         df['BLIND'] = df['OFFSET_0']*1000
