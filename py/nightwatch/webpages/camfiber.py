@@ -15,7 +15,7 @@ from bokeh.models import Panel, Tabs
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
-
+from .placeholder import handle_failed_plot
 
 def write_camfiber_html(outfile, data, header):
     '''
@@ -51,19 +51,28 @@ def write_camfiber_html(outfile, data, header):
 
     #- FIBERNUM PLOTS (default camfiber page)
     fn_template = env.get_template('fibernum.html')
-    write_fibernum_plots(data, fn_template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+    try:
+        write_fibernum_plots(data, fn_template, outfile, header, ATTRIBUTES, CAMERAS, TITLESPERCAM, TOOLS)
+    except Exception as err:
+        handle_failed_plot(outfile, header, 'PER_CAMFIBER')
 
     #- FOCALPLANE PLOTS
     index_fp_file = outfile.index('.html')
     fp_outfile = outfile[:index_fp_file] + '-focalplane_plots.html'
     fp_template = env.get_template('focalplane.html')
-    write_focalplane_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+    try:
+        write_focalplane_plots(data, fp_template, fp_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+    except Exception as err:
+        handle_failed_plot(fp_outfile, header, 'PER_CAMFIBER')
 
     #- POSITIONER ACCURACY PLOTS
     index_pa_file = outfile.index('.html')
     pa_outfile = outfile[:index_pa_file] + '-posacc_plots.html'
     pa_template = env.get_template('posacc.html')
-    write_posacc_plots(data, pa_template, pa_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+    try:
+        write_posacc_plots(data, pa_template, pa_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+    except Exception as err:
+        handle_failed_plot(pa_outfile, header, 'PER_CAMFIBER')
 
     return dict({})
 
@@ -192,6 +201,11 @@ def get_posacc_cd(header):
 
     if os.path.isfile(coordfile):
         df = Table(fitsio.read(coordfile)).to_pandas()
+
+        # delete a conflicting column name
+        if 'FIBER' in df:
+            del df['FIBER']
+
         if 'OFFSET_0' not in df:
             print(f'WARNING positioner offsets not in {coordfile}; not making positioner accuracy plots')
             return None
