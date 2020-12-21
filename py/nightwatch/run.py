@@ -417,22 +417,13 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_AMP")
 
-    #- utility function to print tracebacks for failed plotting
-    def handle_failed_plot(htmlfile, header, qatype):
-        lines = traceback.format_exception(*sys.exc_info())
-        msg = f'ERROR generating {htmlfile}\n' + ''.join(lines)
-        print(msg)
-        print('Proceeding with making other plots')
-        pc = web_placeholder.write_placeholder_html(
-                htmlfile, header, "PER_CAMFIBER", message=msg)
-
     htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
     if 'PER_CAMFIBER' in qadata:
         try:
             pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
             print('Wrote {}'.format(htmlfile))
         except Exception as err:
-            handle_failed_plot(htmlfile, header, "PER_CAMFIBER")
+            web_placeholder.handle_failed_plot(htmlfile, header, "PER_CAMFIBER")
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMFIBER")
 
@@ -442,7 +433,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
             print('Wrote {}'.format(htmlfile))
         except Exception as err:
-            handle_failed_plot(htmlfile, header, "PER_CAMERA")
+            web_placeholder.handle_failed_plot(htmlfile, header, "PER_CAMERA")
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 

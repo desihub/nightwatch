@@ -59,4 +59,25 @@ def write_placeholder_html(outfile, header, attr, message=None):
 
     return html_components
 
+#- utility function to print tracebacks for failed plotting
+def handle_failed_plot(htmlfile, header, qatype):
+    """
+    Write placeholder file with error traceback for a failed plot
+
+    Args:
+        htmlfile (str): filename to write
+        header (dict-like): header metadata (NIGHT, EXPID, EXPTIME, etc)
+        qatype (str): the type of missing plot, e.g. PER_AMP, PER_CAMERA, etc.
+
+    Returns bokeh plot components dict from func:`web_placeholder`
+    """
+    import sys
+    import traceback
+    lines = traceback.format_exception(*sys.exc_info())
+    msg = f'ERROR generating {htmlfile}\n' + ''.join(lines)
+    print(msg)
+    print('Proceeding with making other plots')
+    pc = write_placeholder_html(
+            htmlfile, header, "PER_CAMFIBER", message=msg)
+    return pc
     
