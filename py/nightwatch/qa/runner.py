@@ -172,9 +172,13 @@ class QARunner(object):
 
             #- To do: consider propagating header from indir/desi*.fits.fz
             log.info('{} Writing {}'.format(timestamp(), outfile))
-            with fitsio.FITS(outfile, 'rw', clobber=True) as fx:
+            tmpfile = outfile+'.tmp'
+            with fitsio.FITS(tmpfile, 'rw', clobber=True) as fx:
                 fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
                 for qatype, qatable in results.items():
                     fx.write_table(qatable.as_array(), extname=qatype, header=hdr)
+
+            os.rename(tmpfile, outfile)
+            log.info('{} Finished writing {}'.format(timestamp(), outfile))
 
         return results
