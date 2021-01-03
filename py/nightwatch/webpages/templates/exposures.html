@@ -40,14 +40,16 @@
 
 <table>
 <tr>
-  <th colspan="5">Metadata</th>
+  <th colspan="7">Metadata</th>
   <th colspan="7">QA Status</th>
 <tr>
-  <th>NIGHT</th>
   <th>EXPID</th>
+  <th>TILEID</th>
   <th>OBSTYPE</th>
-  <th>EXPTIME</th>
-  <th>SPECTROS</th>
+  <th>MST</th>
+  <th>T<sub>exp</sub></th>
+  <th>Program</th>
+  <th>SP</th>
   <th>Qproc</th>
   <th>Amp</th>
   <th>Camera</th>
@@ -60,14 +62,20 @@
 {% for exp in exposures|reverse %}
 <tr>
 {% if exp.fail == 1 %}
-    <td style="color:red">{{ exp.night }}</td>
     <td style="color:red">{{ exp.expid }}</td>
-    <td colspan="12">Failed to process</td>
+    <td colspan="13">Failed to process</td>
 {% else %}
-    <td>{{ exp.night }}</td>
     <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
+    {% if exp.TILEID_LINK != "na" %}
+      <td><a href="{{ exp.TILEID_LINK }}">{{ exp.TILEID }}</a></td>
+    {% else %}
+      <td>{{ exp.TILEID }}</td>
+    {% endif %}
+
     <td>{{ exp.obstype }}</td>
+    <td>{{ exp.MST }}</td>
     <td>{{ '%.1f' % exp.exptime }}</td>
+    <td>{{ exp.PROGRAM }}</td>
     <td>{{ exp.spectros }}</td>
 
     {% if exp.QPROC_LINK != "na" %}
