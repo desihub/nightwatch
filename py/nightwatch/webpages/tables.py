@@ -9,6 +9,7 @@ import numpy as np
 import jinja2
 from jinja2 import select_autoescape
 from astropy.table import Table
+from astropy.time import Time
 
 import desiutil.log
 
@@ -209,7 +210,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
                 log.warning('Use FLAVOR instead of missing OBSTYPE')
                 obstype = qadata['HEADER']['FLAVOR'].rstrip().upper()
             exptime = qadata['HEADER']['EXPTIME']
-            
+
             from ..plots.core import parse_numlist
             peramp = status.get('PER_AMP')
             if peramp:
@@ -223,6 +224,25 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
 
             expinfo = dict(night=night, expid=expid, obstype=obstype, link=link, 
                            exptime=exptime, spectros=spectros, fail=0)
+
+            hdr = qadata['HEADER']
+            expinfo['PROGRAM'] = hdr['PROGRAM'] if 'PROGRAM' in hdr else '?'
+
+            #- TILEID with link to fiberassign QA
+            if 'TILEID' in hdr:
+                tileid = hdr['TILEID']
+                expinfo['TILEID'] = tileid
+                tilegroup = '{:03d}'.format(tileid//1000)
+                expinfo['TILEID_LINK'] = f'https://data.desi.lbl.gov/desi/target/fiberassign/tiles/trunk/{tilegroup}/fiberassign-{tileid:06d}.png'
+            else:
+                expinfo['TILEID'] = -1
+                expinfo['TILEID_LINK'] = 'na'
+
+            #- KPNO local time (MST=Mountain Standard Time)
+            if 'MJD-OBS' in hdr:
+                expinfo['MST'] = Time(hdr['MJD-OBS']-7/24, format='mjd').strftime('%H:%M')
+            else:
+                expinfo['MST'] = '?'
 
             #- Adds qproc to the expid status
             #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
