@@ -20,6 +20,7 @@ import desispec.scripts.preproc
 from nightwatch.qa.base import QA
 
 from .thresholds import write_threshold_json, get_outdir
+from .io import get_night_expid_header
 
 def timestamp():
     return time.strftime('%H:%M')
@@ -257,8 +258,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         else :
             log.warning('Use FLAVOR instead of missing OBSTYPE')
             obstype = hdr['FLAVOR'].rstrip().upper()
-        night = hdr['NIGHT']
-        expid = hdr['EXPID']
+        night, expid = get_night_expid_header(hdr)
     except KeyError as e :
         log.error(str(e))
         raise(e)
@@ -274,9 +274,10 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     else:
         log.warning('No coordinate file for positioner accuracy')
 
-
     #- HACK: Workaround for data on 20190626/27 that have blank NIGHT keywords
-    if night == '        ':
+    #- Note: get_night_expid_header(hdr) should take care of this now, but
+    #-       this is left in for robustness just in case
+    if night == '        ' or night is None:
         log.error('Correcting blank NIGHT keyword based upon directory structure')
         #- /path/to/NIGHT/EXPID/rawfile.fits
         night = os.path.basename(os.path.dirname(os.path.dirname(os.path.abspath(rawfile))))

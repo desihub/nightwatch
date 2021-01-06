@@ -14,6 +14,7 @@ from astropy.table import Table
 import bokeh
 import urllib.request
 from pathlib import PurePath
+from desiutil.log import get_logger
 
 import warnings
 warnings.filterwarnings('once', category=RuntimeWarning)
@@ -98,24 +99,32 @@ def get_night_expid(filename):
     '''
     Returns NIGHT, EXPID from input filename header keywords
     '''
-    #- First try HDU 0
-    hdr = fitsio.read_header(filename, 0)
-    if 'NIGHT' in hdr and 'EXPID' in hdr:
-        return int(hdr['NIGHT']), int(hdr['EXPID'])
+    for extnum in (1,0,2):
+        hdr = fitsio.read_header(filename, extnum)
+        try:
+            night, expid = get_night_expid_header(hdr)
+            return night, expid
+        except ValueError:
+            pass
 
-    #- not found there, try HDU 1 before giving up
+    raise ValueError(f'Unable to determine NIGHT,EXPID from {filename} headers')
+
+def get_night_expid_header(hdr):
+    '''
+    Returns NIGHT, EXPID from input header keywords
+    '''
+    from desispec.util import header2night
+    night = header2night(hdr)
+
     try:
-        hdr = fitsio.read_header(filename, 1)
-    except OSError:
-        from desiutil.log import get_logger
+        expid = int(hdr['EXPID'])
+    except (KeyError, ValueError, TypeError):  # missing, not int, None
         log = get_logger()
-        log.error('fitsio error reading HDU 1; trying HDU 2 before giving up')
-        hdr = fitsio.read_header(filename, 2)
+        msg = 'Unable to determine int EXPID from header'
+        log.error(msg)
+        raise ValueError(msg)
 
-    if 'NIGHT' in hdr and 'EXPID' in hdr:
-        return int(hdr['NIGHT']), int(hdr['EXPID'])
-
-    raise ValueError('NIGHT and/or EXPID not found in HDU 0 or 1 of {}'.format(filename))
+    return night, expid
    
 def get_guide_data(night, expid, basedir):
     '''Given a night and exposure, dumps centroid-*.json file into a dictionary. Note: no padding zeros for expid argument.
