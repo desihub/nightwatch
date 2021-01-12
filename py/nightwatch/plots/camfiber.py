@@ -283,7 +283,11 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
                             )
 
         taptool = fig.select(type=TapTool)
-        taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
+        #- Default to qcframe upon click, unless raw camfiber plot
+        if "RAW" in attribute:
+            taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
+        else:
+            taptool.callback = OpenURL(url="spectra/input/@FIBER/qcframe/4x/")
         figs_list.append(fig)
         
     return figs_list
