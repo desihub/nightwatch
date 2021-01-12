@@ -123,7 +123,11 @@ def plot_fibers_focalplane(source, name, cam='',
     fig.yaxis.major_label_text_font_size = '0pt'
 
     taptool = fig.select(type=TapTool)
-    taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
+    #- Default to qcframe upon click, unless raw camfiber plot
+    if "RAW" in name:
+        taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
+    else:
+        taptool.callback = OpenURL(url="spectra/input/@FIBER/qcframe/4x/")
 
     #- Add colorbar
     if colorbar:
@@ -224,6 +228,10 @@ def plot_fibernums(source, name, cam='',
     fig.yaxis.formatter = NumeralTickFormatter(format='0.0a')
 
     taptool = fig.select(type=TapTool)
-    taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
-
+    #- Default to qcframe upon click, unless raw camfiber plot
+    if "RAW" in name:
+        taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
+    else:
+        taptool.callback = OpenURL(url="spectra/input/@FIBER/qcframe/4x/")
+        
     return fig
