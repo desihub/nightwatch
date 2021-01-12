@@ -83,7 +83,7 @@ def main_monitor(options=None):
     parser.add_argument("--startdate", type=int, default=None, help="Earliest startdate to check for unprocessed nights (YYYYMMDD)")
     parser.add_argument("--batch", "-b", action='store_true', help="spawn qproc data processing to batch job")
     parser.add_argument("--batch-queue", "-q", type=str, default="realtime", help="batch queue to use")
-    parser.add_argument("--batch-time", "-t", type=int, default=10, help="batch job time limit [minutes]")
+    parser.add_argument("--batch-time", "-t", type=int, default=15, help="batch job time limit [minutes]")
     parser.add_argument("--batch-opts", type=str, default="-N 1 -C haswell -A desi", help="Additional batch options")
 
     if options is None:
