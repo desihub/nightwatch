@@ -41,13 +41,22 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
     for night in nights_real:
         with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
             data = json.load(json_file)
-        if name in ["READNOISE", "BIAS"]:
+        if name in ["READNOISE"]:
+            # amps += data['PER_AMP'][name].keys()
+            all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
+            # rest_amps += list(np.setdiff1d(all_amps, amps))
+        if name in ["BIAS"]:
             amps += data['PER_AMP'][name].keys()
             all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
             rest_amps += list(np.setdiff1d(all_amps, amps))
         datadict[night] = data
     thresholds = dict()
-    if name in ["READNOISE", "BIAS"]:
+    if name in ["READNOISE"]:
+        for amp in all_amps:
+            ampnom = datadict[night]['PER_AMP']['READNOISE_NOM_ZERO']
+            # add functionality for nom/min, zero/dark
+            thresholds[amp] = dict(upper_err=ampnom+1, upper=ampnom+0.5, lower=ampnom-0.5, lower_err=ampnom-1)
+    if name in ["BIAS"]:
         for amp in all_amps:
             num_exps = []
             meds = []
