@@ -830,8 +830,15 @@ def write_thresholds(indir, outdir, start_date, end_date):
     if not os.path.isdir(outdir):
         #log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
-    
-    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY', 'XSIG', 'YSIG']:
+
+    for name in ['READNOISE']:
+        threshold_dir = get_outdir()
+        try:
+            write_threshold_json_rn(indir=threshold_dir, outdir=threshold_dir)
+        except: # if rnnoms.fits doesn't exist, same as below
+            write_threshold_json(indir, outdir, start_date, end_date, name)
+            
+    for name in ['BIAS', 'COSMICS_RATE', 'DX', 'DY', 'XSIG', 'YSIG']:
         write_threshold_json(indir, outdir, start_date, end_date, name)
     
     from nightwatch.webpages import thresholds as web_thresholds
