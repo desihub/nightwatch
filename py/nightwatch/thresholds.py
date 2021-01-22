@@ -161,7 +161,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
          json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(threshold_file))
 
-def pick_threshold_file(name, night, outdir=None, in_nightwatch=True):
+def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0):
     '''Picks the right threshold file to use given the metric and the night. If no file is found, it returns
     the earliest file.
     Arguments:
@@ -172,6 +172,22 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True):
         in_nightwatch: tells function to look in nightwatch module for threshold files
     Output:
         filepath: a path to the proper threshold file'''
+
+    if name in ["READNOISE"]:
+        if exptime<100: # use zero-calibrated nominal values for short exposure times
+            file = '{name}-{night}-NOM-ZERO.json'.format(name=name, night=20210111)
+            threshold_dir = get_outdir()
+            filepath = ''
+            filepath += os.path.join(threshold_dir, file)
+            return filepath
+        else: # use dark-calibrated nominal values for long exposure times
+            file = '{name}-{night}-NOM-DARK.json'.format(name=name, night=20210111)
+            threshold_dir = get_outdir()
+            filepath = ''
+            filepath += os.path.join(threshold_dir, file)
+            return filepath
+
+
     file = '{name}-{night}.json'.format(name=name, night=night)
     
     if in_nightwatch:
