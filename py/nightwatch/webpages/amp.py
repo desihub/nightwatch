@@ -57,7 +57,7 @@ def write_amp_html(outfile, data, header):
     plot_components = dict()
 
     #- Generate the bokeh figure
-    noise_file = pick_threshold_file('READNOISE', night, in_nightwatch=True, exptime=exptime)
+    noise_file = pick_threshold_file('READNOISE', night, in_nightwatch=True)
     lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
     fig = plot_amp_qa(data, 'READNOISE', lower=lower_noise, upper=upper_noise,
         amp_keys=noise_keys, title='CCD Amplifier Read Noise',
