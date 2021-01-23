@@ -19,7 +19,7 @@ import desiutil.log
 import desispec.scripts.preproc
 from nightwatch.qa.base import QA
 
-from .thresholds import write_threshold_json, get_outdir
+from .thresholds import write_threshold_json_rn, write_threshold_json, get_outdir
 from .io import get_night_expid_header
 
 def timestamp():
