@@ -53,6 +53,7 @@ def write_threshold_json_rn(indir, outdir):
                                         lower=ampnom_dark-0.5, lower_err=ampnom_dark-1)
 
     #outdir = get_outdir()
+    # for some reason, only write first of below files... manually switch order if necessary 
     threshold_zero_file = os.path.join(outdir, 'READNOISE-20210111-NOM-ZERO.json') #hard-coded name
     with open(threshold_zero_file, 'w') as json_file:
              json.dump(thresholds_zero, json_file, indent=4)
@@ -174,6 +175,7 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
     Output:
         filepath: a path to the proper threshold file'''
 
+    # WARNING: this hardcoding breaks nightwatch run when the nom files have not yet been generated
     if name in ["READNOISE"]:
         if exptime<100: # use zero-calibrated nominal values for short exposure times
             file = '{name}-{night}-NOM-ZERO.json'.format(name=name, night=20210111) # hardcoded
