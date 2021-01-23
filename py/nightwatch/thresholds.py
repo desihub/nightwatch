@@ -178,19 +178,15 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
     # WARNING: this hardcoding probably breaks nightwatch run when the nom files have not yet been generated
     if name in ["READNOISE"]:
         if exptime<100: # use zero-calibrated nominal values for short exposure times
-            file = '{name}-{night}-NOM-ZERO.json'.format(name=name, night=20210111) # hardcoded
-            threshold_dir = get_outdir()
-            filepath = ''
-            filepath += os.path.join(threshold_dir, file)
-            print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
-            return filepath
+            thresholdfile = '{name}-{night}-NOM-ZERO.json'.format(name=name, night=20210111) # hardcoded
         else: # use dark-calibrated nominal values for long exposure times
-            file = '{name}-{night}-NOM-DARK.json'.format(name=name, night=20210111) # hardcoded
-            threshold_dir = get_outdir()
-            filepath = ''
-            filepath += os.path.join(threshold_dir, file)
-            print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
-            return filepath
+            thresholdfile = '{name}-{night}-NOM-DARK.json'.format(name=name, night=20210111) # hardcoded
+        
+        threshold_dir = get_outdir()
+        filepath = ''
+        filepath += os.path.join(threshold_dir, thresholdfile)
+        print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
+        return filepath
 
 
     file = '{name}-{night}.json'.format(name=name, night=night)
