@@ -43,8 +43,9 @@ def get_status(qadata, night):
                 status[qatype][col] = np.full(n, Status.ok, dtype=np.int16)
     #- Set thresholds for readnoise suspiciously low or high
     data = qadata['PER_AMP']
+    exptime = qadata['HEADER']['EXPTIME']
     for metric in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
-        filepath = pick_threshold_file(metric, night)
+        filepath = pick_threshold_file(metric, night, exptime=exptime)
         with open(filepath, 'r') as json_file:
             thresholds = json.load(json_file)
         for cam in [b'B', b'R', b'Z']:
