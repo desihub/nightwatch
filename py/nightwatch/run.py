@@ -320,24 +320,30 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         log.info('Running qproc in parallel on {} cores for {} cameras'.format(ncpu, len(cameras) ))
         pool = mp.Pool(ncpu)
         errs = pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
+        print("run qprocs done")
         pool.close()
         pool.join()
+        print("pool closed")
     else:
         errs = []
         log.info('Running qproc serially for {} cameras'.format(len(cameras)))
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
             err = runcmd(cmd, logfile, msg)
             errs.append(err)
-            
+    
+    print("exited pool conditional")
     errorcodes = dict()
     for err in errs:
         for key in err.keys():
             errorcodes[key] = err[key]
     
+    print("initialized error codes")
     jsonfile = '{}/errorcodes-{:08d}.txt'.format(outdir, expid)
+    print("initialized jsonfile")
     with open(jsonfile, 'w') as outfile:
         json.dump(errorcodes, outfile)
         print('Wrote {}'.format(jsonfile))
+    print("dumped json")
 
     return hdr
 
