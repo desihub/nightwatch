@@ -182,14 +182,14 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
             threshold_dir = get_outdir()
             filepath = ''
             filepath += os.path.join(threshold_dir, file)
-            print('exptime={}, chose threshold file {}'.format(exptime, filepath))
+            print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
             return filepath
         else: # use dark-calibrated nominal values for long exposure times
             file = '{name}-{night}-NOM-DARK.json'.format(name=name, night=20210111) # hardcoded
             threshold_dir = get_outdir()
             filepath = ''
             filepath += os.path.join(threshold_dir, file)
-            print('exptime={}, chose threshold file {}'.format(exptime, filepath))
+            print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
             return filepath
 
 
