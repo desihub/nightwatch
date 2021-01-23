@@ -56,11 +56,12 @@ def write_threshold_json_rn(indir, outdir):
     threshold_zero_file = os.path.join(outdir, 'READNOISE-20210111-NOM-ZERO.json') #hard-coded name
     with open(threshold_zero_file, 'w') as json_file:
              json.dump(thresholds_zero, json_file, indent=4)
-        print('Wrote {}'.format(thresholds_zero))
+    print('Wrote {}'.format(thresholds_zero_file))
+
     threshold_dark_file = os.path.join(outdir, 'READNOISE-20210111-NOM-DARK.json') #hard-coded name
     with open(threshold_dark_file, 'w') as json_file:
              json.dump(thresholds_dark, json_file, indent=4)
-        print('Wrote {}'.format(thresholds_dark))
+    print('Wrote {}'.format(thresholds_dark_file))
         
 def write_threshold_json(indir, outdir, start_date, end_date, name):
     '''
