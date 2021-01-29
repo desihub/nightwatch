@@ -22,48 +22,6 @@ def get_outdir():
     nightwatch_path += '/nightwatch/threshold_files'
     return nightwatch_path
 
-def write_threshold_json_rn(indir, outdir):
-    '''
-    Inputs:
-        indir: contains static rnnoms.fits file with nominal read noises (str)
-        outdir: where the thresholds files should be generated (str)
-
-    Output:
-        writes two json files containing the nominal (median) thresholds per amp,
-        calibrated on zeros and darks respectively, to the nightwatch/threshold_files directory'''
-    try:
-        rnnoms_file = os.path.join(indir,'rnnoms.fits')
-    except OSError:
-        print("rnnoms.fits not found.")
-        return
-
-    rnnoms = fitsio.read(rnnoms_file)
-    thresholds_zero = dict()
-    thresholds_dark = dict()
-    all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
-
-    for amprow in rnnoms:
-        amp = amprow["CAM"]+str(amprow["SPECTRO"])+amprow["AMP"]
-        if amp in all_amps:
-            ampnom_zero = amprow['READNOISE_NOM_ZERO'] # can use "MIN" instead of "NOM"
-            ampnom_dark = amprow['READNOISE_NOM_DARK'] # can use "MIN" instead of "NOM"
-            thresholds_zero[amp] = dict(upper_err=ampnom_zero+1, upper=ampnom_zero+0.5,
-                                        lower=ampnom_zero-0.5, lower_err=ampnom_zero-1)
-            thresholds_dark[amp] = dict(upper_err=ampnom_dark+1, upper=ampnom_dark+0.5,
-                                        lower=ampnom_dark-0.5, lower_err=ampnom_dark-1)
-
-    #outdir = get_outdir()
-    # for some reason, only write first of below files... manually switch order if necessary 
-    threshold_zero_file = os.path.join(outdir, 'READNOISE-20210111-NOM-ZERO.json') #hard-coded name
-    with open(threshold_zero_file, 'w') as json_file:
-             json.dump(thresholds_zero, json_file, indent=4)
-    print('Wrote {}'.format(thresholds_zero_file))
-
-    threshold_dark_file = os.path.join(outdir, 'READNOISE-20210111-NOM-DARK.json') #hard-coded name
-    with open(threshold_dark_file, 'w') as json_file:
-             json.dump(thresholds_dark, json_file, indent=4)
-    print('Wrote {}'.format(thresholds_dark_file))
-        
 def write_threshold_json(indir, outdir, start_date, end_date, name):
     '''
     Inputs:
@@ -83,21 +41,12 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
     for night in nights_real:
         with open(os.path.join(indir,'{night}/summary.json'.format(night=night))) as json_file:
             data = json.load(json_file)
-##        if name in ["READNOISE"]:
-##            # amps += data['PER_AMP'][name].keys()
-##            all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
-##            # rest_amps += list(np.setdiff1d(all_amps, amps))
         if name in ["READNOISE", "BIAS"]:
             amps += data['PER_AMP'][name].keys()
             all_amps = [cam+spec+amp for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for cam in ['B', 'R', 'Z'] for amp in ['A', 'B', 'C', 'D']]
             rest_amps += list(np.setdiff1d(all_amps, amps))
         datadict[night] = data
     thresholds = dict()
-##    if name in ["READNOISE"]:
-##        for amp in all_amps:
-##            ampnom = datadict[night]['PER_AMP']['READNOISE_NOM_ZERO'][
-##            # add functionality for nom/min, zero/dark
-##            thresholds[amp] = dict(upper_err=ampnom+1, upper=ampnom+0.5, lower=ampnom-0.5, lower_err=ampnom-1)
     if name in ["READNOISE", "BIAS"]:
         for amp in all_amps:
             num_exps = []

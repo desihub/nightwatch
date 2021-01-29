@@ -1,4 +1,4 @@
-import os, re, time
+import os, glob, re, time
 import sys
 import multiprocessing as mp
 import subprocess
@@ -19,8 +19,9 @@ import desiutil.log
 import desispec.scripts.preproc
 from nightwatch.qa.base import QA
 
-from .thresholds import write_threshold_json_rn, write_threshold_json, get_outdir
+from .thresholds import write_threshold_json, get_outdir
 from .io import get_night_expid_header
+from threshold_files.calcnominalnoise import calcnominalnoise
 
 def timestamp():
     return time.strftime('%H:%M')
@@ -834,8 +835,11 @@ def write_thresholds(indir, outdir, start_date, end_date):
     for name in ['READNOISE']:
         threshold_dir = get_outdir()
         try:
-            write_threshold_json_rn(indir=threshold_dir, outdir=threshold_dir)
-        except: # if rnnoms.fits doesn't exist, same as below
+            # most recent zeros file
+            zeros_file = glob.glob(os.path.join(threshold_dir, "ZEROS*.json"))[-1]
+            nightid = zeros_file.split(".")[0].split("-")[-1]
+            calcnominalnoise(nightwatchdir=indir, nightexpids=zeros_file, outfile="READNOISE-"+nightid+".json")
+        except:
             write_threshold_json(indir, outdir, start_date, end_date, name)
     
     # HARDCODE: skipping XSIG, YSIG threshold files because summary.json is blank for these metrics
