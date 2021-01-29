@@ -1,4 +1,4 @@
-import os, glob, re, time
+import os, re, time
 import sys
 import multiprocessing as mp
 import subprocess

@@ -1,4 +1,5 @@
-import sys, os, re 
+import sys, os, re
+import glob
 import numpy as np
 import json
 import csv
@@ -126,12 +127,23 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
 
     # WARNING: this hardcoding probably breaks nightwatch run when the nom files have not yet been generated
     if name in ["READNOISE"]:
-        if exptime<100: # use zero-calibrated nominal values for short exposure times
-            thresholdfile = '{name}-{night}-NOM-ZERO.json'.format(name=name, night=20210111) # hardcoded
-        else: # use dark-calibrated nominal values for long exposure times
-            thresholdfile = '{name}-{night}-NOM-DARK.json'.format(name=name, night=20210111) # hardcoded
-        
         threshold_dir = get_outdir()
+        if exptime<100: # use zero-calibrated nominal values for short exposure times
+            nomtype = 'ZERO'
+        else: # use dark-calibrated nominal values for long exposure times
+            nomtype = 'DARK'
+
+        # keep the most recent thresholds available    
+        for file in glob.glob(os.path.join(threshold_dir, "READNOISE-*-{nomtype}.json".format(nomtype=nomtype))):
+            zero_nightid = int(re.findall(r'\d+', file)[0])
+            if zero_nightid <= night:
+                thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=zero_nightid, nomtype=nomtype)               
+        try:
+            thresholdfile
+        except NameError:
+            print("No thresholds found")
+            thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=20210111, nomtype=nomtype) # hardcode for 20210111
+            
         filepath = ''
         filepath += os.path.join(threshold_dir, thresholdfile)
         print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
