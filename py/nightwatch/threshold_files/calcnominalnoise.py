@@ -3,9 +3,10 @@
 
 import numpy as np
 import os
+import fitsio
 import json 
 
-from ..thresholds import get_outdir
+from nightwatch.thresholds import get_outdir
 
 def calcnominalnoise(nightwatchdir, nightexpids, outfile):
     """
@@ -24,8 +25,6 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
       * use all nightexpids instead of splitting by ZEROs vs. DARKs with
         hardcoded requirement that the DARK is always 2 expids after the input ZERO
     """
-
-    # median vs. min
 
     #---- EXAMPLE code for using function inputs
     amps = []
@@ -58,9 +57,6 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
     # calculate nominal values
     zero_noms = np.median(zero_readnoise, axis=0)
     dark_noms = np.median(dark_readnoise, axis=0)
-    # if nominal is minimum noise: 
-    # zeros_nom = np.amin(zeros_readnoise, axis=0)
-    # darks_nom = np.amin(darks_readnoise, axis=0)
 
     # create thresholds files
     zero_thresholds = dict()
@@ -103,14 +99,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage = "{prog} [options]")
     parser.add_argument("--indir", type=str,  help="base directory with nightwatch processed data")
-    parser.add_argument("--nightexpids", type=str, nargs="*", help="text file containing input night/expids (last ZERO of the night) to use for readnoise")
+    parser.add_argument("--nightexpids", type=str, help="text file containing input night/expids (last ZERO of the night) to use for readnoise")
     parser.add_argument("--outfile", type=str,  help="output json threshold file to write")
     args = parser.parse_args()
 
     f = open(args.nightexpids, "r")
-    inputids = f.read()
+    inputids = f.read().split(' ') # read each night/exp separately
     f.close()
-    
+
     #- convert input nightexpids strings to list of (night,expid) tuples
     nightexpids = list()
     for tmp in inputids:

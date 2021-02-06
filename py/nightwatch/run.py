@@ -21,7 +21,7 @@ from nightwatch.qa.base import QA
 
 from .thresholds import write_threshold_json, get_outdir
 from .io import get_night_expid_header
-from threshold_files.calcnominalnoise import calcnominalnoise
+from nightwatch.threshold_files.calcnominalnoise import calcnominalnoise
 
 def timestamp():
     return time.strftime('%H:%M')

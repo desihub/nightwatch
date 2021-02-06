@@ -141,7 +141,7 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
         try:
             thresholdfile
         except NameError:
-            print("No thresholds found")
+            print("No earlier thresholds found, defaulting to 20210111")
             thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=20210111, nomtype=nomtype) # hardcode for 20210111
             
         filepath = ''
