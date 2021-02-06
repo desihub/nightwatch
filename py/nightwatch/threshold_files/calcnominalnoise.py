@@ -92,7 +92,7 @@ if __name__ == "__main__":
     """
     e.g.
     python calcnominalreadnoise.py --indir /global/cfs/cdirs/desi/spectro/nightwatch/nersc \
-        --nightexpids /global/cfs/cdirs/desi/spectro/nightwatch/nersc/py/nightwatch/threshold_files/ZEROS-20210111.txt \
+        --nightexpids $HOME/desi/code/nightwatch/py/nightwatch/threshold_files/ZEROS-20210111.txt \
         --outfile READNOISE-20210111.json
     """
     import argparse
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(usage = "{prog} [options]")
     parser.add_argument("--indir", type=str,  help="base directory with nightwatch processed data")
     parser.add_argument("--nightexpids", type=str, help="text file containing input night/expids (last ZERO of the night) to use for readnoise")
-    parser.add_argument("--outfile", type=str,  help="output json threshold file to write")
+    parser.add_argument("--outfile", type=str,  help="output json threshold file to write (excluding DARK/ZERO designation)")
     args = parser.parse_args()
 
     f = open(args.nightexpids, "r")

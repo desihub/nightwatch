@@ -48,13 +48,13 @@ def get_status(qadata, night):
         filepath = pick_threshold_file(metric, night, exptime=exptime)
         with open(filepath, 'r') as json_file:
             thresholds = json.load(json_file)
-        for cam in [b'B', b'R', b'Z']:
+        for cam in ['B', 'R', 'Z']:
             for spec in range(0, 10):
-                for amp in [b'A', b'B', b'C', b'D']:
+                for amp in ['A', 'B', 'C', 'D']:
                     if metric == 'READNOISE' or metric == 'BIAS':
-                        key = cam.decode('utf-8')+str(spec)+amp.decode('utf-8')
+                        key = cam+str(spec)+amp
                     if metric == 'COSMICS_RATE':
-                        key = cam.decode('utf-8')
+                        key = cam
                     status_loc = (status['PER_AMP']['AMP'] == amp) & (status['PER_AMP']['SPECTRO']==spec) & (status['PER_AMP']['CAM']==cam)
                     data_loc = (data['AMP'] == amp) & (data['SPECTRO']==spec) & (data['CAM']==cam)
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
