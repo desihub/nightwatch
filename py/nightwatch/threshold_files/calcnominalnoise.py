@@ -92,8 +92,8 @@ if __name__ == "__main__":
     """
     e.g.
     python calcnominalreadnoise.py --indir /global/cfs/cdirs/desi/spectro/nightwatch/nersc \
-        --nightexpids $HOME/desi/code/nightwatch/py/nightwatch/threshold_files/ZEROS-20210111.txt \
-        --outfile READNOISE-20210111.json
+        --nightexpids $HOME/desi/code/nightwatch/py/nightwatch/threshold_files/ZEROS-20210205.txt \
+        --outfile READNOISE-20210205.json
     """
     import argparse
 
