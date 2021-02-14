@@ -6,8 +6,6 @@ import os
 import fitsio
 import json 
 
-from nightwatch.thresholds import get_outdir
-
 def calcnominalnoise(nightwatchdir, nightexpids, outfile):
     """
     Calculate nominal readnoise for each amp given an input set of example exps
