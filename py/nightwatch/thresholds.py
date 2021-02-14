@@ -3,6 +3,7 @@ import glob
 import numpy as np
 import json
 import csv
+from pkg_resources import resource_filename
 from astropy.table import Table, vstack
 import fitsio
 
@@ -14,14 +15,8 @@ from nightwatch.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
 def get_outdir():
-    '''Retrieve the path to the threshold_files directory within nightwatch by finding the user's python path.'''
-    nightwatch_path = ''
-    user_paths = os.environ['PYTHONPATH'].split(os.pathsep)
-    for path in user_paths:
-        if 'nightwatch' in path:
-            nightwatch_path += path
-    nightwatch_path += '/nightwatch/threshold_files'
-    return nightwatch_path
+    '''Retrieve the path to the threshold_files directory within nightwatch code installation'''
+    return resource_filename('nightwatch', 'threshold_files')
 
 def write_threshold_json(indir, outdir, start_date, end_date, name):
     '''
@@ -135,7 +130,7 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
 
         # keep the most recent thresholds available    
         for file in glob.glob(os.path.join(threshold_dir, "READNOISE-*-{nomtype}.json".format(nomtype=nomtype))):
-            zero_nightid = int(re.findall(r'\d+', file)[0])
+            zero_nightid = int(re.findall(r'\d{8}', os.path.basename(file))[0])
             if zero_nightid <= night:
                 thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=zero_nightid, nomtype=nomtype)               
         try:
@@ -147,6 +142,7 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
         filepath = ''
         filepath += os.path.join(threshold_dir, thresholdfile)
         print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
+
         return filepath
 
 
