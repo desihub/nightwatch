@@ -1,4 +1,5 @@
-import sys, os, re 
+import sys, os, re
+import glob
 import numpy as np
 import json
 import csv
@@ -112,7 +113,7 @@ def write_threshold_json(indir, outdir, start_date, end_date, name):
          json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(threshold_file))
 
-def pick_threshold_file(name, night, outdir=None, in_nightwatch=True):
+def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0):
     '''Picks the right threshold file to use given the metric and the night. If no file is found, it returns
     the earliest file.
     Arguments:
@@ -123,6 +124,32 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True):
         in_nightwatch: tells function to look in nightwatch module for threshold files
     Output:
         filepath: a path to the proper threshold file'''
+
+    # WARNING: this hardcoding probably breaks nightwatch run when the nom files have not yet been generated
+    if name in ["READNOISE"]:
+        threshold_dir = get_outdir()
+        if exptime<100: # use zero-calibrated nominal values for short exposure times
+            nomtype = 'ZERO'
+        else: # use dark-calibrated nominal values for long exposure times
+            nomtype = 'DARK'
+
+        # keep the most recent thresholds available    
+        for file in glob.glob(os.path.join(threshold_dir, "READNOISE-*-{nomtype}.json".format(nomtype=nomtype))):
+            zero_nightid = int(re.findall(r'\d+', file)[0])
+            if zero_nightid <= night:
+                thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=zero_nightid, nomtype=nomtype)               
+        try:
+            thresholdfile
+        except NameError:
+            print("No earlier thresholds found, defaulting to 20210205")
+            thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=20210205, nomtype=nomtype) # hardcode for 20210205
+            
+        filepath = ''
+        filepath += os.path.join(threshold_dir, thresholdfile)
+        print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
+        return filepath
+
+
     file = '{name}-{night}.json'.format(name=name, night=night)
     
     if in_nightwatch:

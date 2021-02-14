@@ -21,6 +21,7 @@ from nightwatch.qa.base import QA
 
 from .thresholds import write_threshold_json, get_outdir
 from .io import get_night_expid_header
+from nightwatch.threshold_files.calcnominalnoise import calcnominalnoise
 
 def timestamp():
     return time.strftime('%H:%M')
@@ -328,7 +329,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
             err = runcmd(cmd, logfile, msg)
             errs.append(err)
-            
+    
     errorcodes = dict()
     for err in errs:
         for key in err.keys():
@@ -830,8 +831,19 @@ def write_thresholds(indir, outdir, start_date, end_date):
     if not os.path.isdir(outdir):
         #log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
+
+    for name in ['READNOISE']:
+        threshold_dir = get_outdir()
+        try:
+            # most recent zeros file
+            zeros_file = glob.glob(os.path.join(threshold_dir, "ZEROS*.json"))[-1]
+            nightid = zeros_file.split(".")[0].split("-")[-1]
+            calcnominalnoise(nightwatchdir=indir, nightexpids=zeros_file, outfile="READNOISE-"+nightid+".json")
+        except:
+            write_threshold_json(indir, outdir, start_date, end_date, name)
     
-    for name in ['READNOISE', 'BIAS', 'COSMICS_RATE', 'DX', 'DY', 'XSIG', 'YSIG']:
+    # HARDCODE: skipping XSIG, YSIG threshold files because summary.json is blank for these metrics
+    for name in ['BIAS', 'COSMICS_RATE', 'DX', 'DY']: #, 'XSIG', 'YSIG']:
         write_threshold_json(indir, outdir, start_date, end_date, name)
     
     from nightwatch.webpages import thresholds as web_thresholds
