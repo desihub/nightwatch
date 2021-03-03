@@ -1,6 +1,9 @@
 import numpy as np
 import jinja2
 import bokeh
+from glob import glob
+import fitsio
+import scipy
 
 from astropy.table import Table
 import bokeh
@@ -291,3 +294,167 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
         figs_list.append(fig)
         
     return figs_list
+
+def linregress_iter(x,y,sigclip=5):
+    sel = np.full(len(x), True)
+    for j in range(3):
+        linfit = scipy.stats.linregress(x[sel],y[sel])
+        residual = y-linfit.intercept-linfit.slope*x
+        sel = (residual<sigclip*np.std(residual[sel]))
+    return linfit
+
+def plot_fractionalresidual(fiber, header, expos, position=False):
+    if position==False: position = expos
+    bfiber = fiber[np.where(fiber['CAM']=='B')]
+    rfiber = fiber[np.where(fiber['CAM']=='R')]
+    zfiber = fiber[np.where(fiber['CAM']=='Z')]
+    bfiber.sort(order="FIBER")
+    rfiber.sort(order="FIBER")
+    zfiber.sort(order="FIBER")
+    #print(file,len(rfiber))
+
+    limit = 0.05
+    bright_neighbor = (bfiber["MEDIAN_RAW_FLUX"]<limit*np.roll(bfiber["MEDIAN_RAW_FLUX"], 1)) \
+        |(bfiber["MEDIAN_RAW_FLUX"]<limit*np.roll(bfiber["MEDIAN_RAW_FLUX"],-1)) \
+        |(rfiber["MEDIAN_RAW_FLUX"]<limit*np.roll(rfiber["MEDIAN_RAW_FLUX"], 1)) \
+        |(rfiber["MEDIAN_RAW_FLUX"]<limit*np.roll(rfiber["MEDIAN_RAW_FLUX"],-1)) \
+        |(zfiber["MEDIAN_RAW_FLUX"]<limit*np.roll(zfiber["MEDIAN_RAW_FLUX"], 1)) \
+        |(zfiber["MEDIAN_RAW_FLUX"]<limit*np.roll(zfiber["MEDIAN_RAW_FLUX"],-1))
+    print("Excluding", np.sum(bright_neighbor), "fibers with bright neighbors.")
+
+    spectrodata = "/global/cfs/cdirs/desi/spectro/data/" # hardcoded
+    desidata = "/global/cfs/cdirs/desi/users/benjikan/nightwatch/" # HARDCODED
+
+    # position = os.path.join('{:08d}'.format(night), '{:08d}'.format(expid))
+
+    file = glob(desidata+position+"/coordinates-*.fits")[0]
+    fits = fitsio.FITS(file)
+    coords = fits["DATA"].read()
+    coords = coords[np.isfinite(coords['FA_FIBER'])]
+    print(file, len(coords))
+    coords.sort(order='FA_FIBER')
+    dx = coords["FIBER_DX"]*1000
+    dy = coords["FIBER_DY"]*1000
+    dr = np.sqrt(dx*dx+dy*dy)
+    goodfiber = ((coords["FLAGS_COR_1"]&4)>0)&(coords["FLAGS_COR_1"]<65535)&(dr<30)&~bright_neighbor
+
+    file = glob(spectrodata+position+"/fiberassign-*")[0]
+    fits = fitsio.FITS(file)
+    fa = fits["FIBERASSIGN"].read()
+    fa.sort(order="FIBER")
+    print(file, len(fa))
+    try:
+        standard = goodfiber&(fa["OBJTYPE"]=='TGT')&((fa['SV1_DESI_TARGET']&0xe00000000)>0)    # Bits 33..35
+    except:
+        print("This plugmap has no field SV1_DESI_TARGET.  Skipping!")
+        return
+
+    good = goodfiber&(fa["OBJTYPE"]=='TGT')
+    if len(rfiber)!=len(fa): return
+    print("Found", np.sum(good),"usable fibers and", np.sum(standard),"standard stars.")
+
+    exptime = header['EXPTIME']
+    exptime_ksec = header['EXPTIME']/1000.0
+    linfit = linregress_iter(fa["FIBERFLUX_R"][good], rfiber["MEDIAN_RAW_FLUX"][good])
+    rskycounts = linfit.intercept/exptime_ksec
+    linfit = linregress_iter(fa["FIBERFLUX_R"][standard], rfiber["MEDIAN_RAW_FLUX"][standard])
+    rstarcountrate = linfit.slope*10/exptime_ksec    # We'll scale this to fiberflux=10, which is r_fiber = 20 mag.
+
+    sel = standard&(fa["FIBERFLUX_R"]>1)
+    flux = fa["FIBERFLUX_R"][sel]
+    snr = rfiber["MEDIAN_CALIB_SNR"][sel]
+    counts = rfiber["MEDIAN_CALIB_FLUX"][sel]
+
+    linfit = linregress_iter(flux, counts)
+    ratio = counts/(linfit.intercept+linfit.slope*flux)
+    rsn2 = rstarcountrate**2/rskycounts
+
+    # Come back to this
+#     plt.scatter(flux, counts, s=4)
+#     plt.xlabel("FIBERFLUX_R")
+#     plt.ylabel("MEDIAN_CALIB_FLUX(R)")
+#     plt.show()
+
+#     plt.scatter(flux, snr, s=4)
+#     plt.xlabel("FIBERFLUX_R")
+#     plt.ylabel("MEDIAN_CALIB_SNR(R)")
+#     plt.show()
+
+    from bokeh.plotting import figure#, show
+    from bokeh.models import ColorBar, LinearColorMapper, BasicTicker, NumeralTickFormatter
+    from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
+    from bokeh.palettes import Viridis256
+    from bokeh.transform import linear_cmap
+
+    sourcedict = {}
+    sourcedict['ratio'] = ratio
+    sourcedict['GOODFIBER_X'] = coords["FIBER_X"][sel]
+    sourcedict['GOODFIBER_Y'] = coords["FIBER_Y"][sel]
+    sourcedict['FIBERFLUX_R'] = flux
+    sourcedict['MEDIAN_CALIB_FLUX(R)'] = counts
+    source = bk.ColumnDataSource(sourcedict)
+
+    fig = bk.figure(title="Fractional residuals of counts vs. flux")
+    fig.scatter(coords["FIBER_X"],coords["FIBER_Y"],size=0.5, color='gray')
+    mapper = linear_cmap('ratio', palette="Viridis256", low=0.5, high=1.5, nan_color='gray')
+    # fig.scatter(coords["FIBER_X"][sel],coords["FIBER_Y"][sel],size=30, color=mapper['transform'])
+    fig.scatter('GOODFIBER_X', 'GOODFIBER_Y', source=source, size=5, color=mapper)
+#     color_mapper = LinearColorMapper(palette="Viridis256", low=0.5, high=1.5)
+#     colors ={'field': ratio, 'transform': color_mapper}
+#     fig.scatter(coords["FIBER_X"][sel],coords["FIBER_Y"][sel],size=30, color=colors)
+#     color_bar = ColorBar(color_mapper=color_mapper)
+    color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=12, ticker=BasicTicker(), width=10, formatter=NumeralTickFormatter(format='0.0a'))
+    fig.add_layout(color_bar, 'right')
+    # show(fig)
+    print("a")
+#     fig,ax = plt.subplots(1,1,gridspec_kw=dict(wspace=0.2),figsize=(8,6))
+#     ax.scatter(coords["FIBER_X"],coords["FIBER_Y"],s=0.5,color='gray')
+#     im=ax.scatter(coords["FIBER_X"][sel],coords["FIBER_Y"][sel],c=ratio,vmin=0.5,vmax=1.5,s=30)
+#     plt.colorbar(im,ax=ax)
+#     plt.title("Fractional residuals of counts vs. flux")
+#     #plt.text(-410,400,os.path.basename(expos),size=14)
+
+#     plt.text(-430,405,expos,size=13)
+#     plt.text(-430,360,"Tile "+f'{header["TILEID"]:05d}',size=11)
+#     plt.text(-430,325,f'{header["SKYRA"]:5.1f}'+f'{header["SKYDEC"]:+4.1f}' ,size=11)
+#     plt.text(-430,290,'HA='+f'{header["MOUNTHA"]:+2.0f}' ,size=11)
+#     plt.text(-430,255,'Z='+f'{header["AIRMASS"]:4.2f}' ,size=11)
+
+#     plt.text(-430,-310,f'{exptime:3.0f}'+" s", size=11)
+#     plt.text(-430,-350,"Sky: "+f'{rskycounts:4.0f}'+" /ks", size=11)
+#     plt.text(-430,-390,"r=20:"+f'{rstarcountrate:4.0f}'+" /ks", size=11)
+#     plt.text(-430,-430,r"(S/N)$^2$:"+f'{rsn2:4.0f}'+" /ks ="+f'{rsn2*exptime_ksec:4.1f}', size=11)
+#     if savefig: plt.savefig("standard_residuals_"+os.path.basename(expos)+".png")
+#     plt.show()
+
+    fig2 = bk.figure(title="Median Calibration Flux vs. Fiberflux", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)')
+    # fig2.scatter('FIBERFLUX_R', 'MEDIAN_CALIB_FLUX(R)', source=source, size=4)
+    fig2.scatter(flux, counts, size=4)
+
+    print("EXPTIME =", header['EXPTIME'],"for", expos)
+    print("Moon separation angle is", f'{header["MOONSEP"]:5.1f}',"degrees")
+    print("Sky raw count rate is",f'{rskycounts:5.1f}', "per Ksecond.")
+    print("Standard star count rate at r=20 from", np.sum(sel),"stars is", f'{rstarcountrate:5.1f}', "per Ksecond.")
+    print("Background-limited (S/N)^2 per Ksecond at r=20 is", f'{rsn2:5.2f}')
+    print("Background-limited (S/N)^2 at r=20 is", f'{rsn2*exptime_ksec:5.2f}')
+
+    abovetext = \
+    "EXPTIME = " + str(header['EXPTIME']) + " for " + str(expos) + "\n" \
+    + "Tile " + f'{header["TILEID"]:05d}' + "\n" \
+    + "RA: " + f'{header["SKYRA"]:5.1f}' + " DEC: " + f'{header["SKYDEC"]:+4.1f}' + "\n" \
+    + 'HA=' + f'{header["MOUNTHA"]:+2.0f}' + "\n" \
+    + 'Z=' + f'{header["AIRMASS"]:4.2f}' + "\n" + "\n" \
+    + "Sky: " + f'{rskycounts:5.1f}' + "/ks" + "\n" \
+    + "r=20: " + f'{rstarcountrate:5.1f}' + "/ks" + "\n" \
+    + "(S/N)^2: " + f'{rsn2:5.2f}' + "/ks, " + "r=20: " + f'{rsn2*exptime_ksec:5.2f}'
+
+
+    belowtext = \
+    "EXPTIME = " + str(header['EXPTIME']) + " for " + str(expos) + "\n" \
+    + "Moon separation angle is " + f'{header["MOONSEP"]:5.1f}' + " degrees" + "\n" \
+    + "Sky raw count rate is " + f'{rskycounts:5.1f}' + " per Ksecond." + "\n" \
+    + "Standard star count rate at r=20 from " + str(np.sum(sel)) + " stars is " f'{rstarcountrate:5.1f}' + " per Ksecond." + "\n" \
+    + "Background-limited (S/N)^2 per Ksecond at r=20 is " + f'{rsn2:5.2f}' + "\n" \
+    + "Background-limited (S/N)^2 at r=20 is " + f'{rsn2*exptime_ksec:5.2f}'
+
+    return fig, fig2, abovetext, belowtext

@@ -8,7 +8,7 @@ import jinja2
 from jinja2 import select_autoescape
 
 from .. import io
-from ..plots.camfiber import plot_per_fibernum
+from ..plots.camfiber import plot_per_fibernum, plot_fractionalresidual
 from ..plots.amp import plot_amp_qa
 from ..plots.spectra import plot_spectra_input
 from . import camfiber
@@ -105,6 +105,17 @@ def get_summary_plots(qadata, qprocdir=None):
             fibers, height=300, width=plot_width*2)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
+
+    #- Fractional Residuals of counts vs. flux
+    if obstype.upper() in ['SCIENCE'] and 'PER_CAMFIBER' in qadata:
+        expos = '{:08d}'.format(night) +'/'+ '{:08d}'.format(expid)
+        fig, fig2, abovetext, belowtext  = plot_fractionalresidual(qadata['PER_CAMFIBER'], header, expos, position=False)
+        script, div = components(fig)
+        html_components['FRACTIONALRESIDUAL'] = dict(script=script, div=div)
+        script, div = components(fig2)
+        html_components['MEDIANFLUX'] = dict(script=script, div=div)
+        html_components['abovetext'] = abovetext
+        html_components['belowtext'] = belowtext
 
     return html_components
 
@@ -268,3 +279,4 @@ def write_logfile_html(input, output, night):
     print('Wrote {}'.format(output))
 
     return error_colors.get(error_level)
+
