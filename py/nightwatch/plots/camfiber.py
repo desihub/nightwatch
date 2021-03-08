@@ -436,7 +436,7 @@ def plot_fractionalresidual(fiber, header, expos, position=False):
     color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=12, ticker=BasicTicker(), width=10, formatter=NumeralTickFormatter(format='0.0a'))
     fig.add_layout(color_bar, 'right')
 
-    fig2 = bk.figure(title="Median Calibration Flux vs. Fiberflux", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)')
+    fig2 = bk.figure(title="Median Calibrated Flux vs. Fiberflux", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)')
     fig2.scatter(flux, counts, size=4)
 
     moontext = ("Moon is " + f'{phase*100:4.1f}' + "% full, " + f'{header["MOONSEP"]:5.1f}' + " deg away, " + f'{moon_el:5.1f}' + " deg above the horizon") if moon_el>-6 else ("Moon is set")
