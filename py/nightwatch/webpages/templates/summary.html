@@ -4,7 +4,11 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<p> {{ summarytext }} </p>
+<pre> {{ summarytext }} </pre>
+{% set fulltext = summarytext.split("\n") %}
+{% for line in fulltext %}
+    <p> {{ line }} </p>
+{% endfor %}
 
 <div class="flex-container">
 
@@ -20,6 +24,8 @@
     <div>{{ CALIBFLUX.script | safe }} {{ CALIBFLUX.div | safe }}</div>
 {% endif %}
 
+<br>
+
 {% if FRACTIONALRESIDUAL %}
     <div>{{ FRACTIONALRESIDUAL.script | safe }} {{ FRACTIONALRESIDUAL.div | safe }}</div>
 {% endif %}
@@ -27,6 +33,8 @@
 {% if MEDIANFLUX %}
     <div>{{ MEDIANFLUX.script | safe }} {{ MEDIANFLUX.div | safe }}</div>
 {% endif %}
+
+<br>
 
 {% if SPECTRA %}
     <div>{{ SPECTRA.script | safe }} {{ SPECTRA.div | safe }}</div>

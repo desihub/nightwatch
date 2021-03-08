@@ -405,7 +405,7 @@ def plot_fractionalresidual(fiber, header, expos, position=False):
     linfit = linregress_iter(flux, counts)
     ratio = counts/(linfit.intercept+linfit.slope*flux)
     rsn2 = rstarcountrate**2/rskycounts
-        ratio_quantiles = np.quantile(ratio,[0.16,0.84])
+    ratio_quantiles = np.quantile(ratio,[0.16,0.84])
     ratio_rms_robust = (ratio_quantiles[1]-ratio_quantiles[0])/2.0
     
     moon_el = moon_elevation(header)

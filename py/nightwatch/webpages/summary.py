@@ -114,7 +114,7 @@ def get_summary_plots(qadata, qprocdir=None):
         html_components['FRACTIONALRESIDUAL'] = dict(script=script, div=div)
         script, div = components(fig2)
         html_components['MEDIANFLUX'] = dict(script=script, div=div)
-        html_components['summarytext'] = summarytext.replace("\n", "<br>")
+        html_components['summarytext'] = summarytext#.replace("\n", "<br>")
 
     return html_components
 
