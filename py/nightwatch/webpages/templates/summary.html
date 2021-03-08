@@ -4,7 +4,7 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<pre style="text-align: left; font-family: normal; font-size: 20px; background-color:white;"> {{ abovetext  }} </pre>
+<p> {{ summarytext }} </p>
 
 <div class="flex-container">
 
@@ -20,20 +20,17 @@
     <div>{{ CALIBFLUX.script | safe }} {{ CALIBFLUX.div | safe }}</div>
 {% endif %}
 
-{% if SPECTRA %}
-    <div>{{ SPECTRA.script | safe }} {{ SPECTRA.div | safe }}</div>
-{% endif %}
-
 {% if FRACTIONALRESIDUAL %}
     <div>{{ FRACTIONALRESIDUAL.script | safe }} {{ FRACTIONALRESIDUAL.div | safe }}</div>
 {% endif %}
-
-<pre style="text-align: left; font-family: normal; font-size: 20px; background-color:white;"> {{ belowtext  }} </pre>
 
 {% if MEDIANFLUX %}
     <div>{{ MEDIANFLUX.script | safe }} {{ MEDIANFLUX.div | safe }}</div>
 {% endif %}
 
+{% if SPECTRA %}
+    <div>{{ SPECTRA.script | safe }} {{ SPECTRA.div | safe }}</div>
+{% endif %}
 
 </div>
 

@@ -6,6 +6,8 @@ import fitsio
 import scipy
 
 from astropy.table import Table
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
@@ -303,6 +305,35 @@ def linregress_iter(x,y,sigclip=5):
         sel = (residual<sigclip*np.std(residual[sel]))
     return linfit
 
+def galactic_coord(header):
+    # Compute Galactic longitude and latitude
+    loc = SkyCoord(ra=header["SKYRA"]*u.degree, dec=header["SKYDEC"]*u.degree, frame='icrs')
+    return loc.galactic
+
+def radec_to_xyz(ra,dec):
+    ra = ra*np.pi/180.0
+    dec = dec*np.pi/180.0
+    return np.array([np.cos(ra)*np.cos(dec), np.sin(ra)*np.cos(dec), np.sin(dec)])
+
+def moon_elevation(header):
+    # Compute the elevation of the moon
+    lst = header["TCSST"].split(":")
+    zenith = radec_to_xyz(15*(float(lst[0])+float(lst[1])/60.0+float(lst[2])/3600.0), float(header["OBS-LAT"]))
+    moon = radec_to_xyz(header["MOONRA"], header["MOONDEC"])
+    return np.arcsin(np.dot(zenith,moon))*180.0/np.pi
+
+def sun_elevation(header):
+    # Compute the elevation of the sun and phase of moon
+    lst = header["TCSST"].split(":")
+    zenith = radec_to_xyz(15*(float(lst[0])+float(lst[1])/60.0+float(lst[2])/3600.0), float(header["OBS-LAT"]))
+    try: sun = radec_to_xyz(header["SUNRA"], header["SUNDEC"])
+    except:
+        # These keywords were only added in mid-February 2021; return False if not available.
+        return False, False
+    moon = radec_to_xyz(header["MOONRA"], header["MOONDEC"])
+    phase = (1.0-np.arccos(np.dot(moon,sun))/np.pi)   # 0 = moon, sun together; 1 = opposed.
+    return np.arcsin(np.dot(zenith,sun))*180.0/np.pi, phase
+
 def plot_fractionalresidual(fiber, header, expos, position=False):
     if position==False: position = expos
     bfiber = fiber[np.where(fiber['CAM']=='B')]
@@ -349,14 +380,20 @@ def plot_fractionalresidual(fiber, header, expos, position=False):
         print("This plugmap has no field SV1_DESI_TARGET.  Skipping!")
         return
 
-    good = goodfiber&(fa["OBJTYPE"]=='TGT')
-    if len(rfiber)!=len(fa): return
-    print("Found", np.sum(good),"usable fibers and", np.sum(standard),"standard stars.")
+    gaia_volunteer = (fa["MORPHTYPE"]=="GPSF")|(fa["MORPHTYPE"]=="GGAL")
+    print("Excluding",np.sum(gaia_volunteer),"GAIA-catalog targets from analysis; no FIBERFLUX available.")
+    
+    sky = goodfiber&(fa["OBJTYPE"]=='SKY')
+    good = goodfiber&(fa["OBJTYPE"]=='TGT')&~gaia_volunteer
+    # Objects of MORPHTYPE GPSF and GGAL do not have FIBERFLUX_R set.
+    # if len(rfiber)!=len(fa): return
+    print("Found", np.sum(good),"usable target fibers,", np.sum(standard),"standard stars, and", np.sum(sky), "skies.")
 
     exptime = header['EXPTIME']
     exptime_ksec = header['EXPTIME']/1000.0
-    linfit = linregress_iter(fa["FIBERFLUX_R"][good], rfiber["MEDIAN_RAW_FLUX"][good])
+    linfit = linregress_iter(fa["FIBERFLUX_R"][good|sky], rfiber["MEDIAN_RAW_FLUX"][good|sky])
     rskycounts = linfit.intercept/exptime_ksec
+
     linfit = linregress_iter(fa["FIBERFLUX_R"][standard], rfiber["MEDIAN_RAW_FLUX"][standard])
     rstarcountrate = linfit.slope*10/exptime_ksec    # We'll scale this to fiberflux=10, which is r_fiber = 20 mag.
 
@@ -368,18 +405,16 @@ def plot_fractionalresidual(fiber, header, expos, position=False):
     linfit = linregress_iter(flux, counts)
     ratio = counts/(linfit.intercept+linfit.slope*flux)
     rsn2 = rstarcountrate**2/rskycounts
+        ratio_quantiles = np.quantile(ratio,[0.16,0.84])
+    ratio_rms_robust = (ratio_quantiles[1]-ratio_quantiles[0])/2.0
+    
+    moon_el = moon_elevation(header)
+    sun_el, phase = sun_elevation(header)
+    galactic = galactic_coord(header)
+    
+    # skipping snr calculations
 
-    # Come back to this
-#     plt.scatter(flux, counts, s=4)
-#     plt.xlabel("FIBERFLUX_R")
-#     plt.ylabel("MEDIAN_CALIB_FLUX(R)")
-#     plt.show()
-
-#     plt.scatter(flux, snr, s=4)
-#     plt.xlabel("FIBERFLUX_R")
-#     plt.ylabel("MEDIAN_CALIB_SNR(R)")
-#     plt.show()
-
+    # TODO: move imports to top of file once final
     from bokeh.plotting import figure#, show
     from bokeh.models import ColorBar, LinearColorMapper, BasicTicker, NumeralTickFormatter
     from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
@@ -397,64 +432,20 @@ def plot_fractionalresidual(fiber, header, expos, position=False):
     fig = bk.figure(title="Fractional residuals of counts vs. flux")
     fig.scatter(coords["FIBER_X"],coords["FIBER_Y"],size=0.5, color='gray')
     mapper = linear_cmap('ratio', palette="Viridis256", low=0.5, high=1.5, nan_color='gray')
-    # fig.scatter(coords["FIBER_X"][sel],coords["FIBER_Y"][sel],size=30, color=mapper['transform'])
     fig.scatter('GOODFIBER_X', 'GOODFIBER_Y', source=source, size=5, color=mapper)
-#     color_mapper = LinearColorMapper(palette="Viridis256", low=0.5, high=1.5)
-#     colors ={'field': ratio, 'transform': color_mapper}
-#     fig.scatter(coords["FIBER_X"][sel],coords["FIBER_Y"][sel],size=30, color=colors)
-#     color_bar = ColorBar(color_mapper=color_mapper)
     color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=12, ticker=BasicTicker(), width=10, formatter=NumeralTickFormatter(format='0.0a'))
     fig.add_layout(color_bar, 'right')
-    # show(fig)
-    print("a")
-#     fig,ax = plt.subplots(1,1,gridspec_kw=dict(wspace=0.2),figsize=(8,6))
-#     ax.scatter(coords["FIBER_X"],coords["FIBER_Y"],s=0.5,color='gray')
-#     im=ax.scatter(coords["FIBER_X"][sel],coords["FIBER_Y"][sel],c=ratio,vmin=0.5,vmax=1.5,s=30)
-#     plt.colorbar(im,ax=ax)
-#     plt.title("Fractional residuals of counts vs. flux")
-#     #plt.text(-410,400,os.path.basename(expos),size=14)
-
-#     plt.text(-430,405,expos,size=13)
-#     plt.text(-430,360,"Tile "+f'{header["TILEID"]:05d}',size=11)
-#     plt.text(-430,325,f'{header["SKYRA"]:5.1f}'+f'{header["SKYDEC"]:+4.1f}' ,size=11)
-#     plt.text(-430,290,'HA='+f'{header["MOUNTHA"]:+2.0f}' ,size=11)
-#     plt.text(-430,255,'Z='+f'{header["AIRMASS"]:4.2f}' ,size=11)
-
-#     plt.text(-430,-310,f'{exptime:3.0f}'+" s", size=11)
-#     plt.text(-430,-350,"Sky: "+f'{rskycounts:4.0f}'+" /ks", size=11)
-#     plt.text(-430,-390,"r=20:"+f'{rstarcountrate:4.0f}'+" /ks", size=11)
-#     plt.text(-430,-430,r"(S/N)$^2$:"+f'{rsn2:4.0f}'+" /ks ="+f'{rsn2*exptime_ksec:4.1f}', size=11)
-#     if savefig: plt.savefig("standard_residuals_"+os.path.basename(expos)+".png")
-#     plt.show()
 
     fig2 = bk.figure(title="Median Calibration Flux vs. Fiberflux", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)')
-    # fig2.scatter('FIBERFLUX_R', 'MEDIAN_CALIB_FLUX(R)', source=source, size=4)
     fig2.scatter(flux, counts, size=4)
 
-    print("EXPTIME =", header['EXPTIME'],"for", expos)
-    print("Moon separation angle is", f'{header["MOONSEP"]:5.1f}',"degrees")
-    print("Sky raw count rate is",f'{rskycounts:5.1f}', "per Ksecond.")
-    print("Standard star count rate at r=20 from", np.sum(sel),"stars is", f'{rstarcountrate:5.1f}', "per Ksecond.")
-    print("Background-limited (S/N)^2 per Ksecond at r=20 is", f'{rsn2:5.2f}')
-    print("Background-limited (S/N)^2 at r=20 is", f'{rsn2*exptime_ksec:5.2f}')
-
-    abovetext = \
-    "EXPTIME = " + str(header['EXPTIME']) + " for " + str(expos) + "\n" \
-    + "Tile " + f'{header["TILEID"]:05d}' + "\n" \
-    + "RA: " + f'{header["SKYRA"]:5.1f}' + " DEC: " + f'{header["SKYDEC"]:+4.1f}' + "\n" \
-    + 'HA=' + f'{header["MOUNTHA"]:+2.0f}' + "\n" \
-    + 'Z=' + f'{header["AIRMASS"]:4.2f}' + "\n" + "\n" \
-    + "Sky: " + f'{rskycounts:5.1f}' + "/ks" + "\n" \
-    + "r=20: " + f'{rstarcountrate:5.1f}' + "/ks" + "\n" \
-    + "(S/N)^2: " + f'{rsn2:5.2f}' + "/ks, " + "r=20: " + f'{rsn2*exptime_ksec:5.2f}'
+    moontext = ("Moon is " + f'{phase*100:4.1f}' + "% full, " + f'{header["MOONSEP"]:5.1f}' + " deg away, " + f'{moon_el:5.1f}' + " deg above the horizon") if moon_el>-6 else ("Moon is set")
+    summarytext = \
+    "Tile " + f'{header["TILEID"]:05d}' + " at RA, Dec " + f'{header["SKYRA"]:5.1f}' + f'{header["SKYDEC"]:+4.1f}' + ", Galactic l,b " + f'{galactic.l.degree:3.1f}' + f'{galactic.b.degree:+2.1f}' + "\n" \
+    + "Airmass " + f'{header["AIRMASS"]:4.2f}' + ", Hour Angle " + f'{header["MOUNTHA"]:+2.0f}' + " deg at UTC " + str(header["DATE-OBS"][11:19]) + "\n" \
+    + moontext + "\n" \
+    + "r=20 stars yielding " + f'{rstarcountrate:5.1f}' + " counts/ks in R with " + f'{ratio_rms_robust:5.3f}' + " fractional residual" + "\n" \
+    + "Sky yielding " + f'{rskycounts:5.1f}' + " counts/ks in R"
 
 
-    belowtext = \
-    "EXPTIME = " + str(header['EXPTIME']) + " for " + str(expos) + "\n" \
-    + "Moon separation angle is " + f'{header["MOONSEP"]:5.1f}' + " degrees" + "\n" \
-    + "Sky raw count rate is " + f'{rskycounts:5.1f}' + " per Ksecond." + "\n" \
-    + "Standard star count rate at r=20 from " + str(np.sum(sel)) + " stars is " f'{rstarcountrate:5.1f}' + " per Ksecond." + "\n" \
-    + "Background-limited (S/N)^2 per Ksecond at r=20 is " + f'{rsn2:5.2f}' + "\n" \
-    + "Background-limited (S/N)^2 at r=20 is " + f'{rsn2*exptime_ksec:5.2f}'
-
-    return fig, fig2, abovetext, belowtext
+    return fig, fig2, summarytext
