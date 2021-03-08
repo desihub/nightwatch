@@ -4,7 +4,6 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-<pre> {{ summarytext }} </pre>
 {% set fulltext = summarytext.split("\n") %}
 {% for line in fulltext %}
     <p> {{ line }} </p>

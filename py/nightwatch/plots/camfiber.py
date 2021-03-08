@@ -441,7 +441,7 @@ def plot_fractionalresidual(fiber, header, expos, position=False):
 
     moontext = ("Moon is " + f'{phase*100:4.1f}' + "% full, " + f'{header["MOONSEP"]:5.1f}' + " deg away, " + f'{moon_el:5.1f}' + " deg above the horizon") if moon_el>-6 else ("Moon is set")
     summarytext = \
-    "Tile " + f'{header["TILEID"]:05d}' + " at RA, Dec " + f'{header["SKYRA"]:5.1f}' + f'{header["SKYDEC"]:+4.1f}' + ", Galactic l,b " + f'{galactic.l.degree:3.1f}' + f'{galactic.b.degree:+2.1f}' + "\n" \
+    "Tile " + f'{header["TILEID"]:05d}' + " at RA, Dec " + f'{header["SKYRA"]:5.1f}' + ", " + f'{header["SKYDEC"]:+4.1f}' + ", Galactic l,b " + f'{galactic.l.degree:3.1f}' + ", " + f'{galactic.b.degree:+2.1f}' + "\n" \
     + "Airmass " + f'{header["AIRMASS"]:4.2f}' + ", Hour Angle " + f'{header["MOUNTHA"]:+2.0f}' + " deg at UTC " + str(header["DATE-OBS"][11:19]) + "\n" \
     + moontext + "\n" \
     + "r=20 stars yielding " + f'{rstarcountrate:5.1f}' + " counts/ks in R with " + f'{ratio_rms_robust:5.3f}' + " fractional residual" + "\n" \
