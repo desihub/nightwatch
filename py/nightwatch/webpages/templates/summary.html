@@ -4,10 +4,12 @@
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 
-{% set fulltext = summarytext.split("\n") %}
-{% for line in fulltext %}
-    <p> {{ line }} </p>
-{% endfor %}
+{% if summarytext %}
+    {% set fulltext = summarytext.split("\n") %}
+    {% for line in fulltext %}
+        <p> {{ line }} </p>
+    {% endfor %}
+{% endif %}
 
 <div class="flex-container">
 
