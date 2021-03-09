@@ -429,14 +429,14 @@ def plot_fractionalresidual(fiber, header, expos, position=False, plot_height=50
         MEDIAN_CALIB_FLUX=counts,
      ))
 
-    fig = bk.figure(title="Fractional residuals of counts vs. flux", plot_height=plot_height, plot_width=plot_width+25)#, toolbar_location=None)
+    fig = bk.figure(title="Fractional residuals of standard star R counts vs flux", plot_height=plot_height-50, plot_width=plot_width+25)#, toolbar_location=None)
     fig.scatter(coords["FIBER_X"],coords["FIBER_Y"],size=0.5, color='gray')
     mapper = linear_cmap('ratio', palette="Viridis256", low=0.5, high=1.5, nan_color='gray')
     fig.scatter('GOODFIBER_X', 'GOODFIBER_Y', source=source, size=5, color=mapper)
     color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=12, ticker=BasicTicker(), width=10, formatter=NumeralTickFormatter(format='0.0a'))
     fig.add_layout(color_bar, 'right')
 
-    fig2 = bk.figure(title="Median Calibrated Flux vs. Fiberflux", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)', plot_height=plot_height, plot_width=plot_width)#, toolbar_location=None)
+    fig2 = bk.figure(title="Median Calibrated Flux vs Fiberflux for Standard Stars", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)', plot_height=plot_height-50, plot_width=plot_width)#, toolbar_location=None)
     fig2.scatter(flux, counts, size=4)
 
     moontext = ("Moon is " + f'{phase*100:4.1f}' + "% full, " + f'{header["MOONSEP"]:5.1f}' + " deg away, " + f'{moon_el:5.1f}' + " deg above the horizon") if moon_el>-6 else ("Moon is set")
