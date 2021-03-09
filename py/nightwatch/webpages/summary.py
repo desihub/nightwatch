@@ -109,7 +109,7 @@ def get_summary_plots(qadata, qprocdir=None):
     #- Fractional Residuals of counts vs. flux
     if obstype.upper() in ['SCIENCE'] and 'PER_CAMFIBER' in qadata:
         expos = '{:08d}'.format(night) +'/'+ '{:08d}'.format(expid)
-        fig, fig2, summarytext = plot_fractionalresidual(qadata['PER_CAMFIBER'], header, expos, position=False)
+        fig, fig2, summarytext = plot_fractionalresidual(qadata['PER_CAMFIBER'], header, expos, position=False, plot_height=plot_width, plot_width=plot_width)
         script, div = components(fig)
         html_components['FRACTIONALRESIDUAL'] = dict(script=script, div=div)
         script, div = components(fig2)
