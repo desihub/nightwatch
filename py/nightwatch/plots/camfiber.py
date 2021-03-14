@@ -389,7 +389,7 @@ def calc_fractionalresidual(fiber, header, expos, position=False):
     fa.sort(order="FIBER")
     print(file, len(fa))
     try:
-        from desispec.fluxcalibration import isStdStar # TODO: move this to imports in QA file
+        from desispec.fluxcalibration import isStdStar # TODO: move this to top of QA file
         standard = goodfiber&(fa["OBJTYPE"]=='TGT')&isStdStar(fa)#&((fa['SV1_DESI_TARGET']&0xe00000000)>0)    # Bits 33..35
     except:
         print("This plugmap has no field SV1_DESI_TARGET.  Skipping!")
@@ -472,37 +472,31 @@ def plot_fractionalresidual(fiber, header, expos, position=False, plot_height=50
         
     plot_dict, scalar_dict = calc_fractionalresidual(fiber, header, expos, position=False)
 
-# fiber_x_coords, fiber_y_coords, goodfiber_sel, ratio, FIBERFLUX_R, MEDIAN_CALIB_FLUX
-    
     # TODO: move imports to top of script once final
     from bokeh.plotting import figure#, show
     from bokeh.models import ColorBar, LinearColorMapper, BasicTicker, NumeralTickFormatter
     from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
     from bokeh.palettes import Viridis256
     from bokeh.transform import linear_cmap
-
-    source = bk.ColumnDataSource(data=plot_dict)
-##    source = bk.ColumnDataSource(data=dict(
-##        RATIO=ratio,
-##        GOODFIBER_X=coords["FIBER_X"][sel],
-##        GOODFIBER_Y=coords["FIBER_Y"][sel],
-##        FIBERFLUX_R=flux,
-##        MEDIAN_CALIB_FLUX=counts,
-##     ))
+    
+    good_dict = dict(plot_dict) # copy
+    del good_dict["fiber_x"]
+    del good_dict["fiber_y"]
+    source = bk.ColumnDataSource(data=good_dict)
 
     fig = bk.figure(title="Fractional residuals of standard star R counts vs flux", plot_height=plot_height-50, plot_width=plot_width+25)#, toolbar_location=None)
-    fig.scatter('fiber_x', 'fiber_y', source=source, size=0.5, color='gray')
+    fig.scatter(plot_dict['fiber_x'], plot_dict['fiber_y'], size=0.5, color='gray')
     mapper = linear_cmap('ratio', palette="Viridis256", low=0.5, high=1.5, nan_color='gray')
     fig.scatter('goodfiber_x', 'goodfiber_y', source=source, size=5, color=mapper)
     color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=12, ticker=BasicTicker(), width=10, formatter=NumeralTickFormatter(format='0.0a'))
     fig.add_layout(color_bar, 'right')
 
     fig2 = bk.figure(title="Median Calibrated Flux vs Fiberflux for Standard Stars", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)', plot_height=plot_height-50, plot_width=plot_width)#, toolbar_location=None)
-    fig2.scatter('fiberflux_r', 'median_calib_flux_r', source=source, size=4)
-
+    fig2.scatter(plot_dict['fiberflux_r'], plot_dict['median_calib_flux_r'], size=4)
+    
     moontext = ("Moon is " + f'{scalar_dict["phase"]*100:4.1f}' + "% full, " + f'{scalar_dict["MOONSEP"]:5.1f}' + " deg away, " + f'{scalar_dict["moon_el"]:5.1f}' + " deg above the horizon") if scalar_dict["moon_el"]>-6 else ("Moon is set")
     summarytext = \
-    "Tile " + f'{scalar_dict["TILEID"]:05d}' + " at RA,Dec " + f'{scalar_dict["SKYRA"]:5.1f}' + " " + f'{scalar_dict["SKYDEC"]:+4.1f}' + " and Galactic l,b " + f'{scalar_dict["l":3.1f}' + " " + f'{scalar_dict["b"]:+2.1f}' + "\n" \
+    "Tile " + f'{scalar_dict["TILEID"]:05d}' + " at RA,Dec " + f'{scalar_dict["SKYRA"]:5.1f}' + " " + f'{scalar_dict["SKYDEC"]:+4.1f}' + " and Galactic l,b " + f'{scalar_dict["l"]:3.1f}' + " " + f'{scalar_dict["b"]:+2.1f}' + "\n" \
     + "Airmass " + f'{scalar_dict["AIRMASS"]:4.2f}' + ", Hour Angle " + f'{scalar_dict["MOUNTHA"]:+2.0f}' + " deg at UTC " + str(scalar_dict["DATE-OBS"][11:19]) + "\n" \
     + moontext + "\n" \
     + "r=20 stars yielding " + f'{scalar_dict["starrate"]:5.1f}' + " counts/ks in R with " + f'{scalar_dict["starrms"]:5.3f}' + " fractional residual" + "\n" \
