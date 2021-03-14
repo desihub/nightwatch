@@ -298,6 +298,7 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
     return figs_list
 
 def linregress_iter(x,y,sigclip=5):
+    # Iteratively computes linear fit for x, y
     sel = np.full(len(x), True)
     for j in range(3):
         linfit = scipy.stats.linregress(x[sel],y[sel])
@@ -311,6 +312,7 @@ def galactic_coord(header):
     return loc.galactic
 
 def radec_to_xyz(ra,dec):
+    # Convert RA/DEC coordinates to Cartesian coordinates
     ra = ra*np.pi/180.0
     dec = dec*np.pi/180.0
     return np.array([np.cos(ra)*np.cos(dec), np.sin(ra)*np.cos(dec), np.sin(dec)])
@@ -334,7 +336,19 @@ def sun_elevation(header):
     phase = (1.0-np.arccos(np.dot(moon,sun))/np.pi)   # 0 = moon, sun together; 1 = opposed.
     return np.arcsin(np.dot(zenith,sun))*180.0/np.pi, phase
 
-def plot_fractionalresidual(fiber, header, expos, position=False, plot_height=500, plot_width=500):
+def calc_fractionalresidual(fiber, header, expos, position=False):
+    '''Computes arrays for fractional residuals vs. flux and calibrated flux vs. fiberflux, and scalars for summary text.
+    ARGS:
+        fiber : camfiber information from qadata['PER_CAMFIBER']
+        header : header information from qadata['HEADER']
+        expos : string representing NightWatch exposure directory "day/exposure"
+
+    Options:
+        position : string representing second NightWatch exposure directory "day/exposure" as optional source of fibermap
+
+    Returns dictionary of arrays for plots and dictionary of scalars for summary text.
+    '''
+
     if position==False: position = expos
     bfiber = fiber[np.where(fiber['CAM']=='B')]
     rfiber = fiber[np.where(fiber['CAM']=='R')]
@@ -375,7 +389,8 @@ def plot_fractionalresidual(fiber, header, expos, position=False, plot_height=50
     fa.sort(order="FIBER")
     print(file, len(fa))
     try:
-        standard = goodfiber&(fa["OBJTYPE"]=='TGT')&((fa['SV1_DESI_TARGET']&0xe00000000)>0)    # Bits 33..35
+        from desispec.fluxcalibration import isStdStar # TODO: move this to imports in QA file
+        standard = goodfiber&(fa["OBJTYPE"]=='TGT')&isStdStar(fa)#&((fa['SV1_DESI_TARGET']&0xe00000000)>0)    # Bits 33..35
     except:
         print("This plugmap has no field SV1_DESI_TARGET.  Skipping!")
         return
@@ -399,53 +414,99 @@ def plot_fractionalresidual(fiber, header, expos, position=False, plot_height=50
 
     sel = standard&(fa["FIBERFLUX_R"]>1)
     flux = fa["FIBERFLUX_R"][sel]
-    snr = rfiber["MEDIAN_CALIB_SNR"][sel]
+    # snr = rfiber["MEDIAN_CALIB_SNR"][sel]
     counts = rfiber["MEDIAN_CALIB_FLUX"][sel]
-
+    
     linfit = linregress_iter(flux, counts)
     ratio = counts/(linfit.intercept+linfit.slope*flux)
-    rsn2 = rstarcountrate**2/rskycounts
+    # rsn2 = rstarcountrate**2/rskycounts
     ratio_quantiles = np.quantile(ratio,[0.16,0.84])
     ratio_rms_robust = (ratio_quantiles[1]-ratio_quantiles[0])/2.0
+
     
     moon_el = moon_elevation(header)
     sun_el, phase = sun_elevation(header)
     galactic = galactic_coord(header)
     
     # skipping snr calculations
+    
+    plot_dict = dict([("fiber_x", coords["FIBER_X"]),
+                      ("fiber_y", coords["FIBER_Y"]),
+                      ("goodfiber_x", coords["FIBER_X"][sel]),
+                      ("goodfiber_y", coords["FIBER_Y"][sel]),
+                      ("ratio", ratio),
+                      ("fiberflux_r", flux),
+                      ("median_calib_flux_r", counts)])
 
-    # TODO: move imports to top of file once final
+    scalar_dict = dict([("TILEID", header['TILEID']),
+                      ("SKYRA", header["SKYRA"]),
+                      ("SKYDEC", header["SKYDEC"]),
+                      ("l", galactic.l.degree),
+                      ("b", galactic.b.degree),
+                      ("AIRMASS", header["AIRMASS"]),
+                      ("MOUNTHA", header["MOUNTHA"]),
+                      ("DATE-OBS", header["DATE-OBS"]),
+                      ("phase", phase),
+                      ("MOONSEP", header["MOONSEP"]),
+                      ("moon_el", moon_el),
+                      ("starrate", rstarcountrate),
+                      ("starrms", ratio_rms_robust),
+                      ("skyrate", rskycounts)])
+
+    return plot_dict, scalar_dict
+
+def plot_fractionalresidual(fiber, header, expos, position=False, plot_height=500, plot_width=500):
+    '''Generates plot for fractional residuals vs. flux and calibrated flux vs. fiberflux, and writes string of summary text.
+    ARGS:
+        fiber : camfiber information from qadata['PER_CAMFIBER']
+        header : header information from qadata['HEADER']
+        expos : string representing NightWatch exposure directory "day/exposure"
+        plot_width : width of individual camera plots in pixels
+        plot_height : height of individual camera plots in pixels
+
+    Options:
+        position : string representing second NightWatch exposure directory "day/exposure" as optional source of fibermap
+
+    Returns two bokeh plots and string for summary text.
+    '''
+        
+    plot_dict, scalar_dict = calc_fractionalresidual(fiber, header, expos, position=False)
+
+# fiber_x_coords, fiber_y_coords, goodfiber_sel, ratio, FIBERFLUX_R, MEDIAN_CALIB_FLUX
+    
+    # TODO: move imports to top of script once final
     from bokeh.plotting import figure#, show
     from bokeh.models import ColorBar, LinearColorMapper, BasicTicker, NumeralTickFormatter
     from bokeh.models import ColumnDataSource, CDSView, BooleanFilter
     from bokeh.palettes import Viridis256
     from bokeh.transform import linear_cmap
 
-    source = bk.ColumnDataSource(data=dict(
-        ratio=ratio,
-        GOODFIBER_X=coords["FIBER_X"][sel],
-        GOODFIBER_Y=coords["FIBER_Y"][sel],
-        FIBERFLUX_R=flux,
-        MEDIAN_CALIB_FLUX=counts,
-     ))
+    source = bk.ColumnDataSource(data=plot_dict)
+##    source = bk.ColumnDataSource(data=dict(
+##        RATIO=ratio,
+##        GOODFIBER_X=coords["FIBER_X"][sel],
+##        GOODFIBER_Y=coords["FIBER_Y"][sel],
+##        FIBERFLUX_R=flux,
+##        MEDIAN_CALIB_FLUX=counts,
+##     ))
 
     fig = bk.figure(title="Fractional residuals of standard star R counts vs flux", plot_height=plot_height-50, plot_width=plot_width+25)#, toolbar_location=None)
-    fig.scatter(coords["FIBER_X"],coords["FIBER_Y"],size=0.5, color='gray')
+    fig.scatter('fiber_x', 'fiber_y', source=source, size=0.5, color='gray')
     mapper = linear_cmap('ratio', palette="Viridis256", low=0.5, high=1.5, nan_color='gray')
-    fig.scatter('GOODFIBER_X', 'GOODFIBER_Y', source=source, size=5, color=mapper)
+    fig.scatter('goodfiber_x', 'goodfiber_y', source=source, size=5, color=mapper)
     color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=12, ticker=BasicTicker(), width=10, formatter=NumeralTickFormatter(format='0.0a'))
     fig.add_layout(color_bar, 'right')
 
     fig2 = bk.figure(title="Median Calibrated Flux vs Fiberflux for Standard Stars", x_axis_label='FIBERFLUX_R', y_axis_label='MEDIAN_CALIB_FLUX(R)', plot_height=plot_height-50, plot_width=plot_width)#, toolbar_location=None)
-    fig2.scatter(flux, counts, size=4)
+    fig2.scatter('fiberflux_r', 'median_calib_flux_r', source=source, size=4)
 
-    moontext = ("Moon is " + f'{phase*100:4.1f}' + "% full, " + f'{header["MOONSEP"]:5.1f}' + " deg away, " + f'{moon_el:5.1f}' + " deg above the horizon") if moon_el>-6 else ("Moon is set")
+    moontext = ("Moon is " + f'{scalar_dict["phase"]*100:4.1f}' + "% full, " + f'{scalar_dict["MOONSEP"]:5.1f}' + " deg away, " + f'{scalar_dict["moon_el"]:5.1f}' + " deg above the horizon") if scalar_dict["moon_el"]>-6 else ("Moon is set")
     summarytext = \
-    "Tile " + f'{header["TILEID"]:05d}' + " at RA,Dec " + f'{header["SKYRA"]:5.1f}' + " " + f'{header["SKYDEC"]:+4.1f}' + " and Galactic l,b " + f'{galactic.l.degree:3.1f}' + " " + f'{galactic.b.degree:+2.1f}' + "\n" \
-    + "Airmass " + f'{header["AIRMASS"]:4.2f}' + ", Hour Angle " + f'{header["MOUNTHA"]:+2.0f}' + " deg at UTC " + str(header["DATE-OBS"][11:19]) + "\n" \
+    "Tile " + f'{scalar_dict["TILEID"]:05d}' + " at RA,Dec " + f'{scalar_dict["SKYRA"]:5.1f}' + " " + f'{scalar_dict["SKYDEC"]:+4.1f}' + " and Galactic l,b " + f'{scalar_dict["l":3.1f}' + " " + f'{scalar_dict["b"]:+2.1f}' + "\n" \
+    + "Airmass " + f'{scalar_dict["AIRMASS"]:4.2f}' + ", Hour Angle " + f'{scalar_dict["MOUNTHA"]:+2.0f}' + " deg at UTC " + str(scalar_dict["DATE-OBS"][11:19]) + "\n" \
     + moontext + "\n" \
-    + "r=20 stars yielding " + f'{rstarcountrate:5.1f}' + " counts/ks in R with " + f'{ratio_rms_robust:5.3f}' + " fractional residual" + "\n" \
-    + "Sky yielding " + f'{rskycounts:5.1f}' + " counts/ks in R"
+    + "r=20 stars yielding " + f'{scalar_dict["starrate"]:5.1f}' + " counts/ks in R with " + f'{scalar_dict["starrms"]:5.3f}' + " fractional residual" + "\n" \
+    + "Sky yielding " + f'{scalar_dict["skyrate"]:5.1f}' + " counts/ks in R"
 
 
     return fig, fig2, summarytext
