@@ -333,7 +333,7 @@ def sun_elevation(header):
         # These keywords were only added in mid-February 2021; return False if not available.
         return False, False
     moon = radec_to_xyz(header["MOONRA"], header["MOONDEC"])
-    phase = (1.0-np.arccos(np.dot(moon,sun))/np.pi)   # 0 = moon, sun together; 1 = opposed.
+    phase = (np.arccos(np.dot(moon,sun))/np.pi)   # 0 = moon, sun together; 1 = opposed.
     return np.arcsin(np.dot(zenith,sun))*180.0/np.pi, phase
 
 def calc_fractionalresidual(fiber, header, expos, position=False):
