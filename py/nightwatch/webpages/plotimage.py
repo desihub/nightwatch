@@ -83,11 +83,13 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     )
     
     make_composites(input_dir, night, expid)
-    preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'preproc.*composite*', i)]
+    preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite*', i)]
+    print(preproc_composites)
 
     cams = ["Bcomposite", "Rcomposite", "Zcomposite"]
     for cam, composite in zip(cams, preproc_composites):
-        compositepath = os.join(input_dir, composite)
+        compositepath = os.path.join(input_dir, composite)
+        print(compositepath)
         script, div = main(compositepath, None, downsample)
         html_components[cam] = dict(script=script, div=div)
 
@@ -130,7 +132,7 @@ def load_preproc_portion(preproc):
     full = np.empty([np.shape(images[0])[0], size*len(images)], dtype=np.float32)
     #print(np.shape(full))
     slot = np.arange(len(images))
-    slot = (slot//2 + (slot%2)*len(images)/2).astype(int32)
+    slot = (slot//2 + (slot%2)*len(images)/2).astype(int)
     for n, im in enumerate(images):
         full[:,slot[n]*size:(slot[n]+1)*size] = images[n]
     extent = [start, start+size*20, xmin, xmax]
@@ -156,17 +158,17 @@ def make_composites(preprocdir, night, expid):
     print("preprocs loaded")
         
     hdu = fits.PrimaryHDU(b_image[0])
-    outfile =  os.path.join(preprocdir, "preproc-{}-{:08d}.fits").format("b" + "composite", expid)
+    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("b" + "composite", expid)
     hdu.writeto(outfile, overwrite=True)
     print("b composite done")
     
     hdu = fits.PrimaryHDU(r_image[0])
-    outfile =  os.path.join(preprocdir, "preproc-{}-{:08d}.fits").format("r" + "composite", expid)
+    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("r" + "composite", expid)
     hdu.writeto(outfile, overwrite=True)
     print("r composite done")
 
     hdu = fits.PrimaryHDU(z_image[0])
-    outfile =  os.path.join(preprocdir, "preproc-{}-{:08d}.fits").format("z" + "composite", expid)
+    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("z" + "composite", expid)
     hdu.writeto(outfile, overwrite=True)
     print("z composite done")
 

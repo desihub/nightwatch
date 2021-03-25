@@ -45,6 +45,21 @@ table {
   </div>
   {% endif %}
 
+  {# Composite CCD Images #}
+  {% if not current %}
+  <p> test </p>
+  <div class=flex-item>
+    <div>{{ Bcomposite.script | safe }} {{ Bcomposite.div | safe }}</div>
+  </div>
+  <div class=flex-item>
+    <div>{{ Rcomposite.script| safe }} {{ Rcomposite.div | safe }}</div>
+  </div>
+  <div class=flex-item>
+    <div>{{ Zcomposite.script | safe }} {{ Zcomposite.div | safe }}</div>
+  </div>
+  {% endif %}
+	
+
   {# Table of links to different CCD images #}
   <div class=flex-item style="padding-right:10px">
   <br>
@@ -73,18 +88,6 @@ table {
   </table>
   <br>
 
-  {# Composite CCD Images #}
-  {% if not current %}
-  <div class=flex-item>
-    <div>{{ Bcomposite.script | safe }} {{ Bcomposite.div | safe }}</div>
-  </div>
-  <div class=flex-item>
-    <div>{{ Rcomposite.script| safe }} {{ Rcomposite.div | safe }}</div>
-  </div>
-  <div class=flex-item>
-    <div>{{ BZcomposite.script | safe }} {{ Zcomposite.div | safe }}</div>
-  </div>
-  {% endif %}
 
 {% if current and downsample %}
 <div>Downsample: <input style="width: 2.5em" type="number" min=1 max=20 id="down" value={{downsample}}></div>
