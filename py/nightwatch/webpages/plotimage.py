@@ -23,7 +23,17 @@ def write_image_html(input, output, downsample, night):
     
     template = env.get_template('preproc.html')
 
-    plot_script, plot_div = main(input, None, downsample)
+    current = os.path.basename(input).split("-")[1]
+    expid = os.path.basename(input).split("-")[2].split(".")[0]
+
+    if re.match(r'pp-bcomposite*', os.path.basename(output)):
+        plot_script, plot_div = main(input, None, downsample, label="B", roll=-(int(expid)%10))
+    elif re.match(r'pp-rcomposite*', os.path.basename(output)):
+        plot_script, plot_div = main(input, None, downsample, label="R", roll=-(int(expid)%10))
+    elif re.match(r'pp-zcomposite*', os.path.basename(output)):
+        plot_script, plot_div = main(input, None, downsample, label="Z", roll=-(int(expid)%10))
+    else:
+        plot_script, plot_div = main(input, None, downsample)
 
     input_dir = os.path.dirname(input)
     available = []
@@ -32,9 +42,6 @@ def write_image_html(input, output, downsample, night):
 
     for file in preproc_files:
         available += [file.split("-")[1]]
-
-    current = os.path.basename(input).split("-")[1]
-    expid = os.path.basename(input).split("-")[2].split(".")[0]
 
     html_components = dict(
         plot_script = plot_script, plot_div = plot_div,
@@ -128,7 +135,13 @@ def write_composites_html(input_dir, night, expid, downsample, output):
                                      default=True)
     )
     
-    template = env.get_template('preproc.html')
+    template = env.get_template('composites.html')
+
+    html_components = dict(
+        version=bokeh.__version__, downsample=str(downsample),
+        night=night, expid=int(expid), zexpid='{:08d}'.format(expid),
+        num_dirs=2, qatype='amp',
+    )
 
     make_composites(input_dir, night, expid)
     preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite.*fits', i)]
@@ -136,24 +149,18 @@ def write_composites_html(input_dir, night, expid, downsample, output):
 
     bcompositepath = os.path.join(input_dir, preproc_composites[0])
     print(bcompositepath)
-    bscript, bdiv = main(bcompositepath, None, downsample, label="B", roll=-(expid%10))
+    script, div = main(bcompositepath, None, downsample, label="B", roll=-(expid%10))
+    html_components['BCOMPOSITE'] = dict(script=script, div=div)
 
     rcompositepath = os.path.join(input_dir, preproc_composites[1])
     print(rcompositepath)
-    rscript, rdiv = main(rcompositepath, None, downsample, label="R", roll=-(expid%10))
+    script, div = main(rcompositepath, None, downsample, label="R", roll=-(expid%10))
+    html_components['RCOMPOSITE'] = dict(script=script, div=div)
 
     zcompositepath = os.path.join(input_dir, preproc_composites[2])
     print(zcompositepath)
-    zscript, zdiv = main(zcompositepath, None, downsample, label="Z", roll=-(expid%10))
-
-    html_components = dict(
-        version=bokeh.__version__, downsample=str(downsample),
-        preproc=True, night=night, available=available,
-        current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
-        num_dirs=2, qatype='amp',
-        composite=True, bscript=bscript, bdiv=bdiv,
-        rscript=rscript, rdiv=rdiv, zscript=zscript, zdiv=zdiv, 
-    )
+    script, div = main(zcompositepath, None, downsample, label="Z", roll=-(expid%10))
+    html_components['ZCOMPOSITE'] = dict(script=script, div=div)
 
     html = template.render(**html_components)
 

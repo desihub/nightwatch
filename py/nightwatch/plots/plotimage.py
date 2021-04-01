@@ -123,7 +123,7 @@ def main(input_in = None, output_in = None, downsample_in = None, label=None, ro
     short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
     long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
 
-    fig = plot_image(image, downsample=n, title=long_title)
+    fig = plot_image(image, downsample=n, title=long_title, label=label, roll=roll)
 
     if (output != None):
         bk.output_file(output, title=short_title, mode='inline')
