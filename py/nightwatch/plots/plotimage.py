@@ -16,6 +16,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
+from bokeh.models import ColumnDataSource, Label, LabelSet, Range1d
 
 def downsample_image(image, n):
     '''Downsample input image n x n
@@ -28,7 +29,7 @@ def downsample_image(image, n):
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
-def plot_image(image, width=800, downsample=2, title=None):
+def plot_image(image, width=800, downsample=2, title=None, label=None, roll=None):
     """
     plots image downsampled, returning bokeh figure of requested width
     """
@@ -56,15 +57,35 @@ def plot_image(image, width=800, downsample=2, title=None):
     if title is not None:
         fig.title.text = title
 
+    #- Add labels
+    if label and roll:
+        labels = np.roll(range(10),roll)
+        labels = list(np.tile([label+x for x in labels.astype(str)],2))
+
+        start = 0
+        spacing = nx/10/4 # 10 cameras , 4 quadrants
+        xvals = [spacing*(2*i+1)+start for i in range(len(labels))]
+        yvals = list(np.repeat([50], 20))
+
+        labelsource = ColumnDataSource(data=dict(xvals=xvals,
+                                                 yvals=yvals,
+                                                 labels=labels))
+        labels = LabelSet(x='xvals', y='yvals', text='labels',
+                          x_units='data', text_color='white',
+                          text_align='center', source=labelsource)
+        fig.add_layout(labels)
+        
     return fig
 
-def main(input_in = None, output_in = None, downsample_in = None):
+def main(input_in = None, output_in = None, downsample_in = None, label=None, roll=None):
     '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
     command line as well).
     Options:
         input_in: input fits file
         output_in: output html file
         downsample_in: downsample image NxN
+        label: camera to label plot with
+        roll: offset (mod 10) to label segments with
     Output:
         html components of a bokeh figure object'''
     # if run from command line
@@ -106,7 +127,7 @@ def main(input_in = None, output_in = None, downsample_in = None):
 
     if (output != None):
         bk.output_file(output, title=short_title, mode='inline')
-        fig = plot_image(image, downsample=n, title=long_title)
+        fig = plot_image(image, downsample=n, title=long_title, label=label, roll=roll)
         bk.save(fig)
         print('Wrote {}'.format(output))
 

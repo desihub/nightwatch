@@ -93,7 +93,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     )
     
     # make_composites(input_dir, night, expid)
-    # preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite*', i)]
+    # preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite.*fits', i)]
     # print(preproc_composites)
 
     # cams = ["Bcomposite", "Rcomposite", "Zcomposite"]
@@ -111,7 +111,59 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
 
     print('Wrote {}'.format(output))
 
+def write_composites_html(input_dir, night, expid, downsample, output):
+    '''
+    Writes a downsampled image to a given output file.
+    Inputs:
+        input: image fits file to be plotted
+        output: the filepath to write html file to 
+        downsample: downsample image NxN
+        night: the night YYYYMMDD the image belongs to
+    '''
 
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True)
+    )
+    
+    template = env.get_template('preproc.html')
+
+    make_composites(input_dir, night, expid)
+    preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite.*fits', i)]
+    print(preproc_composites)
+
+    bcompositepath = os.path.join(input_dir, preproc_composites[0])
+    print(bcompositepath)
+    bscript, bdiv = main(bcompositepath, None, downsample, label="B", roll=-(expid%10))
+
+    rcompositepath = os.path.join(input_dir, preproc_composites[1])
+    print(rcompositepath)
+    rscript, rdiv = main(rcompositepath, None, downsample, label="R", roll=-(expid%10))
+
+    zcompositepath = os.path.join(input_dir, preproc_composites[2])
+    print(zcompositepath)
+    zscript, zdiv = main(zcompositepath, None, downsample, label="Z", roll=-(expid%10))
+
+    html_components = dict(
+        version=bokeh.__version__, downsample=str(downsample),
+        preproc=True, night=night, available=available,
+        current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
+        num_dirs=2, qatype='amp',
+        composite=True, bscript=bscript, bdiv=bdiv,
+        rscript=rscript, rdiv=rdiv, zscript=zscript, zdiv=zdiv, 
+    )
+
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(output, 'w') as fx:
+        fx.write(html)
+
+    print('Wrote {}'.format(output))
+
+    
 
 import numpy as np
 from glob import glob

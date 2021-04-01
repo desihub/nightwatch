@@ -518,6 +518,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
         web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
 
+        #- plot preproc composites
+        composite_output = '{}/qa-amp-{:08d}-composites.html'.format(expdir, expid)
+        web_plotimage.write_composites_html(preprocdir, night, expid, downsample, composite_output)
+
     if (logdir is not None):
         #- plot logfiles        
 

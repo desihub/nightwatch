@@ -46,9 +46,11 @@ table {
   {% endif %}
 
   {# Preprocessed composite CCD Image #}
-  {% if not current %}
-  <div class=flex-item>
-    <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
+  {% if composite %}
+  <div class="flex-container">
+    <div>{{ bscript | safe }} {{bdiv | safe }}</div>
+    <div>{{ rscript | safe }} {{rdiv | safe }}</div>
+    <div>{{ zscript | safe }} {{zdiv | safe }}</div>
   </div>
   {% endif %}
 
@@ -81,7 +83,7 @@ table {
   <br>
 
 
-{% if current and downsample %}
+{% if current and downsample and not composite %}
 <div>Downsample: <input style="width: 2.5em" type="number" min=1 max=20 id="down" value={{downsample}}></div>
 <button onclick='
     var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
