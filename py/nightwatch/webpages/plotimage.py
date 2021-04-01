@@ -28,6 +28,8 @@ def write_image_html(input, output, downsample, night):
     input_dir = os.path.dirname(input)
     available = []
     preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]
+    preproc_files = [i for i in os.listdir(input_dir) if (re.match(r'preproc.*', i) or re.match(r'pp.*', i))]
+
     for file in preproc_files:
         available += [file.split("-")[1]]
 
@@ -75,23 +77,31 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     for file in preproc_files:
         available += [file.split("-")[1]]
 
+    make_composites(input_dir, night, expid)
+    preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite.*fits', i)]
+    print(preproc_composites)
+
+    compositepath = os.path.join(input_dir, preproc_composites[0])
+    print(compositepath)
+    plot_script, plot_div = main(compositepath, None, downsample)
+
     html_components = dict(
         version=bokeh.__version__, downsample=str(downsample),
         preproc=True, night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
-        num_dirs=2, qatype='amp',
+        num_dirs=2, qatype='amp', plot_script = plot_script, plot_div = plot_div,
     )
     
-    make_composites(input_dir, night, expid)
-    preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite*', i)]
-    print(preproc_composites)
+    # make_composites(input_dir, night, expid)
+    # preproc_composites = [i for i in os.listdir(input_dir) if re.match(r'pp.*composite*', i)]
+    # print(preproc_composites)
 
-    cams = ["Bcomposite", "Rcomposite", "Zcomposite"]
-    for cam, composite in zip(cams, preproc_composites):
-        compositepath = os.path.join(input_dir, composite)
-        print(compositepath)
-        script, div = main(compositepath, None, downsample)
-        html_components[cam] = dict(script=script, div=div)
+    # cams = ["Bcomposite", "Rcomposite", "Zcomposite"]
+    # for cam, composite in zip(cams, preproc_composites):
+    #     compositepath = os.path.join(input_dir, composite)
+    #     print(compositepath)
+    #     script, div = main(compositepath, None, downsample)
+    #     html_components[cam] = dict(script=script, div=div)
 
     html = template.render(**html_components)
 
@@ -157,17 +167,17 @@ def make_composites(preprocdir, night, expid):
     z_image = load_preproc_portion(np.roll(preprocfiles[20:30],roll))
     print("preprocs loaded")
         
-    hdu = fits.PrimaryHDU(b_image[0])
+    hdu = fits.PrimaryHDU(sqrt_stretch(b_image[0]))
     outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("b" + "composite", expid)
     hdu.writeto(outfile, overwrite=True)
     print("b composite done")
     
-    hdu = fits.PrimaryHDU(r_image[0])
+    hdu = fits.PrimaryHDU(sqrt_stretch(r_image[0]))
     outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("r" + "composite", expid)
     hdu.writeto(outfile, overwrite=True)
     print("r composite done")
 
-    hdu = fits.PrimaryHDU(z_image[0])
+    hdu = fits.PrimaryHDU(sqrt_stretch(z_image[0]))
     outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("z" + "composite", expid)
     hdu.writeto(outfile, overwrite=True)
     print("z composite done")

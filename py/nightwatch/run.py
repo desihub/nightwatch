@@ -499,6 +499,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html")
         
         argslist = [(input.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
+        argslist.append((os.path.join(preprocdir, "pp-bcomposite-00074938.fits"), os.path.join(expdir, "pp-bcomposite-00074938-4x.html"), downsample, night))
+        argslist.append((os.path.join(preprocdir, "pp-rcomposite-00074938.fits"), os.path.join(expdir, "pp-rcomposite-00074938-4x.html"), downsample, night))
+        argslist.append((os.path.join(preprocdir, "pp-zcomposite-00074938.fits"), os.path.join(expdir, "pp-zcomposite-00074938-4x.html"), downsample, night))
+
     
         if ncpu > 1:
             pool = mp.Pool(ncpu)

@@ -45,20 +45,12 @@ table {
   </div>
   {% endif %}
 
-  {# Composite CCD Images #}
+  {# Preprocessed composite CCD Image #}
   {% if not current %}
-  <p> test </p>
   <div class=flex-item>
-    <div>{{ Bcomposite.script | safe }} {{ Bcomposite.div | safe }}</div>
-  </div>
-  <div class=flex-item>
-    <div>{{ Rcomposite.script| safe }} {{ Rcomposite.div | safe }}</div>
-  </div>
-  <div class=flex-item>
-    <div>{{ Zcomposite.script | safe }} {{ Zcomposite.div | safe }}</div>
+    <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
   </div>
   {% endif %}
-	
 
   {# Table of links to different CCD images #}
   <div class=flex-item style="padding-right:10px">
