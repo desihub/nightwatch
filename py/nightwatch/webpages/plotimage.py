@@ -150,7 +150,7 @@ def write_composites_html(input_dir, night, expid, downsample, output):
     bcompositepath = os.path.join(input_dir, preproc_composites[0])
     print(bcompositepath)
     script, div = main(bcompositepath, None, downsample, label="B", roll=-(expid%10))
-    html_components['BCOMPOSITE'] = dict(script=script, div=div)
+    html_components['BCOMPOSITE'] = dict(script=script, div=div, text="test")
 
     rcompositepath = os.path.join(input_dir, preproc_composites[1])
     print(rcompositepath)
@@ -171,6 +171,56 @@ def write_composites_html(input_dir, night, expid, downsample, output):
     print('Wrote {}'.format(output))
 
     
+
+def write_composite_html(inputs, output, downsample, night):
+    '''
+    Writes a downsampled image to a given output file.
+    Inputs:
+        input: image fits file to be plotted
+        output: the filepath to write html file to
+        downsample: downsample image NxN
+        night: the night YYYYMMDD the image belongs to
+    '''
+
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True,
+                                     default=True)
+    )
+
+    template = env.get_template('preproc.html')
+
+    input = inputs[0]
+    expid = os.path.basename(input).split("-")[2].split(".")[0]
+
+    bscript, bdiv = main(inputs[0], None, downsample, label="B", roll=-(int(expid)%10))
+    rscript, rdiv = main(inputs[1], None, downsample, label="R", roll=-(int(expid)%10))
+    zscript, zdiv = main(inputs[2], None, downsample, label="Z", roll=-(int(expid)%10))
+
+    input_dir = os.path.dirname(input)
+    available = []
+    preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]
+    preproc_files = [i for i in os.listdir(input_dir) if (re.match(r'preproc.*', i) or re.match(r'pp.*', i))]
+
+    for file in preproc_files:
+        available += [file.split("-")[1]]
+
+    html_components = dict(
+        bokeh_version=bokeh.__version__, downsample=str(downsample), preproc=True,
+        basename=os.path.splitext(os.path.basename(input))[0], night=night,
+        available=available, current=None, expid=int(str(expid)), zexpid=expid,
+        num_dirs=2, qatype='amp', composite=True, bscript=bscript, bdiv=bdiv,
+        rscript=rscript, rdiv=rdiv, zscript=zscript, zdiv=zdiv, 
+    )
+
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(output, 'w') as fx:
+        fx.write(html)
+
+    print('Wrote {}'.format(output))
 
 import numpy as np
 from glob import glob
@@ -227,17 +277,17 @@ def make_composites(preprocdir, night, expid):
     print("preprocs loaded")
         
     hdu = fits.PrimaryHDU(sqrt_stretch(b_image[0]))
-    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("b" + "composite", expid)
+    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("b" + "compositesqrtstretch", expid)
     hdu.writeto(outfile, overwrite=True)
     print("b composite done")
     
     hdu = fits.PrimaryHDU(sqrt_stretch(r_image[0]))
-    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("r" + "composite", expid)
+    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("r" + "compositesqrtstretch", expid)
     hdu.writeto(outfile, overwrite=True)
     print("r composite done")
 
     hdu = fits.PrimaryHDU(sqrt_stretch(z_image[0]))
-    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("z" + "composite", expid)
+    outfile =  os.path.join(preprocdir, "pp-{}-{:08d}.fits").format("z" + "compositesqrtstretch", expid)
     hdu.writeto(outfile, overwrite=True)
     print("z composite done")
 

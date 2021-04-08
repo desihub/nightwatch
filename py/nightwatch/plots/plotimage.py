@@ -64,6 +64,7 @@ def plot_image(image, width=800, downsample=2, title=None, label=None, roll=None
 
         start = 0
         spacing = nx/10/4 # 10 cameras , 4 quadrants
+        print("label spacing: ", spacing)
         xvals = [spacing*(2*i+1)+start for i in range(len(labels))]
         yvals = list(np.repeat([50], 20))
 
