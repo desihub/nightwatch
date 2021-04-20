@@ -499,11 +499,6 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html")
         
         argslist = [(input.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
-        argslist.append((os.path.join(preprocdir, "pp-bcompositesqrtstretch-00074938.fits"), os.path.join(expdir, "pp-bcomposite-00074938-4x.html"), downsample, night))
-        argslist.append((os.path.join(preprocdir, "pp-rcompositesqrtstretch-00074938.fits"), os.path.join(expdir, "pp-rcomposite-00074938-4x.html"), downsample, night))
-        argslist.append((os.path.join(preprocdir, "pp-zcompositesqrtstretch-00074938.fits"), os.path.join(expdir, "pp-zcomposite-00074938-4x.html"), downsample, night)) # HARDCODED
-
-        print("plotinput", os.path.join(preprocdir, "pp-zcomposite-00074938.fits"))
     
         if ncpu > 1:
             pool = mp.Pool(ncpu)
@@ -519,14 +514,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
         web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
 
-        #- plot preproc composites
+        #- make and plot preproc composites
         composite_output = '{}/qa-amp-{:08d}-composites.html'.format(expdir, expid)
-       #  web_plotimage.write_composites_html(preprocdir, night, expid, downsample, composite_output)
-        composite_inputs = [os.path.join(preprocdir, "pp-bcompositesqrtstretch-00074938.fits"),
-                os.path.join(preprocdir, "pp-rcompositesqrtstretch-00074938.fits"),
-                os.path.join(preprocdir, "pp-zcompositesqrtstretch-00074938.fits")]
 
-        web_plotimage.write_composite_html(composite_inputs, composite_output, downsample, night)
+        web_plotimage.write_composite_html(preprocdir, composite_output, night, expid, downsample)
 
 
     if (logdir is not None):

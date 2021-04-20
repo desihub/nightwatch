@@ -57,14 +57,13 @@ def plot_image(image, width=800, downsample=2, title=None, label=None, roll=None
     if title is not None:
         fig.title.text = title
 
-    #- Add labels
+    #- Add labels for each slice in composite
     if label and roll:
         labels = np.roll(range(10),roll)
         labels = list(np.tile([label+x for x in labels.astype(str)],2))
 
         start = 0
         spacing = nx/10/4 # 10 cameras , 4 quadrants
-        print("label spacing: ", spacing)
         xvals = [spacing*(2*i+1)+start for i in range(len(labels))]
         yvals = list(np.repeat([50], 20))
 
