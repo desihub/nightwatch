@@ -530,6 +530,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
                                         error_colors=error_colors)
 
+    from nightwatch.webpages import fvc as web_fvc
+    fvc_output = '{}/qa-amp-{:08d}-fvc.html'.format(expdir, expid)
+    web_fvc.write_fvc_html(fvc_output, downsample, night, expid)
+
 def write_tables(indir, outdir, expnights=None):
     '''
     Parses directory for available nights, exposures to generate

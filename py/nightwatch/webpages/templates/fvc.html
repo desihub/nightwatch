@@ -1,0 +1,22 @@
+{% extends "qabase.html" %}
+{% block body %}
+
+<style>
+.container{
+  display: flex;
+}
+</style>
+
+<header>
+  FVC Shutter Inspection
+</header>
+
+<div class="container">
+
+  {# FVC Image #}
+  <div class=flex-item>
+      <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
+  </div>
+
+</div>
+{% endblock %}
