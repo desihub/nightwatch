@@ -19,7 +19,7 @@ import bokeh
 
 from glob import glob
 
-from plotimage import plot_image
+from ..plots.plotimage import plot_image
 
 def plot_fvc(expos, hdu="F0000", downsample=2):
     '''Plots FVC image

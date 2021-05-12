@@ -531,7 +531,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
                                         error_colors=error_colors)
 
     from nightwatch.webpages import fvc as web_fvc
-    fvc_output = '{}/qa-amp-{:08d}-fvc.html'.format(expdir, expid)
+    fvc_output = '{}/qa-fvc-{:08d}.html'.format(expdir, expid)
     web_fvc.write_fvc_html(fvc_output, downsample, night, expid)
 
 def write_tables(indir, outdir, expnights=None):
