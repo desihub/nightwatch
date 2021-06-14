@@ -36,7 +36,7 @@ def write_camfiber_html(outfile, data, header):
     TITLES = {'INTEG_RAW_FLUX':'Integrated Raw Counts', 'MEDIAN_RAW_FLUX':'Median Raw Counts',
               'MEDIAN_RAW_SNR':'Median Raw S/N', 'INTEG_CALIB_FLUX':'Integrated Calibrated Flux',
               'MEDIAN_CALIB_FLUX':'Median Calibrated Flux', 'MEDIAN_CALIB_SNR':'Median Calibrated S/N',
-              'ON_TARGET': 'Fibers With Median (S/N) > 1'}
+              'ON_TARGET': 'Fibers With Median (S/N) > 1 (Blue)'}
     TITLESPERCAM = {'B':TITLES}
     TOOLS = 'pan,box_zoom,tap,reset'
 
@@ -212,6 +212,10 @@ def get_posacc_cd(header):
 
         final_move = np.sort(fnmatch.filter(df.columns, 'OFFSET_*'))[-1]
         df = df.merge(fiberpos, how='left',left_on=['PETAL_LOC','DEVICE_LOC'], right_on=['PETAL','DEVICE'])
+        blind_good = df[((df['FLAGS_COR_0'] & 4) != 0) & (df['FLAGS_COR_0'] < 65535)]
+        final_good = blind_good[((blind_good['FLAGS_COR_1'] & 4) != 0) & (blind_good['FLAGS_COR_1'] < 65535)]
+        df = final_good
+
         df['BLIND'] = df['OFFSET_0']*1000
         df['FINAL_MOVE'] = df[final_move]*1000
         df['CAM'] = ''
@@ -274,10 +278,11 @@ def create_cds(data, attributes, bin_size=25):
             attr = 'MEDIAN_CALIB_SNR'
         elif 'MEDIAN_RAW_SNR' in data.dtype.names:
             attr = 'MEDIAN_RAW_SNR'
-
+        print(attr)
         try:
             d = np.array(data[attr])
             on_target = np.where(d>1)
+            print('on target: ', len(on_target))
             new_d = np.zeros(len(d))
             new_d[on_target] = 1
             data_dict['ON_TARGET'] = new_d

@@ -112,8 +112,6 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
 
     metric = np.array(cds.data.get(attribute), copy=True)
 
-
-
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
     tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
@@ -141,18 +139,12 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
         cam_metric = metric[in_cam]
 
 
-        pmin, pmax = np.percentile(cam_metric, (2.5, 97.5))
-
-        colorbar = True
-
-        hist_x_range = (pmin * 0.99, pmax * 1.01)
-
         fig, hfig = plot_fibers_focalplane(cds, attribute, cam=c,
                         percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
                         title=titles.get(c, {}).get(attribute),
                         palette = list(np.flip(bp.YlGnBu[5])),
-                        tools=tools, hist_x_range=hist_x_range,
+                        tools=tools, 
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=False, on_target=True)
 
@@ -171,10 +163,10 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
     pmin, pmax = np.percentile(metric, (2.5, 97.5))
 
     if attribute == 'BLIND':
-        title = "Max Blind Move: {:.2f}um".format(np.max(metric))
+        title = "Blind Move: Max {:.2f}um; RMS {:.2f}um".format(np.max(metric),np.sqrt(np.square(metric).mean()))
         zmax = 200
     elif attribute == 'FINAL_MOVE':
-        title = 'RMS Final Move: {:.2f}um'.format(np.sqrt(np.square(metric).mean()))
+        title = "Final Move: Max {:.2f}um; RMS {:.2f}um".format(np.max(metric),np.sqrt(np.square(metric).mean()))
         zmax = 30
 
 
