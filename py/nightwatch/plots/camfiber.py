@@ -1,12 +1,14 @@
 import numpy as np
 import jinja2
 import bokeh
+import pandas as pd
 
 from astropy.table import Table
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
 from bokeh.models import TapTool, OpenURL
+from bokeh.models import ColumnDataSource
 
 from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
 # from ..plots.core import get_colors
@@ -158,15 +160,29 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
 
     figs_list = []
     hfigs_list = []
-    metric = np.array(pcd.data.get(attribute), copy=True)
-    metric = metric[np.where(metric>0)] #removed nan values
+    metric = pd.DataFrame(pcd.data.get(attribute))
     pmin, pmax = np.percentile(metric, (2.5, 97.5))
 
     if attribute == 'BLIND':
-        title = "Blind Move: Max {:.2f}um; RMS {:.2f}um".format(np.max(metric),np.sqrt(np.square(metric).mean()))
+        disabled_data = np.array(pd.DataFrame(pcd.data.get('DISABLED_0')))
+        disabled = disabled_data[disabled_data == True]
+        metric = np.array(metric)[disabled_data == False]
+        metric = metric[metric>0]
+        pcd_data = pd.DataFrame(pcd.data)
+        pcd_data = pcd_data[pcd_data['BLIND']>0]
+        pcd = ColumnDataSource(data=pcd_data)
+        title = "Blind Move: Max {:.2f}um; RMS {:.2f}um; Disabled {}".format(np.max(list(metric)),np.sqrt(np.square(list(metric)).mean()),len(disabled))
         zmax = 200
     elif attribute == 'FINAL_MOVE':
-        title = "Final Move: Max {:.2f}um; RMS {:.2f}um".format(np.max(metric),np.sqrt(np.square(metric).mean()))
+        disabled_data = np.array(pd.DataFrame(pcd.data.get('DISABLED_1')))
+        disabled = disabled_data[disabled_data == True]
+        metric = np.array(metric)[disabled_data == False]
+        metric = metric[metric>0]
+        pcd_data = pd.DataFrame(pcd.data)
+        pcd_data = pcd_data[pcd_data['FINAL_MOVE']>0]
+        print(len(pcd_data))
+        pcd = ColumnDataSource(data=pcd_data)
+        title = "Final Move: Max {:.2f}um; RMS {:.2f}um; Disabled {}".format(np.max(list(metric)),np.sqrt(np.square(list(metric)).mean()), len(disabled))
         zmax = 30
 
 
@@ -193,7 +209,7 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
                         title=title,zmin=0, zmax=zmax,
                         tools=tools, hist_x_range=hist_x_range,
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
-                        colorbar=True)
+                        colorbar=True, width=400, height=400)
 
     figs_list.append(fig)
     hfigs_list.append(hfig)

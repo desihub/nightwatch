@@ -175,7 +175,7 @@ def write_posacc_plots(data, template, outfile, header,
         pcd = get_posacc_cd(header)
         if pcd is not None:
             for attr in ['BLIND','FINAL_MOVE']:
-                figs_list,hfigs_list = plot_camfib_posacc(pcd, attr, percentiles=PERCENTILES,tools=TOOLS)
+                figs_list,hfigs_list = plot_camfib_posacc(pcd, attr, percentiles=PERCENTILES, tools=TOOLS)
                 focalplane_gridlist.extend([figs_list, hfigs_list])
 
     #- Organizes the layout of the plots
@@ -212,12 +212,24 @@ def get_posacc_cd(header):
 
         final_move = np.sort(fnmatch.filter(df.columns, 'OFFSET_*'))[-1]
         df = df.merge(fiberpos, how='left',left_on=['PETAL_LOC','DEVICE_LOC'], right_on=['PETAL','DEVICE'])
-        blind_good = df[((df['FLAGS_COR_0'] & 4) != 0) & (df['FLAGS_COR_0'] < 65535)]
-        final_good = blind_good[((blind_good['FLAGS_COR_1'] & 4) != 0) & (blind_good['FLAGS_COR_1'] < 65535)]
-        df = final_good
-
+        df = df[df['DEVICE_TYPE'] == "b'POS'"]
+        df.reset_index(drop=True,inplace=True)
+        print(len(df))
+        df['DISABLED_0'] = True
+        df['DISABLED_1'] = True
+        for i in [0,1]:
+            try:
+                flag = 'FLAGS_COR_{}'.format(i)
+                x = np.where(((df[flag] & 4) != 0) & (df[flag] < 65535))
+                df.at[x[0], 'DISABLED_{}'.format(i)] = False
+            except Exception as e:
+                print('Issue setting disabled positioners: ',e)
+        
+        
         df['BLIND'] = df['OFFSET_0']*1000
         df['FINAL_MOVE'] = df[final_move]*1000
+        df[df['DISABLED_0']==True]['BLIND'] = -1
+        df[df['DISABLED_1']==True]['FINAL_MOVE'] = -1
         df['CAM'] = ''
         df = df.fillna(-1)
         return ColumnDataSource(data=df)
@@ -278,11 +290,9 @@ def create_cds(data, attributes, bin_size=25):
             attr = 'MEDIAN_CALIB_SNR'
         elif 'MEDIAN_RAW_SNR' in data.dtype.names:
             attr = 'MEDIAN_RAW_SNR'
-        print(attr)
         try:
             d = np.array(data[attr])
             on_target = np.where(d>1)
-            print('on target: ', len(on_target))
             new_d = np.zeros(len(d))
             new_d[on_target] = 1
             data_dict['ON_TARGET'] = new_d
