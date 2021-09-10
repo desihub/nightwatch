@@ -311,12 +311,12 @@ def write_htmlfile(layout, template, outfile, header):
     else :
         program = header['PROGRAM'].rstrip()
     exptime = header['EXPTIME']
-
+    focalplane = 'focalplane_plots' in outfile
+    positioning = 'posacc_plots' in outfile
     components_dict = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        obstype=obstype, program=program, qatype = 'camfiber',
-        num_dirs=2,        
+        obstype=obstype, program=program, qatype = 'camfiber',focalplane = focalplane,positioning = positioning,     num_dirs=2,        
     )
 
     script, div = components(layout)

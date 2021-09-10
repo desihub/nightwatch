@@ -83,6 +83,10 @@ function get_explinks(links) {
         "../../../../"+next_item.night+"/"+next_item.zexpid+"/spectra/input/";
         {% elif logfile %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-summary-"+next_item.zexpid+"-logfiles_table.html";
+        {% elif focalplane %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-focalplane_plots.html";
+        {% elif positioning %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-posacc_plots.html";
         {% else %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
         {% endif %}
@@ -105,6 +109,10 @@ function get_explinks(links) {
         "../../../../"+prev_item.night+"/"+prev_item.zexpid+"/spectra/input/";
         {% elif logfile %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-summary-"+prev_item.zexpid+"-logfiles_table.html";
+        {% elif focalplane %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-focalplane_plots.html";
+        {% elif positioning %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-posacc_plots.html";
         {% else %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+".html";
         {% endif %}
@@ -130,3 +138,8 @@ document.getElementById("{{ qatype }}").className = "current_page";
 
 {% block body %}
 {% endblock %}
+
+
+
+
+
