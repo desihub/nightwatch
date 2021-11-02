@@ -174,7 +174,8 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
         title = "Max Blind Move: {:.2f}um".format(np.max(metric))
         zmax = 200
     elif attribute == 'FINAL_MOVE':
-        title = 'RMS Final Move: {:.2f}um'.format(np.sqrt(np.square(metric).mean()))
+        select = metric < pmax  # clip at 97.5 percentile
+        title = 'RMS Final Move: {:.2f}um'.format(np.sqrt(np.square(metric[select]).mean()))
         zmax = 30
 
 
