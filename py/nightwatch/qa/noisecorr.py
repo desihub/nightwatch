@@ -2,6 +2,7 @@ from .base import QA
 import glob
 import os
 import collections
+import itertools
 
 import numpy as np
 import fitsio
@@ -9,7 +10,7 @@ import fitsio
 from astropy.table import Table
 
 import desiutil.log
-from desispec.preproc import _overscan
+from desispec.preproc import calc_overscan
 from .amp import _fix_amp_names
 
 import multiprocessing as mp
@@ -28,7 +29,7 @@ def corr(img,d0=4,d1=4,nrand=50000) :
     return correlation function as a 2D array of shape (d0,d1)
     """
     log = desiutil.log.get_logger()
-    mean,rms = _overscan(img, nsigma=5, niter=3)
+    mean,rms = calc_overscan(img, nsigma=5, niter=3)
     tmp = (img-mean)/rms
     log.debug("mean={:3.2f} rms={:3.2f}".format(mean,rms))
     n0=tmp.shape[0]
@@ -73,15 +74,19 @@ class QANoiseCorr(QA):
             results = pool.map(get_dico, infiles)
             pool.close()
             pool.join()
+
+            #- convert list of lists into flattened list
+            results = list(itertools.chain.from_iterable(results))
         else:
             for filename in infiles:
-                results.append(get_dico(filename))
+                results.extend(get_dico(filename))
                 
         return Table(results, names=results[0].keys())
 
             
 def get_dico(filename):
-    '''Return dictionary of noisecorr qa metrics for a single amp, given path to a preproc-*.fits file.'''
+    '''Return list of dictionaries of noisecorr qa metrics for each amp,
+    given path to a preproc-*.fits file.'''
 
     img,hdr = fitsio.read(filename, 'IMAGE',header=True) 
     _fix_amp_names(hdr)
@@ -90,9 +95,13 @@ def get_dico(filename):
     cam = hdr['CAMERA'][0].upper()
     spectro = int(hdr['CAMERA'][1])
 
+    results = list()
     ny, nx = img.shape
     npix_amp = nx*ny//4
     for amp in ['A', 'B', 'C', 'D']:
+        if 'BIASSEC'+amp not in hdr.keys():
+            continue
+
         #- Subregion of mask covered by this amp
         if amp == 'A':
             subimg  = img[0:ny//2, 0:nx//2].astype(float)
@@ -111,6 +120,8 @@ def get_dico(filename):
         for i0 in range(n0) :
             for i1 in range(n1) :
                 dico["CORR-{}-{}".format(i0,i1)]=corrimg[i0,i1]
+
+        results.append(dico)
                 
-    return dico
+    return results
     
