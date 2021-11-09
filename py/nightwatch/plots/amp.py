@@ -115,14 +115,18 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     amp_loc = []
     name_data = []
     data_val = []
+    locations_to_sort = []
     for row in data:
         if row['CAM'] in (cam, cam.encode('utf-8')):
             if isinstance(row['AMP'], bytes):
-                amp_loc.append(row['AMP'].decode('utf-8'))
+                amp = row['AMP'].decode('utf-8')
             else:
-                amp_loc.append(row['AMP'])
+                amp = row['AMP']
+
+            amp_loc.append(amp)
             spec_loc.append(str(row['SPECTRO']))
             data_val.append(row[name])
+            locations_to_sort.append(str(row['SPECTRO'])+amp)
             if isinstance(row['CAM'], bytes):
                 cam_spect = row['CAM'].lower().decode("utf-8") + str(row['SPECTRO'])
             else:
@@ -135,11 +139,10 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     _, ids = np.unique(amp_loc, return_index=True)
     amp_loc = np.array(amp_loc)[np.sort(ids)]
     
-    locations_to_sort = [str(spec+amp) for spec in spec_loc for amp in amp_loc]
     sorted_ids = np.argsort(locations_to_sort)
     name_data = np.array(name_data)[sorted_ids]
     data_val = np.array(data_val)[sorted_ids]
-    locations = [(spec, amp) for spec in np.sort(spec_loc) for amp in np.sort(amp_loc)]
+    locations = [tuple(locations_to_sort[i]) for i in sorted_ids]
     
     cam_vals = {'B':0, 'R':1, 'Z':2}
     colors = []
