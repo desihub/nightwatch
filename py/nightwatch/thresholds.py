@@ -129,7 +129,7 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
             nomtype = 'DARK'
 
         # keep the most recent thresholds available    
-        for file in glob.glob(os.path.join(threshold_dir, "READNOISE-*-{nomtype}.json".format(nomtype=nomtype))):
+        for file in sorted(glob.glob(os.path.join(threshold_dir, "READNOISE-*-{nomtype}.json".format(nomtype=nomtype)))):
             zero_nightid = int(re.findall(r'\d{8}', os.path.basename(file))[0])
             if zero_nightid <= night:
                 thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=zero_nightid, nomtype=nomtype)               
