@@ -9,7 +9,7 @@ meaningful.
 Read noise thresholds are calculated separately for ZEROs vs. longer ("DARK")
 exposures since the B-camera CCDs have a short- vs. long- exptime readnoise
 dependence (though this difference has been much reduced in the latest
-timing files as of 20210128).
+timing files as of 20211028).
 
 Readnoise thresholds are calculated by providing and input file of
 NIGHT EXPID to use and a directory of previously processed nightwatch data.
@@ -19,14 +19,14 @@ the list of exposures used.
 
 Example:
 ```
-python calcnominalreadnoise.py \
+python calcnominalnoise.py \
     --indir /global/cfs/cdirs/desi/spectro/nightwatch/nersc \
-    --nightexpids 20210128-ZERO.txt \
-    --outfile READNOISE-20210128-ZERO.json
+    --nightexpids 20211028-ZERO.txt \
+    --outfile READNOISE-20211028-ZERO.json
 
-python calcnominalreadnoise.py \
+python calcnominalnoise.py \
     --indir /global/cfs/cdirs/desi/spectro/nightwatch/nersc \
-    --nightexpids 20210128-DARK.txt \
-    --outfile READNOISE-20210128-DARK.json
+    --nightexpids 20211028-DARK.txt \
+    --outfile READNOISE-20211028-DARK.json
 ```
 
