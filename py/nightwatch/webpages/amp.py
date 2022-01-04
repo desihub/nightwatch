@@ -85,6 +85,15 @@ def write_amp_html(outfile, data, header):
     script, div = components(fig)
     html_components['COSMICS_RATE'] = dict(script=script, div=div)
 
+    #- Fraction of amplifier masked
+    frmask_file = pick_threshold_file('FRAC_MASKED', night, in_nightwatch=True)
+    lower_frmask, upper_frmask, frmask_keys = get_thresholds(frmask_file, return_keys=True)
+    fig = plot_amp_qa(data, 'FRAC_MASKED', lower=lower_frmask, upper=upper_frmask,
+        amp_keys=frmask_keys, title='CCD Amplifier masked fraction',
+        ymin=[-0.1, -0.1, -0.1], ymax=[1.1, 1.1, 1.1])
+    script, div = components(fig)
+    html_components['FRAC_MASKED'] = dict(script=script, div=div)
+
     #- Combine template + components -> HTML
     html = template.render(**html_components)
 

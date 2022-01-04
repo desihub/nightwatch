@@ -160,7 +160,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
         upper_err += upper[cam_val][1]
         cam_amp_keys = amp_keys[cam_val]
         
-        if name in ['COSMICS_RATE']:
+        if name in ['COSMICS_RATE', 'FRAC_MASKED']:
             lower_err = [lower_err]*len(data_val)
             lower_warn = [lower_warn]*len(data_val)
             upper_warn = [upper_warn]*len(data_val)

@@ -130,12 +130,16 @@ def get_dico(self, filename, amp):
     else:
         submask = mask[ny//2:, nx//2:]
 
+    #- Fraction of the amp pixels masked out, for any reason.
+    frmask = np.sum(submask != 0) / submask.size
+
     #- Number of cosmics per minute on this amplifier
     num_cosmics = self.count_cosmics(submask)
     cosmics_rate = (num_cosmics / (exptime/60) )
 
     dico = {'NIGHT': night, 'EXPID': expid, 'SPECTRO': spectro, 'CAM': cam, 'AMP': amp,
-            'READNOISE': readnoise, 'BIAS': biaslevel, 'COSMICS_RATE': cosmics_rate
+            'READNOISE': readnoise, 'BIAS': biaslevel, 'COSMICS_RATE': cosmics_rate,
+            'FRAC_MASKED': frmask
            }
         
     return collections.OrderedDict(**dico)
