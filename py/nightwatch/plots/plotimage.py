@@ -98,19 +98,25 @@ def main(input_in = None, output_in = None, downsample_in = None):
 
     with fits.open(img_input) as hdul:
         image = hdul[0].data
+        mask = (hdul[2].data == 0).astype(np.uint8)
 
-    short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
-    long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
+    short_img_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
+    long_img_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
+    long_mask_title = '{basename} mask downsampled {n}x{n}'.format(basename=basename, n=n)
 
-    fig = plot_image(image, downsample=n, title=long_title)
+    fig_img = plot_image(image, downsample=n, title=long_img_title)
+    fig_mask = plot_image(mask, downsample=n, title=long_mask_title)
+    c = bokeh.layouts.column(fig_img, fig_mask)
 
     if (output != None):
-        bk.output_file(output, title=short_title, mode='inline')
-        fig = plot_image(image, downsample=n, title=long_title)
-        bk.save(fig)
+        bk.output_file(output, title=short_img_title, mode='inline')
+        fig_img = plot_image(image, downsample=n, title=long_img_title)
+        fig_mask = plot_image(mask, downsample=n, title=long_mask_title)
+        c = bokeh.layouts.column(fig_img, fig_mask)
+        bk.savep(c)
         print('Wrote {}'.format(output))
 
-    return components(fig)
+    return components(c)
 
 if __name__ == '__main__':
     main()
