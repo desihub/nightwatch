@@ -127,7 +127,7 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
 
     # Set up search for most recent threshold files.
     file_search_str = f'{name}-*.json'
-    if 'READNOISE' in name:
+    if name in ['READNOISE', 'COSMICS_RATE']:
         if exptime < 100: # use zero-calibrated nominal values for short exposure times
             nomtype = 'ZERO'
         else:             # use dark-calibrated nominal values for long exposure times
