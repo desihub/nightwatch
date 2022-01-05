@@ -118,51 +118,33 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
         outdir: specify where to look for threshold files
         in_nightwatch: tells function to look in nightwatch module for threshold files
     Output:
-        filepath: a path to the proper threshold file'''
-
-    # WARNING: this hardcoding probably breaks nightwatch run when the nom files have not yet been generated
-    if name in ["READNOISE"]:
-        threshold_dir = get_outdir()
-        if exptime<100: # use zero-calibrated nominal values for short exposure times
-            nomtype = 'ZERO'
-        else: # use dark-calibrated nominal values for long exposure times
-            nomtype = 'DARK'
-
-        # keep the most recent thresholds available    
-        for file in sorted(glob.glob(os.path.join(threshold_dir, "READNOISE-*-{nomtype}.json".format(nomtype=nomtype)))):
-            zero_nightid = int(re.findall(r'\d{8}', os.path.basename(file))[0])
-            if zero_nightid <= night:
-                thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=zero_nightid, nomtype=nomtype)               
-        try:
-            thresholdfile
-        except NameError:
-            print("No earlier thresholds found, defaulting to 20210205")
-            thresholdfile = '{name}-{night}-{nomtype}.json'.format(name=name, night=20210205, nomtype=nomtype) # hardcode for 20210205
-            
-        filepath = ''
-        filepath += os.path.join(threshold_dir, thresholdfile)
-        print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
-
-        return filepath
-
-
-    file = '{name}-{night}.json'.format(name=name, night=night)
-    
-    if in_nightwatch:
-        threshold_dir = get_outdir()
+        filepath: a path to the proper threshold file
+    '''
     if not in_nightwatch and outdir is not None:
         threshold_dir = outdir
-    
-    filepath = ''
-    files = [f for f in np.sort(os.listdir(threshold_dir)) if name in f]
-    
-    for f in files:
-        if str(night) in f:
-            filepath += os.path.join(threshold_dir, file)    
-    if filepath == '':
-        filepath += os.path.join(threshold_dir, files[0])
-    
-    return filepath
+    else:
+        threshold_dir = get_outdir()
+
+    # Set up search for most recent threshold files.
+    file_search_str = f'{name}-*.json'
+    if name in ['READNOISE', 'COSMICS_RATE']:
+        if exptime < 100: # use zero-calibrated nominal values for short exposure times
+            nomtype = 'ZERO'
+        else:             # use dark-calibrated nominal values for long exposure times
+            nomtype = 'DARK'
+        file_search_str = f'{name}-*-{nomtype}.json'
+
+    # Pick the most recent thresholds available.
+    threshold_files = sorted(glob.glob(os.path.join(threshold_dir, file_search_str)), reverse=True)
+    for filepath in threshold_files:
+        zero_nightid = int(re.findall(r'\d{8}', os.path.basename(filepath))[0])
+        if zero_nightid <= night:
+            print('exptime={}, chose threshold file {}'.format(exptime, filepath)) # label which nominal threshold file chosen
+            return filepath
+
+    # If we've gotten to this point, no suitable thresholds were found.
+    raise RuntimeError(f'No suitable {name} threshold found for {night} in {threshold_dir}.')
+
 
 def get_thresholds(filepath, return_keys=None):
     '''Unpack threshold values to use in plotting amp graphs
