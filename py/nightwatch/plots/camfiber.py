@@ -167,7 +167,7 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
         disabled_data = np.array(pd.DataFrame(pcd.data.get('DISABLED_0')))
         disabled = disabled_data[disabled_data == True]
         metric = np.array(metric)[disabled_data == False]
-        metric = metric[metric>0]
+        metric = metric[(metric>0) & (metric<200)]
         pcd_data = pd.DataFrame(pcd.data)
         pcd_data = pcd_data[pcd_data['BLIND']>0]
         pcd = ColumnDataSource(data=pcd_data)
@@ -177,14 +177,13 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
         disabled_data = np.array(pd.DataFrame(pcd.data.get('DISABLED_1')))
         disabled = disabled_data[disabled_data == True]
         metric = np.array(metric)[disabled_data == False]
-        metric = metric[metric>0]
+        metric = metric[(metric>0) & (metric<50)]
         pcd_data = pd.DataFrame(pcd.data)
         pcd_data = pcd_data[pcd_data['FINAL_MOVE']>0]
         print(len(pcd_data))
         pcd = ColumnDataSource(data=pcd_data)
         title = "Final Move: Max {:.2f}um; RMS {:.2f}um; Disabled {}".format(np.max(list(metric)),np.sqrt(np.square(list(metric)).mean()), len(disabled))
         zmax = 30
-
 
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
     tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),

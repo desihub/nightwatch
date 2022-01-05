@@ -199,6 +199,10 @@ def get_posacc_cd(header):
     expid = header['EXPID']
     coordfile = '{}/{}/coordinates-{}.fits'.format(night, str(expid).zfill(8), str(expid).zfill(8))
 
+    # Useful for offline tests: backup location for coordfiles at NERSC.
+    if not os.path.exists(coordfile):
+        coordfile = '/'.join([os.environ['DESI_SPECTRO_DATA'], coordfile])
+
     if os.path.isfile(coordfile):
         df = Table(fitsio.read(coordfile)).to_pandas()
 
