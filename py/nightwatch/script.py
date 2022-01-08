@@ -26,6 +26,9 @@ def print_help():
 Supported commands are:
     monitor    Monitor input directory and run qproc, qa, and generate plots
     run        Run qproc, qa, and generate plots for a single exposure
+    assemble_fibermap
+               Run assemble_fibermap using data from input raw data file
+    preproc    Run only preprocessing on an input raw data file
     preproc    Run only preprocessing on an input raw data file
     qproc      Run qproc (includes preproc) on an input raw data file
     qa         Run QA analysis on qproc outputs
@@ -46,6 +49,8 @@ def main():
         main_monitor()
     if command == 'run':
         main_run()
+    elif command == 'assemble_fibermap':
+        main_assemble_fibermap()
     elif command == 'preproc':
         main_preproc()
     elif command == 'qproc':
@@ -344,6 +349,24 @@ def main_run(options=None):
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
+
+def main_assemble_fibermap(options=None):
+    parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
+    parser.add_argument("-i", "--infile", type=str, required=True,
+        help="input raw data file")
+    parser.add_argument("-o", "--outdir", type=str, required=True,
+        help="output directory")
+
+    if options is None:
+        options = sys.argv[2:]
+
+    args = parser.parse_args(options)
+
+    fibermap = run.run_assemble_fibermap(args.infile, args.outdir)
+    if fibermap is not None:
+        print('Done running assemble_fibermap for {}; wrote outputs to {}'.format(args.infile, fibermap))
+    else:
+        print('Did not run assemble_fibermap for {}'.format(args.infile))
         
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")

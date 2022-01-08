@@ -181,6 +181,31 @@ def runcmd(command, logfile, msg):
         print('See {}'.format(logfile))
     
     return {os.path.basename(logfile):err}
+
+
+def run_assemble_fibermap(rawfile, outdir):
+    '''Run assemble_fibermap using NIGHT, EXPID, and TILE from input raw data file
+
+    Args:
+        rawfile: input desi-EXPID.fits.fz raw data file
+        outdir: directory to write fibermap-EXPID.fits files
+
+    Returns:
+        path to written fibermap
+    '''
+    hdr = fitsio.read_header(rawfile, 1)
+    night, expid = get_night_expid_header(hdr)
+
+    if 'TILEID' in hdr:
+        fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
+        cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
+        logfile = '{}/assemble_fibermap-{:08d}.log'.format(outdir, expid)
+        msg = 'assemble_fibermap {}/{}'.format(night, expid)
+        err = runcmd(cmd, logfile, msg)
+
+        return fibermap
+
+    return None
     
     
 def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
