@@ -23,8 +23,10 @@ from .thresholds import write_threshold_json, get_outdir
 from .io import get_night_expid_header
 from nightwatch.threshold_files.calcnominalnoise import calcnominalnoise
 
+
 def timestamp():
     return time.strftime('%H:%M')
+
 
 def get_ncpu(ncpu):
     """
@@ -85,6 +87,7 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
 
     return None
 
+
 def find_latest_expdir(basedir, processed, startdate=None):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
@@ -140,6 +143,7 @@ def find_latest_expdir(basedir, processed, startdate=None):
         log.debug('{} no new spectro files found'.format(timestamp()))
         return None
 
+
 def which_cameras(rawfile):
     '''
     Returns list of cameras found in rawfile
@@ -152,6 +156,7 @@ def which_cameras(rawfile):
                 cameras.append(extname.lower())
 
     return sorted(cameras)
+
 
 def runcmd(command, logfile, msg):
     '''Runs a given command and writes a logfile, returns a SUCCESS or ERROR message.
@@ -257,6 +262,7 @@ def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
 
     return header
 
+
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the obstype of the rawfile, and run qproc with appropriate options
@@ -342,7 +348,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         )
 
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
-
         cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
@@ -374,6 +379,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return hdr
 
+
 def run_qa(indir, outfile=None, qalist=None):
     """
     Run QA analysis of qproc files in indir, writing output to outfile
@@ -390,6 +396,7 @@ def run_qa(indir, outfile=None, qalist=None):
     from .qa.runner import QARunner
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
+
 
 def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, cameras=None):
     '''Make plots for a single exposure
@@ -849,6 +856,7 @@ def write_nights_summary(indir, last):
                 json.dump(data, out, indent=4)
             print('Wrote {}'.format(jsonfile))
             
+
 def write_thresholds(indir, outdir, start_date, end_date):
     '''Writes threshold files for each metric over a given date range.
     Input: 
@@ -883,6 +891,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
     htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
     pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
     print('Wrote {}'.format(htmlfile))
+
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
     '''Writes surveyqa html files.
