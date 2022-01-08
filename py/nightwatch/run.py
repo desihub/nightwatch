@@ -183,7 +183,7 @@ def runcmd(command, logfile, msg):
     return {os.path.basename(logfile):err}
     
     
-def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
+def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     '''Runs preproc on the input raw data file, outputting to outdir
 
     Args:
@@ -191,6 +191,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
         outdir: directory to write preproc-CAM-EXPID.fits files
 
     Options:
+        fibermap : path to fibermap-EXPID.fits file
         ncpu: number of CPU cores to use for parallelism; serial if ncpu<=1
         cameras: list of cameras to process; default all found in rawfile
 
@@ -212,7 +213,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     arglist = list()
     for camera in cameras:
-        args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
+        args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermapfile, '--cameras', camera]
         arglist.append(args)
 
     ncpu = min(len(arglist), get_ncpu(ncpu))
@@ -235,9 +236,15 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the obstype of the rawfile, and run qproc with appropriate options
 
-    cameras can be a list
+    Args:
+        rawfile: input desi-EXPID.fits.fz raw data file
+        outdir: directory to write qproc-CAM-EXPID.fits files
 
-    returns header of HDU 0 of the input rawfile, plus dictionary of return codes for each qproc process run.
+    Options:
+        ncpu: number of CPU cores to use for parallelism; serial if ncpu<=1
+        cameras: list of cameras to process; default all found in rawfile
+
+    Returns header of HDU 0 of the input raw data file, plus dictionary of return codes for each qproc process run.
     '''
     log = desiutil.log.get_logger()
     if not os.path.isdir(outdir):

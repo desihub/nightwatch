@@ -351,6 +351,8 @@ def main_preproc(options=None):
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
         help="output directory")
+    parser.add_argument('--fibermap', type=str, default=None,
+        help="fibermap file")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
@@ -363,7 +365,7 @@ def main_preproc(options=None):
     else:
         cameras = None
 
-    header = run.run_preproc(args.infile, args.outdir, cameras=cameras)
+    header = run.run_preproc(args.infile, args.outdir, fibermap=args.fibermap, cameras=cameras)
     print("Done running preproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_qproc(options=None):
