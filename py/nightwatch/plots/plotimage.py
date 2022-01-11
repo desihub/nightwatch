@@ -15,6 +15,7 @@ from astropy.visualization import ZScaleInterval
 import bokeh
 import bokeh.plotting as bk
 from bokeh.models.mappers import LinearColorMapper
+from bokeh.models.widgets import Panel, Tabs
 from bokeh.palettes import cividis, gray
 
 def downsample_image(image, n):
@@ -105,18 +106,26 @@ def main(input_in = None, output_in = None, downsample_in = None):
     long_mask_title = '{basename} mask downsampled {n}x{n}'.format(basename=basename, n=n)
 
     fig_img = plot_image(image, downsample=n, title=long_img_title)
+    tab1 = Panel(child=fig_img, title="CCD Image")
+
     fig_mask = plot_image(mask, downsample=n, title=long_mask_title)
-    c = bokeh.layouts.column(fig_img, fig_mask)
+    tab2 = Panel(child=fig_mask, title="Mask")
+
+    tabs = Tabs(tabs=[tab1, tab2])
 
     if (output != None):
         bk.output_file(output, title=short_img_title, mode='inline')
         fig_img = plot_image(image, downsample=n, title=long_img_title)
+        tab1 = Panel(child=fig_img, title="CCD Image")
+
         fig_mask = plot_image(mask, downsample=n, title=long_mask_title)
-        c = bokeh.layouts.column(fig_img, fig_mask)
-        bk.savep(c)
+        tab2 = Panel(child=fig_mask, title="Mask")
+
+        tabs = Tabs(tabs=[tab1, tab2])
+        bk.savep(tabs)
         print('Wrote {}'.format(output))
 
-    return components(c)
+    return components(tabs)
 
 if __name__ == '__main__':
     main()
