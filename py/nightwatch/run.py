@@ -201,7 +201,14 @@ def run_assemble_fibermap(rawfile, outdir):
     hdr = fitsio.read_header(rawfile, 1)
     night, expid = get_night_expid_header(hdr)
 
+    log = desiutil.log.get_logger()
+
     if 'TILEID' in hdr:
+
+        if not os.path.isdir(outdir):
+            log.info('Creating {}'.format(outdir))
+            os.makedirs(outdir, exist_ok=True)
+
         fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
         cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
         logfile = '{}/assemble_fibermap-{:08d}.log'.format(outdir, expid)
@@ -341,7 +348,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     for camera in cameras:
         outfiles = dict(
             rawfile = rawfile,
-            fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid),
+            fibermap = '{}/fibermap-{:08d}.fits'.format(outdir, expid),
             logfile = '{}/qproc-{}-{:08d}.log'.format(outdir, camera, expid),
             outdir = outdir,
             camera = camera

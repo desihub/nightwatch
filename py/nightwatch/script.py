@@ -334,6 +334,9 @@ def main_run(options=None):
         expdir = io.findfile('expdir', night=night, expid=expid, basedir=tempdir)
 
         time_start = time.time()
+        print('{} Running assemble_fibermap'.format(time.strftime('%H:%M')))
+        fibermap = run.run_assemble_fibermap(args.infile, expdir)
+
         print('{} Running qproc'.format(time.strftime('%H:%M')))
         header = run.run_qproc(args.infile, expdir, cameras=cameras)
 
