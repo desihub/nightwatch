@@ -527,9 +527,9 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             cameras += [os.path.basename(preprocfile).split('-')[1]]
     
     log_cams = []
-    log_outputs = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
-    for log in log_outputs:
-        l_cam = log.split("-")[1]
+    log_outputs = [i for i in os.listdir(logdir) if re.match(r'qproc.*\.log', i)]
+    for log_output in log_outputs:
+        l_cam = log_output.split("-")[1]
         log_cams += [l_cam]
         if l_cam not in cameras:
             qproc_fails.append(l_cam)
@@ -541,10 +541,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         downsample = 4
         
         ncpu = get_ncpu(None)
-        input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits")
+        pinput = os.path.join(preprocdir, "preproc-{}-{:08d}.fits")
         output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html")
         
-        argslist = [(input.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
+        argslist = [(pinput.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
     
         if ncpu > 1:
             pool = mp.Pool(ncpu)
@@ -562,12 +562,14 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
 
     if (logdir is not None):
         #- plot logfiles        
+        log.debug('Log directory: {}'.format(logdir))
 
         error_colors = dict()
         for log_cam in log_cams:
-            input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(log_cam, expid))
+            qinput = os.path.join(logdir, "qproc-{}-{:08d}.log".format(log_cam, expid))
             output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(log_cam, expid))
-            e = web_summary.write_logfile_html(input, output, night)
+            log.debug('qproc log: {}'.format(qinput))
+            e = web_summary.write_logfile_html(qinput, output, night)
             
             error_colors[log_cam] = e
 
