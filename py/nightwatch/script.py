@@ -29,7 +29,6 @@ Supported commands are:
     assemble_fibermap
                Run assemble_fibermap using data from input raw data file
     preproc    Run only preprocessing on an input raw data file
-    preproc    Run only preprocessing on an input raw data file
     qproc      Run qproc (includes preproc) on an input raw data file
     qa         Run QA analysis on qproc outputs
     plot       Generate webpages with plots of QA output
