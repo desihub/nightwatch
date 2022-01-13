@@ -19,7 +19,7 @@ Nightwatch produces HTML output used by observers to check DESI exposures. There
 to a location where you can open it in a web browser. The user areas in the global file system are the best
 locations for this. Create the following directory:
 ```
-mkdir -p /global/project/projectdirs/desi/username/nightwatch
+mkdir -p /global/project/projectdirs/desi/users/username/nightwatch
 ```
 where `username` is your NERSC username. When running nightwatch, you can save output to this folder and then
 view it from the DESI web portal at NERSC:
@@ -96,7 +96,7 @@ optional arguments:
 The list of exposures processed by Nightwatch is avaiable [here](https://nightwatch.desi.lbl.gov/nights.html). To
 test local changes, run a command line like the following:
 ```
-./bin/nightwatch run -n YYYYMMDD -e ######### -o /global/project/projectdirs/desi/username/nightwatch
+./bin/nightwatch run -n YYYYMMDD -e ######### -o /global/project/projectdirs/desi/users/username/nightwatch
 ```
 where
 - YYYYMMDD is the date (e.g., 20220111).
