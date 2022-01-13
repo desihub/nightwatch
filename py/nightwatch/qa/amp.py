@@ -80,6 +80,9 @@ class QAAmp(QA):
             for args in argslist:
                 results.append(get_dico(**args))
 
+        #- remove None entries from missing amp (e.g. 2-amp readout)
+        results = [r for r in results if r is not None]
+
         table = Table(results, names=results[0].keys())
         
         return table
@@ -89,9 +92,14 @@ def get_dico(self, filename, amp):
     Args:
         filename: path to preproc file (str)
         amp: name of amp to analyze (str), either A, B, C, or D
-    Returns an OrderedDict object.'''
+    Returns an OrderedDict object or None if amp isn't in data.
+    '''
     
     hdr = fitsio.read_header(filename, 'IMAGE') #- for readnoise, bias
+
+    if 'BIASSEC'+amp not in hdr.keys():
+        return None
+
     mask = fitsio.read(filename, 'MASK')        #- for cosmics
     _fix_amp_names(hdr)
     night = hdr['NIGHT']
