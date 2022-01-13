@@ -50,6 +50,7 @@ menu. For example,
 ./bin/nightwatch -h
 ```
 will produce the help output:
+```
 USAGE: nightwatch <command> [options]
 
 Supported commands are:
