@@ -58,6 +58,11 @@ def plot_fibers_focalplane(source, name, cam='',
     cam_metric = full_metric[in_cam]
 
     pmin_full, pmax_full = np.percentile(cam_metric, (2.5, 97.5))
+    
+    #adjustment for the 'all fibers in blue' error:
+    if len(np.unique(cam_metric))==2:
+        pmin_full, pmax_full = np.percentile(cam_metric, (1.0,100.0))
+
 
     #- Generate colors for both plots
     if not palette:
@@ -75,6 +80,7 @@ def plot_fibers_focalplane(source, name, cam='',
     '''
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
     view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
