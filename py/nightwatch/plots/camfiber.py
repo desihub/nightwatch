@@ -140,7 +140,6 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
         in_cam = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
         cam_metric = metric[in_cam]
 
-
         fig, hfig = plot_fibers_focalplane(cds, attribute, cam=c,
                         percentile=percentiles.get(c),
                         zmin=zmins.get(c), zmax=zmaxs.get(c),
