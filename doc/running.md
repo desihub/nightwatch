@@ -43,5 +43,8 @@ This will monitor INDIR/YEARMMDD/EXPID/ for new raw data, and when it appears
 monitor will run qproc, qa, and make plots, outputting them to
 OUTDIR/YEARMMDD/EXPID/
 
+## Development and testing at NERSC
 
+Specific instructions for testing and development Nightwatch at NERSC are
+[available here](testing.md).
 
