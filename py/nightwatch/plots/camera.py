@@ -5,7 +5,7 @@ from bokeh.layouts import column
 from bokeh.models.tickers import FixedTicker
 from astropy.table import Table
 
-def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=450, title=None, line0 = True, minmax=None):
+def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=225, width=450, title=None, line0 = True, minmax=None):
     '''
     Creates 3 plots of an attribute vs Spectrograph number, corresponding to
     R, B, Z cameras.
@@ -15,6 +15,7 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
         attribute : string that is a column name of table
 
     Options :
+        unit : string that gives the column units
         lower : list of lower per_camera thresholds from thresholds.get_thresholds()
             format: [[lower_errB, lowerB], [lower_errR, lowerR], [lower_errZ, lowerZ]]
         upper : list of upper per_camera thresholds from thresholds.get_thresholds() 
@@ -64,7 +65,11 @@ def plot_camera_qa(table, attribute, lower=None, upper=None, height=225, width=4
         if cam == 'Z':
             fig.xaxis.axis_label = "Spectrograph number"
             fig.plot_height = height+25
-        fig.yaxis.axis_label = attribute
+
+        if unit is None:
+            fig.yaxis.axis_label = attribute
+        else:
+            fig.yaxis.axis_label = f'{attribute}  ({unit})'
         
         if lower is not None and upper is not None:
             mean_range = BoxAnnotation(bottom=lower[keys[cam]][1][0], top=upper[keys[cam]][0][0], fill_color='green', fill_alpha=0.1)
