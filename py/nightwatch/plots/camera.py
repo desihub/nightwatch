@@ -105,10 +105,10 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
 
         if attribute == 'DX' or attribute == 'DY':
             k = keys[cam]
-            lower_err  = lower[k][0][0] + lower[k][1][0]
+            lower_err  = lower[k][0][0]
             lower_warn = lower[k][1][0]
             upper_warn = upper[k][0][0]
-            upper_err  = upper[k][0][0] + upper[k][1][0]
+            upper_err  = upper[k][1][0]
 
             colors = get_qa_colors(cam_table['MEAN'+attribute], lower_err, lower_warn, upper_warn, upper_err, basecolor=camcolors[cam])
             sizes = get_qa_size(cam_table['MEAN'+attribute], lower_err, lower_warn, upper_warn, upper_err)
@@ -151,8 +151,8 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
         
         if lower is not None and upper is not None:
             mean_range = BoxAnnotation(bottom=lower[keys[cam]][1][0], top=upper[keys[cam]][0][0], fill_color='green', fill_alpha=0.1)
-            max_range = BoxAnnotation(bottom=upper[keys[cam]][0][0], top=upper[keys[cam]][0][0]+upper[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
-            min_range = BoxAnnotation(bottom=lower[keys[cam]][0][0]+lower[keys[cam]][1][0], top=lower[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
+            max_range = BoxAnnotation(bottom=upper[keys[cam]][0][0], top=upper[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
+            min_range = BoxAnnotation(bottom=lower[keys[cam]][0][0], top=lower[keys[cam]][1][0], fill_color='yellow', fill_alpha=0.1)
             fig.add_layout(mean_range)
             fig.add_layout(min_range)
             fig.add_layout(max_range)

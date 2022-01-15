@@ -85,7 +85,7 @@ def get_status(qadata, night):
                     warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
 #                     warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
 #                     warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
-                    error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower'])+abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['upper'])+abs(thresholds[key]['upper_err'])))
+                    error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper_err']))
 #                     error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.5*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
 #                     error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.5*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                     if warn_mean: 
