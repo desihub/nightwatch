@@ -76,9 +76,9 @@ def get_status(qadata, night):
         filepath = pick_threshold_file(metric, night)
         with open(filepath, 'r') as json_file:
             thresholds = json.load(json_file)
-        for cam in [b'B', b'R', b'Z']:
+        for cam in 'BRZ':
             for spec in range(0, 10):
-                key = cam.decode('utf-8')
+                key = cam
                 status_loc = (status['PER_CAMERA']['CAM'] == cam) & (status['PER_CAMERA']['SPECTRO']==spec)
                 data_loc = (cam_data['CAM'] == cam) & (cam_data['SPECTRO']==spec)
                 if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
