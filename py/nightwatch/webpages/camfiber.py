@@ -233,10 +233,13 @@ def get_posacc_cd(header):
         
         df['BLIND'] = df['OFFSET_0']*1000
         df['FINAL_MOVE'] = df[final_move]*1000
-#        df[df['DISABLED_0']==True]['BLIND'] = -1
-#        df[df['DISABLED_1']==True]['FINAL_MOVE'] = -1
-        df.loc[df['DISABLED_0']==True]['BLIND'] = -1
-        df.loc[df['DISABLED_1']==True]['FINAL_MOVE'] = -1
+
+        mask = df['DISABLED_0'] == True
+        df.loc[mask, 'BLIND'] = -1
+
+        mask = df['DISABLED_1'] == True
+        df.loc[mask, 'FINAL_MOVE'] = -1
+
         df['CAM'] = ''
         df = df.fillna(-1)
         return ColumnDataSource(data=df)
