@@ -1,1 +1,3 @@
-{"R": {"lower_err": -0.1, "lower": -0.1, "upper": 0.1, "upper_err": 0.1}, "B": {"lower_err": -0.1, "lower": -0.1, "upper": 0.1, "upper_err": 0.1}, "Z": {"lower_err": -0.1, "lower": -0.1, "upper": 0.1, "upper_err": 0.1}}
+{"R": {"lower_err": -0.2, "lower": -0.1, "upper": 0.1, "upper_err": 0.2},
+ "B": {"lower_err": -0.2, "lower": -0.1, "upper": 0.1, "upper_err": 0.2},
+ "Z": {"lower_err": -0.2, "lower": -0.1, "upper": 0.1, "upper_err": 0.2}}
