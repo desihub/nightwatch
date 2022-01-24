@@ -26,6 +26,8 @@ def print_help():
 Supported commands are:
     monitor    Monitor input directory and run qproc, qa, and generate plots
     run        Run qproc, qa, and generate plots for a single exposure
+    assemble_fibermap
+               Run assemble_fibermap using data from input raw data file
     preproc    Run only preprocessing on an input raw data file
     qproc      Run qproc (includes preproc) on an input raw data file
     qa         Run QA analysis on qproc outputs
@@ -46,6 +48,8 @@ def main():
         main_monitor()
     if command == 'run':
         main_run()
+    elif command == 'assemble_fibermap':
+        main_assemble_fibermap()
     elif command == 'preproc':
         main_preproc()
     elif command == 'qproc':
@@ -329,6 +333,9 @@ def main_run(options=None):
         expdir = io.findfile('expdir', night=night, expid=expid, basedir=tempdir)
 
         time_start = time.time()
+        print('{} Running assemble_fibermap'.format(time.strftime('%H:%M')))
+        fibermap = run.run_assemble_fibermap(args.infile, expdir)
+
         print('{} Running qproc'.format(time.strftime('%H:%M')))
         header = run.run_qproc(args.infile, expdir, cameras=cameras)
 
@@ -344,6 +351,24 @@ def main_run(options=None):
 
     dt = (time.time() - time_start) / 60.0
     print('{} Done ({:.1f} min)'.format(time.strftime('%H:%M'), dt))
+
+def main_assemble_fibermap(options=None):
+    parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
+    parser.add_argument("-i", "--infile", type=str, required=True,
+        help="input raw data file")
+    parser.add_argument("-o", "--outdir", type=str, required=True,
+        help="output directory")
+
+    if options is None:
+        options = sys.argv[2:]
+
+    args = parser.parse_args(options)
+
+    fibermap = run.run_assemble_fibermap(args.infile, args.outdir)
+    if fibermap is not None:
+        print('Done running assemble_fibermap for {}; wrote outputs to {}'.format(args.infile, fibermap))
+    else:
+        print('Did not run assemble_fibermap for {}'.format(args.infile))
         
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
@@ -351,6 +376,8 @@ def main_preproc(options=None):
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
         help="output directory")
+    parser.add_argument('--fibermap', type=str, default=None,
+        help="fibermap file")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
 
     if options is None:
@@ -363,7 +390,7 @@ def main_preproc(options=None):
     else:
         cameras = None
 
-    header = run.run_preproc(args.infile, args.outdir, cameras=cameras)
+    header = run.run_preproc(args.infile, args.outdir, fibermap=args.fibermap, cameras=cameras)
     print("Done running preproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_qproc(options=None):

@@ -205,7 +205,10 @@ def get_dico(self, iiband, data):
 
     fluxunits = 1e-17 * units.erg / units.s / units.cm**2 / units.Angstrom
     for c in ["G","R","Z"] :
-        dico["SPECFLUX_"+c]=self.filters[c+photsys].get_ab_maggies(rflux*fluxunits,self.rwave)*1e9 # nano maggies 
+        specflux = 0.
+        if photsys:
+            specflux = self.filters[c+photsys].get_ab_maggies(rflux*fluxunits,self.rwave)*1e9 # nano maggies 
+        dico["SPECFLUX_"+c] = specflux
 
     for c in ["B","R","Z"] :
 

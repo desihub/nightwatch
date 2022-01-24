@@ -23,8 +23,10 @@ from .thresholds import write_threshold_json, get_outdir
 from .io import get_night_expid_header
 from nightwatch.threshold_files.calcnominalnoise import calcnominalnoise
 
+
 def timestamp():
     return time.strftime('%H:%M')
+
 
 def get_ncpu(ncpu):
     """
@@ -85,6 +87,7 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
 
     return None
 
+
 def find_latest_expdir(basedir, processed, startdate=None):
     '''
     finds the earliest unprocessed basedir/YEARMMDD/EXPID from the latest
@@ -140,6 +143,7 @@ def find_latest_expdir(basedir, processed, startdate=None):
         log.debug('{} no new spectro files found'.format(timestamp()))
         return None
 
+
 def which_cameras(rawfile):
     '''
     Returns list of cameras found in rawfile
@@ -152,6 +156,7 @@ def which_cameras(rawfile):
                 cameras.append(extname.lower())
 
     return sorted(cameras)
+
 
 def runcmd(command, logfile, msg):
     '''Runs a given command and writes a logfile, returns a SUCCESS or ERROR message.
@@ -181,9 +186,41 @@ def runcmd(command, logfile, msg):
         print('See {}'.format(logfile))
     
     return {os.path.basename(logfile):err}
+
+
+def run_assemble_fibermap(rawfile, outdir):
+    '''Run assemble_fibermap using NIGHT, EXPID, and TILE from input raw data file
+
+    Args:
+        rawfile: input desi-EXPID.fits.fz raw data file
+        outdir: directory to write fibermap-EXPID.fits files
+
+    Returns:
+        path to written fibermap
+    '''
+    hdr = fitsio.read_header(rawfile, 1)
+    night, expid = get_night_expid_header(hdr)
+
+    log = desiutil.log.get_logger()
+
+    if 'TILEID' in hdr:
+
+        if not os.path.isdir(outdir):
+            log.info('Creating {}'.format(outdir))
+            os.makedirs(outdir, exist_ok=True)
+
+        fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
+        cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
+        logfile = '{}/assemble_fibermap-{:08d}.log'.format(outdir, expid)
+        msg = 'assemble_fibermap {}/{}'.format(night, expid)
+        err = runcmd(cmd, logfile, msg)
+
+        return fibermap
+
+    return None
     
     
-def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
+def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     '''Runs preproc on the input raw data file, outputting to outdir
 
     Args:
@@ -191,6 +228,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
         outdir: directory to write preproc-CAM-EXPID.fits files
 
     Options:
+        fibermap : path to fibermap-EXPID.fits file
         ncpu: number of CPU cores to use for parallelism; serial if ncpu<=1
         cameras: list of cameras to process; default all found in rawfile
 
@@ -212,7 +250,7 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     arglist = list()
     for camera in cameras:
-        args = ['--infile', rawfile, '--outdir', outdir, '--cameras', camera]
+        args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermap, '--cameras', camera]
         arglist.append(args)
 
     ncpu = min(len(arglist), get_ncpu(ncpu))
@@ -231,13 +269,20 @@ def run_preproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return header
 
+
 def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     '''
     Determine the obstype of the rawfile, and run qproc with appropriate options
 
-    cameras can be a list
+    Args:
+        rawfile: input desi-EXPID.fits.fz raw data file
+        outdir: directory to write qproc-CAM-EXPID.fits files
 
-    returns header of HDU 0 of the input rawfile, plus dictionary of return codes for each qproc process run.
+    Options:
+        ncpu: number of CPU cores to use for parallelism; serial if ncpu<=1
+        cameras: list of cameras to process; default all found in rawfile
+
+    Returns header of HDU 0 of the input raw data file, plus dictionary of return codes for each qproc process run.
     '''
     log = desiutil.log.get_logger()
     if not os.path.isdir(outdir):
@@ -303,14 +348,13 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     for camera in cameras:
         outfiles = dict(
             rawfile = rawfile,
-            fibermap = '{}/fibermap-{:08d}.fits'.format(indir, expid),
+            fibermap = '{}/fibermap-{:08d}.fits'.format(outdir, expid),
             logfile = '{}/qproc-{}-{:08d}.log'.format(outdir, camera, expid),
             outdir = outdir,
             camera = camera
         )
 
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
-
         cmdlist.append(cmd)
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
@@ -342,6 +386,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
 
     return hdr
 
+
 def run_qa(indir, outfile=None, qalist=None):
     """
     Run QA analysis of qproc files in indir, writing output to outfile
@@ -358,6 +403,7 @@ def run_qa(indir, outfile=None, qalist=None):
     from .qa.runner import QARunner
     qarunner = QARunner(qalist)
     return qarunner.run(indir, outfile=outfile)
+
 
 def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, cameras=None):
     '''Make plots for a single exposure
@@ -481,9 +527,9 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             cameras += [os.path.basename(preprocfile).split('-')[1]]
     
     log_cams = []
-    log_outputs = [i for i in os.listdir(logdir) if re.match(r'.*\.log', i)]
-    for log in log_outputs:
-        l_cam = log.split("-")[1]
+    log_outputs = [i for i in os.listdir(logdir) if re.match(r'qproc.*\.log', i)]
+    for log_output in log_outputs:
+        l_cam = log_output.split("-")[1]
         log_cams += [l_cam]
         if l_cam not in cameras:
             qproc_fails.append(l_cam)
@@ -495,10 +541,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         downsample = 4
         
         ncpu = get_ncpu(None)
-        input = os.path.join(preprocdir, "preproc-{}-{:08d}.fits")
+        pinput = os.path.join(preprocdir, "preproc-{}-{:08d}.fits")
         output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html")
         
-        argslist = [(input.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
+        argslist = [(pinput.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
     
         if ncpu > 1:
             pool = mp.Pool(ncpu)
@@ -516,12 +562,14 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
 
     if (logdir is not None):
         #- plot logfiles        
+        log.debug('Log directory: {}'.format(logdir))
 
         error_colors = dict()
         for log_cam in log_cams:
-            input = os.path.join(logdir, "qproc-{}-{:08d}.log".format(log_cam, expid))
+            qinput = os.path.join(logdir, "qproc-{}-{:08d}.log".format(log_cam, expid))
             output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(log_cam, expid))
-            e = web_summary.write_logfile_html(input, output, night)
+            log.debug('qproc log: {}'.format(qinput))
+            e = web_summary.write_logfile_html(qinput, output, night)
             
             error_colors[log_cam] = e
 
@@ -817,6 +865,7 @@ def write_nights_summary(indir, last):
                 json.dump(data, out, indent=4)
             print('Wrote {}'.format(jsonfile))
             
+
 def write_thresholds(indir, outdir, start_date, end_date):
     '''Writes threshold files for each metric over a given date range.
     Input: 
@@ -851,6 +900,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
     htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
     pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
     print('Wrote {}'.format(htmlfile))
+
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
     '''Writes surveyqa html files.

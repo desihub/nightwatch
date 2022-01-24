@@ -197,11 +197,11 @@ def write_logtable_html(outfile, logdir, night, expid, available=None, error_col
 
 
 
-def write_logfile_html(input, output, night):
+def write_logfile_html(qinput, output, night):
     """Write a qproc logfile to an HTML webpage
 
     Args:
-        input : input qproc logfile
+        qinput : input qproc logfile
         output : output HTML file
         night : YYYYMMDD night of logdir
 
@@ -218,21 +218,21 @@ def write_logfile_html(input, output, night):
     
     template = env.get_template('logfile.html')
 
-    input_dir = os.path.dirname(input)
+    input_dir = os.path.dirname(qinput)
     logfiles = [i for i in os.listdir(input_dir) if re.match(r'.*\.log', i)]
     available = [file.split("-")[1] for file in logfiles]
 #     for file in logfiles:
 #         available += [file.split("-")[1]]
 
-    current = os.path.basename(input).split("-")[1]
-    expid = os.path.basename(input).split("-")[2].split(".")[0]
+    current = os.path.basename(qinput).split("-")[1]
+    expid = os.path.basename(qinput).split("-")[2].split(".")[0]
 
     error_level = 0
     error_colors = dict({0:'green', 1:'orange', 2:'red', 3:'black'})
 
-    lines = ['qproc logfile {}'.format(os.path.abspath(input))]
-    #lines.append('qproc logfile {}'.format(os.path.abspath(input)))
-    f = open(input, "rb")
+    lines = ['qproc logfile {}'.format(os.path.abspath(qinput))]
+    #lines.append('qproc logfile {}'.format(os.path.abspath(qinput)))
+    f = open(qinput, "rb")
     for line in f.readlines():
         #- byte to str
         if isinstance(line, bytes):
@@ -253,7 +253,7 @@ def write_logfile_html(input, output, night):
 
     html_components = dict(
         bokeh_version=bokeh.__version__, log=True, logfile=lines, file_url=output,
-        basename=os.path.splitext(os.path.basename(input))[0], night=night,
+        basename=os.path.splitext(os.path.basename(qinput))[0], night=night,
         available=available, current=current, expid=int(str(expid)), zexpid=expid,
         num_dirs=2, qatype='summary', error_level=error_level,
         error_color=error_colors.get(error_level),
