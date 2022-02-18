@@ -630,8 +630,8 @@ def write_tables(indir, outdir, expnights=None):
             expfiles = os.listdir(expdir)
             preproc_cams = [i.split("-")[1] for i in expfiles
                             if re.match(r'preproc-.*-.*.fits', i)]
-            log_cams = [i.split("-")[1] for i in expfiles if re.match(r'.*\.log', i)]
-            qfails = [i for i in log_cams if i not in preproc_cams]
+            log_cams = [i.split("-")[1] for i in expfiles if re.match(r'qproc-.*-.*.log', i)]
+            qfails = [i for i in preproc_cams if i not in log_cams]
 
             if os.path.exists(qafile):
                 try:
