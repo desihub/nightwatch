@@ -83,6 +83,11 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=colorbar)
 
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Focalplane QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane',
+                               syncable=False))
+
         figs_list.append(fig)
         hfigs_list.append(hfig)
 
