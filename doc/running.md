@@ -45,6 +45,6 @@ OUTDIR/YEARMMDD/EXPID/
 
 ## Development and testing at NERSC
 
-Specific instructions for testing and development Nightwatch at NERSC are
+Specific instructions for testing and developing Nightwatch at NERSC are
 [available here](testing.md).
 
