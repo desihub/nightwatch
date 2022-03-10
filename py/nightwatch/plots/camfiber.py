@@ -149,6 +149,12 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=False, on_target=True)
 
+
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning',
+                               syncable=False))
+
         figs_list.append(fig)
 
 
