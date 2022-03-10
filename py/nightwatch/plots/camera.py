@@ -1,6 +1,6 @@
 import numpy as np
 import bokeh.plotting as bk
-from bokeh.models import ColumnDataSource, Whisker, BoxAnnotation
+from bokeh.models import ColumnDataSource, Whisker, BoxAnnotation, HelpTool
 from bokeh.layouts import column
 from bokeh.models.tickers import FixedTicker
 from astropy.table import Table
@@ -102,6 +102,11 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
             continue
 
         fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
+
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Camera QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera',
+                               syncable=False))
 
         if attribute == 'DX' or attribute == 'DY':
             k = keys[cam]

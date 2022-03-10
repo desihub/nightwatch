@@ -7,7 +7,7 @@ from bokeh.models.ranges import FactorRange
 from bokeh.models import (
     LinearColorMapper, ColorBar, ColumnDataSource, OpenURL,
     NumeralTickFormatter, AdaptiveTicker,
-    TapTool, Div, HoverTool, Range1d, BoxAnnotation, Whisker, Band,
+    TapTool, Div, HelpTool, HoverTool, Range1d, BoxAnnotation, Whisker, Band,
     ResetTool, BoxZoomTool, OpenURL)
 from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
@@ -302,7 +302,14 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
                      plot_height=50, plot_width=plot_width,
-                     y_axis_location=None)
+                     y_axis_location=None,
+                     tools=[])
+
+    # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
+    axis.add_tools(HelpTool(description='See the DESI wiki for details\non CCD amplifier QA',
+                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier',
+                            syncable=False))
+
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
     axis.outline_line_color=None
