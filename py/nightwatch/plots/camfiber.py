@@ -7,7 +7,7 @@ from astropy.table import Table
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
-from bokeh.models import TapTool, OpenURL
+from bokeh.models import TapTool, HelpTool, OpenURL
 from bokeh.models import ColumnDataSource
 
 from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
@@ -288,7 +288,13 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
                              width=width, height=height+heightpad, xaxislabels=xaxislabels,
                             )
 
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Cam Fiber QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber',
+                               syncable=False))
+
         taptool = fig.select(type=TapTool)
+
         #- Default to qcframe upon click, unless raw camfiber plot
         if "RAW" in attribute:
             taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")
