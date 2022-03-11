@@ -84,9 +84,8 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
                         colorbar=colorbar)
 
         # Add HelpTool redirection to the DESI wiki.
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Focalplane QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane',
-                               syncable=False))
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Focalplane QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane'))
 
         figs_list.append(fig)
         hfigs_list.append(hfig)
@@ -156,9 +155,8 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
 
 
         # Add HelpTool redirection to the DESI wiki.
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning',
-                               syncable=False))
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
 
         figs_list.append(fig)
 
@@ -300,9 +298,8 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
                             )
 
         # Add HelpTool redirection to the DESI wiki.
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Cam Fiber QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber',
-                               syncable=False))
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Cam Fiber QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber'))
 
         taptool = fig.select(type=TapTool)
 

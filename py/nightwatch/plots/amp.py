@@ -306,9 +306,8 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
                      tools=[])
 
     # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
-    axis.add_tools(HelpTool(description='See the DESI wiki for details\non CCD amplifier QA',
-                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier',
-                            syncable=False))
+    axis.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD amplifier QA',
+                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
 
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
