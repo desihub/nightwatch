@@ -104,9 +104,8 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
         fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
 
         # Add HelpTool redirection to the DESI wiki.
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Camera QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera',
-                               syncable=False))
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Camera QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera'))
 
         if attribute == 'DX' or attribute == 'DY':
             k = keys[cam]
