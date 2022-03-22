@@ -37,10 +37,9 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
 
     for i, amp in enumerate(all_amps):
         ampnom = noms[i]
-        thresholds[amp] = dict(upper_err=ampnom+1, upper=ampnom+0.5,
-                               nominal=ampnom,
-                               lower=ampnom-0.5, lower_err=ampnom-1)
-
+        thresholds[amp] = dict(upper_err=(ampnom+1)*1.2, upper=(ampnom+0.5)*1.2,
+                                   nominal=ampnom,
+                                   lower=(ampnom-0.5)*0.8, lower_err=(ampnom-1)*0.8)
     # for the record, include nightexpids in output
     thresholds['inputs'] = dict()
     thresholds['inputs']['comment'] = '(night,expid) used to calc thresholds'
