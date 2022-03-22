@@ -42,6 +42,7 @@ table {
   {% if current %}
   <div class=flex-item>
     <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
+    <div><p style="font-weight:bold"><a href="qproc-{{current}}-{{zexpid}}-logfile.html">Processing log for {{current}}, exposure {{zexpid}}</p></text></div>
   </div>
   {% endif %}
 
