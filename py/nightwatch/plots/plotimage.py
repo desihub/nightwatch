@@ -15,7 +15,7 @@ from astropy.visualization import ZScaleInterval
 import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import layout, gridplot
-from bokeh.models import HelpTool
+from bokeh.models import HelpTool, Label
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
 
@@ -83,9 +83,13 @@ def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=
 
 def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title=None):
 
+    for cam in 'z':
+        input_cam_files = list(filter(lambda x: f'preproc-{cam}' in x, sorted(input_files)))
+        print(input_cam_files)
+
     figs, rows = [], []
 
-    for j, input_file in enumerate(sorted(input_files)[:10]):
+    for j, input_file in enumerate(input_cam_files):
         print(input_file)
 
         with fits.open(input_file) as hdul:
@@ -115,17 +119,17 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                                                    low=0.0, high=1.0)
 
         #- Create figure
-        fig = bk.figure(width=width, height=width-10, toolbar_location=None)
+        fig = bk.figure(width=width, height=width, toolbar_location=None)
         fig.xaxis.visible = False
         fig.yaxis.visible = False
-
-        #- Redirect help button to DESI wiki
-        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
         fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
         if mask is not None:
             fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
+
+        label = Label(x=10, y=10, x_units='screen', y_units='screen',
+                      text=f'{cam}{j}', text_color='#00ff00', text_font_style='bold')
+        fig.add_layout(label)
 
         fig.x_range.start = 0
         fig.x_range.end = nx
@@ -137,11 +141,12 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
 
         rows.append(fig)
 
-        if j+1 == 2 or j+1 == 5 or j+1 == 8 or j+1==10:
+#        if j+1 == 2 or j+1 == 5 or j+1 == 8 or j+1==10:
+        if j+1 == 5 or j+1 == 10:
             figs.append(rows)
             rows = []
 
-    return gridplot(figs, toolbar_location='right')
+    return gridplot(figs, toolbar_location='below')
 
 def main(input_in = None, output_in = None, downsample_in = None):
     '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
