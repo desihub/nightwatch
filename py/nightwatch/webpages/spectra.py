@@ -99,8 +99,6 @@ def get_spectra_html(data, night, expid, view, frame, downsample_str, select_str
         return html
 
     if fig:
-        print('')
-        print('code working')
         #- Convert that into the components to embed in the HTML
         script, div = components(fig)
         #- Save those in a dictionary to use later
@@ -110,6 +108,4 @@ def get_spectra_html(data, night, expid, view, frame, downsample_str, select_str
         return html
 
     else:
-        print('')
-        print('code not working')
         return "no {}-*-{}.fits files found".format(frame, str(expid).zfill(8))

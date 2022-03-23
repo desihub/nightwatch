@@ -13,7 +13,6 @@ from . import run, plots, io
 from .run import timestamp, get_ncpu
 from .qa.runner import QARunner
 from desiutil.log import get_logger
-from .webapp import main_webapp
 
 import tempfile
 import shutil
