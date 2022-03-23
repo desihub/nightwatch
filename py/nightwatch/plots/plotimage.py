@@ -29,7 +29,7 @@ def downsample_image(image, n):
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
-def plot_image(image, mask=None, width=800, downsample=2, title=None):
+def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=None):
     """
     plots image downsampled, returning bokeh figure of requested width
     """
@@ -45,7 +45,7 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
     u8img = (255*(image2.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
     colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
 
-    #- Set up mask if not None. For now, do not distinguish masked values
+    #- Set up mask if not None. For now, do not distinguish the mask bits
     if mask is not None:
         mask2 = downsample_image(mask, downsample)
         select = mask2 > 0
@@ -53,7 +53,7 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
         mask2[~select] = 0.0
         u8mask = mask2.astype(np.uint8)
         yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
-                                               'rgba(255, 255,   0, 0.7)'],
+                                               f'rgba(255, 255,   0, {mask_alpha})'],
                                                low=0.0, high=1.0)
 
     #- Create figure
@@ -61,6 +61,11 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
                     active_drag='box_zoom',
                     active_scroll='wheel_zoom',
                     tools='pan,box_zoom,wheel_zoom,save,reset')
+
+    #- Redirect help button to DESI wiki
+    fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
+
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
     if mask is not None:
         fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
@@ -121,14 +126,10 @@ def main(input_in = None, output_in = None, downsample_in = None):
     long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
 
     fig = plot_image(image, mask, downsample=n, title=long_title)
-    fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
-                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
     if (output != None):
         bk.output_file(output, title=short_title, mode='inline')
         fig = plot_image(image, mask, downsample=n, title=long_title)
-        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
         bk.save(fig)
         print('Wrote {}'.format(output))
 
