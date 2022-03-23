@@ -83,76 +83,86 @@ def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=
     return fig
 
 def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title=None):
+    """Generate summary images given a set of preproc FITS files.
+    """
 
+    #- Loop over cameras (b, r, z).
     camtabs = []
     for cam in 'brz':
         input_cam_files = list(filter(lambda x: f'preproc-{cam}' in x, sorted(input_files)))
 
+        #- Loop over spectrographs (0-9).
         figs, rows = [], []
-        for j, input_file in enumerate(input_cam_files):
+        for j in range(10):
 
-            with fits.open(input_file) as hdul:
-                image = hdul[0].data
-                mask  = hdul[2].data
+            input_file = list(filter(lambda x: f'{cam}{j}' in x, input_cam_files))
 
-            ny, nx = image.shape
-            image2 = downsample_image(image, downsample)
+            #- Check that the input file exists for this camera + spectrograph.
+            if input_file:
+                with fits.open(input_file[0]) as hdul:
+                    image = hdul[0].data
+                    mask  = hdul[2].data
 
-            #- Default image scaling
-            zscale = ZScaleInterval()
-            zmin, zmax = zscale.get_limits(image2)
+                ny, nx = image.shape
+                image2 = downsample_image(image, downsample)
 
-            #- Experimental: rescale to uint8 to save space
-            u8img = (255*(image2.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
-            colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
+                #- Default image scaling
+                zscale = ZScaleInterval()
+                zmin, zmax = zscale.get_limits(image2)
 
-            #- Set up mask if not None. For now, do not distinguish the mask bits
-            if mask is not None:
-                mask2 = downsample_image(mask, downsample)
-                select = mask2 > 0
-                mask2[select]  = 1.0
-                mask2[~select] = 0.0
-                u8mask = mask2.astype(np.uint8)
-                yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
-                                                       f'rgba(255, 255,   0, {mask_alpha})'],
-                                                       low=0.0, high=1.0)
+                #- Experimental: rescale to uint8 to save space
+                u8img = (255*(image2.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
+                colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
 
-            #- Create figure
-            fig = bk.figure(width=width, height=width, toolbar_location=None)
-            fig.xaxis.visible = False
-            fig.yaxis.visible = False
+                #- Set up mask if not None. For now, do not distinguish the mask bits
+                if mask is not None:
+                    mask2 = downsample_image(mask, downsample)
+                    select = mask2 > 0
+                    mask2[select]  = 1.0
+                    mask2[~select] = 0.0
+                    u8mask = mask2.astype(np.uint8)
+                    yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
+                                                           f'rgba(255, 255,   0, {mask_alpha})'],
+                                                           low=0.0, high=1.0)
 
-            fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
-            if mask is not None:
-                fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
+                #- Create figure of CCD
+                fig = bk.figure(width=width, height=width, toolbar_location=None)
+                fig.xaxis.visible = False
+                fig.yaxis.visible = False
 
-            label = Label(x=10, y=10, x_units='screen', y_units='screen',
-                          text=f'{cam}{j}', text_color='#00ff00', text_font_style='bold')
-            fig.add_layout(label)
+                fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
+                if mask is not None:
+                    fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
 
-            fig.x_range.start = 0
-            fig.x_range.end = nx
-            fig.y_range.start = 0
-            fig.y_range.end = ny
+                label = Label(x=10, y=10, x_units='screen', y_units='screen',
+                              text=f'{cam}{j}', text_color='#00ff00', text_font_style='bold')
+                fig.add_layout(label)
 
-            if title is not None:
-                fig.title.text = title
+                fig.x_range.start = 0
+                fig.x_range.end = nx
+                fig.y_range.start = 0
+                fig.y_range.end = ny
+
+                if title is not None:
+                    fig.title.text = title
+
+            #- No input found for this camera and spectrograph.
+            else:
+                fig = None
 
             rows.append(fig)
 
-    #        if j+1 == 2 or j+1 == 5 or j+1 == 8 or j+1==10:
+            #- Plot a row of 5 spectrographs: 0-4 and 5-9.
             if j+1 == 5 or j+1 == 10:
                 figs.append(rows)
                 rows = []
 
-    #    return gridplot(figs, toolbar_location='below')
+        #- Add a tab for this camera.
         gp = gridplot(figs, toolbar_location='below')
         tab = Panel(child=gp, title=f'{cam} Cameras')
         camtabs.append(tab)
 
-    tabs = Tabs(tabs=camtabs)
-
-    return tabs
+    return Tabs(tabs=camtabs)
 
 def main(input_in = None, output_in = None, downsample_in = None):
     '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
