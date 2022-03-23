@@ -14,6 +14,7 @@ from astropy.visualization import ZScaleInterval
 
 import bokeh
 import bokeh.plotting as bk
+from bokeh.models import HelpTool
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
 
@@ -57,7 +58,9 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
 
     #- Create figure
     fig = bk.figure(width=width, height=width-50,
-        active_drag='box_zoom', active_scroll='wheel_zoom')
+                    active_drag='box_zoom',
+                    active_scroll='wheel_zoom',
+                    tools='pan,box_zoom,wheel_zoom,save,reset')
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
     if mask is not None:
         fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
@@ -118,10 +121,14 @@ def main(input_in = None, output_in = None, downsample_in = None):
     long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
 
     fig = plot_image(image, mask, downsample=n, title=long_title)
+    fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
     if (output != None):
         bk.output_file(output, title=short_title, mode='inline')
         fig = plot_image(image, mask, downsample=n, title=long_title)
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
         bk.save(fig)
         print('Wrote {}'.format(output))
 
