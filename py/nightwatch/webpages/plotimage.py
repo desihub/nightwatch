@@ -75,9 +75,13 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     for file in preproc_files:
         available += [file.split("-")[1]]
 
+    preproc_fits = [os.path.join(input_dir, i) for i in preproc_files if i.endswith('.fits')]
+    plot_script, plot_div = main(preproc_fits, None, downsample)
+
     html_components = dict(
-        version=bokeh.__version__, downsample=str(downsample),
-        preproc=True, night=night, available=available,
+        plot_script=plot_script, plot_div=plot_div,
+        bokeh_version=bokeh.__version__, downsample=str(downsample), preproc=True,
+        night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
         num_dirs=2, qatype='amp',
     )

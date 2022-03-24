@@ -14,6 +14,9 @@ from astropy.visualization import ZScaleInterval
 
 import bokeh
 import bokeh.plotting as bk
+from bokeh.layouts import layout, gridplot
+from bokeh.models import HelpTool, Label
+from bokeh.models.widgets import Panel, Tabs
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
 
@@ -28,7 +31,7 @@ def downsample_image(image, n):
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
-def plot_image(image, mask=None, width=800, downsample=2, title=None):
+def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=None):
     """
     plots image downsampled, returning bokeh figure of requested width
     """
@@ -44,7 +47,7 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
     u8img = (255*(image2.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
     colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
 
-    #- Set up mask if not None. For now, do not distinguish masked values
+    #- Set up mask if not None. For now, do not distinguish the mask bits
     if mask is not None:
         mask2 = downsample_image(mask, downsample)
         select = mask2 > 0
@@ -52,12 +55,19 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
         mask2[~select] = 0.0
         u8mask = mask2.astype(np.uint8)
         yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
-                                               'rgba(255, 255,   0, 0.7)'],
+                                               f'rgba(255, 255,   0, {mask_alpha})'],
                                                low=0.0, high=1.0)
 
     #- Create figure
     fig = bk.figure(width=width, height=width-50,
-        active_drag='box_zoom', active_scroll='wheel_zoom')
+                    active_drag='box_zoom',
+                    active_scroll='wheel_zoom',
+                    tools='pan,box_zoom,wheel_zoom,save,reset')
+
+    #- Redirect help button to DESI wiki
+    fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
+
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
     if mask is not None:
         fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
@@ -71,6 +81,88 @@ def plot_image(image, mask=None, width=800, downsample=2, title=None):
         fig.title.text = title
 
     return fig
+
+def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title=None):
+    """Generate summary images given a set of preproc FITS files.
+    """
+
+    #- Loop over cameras (b, r, z).
+    camtabs = []
+    for cam in 'brz':
+        input_cam_files = list(filter(lambda x: f'preproc-{cam}' in x, sorted(input_files)))
+
+        #- Loop over spectrographs (0-9).
+        figs, rows = [], []
+        for j in range(10):
+
+            input_file = list(filter(lambda x: f'{cam}{j}' in x, input_cam_files))
+
+            #- Check that the input file exists for this camera + spectrograph.
+            if input_file:
+                with fits.open(input_file[0]) as hdul:
+                    image = hdul[0].data
+                    mask  = hdul[2].data
+
+                ny, nx = image.shape
+                image2 = downsample_image(image, downsample)
+
+                #- Default image scaling
+                zscale = ZScaleInterval()
+                zmin, zmax = zscale.get_limits(image2)
+
+                #- Experimental: rescale to uint8 to save space
+                u8img = (255*(image2.clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
+                colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
+
+                #- Set up mask if not None. For now, do not distinguish the mask bits
+                if mask is not None:
+                    mask2 = downsample_image(mask, downsample)
+                    select = mask2 > 0
+                    mask2[select]  = 1.0
+                    mask2[~select] = 0.0
+                    u8mask = mask2.astype(np.uint8)
+                    yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
+                                                           f'rgba(255, 255,   0, {mask_alpha})'],
+                                                           low=0.0, high=1.0)
+
+                #- Create figure of CCD
+                fig = bk.figure(width=width, height=width, toolbar_location=None)
+                fig.xaxis.visible = False
+                fig.yaxis.visible = False
+
+                fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
+                if mask is not None:
+                    fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
+
+                label = Label(x=10, y=10, x_units='screen', y_units='screen',
+                              text=f'{cam}{j}', text_color='#00ff00', text_font_style='bold')
+                fig.add_layout(label)
+
+                fig.x_range.start = 0
+                fig.x_range.end = nx
+                fig.y_range.start = 0
+                fig.y_range.end = ny
+
+                if title is not None:
+                    fig.title.text = title
+
+            #- No input found for this camera and spectrograph.
+            else:
+                fig = None
+
+            rows.append(fig)
+
+            #- Plot a row of 5 spectrographs: 0-4 and 5-9.
+            if j+1 == 5 or j+1 == 10:
+                figs.append(rows)
+                rows = []
+
+        #- Add a tab for this camera.
+        gp = gridplot(figs, toolbar_location='below')
+        tab = Panel(child=gp, title=f'{cam} Cameras')
+        camtabs.append(tab)
+
+    return Tabs(tabs=camtabs)
 
 def main(input_in = None, output_in = None, downsample_in = None):
     '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
@@ -103,27 +195,33 @@ def main(input_in = None, output_in = None, downsample_in = None):
 
     # if run from a different file and has provided arguments
     else:
-        if input_in == None or downsample_in == None:
-            return "input_in and/or downsample_in not provided"
-        img_input = input_in
-        basename = os.path.basename(input_in)
-        n = downsample_in
-        output = output_in
+        if np.isscalar(input_in):
+            if input_in == None or downsample_in == None:
+                return "input_in and/or downsample_in not provided"
+            img_input = input_in
+            basename = os.path.basename(input_in)
+            n = downsample_in
+            output = output_in
 
-    with fits.open(img_input) as hdul:
-        image = hdul[0].data
-        mask  = hdul[2].data
+    #- Single input image for individual preproc plots.
+    if np.isscalar(input_in):
+        with fits.open(img_input) as hdul:
+            image = hdul[0].data
+            mask  = hdul[2].data
 
-    short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
-    long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
+        short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
+        long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
 
-    fig = plot_image(image, mask, downsample=n, title=long_title)
-
-    if (output != None):
-        bk.output_file(output, title=short_title, mode='inline')
         fig = plot_image(image, mask, downsample=n, title=long_title)
-        bk.save(fig)
-        print('Wrote {}'.format(output))
+
+        if (output != None):
+            bk.output_file(output, title=short_title, mode='inline')
+            fig = plot_image(image, mask, downsample=n, title=long_title)
+            bk.save(fig)
+            print('Wrote {}'.format(output))
+    #- List of input files for preproc summary plots.
+    else:
+        fig = plot_all_images(input_in)
 
     return components(fig)
 
