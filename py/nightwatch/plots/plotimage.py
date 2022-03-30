@@ -126,7 +126,14 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                                                            low=0.0, high=1.0)
 
                 #- Create figure of CCD
-                fig = bk.figure(width=width, height=width, toolbar_location=None)
+#                fig = bk.figure(width=width, height=width, toolbar_location=None)
+                fig = bk.figure(width=width, height=width, tools='pan,box_zoom,wheel_zoom,reset')
+
+                #- Redirect help button to DESI wiki
+                fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                                       redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
+
+                #- Remove axis labels
                 fig.xaxis.visible = False
                 fig.yaxis.visible = False
 
@@ -158,7 +165,7 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                 rows = []
 
         #- Add a tab for this camera.
-        gp = gridplot(figs, toolbar_location='below')
+        gp = gridplot(figs, toolbar_location='below', merge_tools=True)
         tab = Panel(child=gp, title=f'{cam} Cameras')
         camtabs.append(tab)
 
