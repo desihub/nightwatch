@@ -87,6 +87,8 @@ function get_explinks(links) {
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-focalplane_plots.html";
         {% elif positioning %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-posacc_plots.html";
+        {% elif preproc_table %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-preproc_table.html";
         {% else %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+".html";
         {% endif %}
@@ -113,6 +115,8 @@ function get_explinks(links) {
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-focalplane_plots.html";
         {% elif positioning %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-posacc_plots.html";
+        {% elif preproc_table %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-preproc_table.html";
         {% else %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+".html";
         {% endif %}
