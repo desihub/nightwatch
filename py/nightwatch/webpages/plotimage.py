@@ -80,7 +80,7 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
 
     html_components = dict(
         plot_script=plot_script, plot_div=plot_div,
-        bokeh_version=bokeh.__version__, downsample=str(downsample), preproc=True,
+        bokeh_version=bokeh.__version__, downsample=str(downsample), preproc_table=True,
         night=night, available=available,
         current=None, expid=int(expid), zexpid='{:08d}'.format(expid),
         num_dirs=2, qatype='amp',
