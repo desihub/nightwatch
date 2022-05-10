@@ -39,20 +39,19 @@ def get_ncpu(ncpu):
     Returns:
         number of CPU cores to use
     """
-    # Throttle to half the CPUs available.
     if ncpu is None:
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
     else:
         ncpu = min(max(1, ncpu), mp.cpu_count()//2)
 
-    # Avoid grabbing many CPUs on the NERSC login nodes.
+    # Throttle to 8 cores on the NERSC login nodes.
     if ('NERSC_HOST' in os.environ) and ('SLURM_JOBID' not in os.environ):
         ncpu = min(8, ncpu)
 
-    # Throttle number of CPUs to 15 at KPNO.
+    # Throttle to 15 cores at KPNO.
     if 'HOSTNAME' in os.environ:
         if 'desi-7' == os.environ['HOSTNAME']:
-            ncpu = 15
+            ncpu = min(15, ncpu)
 
     return ncpu
 
