@@ -295,6 +295,8 @@ nightwatch run --infile {infile} --outdir {outdir} {camera_options}
 
 def main_run(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} run [options]")
+    parser.add_argument('-N', '--ncpu', type=int, required=False,
+        help='Number of parallel jobs to run')
     parser.add_argument("-i", "--infile", type=str, required=False,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
@@ -337,7 +339,7 @@ def main_run(options=None):
         fibermap = run.run_assemble_fibermap(args.infile, expdir)
 
         print('{} Running qproc'.format(time.strftime('%H:%M')))
-        header = run.run_qproc(args.infile, expdir, cameras=cameras)
+        header = run.run_qproc(args.infile, expdir, cameras=cameras, ncpu=args.ncpu)
 
         print('{} Running QA analysis'.format(time.strftime('%H:%M')))
         qafile = io.findfile('qa', night=night, expid=expid, basedir=tempdir)
@@ -372,6 +374,8 @@ def main_assemble_fibermap(options=None):
         
 def main_preproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} preproc [options]")
+    parser.add_argument('-N', '--ncpu', type=int, required=False,
+        help='Number of parallel jobs to run')
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
@@ -390,7 +394,7 @@ def main_preproc(options=None):
     else:
         cameras = None
 
-    header = run.run_preproc(args.infile, args.outdir, fibermap=args.fibermap, cameras=cameras)
+    header = run.run_preproc(args.infile, args.outdir, fibermap=args.fibermap, cameras=cameras, ncpu=args.ncpu)
     print("Done running preproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_qproc(options=None):

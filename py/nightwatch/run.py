@@ -30,7 +30,8 @@ def timestamp():
 
 def get_ncpu(ncpu):
     """
-    Get number of CPU cores to use, throttling to 8 for NERSC login nodes
+    Get number of CPU cores to use, throttling to 8 for NERSC login nodes and
+    15 at KPNO.
 
     Args:
         ncpu : number you would like to use, or None to auto-derive
@@ -40,9 +41,18 @@ def get_ncpu(ncpu):
     """
     if ncpu is None:
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
+    else:
+        ncpu = min(max(1, ncpu), mp.cpu_count()//2)
 
+    # Throttle to 8 cores on the NERSC login nodes.
     if ('NERSC_HOST' in os.environ) and ('SLURM_JOBID' not in os.environ):
         ncpu = min(8, ncpu)
+
+    # Throttle to 15 cores at KPNO.
+    if 'HOSTNAME' in os.environ:
+        if 'desi-7' == os.environ['HOSTNAME']:
+            if 15 <= mp.cpu_count()//2:
+                ncpu = min(15, ncpu)
 
     return ncpu
 
