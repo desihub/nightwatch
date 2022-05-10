@@ -51,7 +51,8 @@ def get_ncpu(ncpu):
     # Throttle to 15 cores at KPNO.
     if 'HOSTNAME' in os.environ:
         if 'desi-7' == os.environ['HOSTNAME']:
-            ncpu = min(15, ncpu)
+            if 15 <= mp.cpu_count()//2:
+                ncpu = min(15, ncpu)
 
     return ncpu
 
