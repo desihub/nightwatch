@@ -39,10 +39,6 @@ def get_ncpu(ncpu):
     Returns:
         number of CPU cores to use
     """
-    if sys.platform == 'darwin' or sys.platform == 'win32':
-        # Turn off multithreading on OS X (and Windows).
-        return 1
-
     if ncpu is None:
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
     else:
