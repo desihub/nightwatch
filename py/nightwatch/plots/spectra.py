@@ -1,7 +1,7 @@
 from astropy.io import fits
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
 
 import numpy as np
 import random, os, sys, re
@@ -319,6 +319,11 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
         foundfibers = []
 
     fig=bk.figure(plot_height = height, plot_width = width)
+    fig.xaxis.axis_label = 'wavelength [angstroms]'
+    fig.x_range = Range1d(3200, 10200)
+    fig.yaxis.axis_label = 'counts'
+    fig.add_layout(BoxAnnotation(left=5660, right=5930, fill_color='blue', fill_alpha=0.03, line_alpha=0))
+    fig.add_layout(BoxAnnotation(left=7470, right=7720, fill_color='blue', fill_alpha=0.03, line_alpha=0))
 
     for spectro in fibergroups.keys():
         for cam in colors:

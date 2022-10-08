@@ -103,7 +103,7 @@ def get_summary_plots(qadata, qprocdir=None):
 
         nightdir = os.path.dirname(os.path.normpath(qprocdir))
         specfig = plot_spectra_input(nightdir, expid, 'qframe', downsample,
-            fibers, height=300, width=plot_width*2)
+            fibers, height=325, width=plot_width*2)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
 
