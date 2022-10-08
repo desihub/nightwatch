@@ -59,18 +59,20 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         colors = {}
         fib = []
         try:
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
+            colors["B"] = "steelblue"
+        except:
+            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+
+        try:
             fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
             colors["R"] = "red"
         except:
             print("could not find {}".format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
-        try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["B"] = "blue"
-        except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+
         try:
             fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["Z"] = "green"
+            colors["Z"] = "sienna"
         except:
             print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
 
@@ -174,7 +176,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
     Returns bokeh.layouts.gridplot object containing the objtype plots
     '''
-    colors = {"R":"red", "B":"blue", "Z":"green"}
+    colors = { 'B':'steelblue', 'R':'red', 'Z':'sienna' }
     expid = str(expid_num).zfill(8)
 
     onlyfiles = [f for f in os.listdir(os.path.join(data, expid)) if os.path.isfile(os.path.join(data, expid, f))]
@@ -307,7 +309,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     flux_total = []
 
     expid = str(expid_num).zfill(8)
-    colors = {"R":"red", "B":"blue", "Z":"green"}
+    colors = { 'B':'steelblue', 'R':'red', 'Z':'sienna' }
 
     expdir = os.path.join(datadir, expid)
     fibergroups, missingfibers = io.findfibers(expdir, fibers)
