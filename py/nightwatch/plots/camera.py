@@ -90,7 +90,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
 
     cam_figs=[]
 
-    camcolors = {'B':'steelblue', 'R':'red', 'Z':'sienna'}
+    camcolors = {'B':'steelblue', 'R':'crimson', 'Z':'forestgreen'}
     keys = {'B':0, 'R':1, 'Z':2}
     for cam in 'BRZ':
         

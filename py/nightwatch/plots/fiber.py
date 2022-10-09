@@ -20,7 +20,7 @@ from ..plots.core import get_colors, plot_histogram
 
 
 def plot_fibers_focalplane(source, name, cam='',
-                camcolors=dict(B='steelblue', R='red', Z='sienna'),
+                camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
                 width=250, height=270, zmin=None, zmax=None,
                 percentile=None, title=None, hist_x_range=None,
                 fig_x_range=None, fig_y_range=None,
@@ -165,7 +165,7 @@ def plot_fibers_focalplane(source, name, cam='',
 
 
 def plot_fibernums(source, name, cam='',
-                camcolors=dict(B='steelblue', R='red', Z='sienna'),
+                camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
                 width=700, height=80, title=None, fig_x_range=None,
                 fig_y_range=None, tools='pan,box_zoom,tap,reset',
                 toolbar_location=None, tooltips=None, xaxislabels=True):
