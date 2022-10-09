@@ -2,9 +2,11 @@ import numpy as np
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
+import bokeh
 from bokeh.transform import linear_cmap
 from bokeh.models import ColumnDataSource
 from bokeh.models import NumeralTickFormatter
+from packaging import version
 import math
 
 
@@ -33,6 +35,7 @@ def get_colors(x, palette=bp.all_palettes['RdYlBu'][11],
         raise RuntimeWarning
     ii = (n*(x-xmin) / (xmax-xmin)).astype(int).clip(0,n-1)
     return palette[ii]
+
 
 def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, title=None,
                   palette=None, low=None, high=None):
@@ -142,8 +145,7 @@ def boxplot(q1, q2, q3, upper, lower, outliers, xpos, color='gray',
     fig.grid.grid_line_width = 2
     fig.xaxis.major_label_text_font_size="12pt"
 
-    
-    
+
 def parse_numlist(x):
     '''
     Generates a concise string output of the integers contained in x
@@ -183,3 +185,18 @@ def parse_numlist(x):
 
     s = ','.join(consecs)
     return s
+
+
+class HelpTool(bokeh.models.HelpTool):
+    """Wrapper class for the bokeh HelpTool that we can use to manage changes
+    to the bokeh API."""
+
+    def __init__(self, *args, **kwargs):
+
+        # In bokeh 2.3.0, the kwarg 'help_tooltip' was renamed 'description'.
+        islt23 = version.parse(bokeh.__version__) < version.parse('2.3.0')
+        if islt23:
+            if 'description' in kwargs:
+                kwargs['help_tooltip'] = kwargs.pop('description')
+        super().__init__(*args, **kwargs)
+
