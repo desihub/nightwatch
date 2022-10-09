@@ -226,7 +226,7 @@ def get_posacc_cd(header):
             try:
                 flag = 'FLAGS_COR_{}'.format(i)
                 x = np.where(((df[flag] & 4) != 0) & (df[flag] < 65535))
-                df.at[x[0], 'DISABLED_{}'.format(i)] = False
+                df.loc[x[0], ('DISABLED_{}').format(i)] = False
             except Exception as e:
                 print('Issue setting disabled positioners: ',e)
         
