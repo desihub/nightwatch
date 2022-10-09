@@ -15,10 +15,13 @@ from astropy.visualization import ZScaleInterval
 import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import layout, gridplot
-from bokeh.models import HelpTool, Label
+from bokeh.models import Label
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
+
+from ..plots.core import HelpTool
+
 
 def downsample_image(image, n):
     '''Downsample input image n x n
@@ -65,7 +68,7 @@ def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=
                     tools='pan,box_zoom,wheel_zoom,save,reset')
 
     #- Redirect help button to DESI wiki
-    fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+    fig.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
@@ -130,7 +133,7 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                 fig = bk.figure(width=width, height=width, tools='pan,box_zoom,wheel_zoom,reset')
 
                 #- Redirect help button to DESI wiki
-                fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                fig.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
                                        redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
                 #- Remove axis labels
