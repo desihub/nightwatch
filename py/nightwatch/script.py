@@ -399,6 +399,8 @@ def main_preproc(options=None):
 
 def main_qproc(options=None):
     parser = argparse.ArgumentParser(usage = "{prog} qproc [options]")
+    parser.add_argument('-N', '--ncpu', type=int, required=False,
+        help='Number of parallel jobs to run')
     parser.add_argument("-i", "--infile", type=str, required=True,
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
@@ -415,7 +417,7 @@ def main_qproc(options=None):
     else:
         cameras = None
 
-    header = run.run_qproc(args.infile, args.outdir, cameras=cameras)
+    header = run.run_qproc(args.infile, args.outdir, cameras=cameras, ncpu=args.ncpu)
     print("Done running qproc on {}; wrote outputs to {}".format(args.infile, args.outdir))
 
 def main_qa(options=None):

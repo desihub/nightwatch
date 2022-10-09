@@ -78,7 +78,7 @@ class QAAmp(QA):
             
         else:
             for args in argslist:
-                results.append(get_dico(**args))
+                results.append(get_dico(*args))
 
         #- remove None entries from missing amp (e.g. 2-amp readout)
         results = [r for r in results if r is not None]

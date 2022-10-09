@@ -39,6 +39,9 @@ def get_ncpu(ncpu):
     Returns:
         number of CPU cores to use
     """
+    if sys.platform == 'darwin' or sys.platform == 'win32':
+        return 1
+
     if ncpu is None:
         ncpu = max(1, mp.cpu_count()//2)  #- no hyperthreading
     else:
