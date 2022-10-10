@@ -2,7 +2,6 @@ import numpy as np
 import bokeh
 import bokeh.plotting as bk
 import bokeh.palettes as bp
-import bokeh
 from bokeh.transform import linear_cmap
 from bokeh.models import ColumnDataSource
 from bokeh.models import NumeralTickFormatter
@@ -185,18 +184,3 @@ def parse_numlist(x):
 
     s = ','.join(consecs)
     return s
-
-
-class HelpTool(bokeh.models.HelpTool):
-    """Wrapper class for the bokeh HelpTool that we can use to manage changes
-    to the bokeh API."""
-
-    def __init__(self, *args, **kwargs):
-
-        # In bokeh 2.3.0, the kwarg 'help_tooltip' was renamed 'description'.
-        islt23 = version.parse(bokeh.__version__) < version.parse('2.3.0')
-        if islt23:
-            if 'description' in kwargs:
-                kwargs['help_tooltip'] = kwargs.pop('description')
-        super().__init__(*args, **kwargs)
-
