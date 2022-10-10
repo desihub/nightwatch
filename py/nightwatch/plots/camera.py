@@ -5,6 +5,8 @@ from bokeh.layouts import column
 from bokeh.models.tickers import FixedTicker
 from astropy.table import Table
 
+from ..plots.core import HelpTool
+
 
 def get_qa_colors(data, lower_err, lower, upper, upper_err, basecolor='black'):
     '''takes in camera QA data and the acceptable threshold for that metric.
@@ -90,7 +92,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
 
     cam_figs=[]
 
-    camcolors = {"B":"blue", "R":"red", "Z":"green"}
+    camcolors = {'B':'steelblue', 'R':'crimson', 'Z':'forestgreen'}
     keys = {'B':0, 'R':1, 'Z':2}
     for cam in 'BRZ':
         
@@ -102,6 +104,10 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
             continue
 
         fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
+
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Camera QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera'))
 
         if attribute == 'DX' or attribute == 'DY':
             k = keys[cam]

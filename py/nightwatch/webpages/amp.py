@@ -61,7 +61,7 @@ def write_amp_html(outfile, data, header):
     lower_noise, upper_noise, noise_keys = get_thresholds(noise_file, return_keys=True)
     fig = plot_amp_qa(data, 'READNOISE', lower=lower_noise, upper=upper_noise,
         amp_keys=noise_keys, title='CCD Amplifier Read Noise',
-        ymin=[0,0,0], ymax=[5,5,5])
+        ymin=[0,0,0], ymax=[8,8,8])
     #- Convert that into the components to embed in the HTML
     script, div = components(fig)
     #- Save those in a dictionary to use later

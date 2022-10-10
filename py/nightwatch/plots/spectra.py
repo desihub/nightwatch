@@ -1,7 +1,7 @@
 from astropy.io import fits
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
 
 import numpy as np
 import random, os, sys, re
@@ -59,18 +59,20 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         colors = {}
         fib = []
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["R"] = "red"
-        except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
-        try:
             fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["B"] = "blue"
+            colors["B"] = "steelblue"
         except:
             print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+
+        try:
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
+            colors["R"] = "crimson"
+        except:
+            print("could not find {}".format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+
         try:
             fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["Z"] = "green"
+            colors["Z"] = "forestgreen"
         except:
             print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
 
@@ -174,7 +176,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
     Returns bokeh.layouts.gridplot object containing the objtype plots
     '''
-    colors = {"R":"red", "B":"blue", "Z":"green"}
+    colors = { 'B':'steelblue', 'R':'crimson', 'Z':'forestgreen' }
     expid = str(expid_num).zfill(8)
 
     onlyfiles = [f for f in os.listdir(os.path.join(data, expid)) if os.path.isfile(os.path.join(data, expid, f))]
@@ -307,7 +309,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     flux_total = []
 
     expid = str(expid_num).zfill(8)
-    colors = {"R":"red", "B":"blue", "Z":"green"}
+    colors = { 'B':'steelblue', 'R':'crimson', 'Z':'forestgreen' }
 
     expdir = os.path.join(datadir, expid)
     fibergroups, missingfibers = io.findfibers(expdir, fibers)
@@ -317,6 +319,11 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
         foundfibers = []
 
     fig=bk.figure(plot_height = height, plot_width = width)
+    fig.xaxis.axis_label = 'wavelength [angstroms]'
+    fig.x_range = Range1d(3200, 10200)
+    fig.yaxis.axis_label = 'counts'
+    fig.add_layout(BoxAnnotation(left=5660, right=5930, fill_color='blue', fill_alpha=0.03, line_alpha=0))
+    fig.add_layout(BoxAnnotation(left=7470, right=7720, fill_color='blue', fill_alpha=0.03, line_alpha=0))
 
     for spectro in fibergroups.keys():
         for cam in colors:

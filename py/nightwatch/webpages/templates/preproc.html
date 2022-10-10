@@ -34,14 +34,24 @@ table {
 <header>
   Preprocessed CCD Images
 </header>
+<p>CCD summary images (downsampled 32x32). Click the links at right to inspect individual CCDs.</p>
 {% endif %}
 
 <div class="container">
 
-  {# Preprocessed CCD Image #}
-  {% if current %}
+  {% if not current %}
+  <!-- Plot all preprocessed CCD images -->
   <div class=flex-item>
     <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
+  </div>
+  {% endif %}
+
+  {# Preprocessed CCD Image #}
+  {% if current %}
+  <!-- Plot a single preprocessed CCD image -->
+  <div class=flex-item>
+    <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
+    <div><p style="font-weight:bold"><a href="qproc-{{current}}-{{zexpid}}-logfile.html">Processing log for {{current}}, exposure {{expid}}</p></div>
   </div>
   {% endif %}
 

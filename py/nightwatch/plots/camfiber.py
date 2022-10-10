@@ -11,6 +11,7 @@ from bokeh.models import TapTool, OpenURL
 from bokeh.models import ColumnDataSource
 
 from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
+from ..plots.core import HelpTool
 # from ..plots.core import get_colors
 
 
@@ -83,6 +84,10 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=colorbar)
 
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Focalplane QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane'))
+
         figs_list.append(fig)
         hfigs_list.append(hfig)
 
@@ -148,6 +153,11 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
                         tools=tools, 
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=False, on_target=True)
+
+
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
 
         figs_list.append(fig)
 
@@ -288,7 +298,12 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
                              width=width, height=height+heightpad, xaxislabels=xaxislabels,
                             )
 
+        # Add HelpTool redirection to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Cam Fiber QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber'))
+
         taptool = fig.select(type=TapTool)
+
         #- Default to qcframe upon click, unless raw camfiber plot
         if "RAW" in attribute:
             taptool.callback = OpenURL(url="spectra/input/@FIBER/qframe/4x/")

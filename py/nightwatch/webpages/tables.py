@@ -246,6 +246,7 @@ def write_exposures_tables(indir, outdir, exposures, nights=None):
 
             #- Adds qproc to the expid status
             #- TODO: add some catches to this for robustness, e.g. the '-' if QPROC is missing
+            #if len(row['QPROC']) == 0 and row['QPROC_EXIT'] == 0:
             if len(row['QPROC']) == 0 and row['QPROC_EXIT'] == 0:
                 expinfo['QPROC'] = 'ok'
             else:
