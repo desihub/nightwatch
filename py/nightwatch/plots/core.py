@@ -5,7 +5,6 @@ import bokeh.palettes as bp
 from bokeh.transform import linear_cmap
 from bokeh.models import ColumnDataSource
 from bokeh.models import NumeralTickFormatter
-from packaging import version
 import math
 
 

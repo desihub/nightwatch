@@ -13,6 +13,9 @@ from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
+from packaging import version
+_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
+
 def get_amp_colors(data, lower_err, lower, upper, upper_err):
     '''takes in per amplifier data and the acceptable threshold for that metric.
     Args: 
@@ -306,8 +309,13 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
                      tools=[])
 
     # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
-    axis.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD amplifier QA',
-                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
+    if _is_bokeh23:
+        axis.add_tools(HelpTool(description='See the DESI wiki for details\non CCD amplifier QA',
+                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
+
+    else:
+        axis.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD amplifier QA',
+                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
 
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
