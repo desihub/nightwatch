@@ -96,13 +96,15 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
 
     #- Gets the plot list for each metric in ATTRIBUTES
     fibernum_gridlist = []
-    for attr in ATTRIBUTES:
+    for attr, title in zip(ATTRIBUTES, TITLESPERCAM['B']):
         if attr in list(cds.data.keys()):
-            figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
-            fibernum_gridlist.extend(figs_list)
+            figs_list = layout(plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS, width=800, height=150))
+            plot_title = title.replace('_', ' ').title().replace('Snr', 'SNR')
+            tab = Panel(child=figs_list, title=plot_title)
+            fibernum_gridlist.append(tab)
 
-    #- Organizes the layout of the plots
-    fn_camfiber_layout = layout(fibernum_gridlist)
+#    #- Organizes the layout of the plots
+    fn_camfiber_layout = Tabs(tabs=fibernum_gridlist)
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
