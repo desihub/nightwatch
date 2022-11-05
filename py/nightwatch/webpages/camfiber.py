@@ -342,11 +342,21 @@ def write_htmlfile(layout, template, outfile, header):
     exptime = header['EXPTIME']
     focalplane = 'focalplane_plots' in outfile
     positioning = 'posacc_plots' in outfile
+
+    # Fill components dictionary for use in webpages.
     components_dict = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        obstype=obstype, program=program, qatype = 'camfiber',focalplane = focalplane,positioning = positioning,     num_dirs=2,        
+        obstype=obstype, program=program, qatype='camfiber',
+        focalplane=focalplane, positioning=positioning, num_dirs=2,
     )
+
+    # Add sky coordinates if they are present in header.
+    if obstype == 'SCIENCE':
+        if 'TILEID' in header and 'SKYRA' in header and 'SKYDEC' in header:
+            components_dict['TILEID'] = header['TILEID']
+            components_dict['SKYRA'] = header['SKYRA']
+            components_dict['SKYDEC'] = header['SKYDEC']
 
     script, div = components(layout)
     components_dict['CAMFIBER_PLOTS'] = dict(script=script, div=div)

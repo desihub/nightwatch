@@ -4,7 +4,11 @@
 <p><strong>CamFiber QA metrics vs. x,y location on the focal plane</strong></p>
 <p>Click on a tab to view a metric. Access help with the (?) button.</p>
 <p>QA instructions: arcs and flats include raw metrics. Science spectra include
-calibrated versions.<br />In science spectra, log unusual features such as radial
-patterns or blobs in the calibrated flux and/or SNR.</p>
-<p><a href="https://www.legacysurvey.org/viewer-desi?ra=117.1033&dec=31.1423&layer=dr9&zoom=8&desifoot=117.1240,31.1210" target="_blank">Tile position in the Legacy Survey Viewer</a></p>
+calibrated versions.<br />In science spectra, note unusual features such as radial
+patterns or blobs in the calibrated flux or SNR.</p>
+
+{% if TILEID %}
+  <p><a href="https://www.legacysurvey.org/viewer-desi?ra={{ SKYRA }}&dec={{ SKYDEC }}&layer=ls-dr9&zoom=8&desifoot={{ SKYRA }},{{ SKYDEC }}" target="_blank">Tile {{ TILEID }} position in the Legacy Survey Viewer</a>.</p>
+{% endif %}
+
 {% endblock %}
