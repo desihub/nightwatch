@@ -17,6 +17,7 @@ from astropy.table import Table, join, vstack, hstack
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
 from .placeholder import handle_failed_plot
 
+
 def write_camfiber_html(outfile, data, header):
     '''
     Args:
@@ -76,6 +77,7 @@ def write_camfiber_html(outfile, data, header):
 
     return dict({})
 
+
 def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
         TITLESPERCAM, TOOLS='pan,box_select,reset'):
     '''
@@ -108,6 +110,7 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
+
 
 def write_focalplane_plots(data, template, outfile, header,
         ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
@@ -188,6 +191,7 @@ def write_posacc_plots(data, template, outfile, header,
     #- Writes the htmlfile
     write_file = write_htmlfile(pa_camfiber_layout, template, outfile, header)
 
+
 def get_posacc_cd(header):
     '''
     Creates column data source from coordinates.fits file
@@ -249,6 +253,7 @@ def get_posacc_cd(header):
         return ColumnDataSource(data=df)
     else:
         return None
+
 
 def get_cds(data, attributes, cameras):
     '''
