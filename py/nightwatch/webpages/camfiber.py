@@ -7,11 +7,11 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import gridplot, layout, row
+from bokeh.layouts import gridplot, layout
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
-from bokeh.models import Panel, Tabs
+from bokeh.models import Panel, Tabs, Div
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
@@ -184,18 +184,24 @@ def write_posacc_plots(data, template, outfile, header,
         pcd = get_posacc_cd(header)
         if pcd is not None:
             posplots = []
-            for attr in ['BLIND','FINAL_MOVE']:
+            for attr, plot_title in zip(['BLIND','FINAL_MOVE'], ['Blind Move', 'Final Move']):
                 figs_list,hfigs_list = plot_camfib_posacc(pcd, attr, percentiles=PERCENTILES, tools=TOOLS)
                 gp = gridplot([figs_list, hfigs_list], toolbar_location='right')
-                tab = Panel(child=gp, title=attr.title())
+                tab = Panel(child=gp, title=plot_title)
                 posplots.append(tab)
 
             #- Put positioner accuracy moves into tabs.
             posacc_camfiber_layout = Tabs(tabs=posplots)
 
+            #- Add text to explain the positioner moves.
+            div = Div(text="""
+                <p>Note turbulence or large (>5 um RMS) final moves.</p>
+                """, width=400, height=50)
+
             #- Organize the layout of the plots
             pa_camfiber_layout = layout([
                 gridplot(focalplane_gridlist, toolbar_location='right'),
+                div,
                 posacc_camfiber_layout])
 
     #- Fall-through case (no positioner plots available):
