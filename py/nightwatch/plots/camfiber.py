@@ -42,8 +42,6 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
 
     metric = np.array(cds.data.get(attribute), copy=True)
 
-
-
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
     tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
@@ -69,10 +67,8 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
         colorbar = True
 
         # adjusts for outliers on the scale of the camera
-
         in_cam = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
         cam_metric = metric[in_cam]
-
 
         pmin, pmax = np.percentile(cam_metric, (2.5, 97.5))
 

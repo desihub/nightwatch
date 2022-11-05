@@ -103,7 +103,7 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
             tab = Panel(child=figs_list, title=plot_title)
             fibernum_gridlist.append(tab)
 
-#    #- Organizes the layout of the plots
+    #- Organizes the layout of the plots
     fn_camfiber_layout = Tabs(tabs=fibernum_gridlist)
 
     #- Writes the htmlfile
@@ -131,15 +131,17 @@ def write_focalplane_plots(data, template, outfile, header,
 
     #- Gets the plot list for each metric in ATTRIBUTES
     focalplane_gridlist = []
-    for attr in ATTRIBUTES:
+    for attr, title in zip(ATTRIBUTES, TITLESPERCAM['B']):
         if attr in list(cds.data.keys()):
-            figs_list, hfigs_list = plot_camfib_focalplane(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                     titles=TITLESPERCAM, tools=TOOLS)
+            figs_list, hfigs_list = plot_camfib_focalplane(cds, attr, CAMERAS, percentiles=PERCENTILES, titles=TITLESPERCAM, tools=TOOLS)
+            plot_title = title.replace('_', ' ').title().replace('Snr', 'SNR')
 
-            focalplane_gridlist.extend([figs_list, hfigs_list])
+            gp = gridplot([figs_list, hfigs_list], toolbar_location='right')
+            tab = Panel(child=gp, title=plot_title)
+            focalplane_gridlist.append(tab)
 
     #- Organizes the layout of the plots
-    fp_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+    fp_camfiber_layout = Tabs(tabs=focalplane_gridlist)
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fp_camfiber_layout, template, outfile, header)
