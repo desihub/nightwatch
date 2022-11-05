@@ -195,8 +195,10 @@ def write_posacc_plots(data, template, outfile, header,
 
             #- Add text to explain the positioner moves.
             div = Div(text="""
-                <p>Note turbulence or large (>5 um RMS) final moves.</p>
-                """, width=400, height=50)
+                <p>Select <strong>Blind</strong> or <strong>Final</strong> Move
+                tabs to view positioner accuracy.<br />
+                Note turbulence or large (>5 um RMS) final moves.</p>
+                """, width=400, height=65)
 
             #- Organize the layout of the plots
             pa_camfiber_layout = layout([
