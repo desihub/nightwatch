@@ -225,6 +225,14 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
                         colorbar=True, width=400, height=400)
 
+    # Add HelpTool redirection to the DESI wiki.
+    if _is_bokeh23:
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
+    else:
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
+
     figs_list.append(fig)
     hfigs_list.append(hfig)
     return figs_list, hfigs_list

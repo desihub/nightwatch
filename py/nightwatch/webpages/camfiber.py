@@ -7,7 +7,7 @@ import bokeh
 import desimodel.io
 
 from bokeh.embed import components
-from bokeh.layouts import gridplot, layout
+from bokeh.layouts import gridplot, layout, row
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
@@ -178,17 +178,32 @@ def write_posacc_plots(data, template, outfile, header,
     focalplane_gridlist.extend([figs_list])
 
     #- Positioner Accuracy Plots
+    pa_camfiber_layout = None
+
     if pos_acc:
         pcd = get_posacc_cd(header)
         if pcd is not None:
+            posplots = []
             for attr in ['BLIND','FINAL_MOVE']:
                 figs_list,hfigs_list = plot_camfib_posacc(pcd, attr, percentiles=PERCENTILES, tools=TOOLS)
-                focalplane_gridlist.extend([figs_list, hfigs_list])
+                gp = gridplot([figs_list, hfigs_list], toolbar_location='right')
+                tab = Panel(child=gp, title=attr.title())
+                posplots.append(tab)
 
-    #- Organizes the layout of the plots
-    pa_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+            #- Put positioner accuracy moves into tabs.
+            posacc_camfiber_layout = Tabs(tabs=posplots)
 
-    #- Writes the htmlfile
+            #- Organize the layout of the plots
+            pa_camfiber_layout = layout([
+                gridplot(focalplane_gridlist, toolbar_location='right'),
+                posacc_camfiber_layout])
+
+    #- Fall-through case (no positioner plots available):
+    #- organize the layout of fiber-on-target plots
+    if pa_camfiber_layout is None:
+        pa_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+
+    #- Write the htmlfile
     write_file = write_htmlfile(pa_camfiber_layout, template, outfile, header)
 
 
