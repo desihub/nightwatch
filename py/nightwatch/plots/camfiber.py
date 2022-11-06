@@ -42,8 +42,6 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
 
     metric = np.array(cds.data.get(attribute), copy=True)
 
-
-
     #- for hover tool
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
     tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
@@ -69,10 +67,8 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
         colorbar = True
 
         # adjusts for outliers on the scale of the camera
-
         in_cam = np.char.upper(np.array(cds.data['CAM']).astype(str)) == c.upper()
         cam_metric = metric[in_cam]
-
 
         pmin, pmax = np.percentile(cam_metric, (2.5, 97.5))
 
@@ -199,7 +195,6 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
         metric = metric[(metric>0) & (metric<50)]
         pcd_data = pd.DataFrame(pcd.data)
         pcd_data = pcd_data[pcd_data['FINAL_MOVE']>0]
-        print(len(pcd_data))
         pcd = ColumnDataSource(data=pcd_data)
         title = "Final Move: Max {:.2f}um; RMS {:.2f}um; Disabled {}".format(np.max(list(metric)),np.sqrt(np.square(list(metric)).mean()), len(disabled))
         zmax = 30
@@ -207,7 +202,6 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
     attr_formatted_str = "@" + attribute + '{(0.00 a)}'
     tooltips = [("FIBER", "@FIBER"), ("(X, Y)", "(@X, @Y)"),
                 (attribute, attr_formatted_str)]
-
 
     first_x_range = bokeh.models.Range1d(-420, 420)
     first_y_range = bokeh.models.Range1d(-420, 420)
@@ -221,13 +215,21 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
 
     hist_x_range = (pmin * 0.99, zmax)
     c = '' # So not to change plot_fibers_focalplane code
-    fig, hfig = plot_fibers_focalplane(pcd, attribute,cam=c, 
+    fig, hfig = plot_fibers_focalplane(pcd, attribute, cam=c, 
                         percentile=percentiles.get(c),
-                        palette = bp.Magma256,
-                        title=title,zmin=0, zmax=zmax,
+                        palette=bp.Magma256,
+                        title=title, zmin=0, zmax=zmax,
                         tools=tools, hist_x_range=hist_x_range,
                         fig_x_range=fig_x_range, fig_y_range=fig_y_range,
-                        colorbar=True, width=400, height=400)
+                        colorbar=True, width=500, height=500)
+
+    # Add HelpTool redirection to the DESI wiki.
+    if _is_bokeh23:
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
+    else:
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
 
     figs_list.append(fig)
     hfigs_list.append(hfig)

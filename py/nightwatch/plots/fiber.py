@@ -101,7 +101,6 @@ def plot_fibers_focalplane(source, name, cam='',
     view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
     fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
 
-
     #- Adds colored outline based on camera
     if cam:
         color = camcolors.get(cam.upper())

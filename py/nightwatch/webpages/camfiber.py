@@ -11,11 +11,12 @@ from bokeh.layouts import gridplot, layout
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
-from bokeh.models import Panel, Tabs
+from bokeh.models import Panel, Tabs, Div
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
 from .placeholder import handle_failed_plot
+
 
 def write_camfiber_html(outfile, data, header):
     '''
@@ -76,6 +77,7 @@ def write_camfiber_html(outfile, data, header):
 
     return dict({})
 
+
 def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
         TITLESPERCAM, TOOLS='pan,box_select,reset'):
     '''
@@ -96,16 +98,19 @@ def write_fibernum_plots(data, template, outfile, header, ATTRIBUTES, CAMERAS,
 
     #- Gets the plot list for each metric in ATTRIBUTES
     fibernum_gridlist = []
-    for attr in ATTRIBUTES:
+    for attr, title in zip(ATTRIBUTES, TITLESPERCAM['B']):
         if attr in list(cds.data.keys()):
-            figs_list = plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS)
-            fibernum_gridlist.extend(figs_list)
+            figs_list = layout(plot_per_fibernum(cds, attr, CAMERAS, titles=TITLESPERCAM, tools=TOOLS, width=800, height=150))
+            plot_title = title.replace('_', ' ').title().replace('Snr', 'SNR')
+            tab = Panel(child=figs_list, title=plot_title)
+            fibernum_gridlist.append(tab)
 
     #- Organizes the layout of the plots
-    fn_camfiber_layout = layout(fibernum_gridlist)
+    fn_camfiber_layout = Tabs(tabs=fibernum_gridlist)
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fn_camfiber_layout, template, outfile, header)
+
 
 def write_focalplane_plots(data, template, outfile, header,
         ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
@@ -129,15 +134,17 @@ def write_focalplane_plots(data, template, outfile, header,
 
     #- Gets the plot list for each metric in ATTRIBUTES
     focalplane_gridlist = []
-    for attr in ATTRIBUTES:
+    for attr, title in zip(ATTRIBUTES, TITLESPERCAM['B']):
         if attr in list(cds.data.keys()):
-            figs_list, hfigs_list = plot_camfib_focalplane(cds, attr, CAMERAS, percentiles=PERCENTILES,
-                                     titles=TITLESPERCAM, tools=TOOLS)
+            figs_list, hfigs_list = plot_camfib_focalplane(cds, attr, CAMERAS, percentiles=PERCENTILES, titles=TITLESPERCAM, tools=TOOLS)
+            plot_title = title.replace('_', ' ').title().replace('Snr', 'SNR')
 
-            focalplane_gridlist.extend([figs_list, hfigs_list])
+            gp = gridplot([figs_list, hfigs_list], toolbar_location='right')
+            tab = Panel(child=gp, title=plot_title)
+            focalplane_gridlist.append(tab)
 
     #- Organizes the layout of the plots
-    fp_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+    fp_camfiber_layout = Tabs(tabs=focalplane_gridlist)
 
     #- Writes the htmlfile
     write_file = write_htmlfile(fp_camfiber_layout, template, outfile, header)
@@ -171,18 +178,42 @@ def write_posacc_plots(data, template, outfile, header,
     focalplane_gridlist.extend([figs_list])
 
     #- Positioner Accuracy Plots
+    pa_camfiber_layout = None
+
     if pos_acc:
         pcd = get_posacc_cd(header)
         if pcd is not None:
-            for attr in ['BLIND','FINAL_MOVE']:
+            posplots = []
+            for attr, plot_title in zip(['BLIND','FINAL_MOVE'], ['Blind Move', 'Final Move']):
                 figs_list,hfigs_list = plot_camfib_posacc(pcd, attr, percentiles=PERCENTILES, tools=TOOLS)
-                focalplane_gridlist.extend([figs_list, hfigs_list])
+                gp = gridplot([figs_list, hfigs_list], toolbar_location='right')
+                tab = Panel(child=gp, title=plot_title)
+                posplots.append(tab)
 
-    #- Organizes the layout of the plots
-    pa_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+            #- Put positioner accuracy moves into tabs.
+            posacc_camfiber_layout = Tabs(tabs=posplots)
 
-    #- Writes the htmlfile
+            #- Add text to explain the positioner moves.
+            div = Div(text="""
+                <p>Select <strong>Blind</strong> or <strong>Final</strong> Move
+                tabs to view positioner accuracy.<br />
+                Note turbulence or large (>5 um RMS) final moves.</p>
+                """, width=400, height=65)
+
+            #- Organize the layout of the plots
+            pa_camfiber_layout = layout([
+                gridplot(focalplane_gridlist, toolbar_location='right'),
+                div,
+                posacc_camfiber_layout])
+
+    #- Fall-through case (no positioner plots available):
+    #- organize the layout of fiber-on-target plots
+    if pa_camfiber_layout is None:
+        pa_camfiber_layout = gridplot(focalplane_gridlist, toolbar_location='right')
+
+    #- Write the htmlfile
     write_file = write_htmlfile(pa_camfiber_layout, template, outfile, header)
+
 
 def get_posacc_cd(header):
     '''
@@ -245,6 +276,7 @@ def get_posacc_cd(header):
         return ColumnDataSource(data=df)
     else:
         return None
+
 
 def get_cds(data, attributes, cameras):
     '''
@@ -338,11 +370,21 @@ def write_htmlfile(layout, template, outfile, header):
     exptime = header['EXPTIME']
     focalplane = 'focalplane_plots' in outfile
     positioning = 'posacc_plots' in outfile
+
+    # Fill components dictionary for use in webpages.
     components_dict = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        obstype=obstype, program=program, qatype = 'camfiber',focalplane = focalplane,positioning = positioning,     num_dirs=2,        
+        obstype=obstype, program=program, qatype='camfiber',
+        focalplane=focalplane, positioning=positioning, num_dirs=2,
     )
+
+    # Add sky coordinates if they are present in header.
+    if obstype == 'SCIENCE':
+        if 'TILEID' in header and 'SKYRA' in header and 'SKYDEC' in header:
+            components_dict['TILEID'] = header['TILEID']
+            components_dict['SKYRA'] = header['SKYRA']
+            components_dict['SKYDEC'] = header['SKYDEC']
 
     script, div = components(layout)
     components_dict['CAMFIBER_PLOTS'] = dict(script=script, div=div)
