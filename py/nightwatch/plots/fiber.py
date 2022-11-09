@@ -117,15 +117,9 @@ def plot_fibers_focalplane(source, name, cam='',
     #- style visual attributes of the figure
     fig.xgrid.grid_line_color = None
     fig.ygrid.grid_line_color = None
-    fig.xaxis.major_tick_line_color = None
-    fig.xaxis.minor_tick_line_color = None
-    fig.yaxis.major_tick_line_color = None
-    fig.yaxis.minor_tick_line_color = None
     fig.outline_line_color = None
-    fig.xaxis.axis_line_color = None
-    fig.yaxis.axis_line_color = None
-    fig.xaxis.major_label_text_font_size = '0pt'
-    fig.yaxis.major_label_text_font_size = '0pt'
+    fig.xaxis.visible = False
+    fig.yaxis.visible = False
 
     taptool = fig.select(type=TapTool)
     #- Default to qcframe upon click, unless raw camfiber plot
@@ -159,7 +153,8 @@ def plot_fibers_focalplane(source, name, cam='',
             metric = np.clip(metric, zmin, zmax)
     hfig = plot_histogram(metric, title=name, width=width, x_range=hist_x_range, num_bins=50,
                          palette=mapper['transform'].palette, low=pmin_full, high=pmax_full)
-
+    
+    hfig.yaxis.visible = False 
     return fig, hfig
 
 
