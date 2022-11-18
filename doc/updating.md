@@ -1,6 +1,6 @@
 # How to Update and Restart Nightwatch
 
-## Instructions at KPNO (current as of March 2022)
+## Instructions at KPNO
 
 As of March 2022, Nightwatch runs as a service at KPNO. Details are provided on
 the [DESI wiki](https://desi.lbl.gov/trac/wiki/DOS/NightWatchService).
@@ -71,10 +71,18 @@ nwwactl status                                  # Confirm it is running
 tail -f nightwatch-webapp.log                   # Confirm it is processing
 ```
 
-## Instructions at NERSC (current as of March 2022)
+## Instructions at NERSC
 
-Instructions for updating Nightwatch at NERSC are available in
-in
+### Cori
+
+Cori is being replaced in 2023. As of the end of 2022, the primary Nightwatch instance runs on `cori21`. Instructions for updating Nightwatch on Cori are available in
 ```
-/global/project/projectdirs/desi/spectro/nightwatch/nersc/README
+/global/cfs/cdirs/desi/spectro/nightwatch/nersc/README
+```
+
+### Perlmutter
+
+Perlmutter will replace Cori in 2023. A test installation is available for updates. Instructions are available at
+```
+/global/cfs/cdirs/desi/spectro/nightwatch/nersc/perlmutter/README
 ```
