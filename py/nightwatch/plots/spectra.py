@@ -1,12 +1,17 @@
 from astropy.io import fits
+
+import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
 
 import numpy as np
 import random, os, sys, re
 
 from .. import io
+
+from packaging import version
+_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
 
 
 def downsample(data, n, agg=np.mean):
@@ -315,7 +320,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
         foundfibers = []
 
     fig = bk.figure(plot_height=height, plot_width=width,
-                    tools=['tap', 'reset', 'box_zoom', 'pan', 'help'])
+                    tools=['tap', 'reset', 'box_zoom', 'pan'])
     fig.xaxis.axis_label = 'wavelength [angstroms]'
     fig.x_range = Range1d(3200, 10200)
     fig.yaxis.axis_label = 'counts'
@@ -374,6 +379,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
         print('ERROR: Unable to find any input spectra in {} for {}'.format(
             datadir, select_string))
 
+    # Add tooltips that allow users to view spectrum information on hover.
     tooltips = tooltips=[
         ("Fiber", "@fiber"),
         ("Cam", "@cam"),
@@ -385,9 +391,18 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     hover = HoverTool(
         tooltips=tooltips
     )
-
     fig.add_tools(hover)
 
+    # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
+    if _is_bokeh23:
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non spectra QA',
+                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
+
+    else:
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non spectra QA',
+                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
+
+    # Set axis range.
     if len(flux_total) == 0:
         upper = 1
     else:
