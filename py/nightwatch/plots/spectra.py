@@ -363,7 +363,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
 
     # Open a link to the Legacy Survey when the user taps the spectrum.
-    url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15"
+    url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
     taptool = fig.select(type=TapTool)
     taptool.callback = OpenURL(url=url)
 
