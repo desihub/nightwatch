@@ -32,8 +32,8 @@ header {
 
 <label> Frame:
   <form id="frame">
-    <input type="radio" name="frame" value="qframe" {% if frame=="qframe"%} checked="yes" {% endif%}/> qframe<br />
-    <input type="radio" name="frame" value="qcframe"  {% if frame=="qcframe"%} checked="yes" {% endif%}/> qcframe<br />
+    <input type="radio" name="frame" value="qframe" {% if frame=="qframe"%} checked="yes" {% endif%}/> <strong>qframe</strong> (uncalibrated "raw" spectra)<br />
+    <input type="radio" name="frame" value="qcframe"  {% if frame=="qcframe"%} checked="yes" {% endif%}/> <strong>qcframe</strong> (calibrated spectra) <br />
   </form>
 </label>
 
@@ -77,7 +77,7 @@ for (var i = 0, length = radios.length; i < length; i++)
 
 <button onclick='
   window.open("../../{% if frame=="qframe" %}qcframe{% else %}qframe{% endif %}/{{ downsample | safe }}x", "_top")
-'>Generate with {% if frame=="qframe" %}qcframe{% else %}qframe{% endif %} (if avaliable)
+'>Generate with {% if frame=="qframe" %}calibrated spectra{% else %}uncalibrated spectra{% endif %} (if avaliable)
 </button>
 
 {% endif %}
