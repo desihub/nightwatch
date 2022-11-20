@@ -1,7 +1,7 @@
 from astropy.io import fits
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool
 
 import numpy as np
 import random, os, sys, re
@@ -314,7 +314,8 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     else:
         foundfibers = []
 
-    fig=bk.figure(plot_height = height, plot_width = width)
+    fig = bk.figure(plot_height=height, plot_width=width,
+                    tools=['tap', 'reset', 'box_zoom', 'pan', 'help'])
     fig.xaxis.axis_label = 'wavelength [angstroms]'
     fig.x_range = Range1d(3200, 10200)
     fig.yaxis.axis_label = 'counts'
@@ -341,15 +342,25 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 length = len(dwavelength)
+                objtype = fibermap['OBJTYPE'][i]
+                ra  = fibermap['TARGET_RA'][i]
+                dec = fibermap['TARGET_DEC'][i]
                 source = ColumnDataSource(data=dict(
                             fiber = [ifiber]*length,
                             cam = [cam]*length,
+                            objtype = [objtype]*length,
+                            ra = [ra]*length,
+                            dec = [dec]*length,
                             wave = dwavelength,
                             flux = dflux
                         ))
                 flux_total += dflux
-                #print(str(i), file=sys.stderr)
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
+
+    # Open a link to the Legacy Survey when the user taps the spectrum.
+    url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15"
+    taptool = fig.select(type=TapTool)
+    taptool.callback = OpenURL(url=url)
 
     # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
     if len(missingfibers) > 0:
@@ -365,6 +376,8 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
 
     tooltips = tooltips=[
         ("Fiber", "@fiber"),
+        ("Cam", "@cam"),
+        ("Objtype", "@objtype"),
         ("Wavelength", "@wave"),
         ("Flux", "@flux")
     ]
