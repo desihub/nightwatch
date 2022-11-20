@@ -1,12 +1,18 @@
 from astropy.io import fits
+
+import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
 
 import numpy as np
 import random, os, sys, re
 
 from .. import io
+
+from packaging import version
+_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
+
 
 def downsample(data, n, agg=np.mean):
     '''
@@ -23,14 +29,8 @@ def downsample(data, n, agg=np.mean):
     '''
     length = len(data)
     resultx = [agg(data[j:(j+n)]) if (j+n <= length) else agg(data[j:length]) for j in range(0, length, n)]
-#     for j in range(0, length, n):
-#         if (j+n <= length):
-#             samplex = data[j:(j+n)]
-#             resultx += [agg(samplex)]
-#         else:
-#             samplex = data[j:length]
-#             resultx += [agg(samplex)]
     return resultx
+
 
 def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
     '''
@@ -158,14 +158,14 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
     grid = gridplot([p1, p2], sizing_mode="fixed")
     return grid
 
+
 def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, width=1000):
     '''
-    Produces a gridplot of different spectra plots, each displaying a number of randomly
-    selected fibers that correspond to each unique OBJTYPE.
+    Produces a gridplot of different spectra plots, each displaying a number of randomly selected fibers that correspond to each unique OBJTYPE.
 
     Args:
-        data: night directory that contains the expid we want to process spectra for
-        expid_num: string or int of the expid we want to process spectra for
+        data: night directory that contains the expid we want to process.
+        expid_num: string or int of the expid we want to process spectra.
         frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
 
@@ -256,6 +256,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         gridlist += [[fig]]
     return gridplot(gridlist, sizing_mode="fixed")
 
+
 def lister(string):
     '''
     Produces a list of fibers from translating the string input
@@ -282,17 +283,17 @@ def lister(string):
     except:
         return None
 
+
 def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, width=1000):
     '''
     Produces plot displaying the specific fibers requested.
 
     Args:
-        datadir: night directory that contains the expid we want to process spectra for
+        datadir: night directory that contains the expid we want to process
         expid_num: string or int of the expid we want to process spectra for
         frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
-        select_string: string that requests specific fibers ("1, 3-5" corresponds
-            to fibers 1, 3, 5)
+        select_string: string that requests specific fibers ("1, 3-5" corresponds to fibers 1, 3, 5)
 
     Options:
         height: height of the plot
@@ -318,7 +319,8 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     else:
         foundfibers = []
 
-    fig=bk.figure(plot_height = height, plot_width = width)
+    fig = bk.figure(plot_height=height, plot_width=width,
+                    tools=['tap', 'reset', 'box_zoom', 'pan'])
     fig.xaxis.axis_label = 'wavelength [angstroms]'
     fig.x_range = Range1d(3200, 10200)
     fig.yaxis.axis_label = 'counts'
@@ -345,15 +347,25 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 length = len(dwavelength)
+                objtype = fibermap['OBJTYPE'][i]
+                ra  = fibermap['TARGET_RA'][i]
+                dec = fibermap['TARGET_DEC'][i]
                 source = ColumnDataSource(data=dict(
                             fiber = [ifiber]*length,
                             cam = [cam]*length,
+                            objtype = [objtype]*length,
+                            ra = [ra]*length,
+                            dec = [dec]*length,
                             wave = dwavelength,
                             flux = dflux
                         ))
                 flux_total += dflux
-                #print(str(i), file=sys.stderr)
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
+
+    # Open a link to the Legacy Survey when the user taps the spectrum.
+    url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+    taptool = fig.select(type=TapTool)
+    taptool.callback = OpenURL(url=url)
 
     # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
     if len(missingfibers) > 0:
@@ -367,8 +379,11 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
         print('ERROR: Unable to find any input spectra in {} for {}'.format(
             datadir, select_string))
 
+    # Add tooltips that allow users to view spectrum information on hover.
     tooltips = tooltips=[
         ("Fiber", "@fiber"),
+        ("Cam", "@cam"),
+        ("Objtype", "@objtype"),
         ("Wavelength", "@wave"),
         ("Flux", "@flux")
     ]
@@ -376,9 +391,18 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     hover = HoverTool(
         tooltips=tooltips
     )
-
     fig.add_tools(hover)
 
+    # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
+    if _is_bokeh23:
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non spectra QA',
+                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
+
+    else:
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non spectra QA',
+                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
+
+    # Set axis range.
     if len(flux_total) == 0:
         upper = 1
     else:
