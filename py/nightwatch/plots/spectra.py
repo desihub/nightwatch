@@ -8,6 +8,7 @@ import random, os, sys, re
 
 from .. import io
 
+
 def downsample(data, n, agg=np.mean):
     '''
     Produces downsampled data of data
@@ -23,14 +24,8 @@ def downsample(data, n, agg=np.mean):
     '''
     length = len(data)
     resultx = [agg(data[j:(j+n)]) if (j+n <= length) else agg(data[j:length]) for j in range(0, length, n)]
-#     for j in range(0, length, n):
-#         if (j+n <= length):
-#             samplex = data[j:(j+n)]
-#             resultx += [agg(samplex)]
-#         else:
-#             samplex = data[j:length]
-#             resultx += [agg(samplex)]
     return resultx
+
 
 def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
     '''
@@ -158,14 +153,14 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
     grid = gridplot([p1, p2], sizing_mode="fixed")
     return grid
 
+
 def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, width=1000):
     '''
-    Produces a gridplot of different spectra plots, each displaying a number of randomly
-    selected fibers that correspond to each unique OBJTYPE.
+    Produces a gridplot of different spectra plots, each displaying a number of randomly selected fibers that correspond to each unique OBJTYPE.
 
     Args:
-        data: night directory that contains the expid we want to process spectra for
-        expid_num: string or int of the expid we want to process spectra for
+        data: night directory that contains the expid we want to process.
+        expid_num: string or int of the expid we want to process spectra.
         frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
 
@@ -256,6 +251,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         gridlist += [[fig]]
     return gridplot(gridlist, sizing_mode="fixed")
 
+
 def lister(string):
     '''
     Produces a list of fibers from translating the string input
@@ -282,17 +278,17 @@ def lister(string):
     except:
         return None
 
+
 def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, width=1000):
     '''
     Produces plot displaying the specific fibers requested.
 
     Args:
-        datadir: night directory that contains the expid we want to process spectra for
+        datadir: night directory that contains the expid we want to process
         expid_num: string or int of the expid we want to process spectra for
         frame: filename header to look for ("qframe" or "qcframe")
         n: int of downsample size
-        select_string: string that requests specific fibers ("1, 3-5" corresponds
-            to fibers 1, 3, 5)
+        select_string: string that requests specific fibers ("1, 3-5" corresponds to fibers 1, 3, 5)
 
     Options:
         height: height of the plot
