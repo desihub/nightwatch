@@ -220,11 +220,18 @@ def run_assemble_fibermap(rawfile, outdir):
             log.info('Creating {}'.format(outdir))
             os.makedirs(outdir, exist_ok=True)
 
+        # Minor override of environment required at KPNO.
+        new_env = dict(os.environ)
+        if 'DESI_SPECTRO_DATA' not in new_env:
+            if 'HOSTNAME' in os.environ:
+                if 'desi-7' == os.environ['HOSTNAME']:
+                    new_env['DESI_SPECTRO_DATA'] = '/exposures/desi'
+
         fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
         cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
         logfile = '{}/assemble_fibermap-{:08d}.log'.format(outdir, expid)
         msg = 'assemble_fibermap {}/{}'.format(night, expid)
-        err = runcmd(cmd, logfile, msg)
+        err = runcmd(cmd, logfile, msg, env=new_env)
 
         return fibermap
 
