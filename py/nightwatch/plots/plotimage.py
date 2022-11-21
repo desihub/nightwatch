@@ -108,8 +108,9 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
             #- Check that the input file exists for this camera + spectrograph.
             if input_file:
                 with fits.open(input_file[0]) as hdul:
-                    image = hdul[0].data
-                    mask  = hdul[2].data
+                    image  = hdul[0].data
+                    imghdr = hdul[0].header
+                    mask   = hdul[2].data
 
                 ny, nx = image.shape
                 image2 = downsample_image(image, downsample)
@@ -153,6 +154,12 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                 if mask is not None:
                     fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
 
+                # Label spectrograph ID
+                label = Label(x=10, y=160, x_units='screen', y_units='screen',
+                              text=f'SM{imghdr["SPECID"]}', text_color='#00ffff', text_font_style='bold')
+                fig.add_layout(label)
+
+                # Label camera
                 label = Label(x=10, y=10, x_units='screen', y_units='screen',
                               text=f'{cam}{j}', text_color='#00ff00', text_font_style='bold')
                 fig.add_layout(label)
