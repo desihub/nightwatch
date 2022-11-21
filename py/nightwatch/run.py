@@ -168,13 +168,14 @@ def which_cameras(rawfile):
     return sorted(cameras)
 
 
-def runcmd(command, logfile, msg):
+def runcmd(command, logfile, msg, env=dict(os.environ)):
     '''Runs a given command and writes a logfile, returns a SUCCESS or ERROR message.
     
     Args:
         command: string, command you would call from the command line
         logfile: path to file where logs should be written (string)
         msg: name of the process (str)
+        env: dictionary of environment variables. Default is current environment.
     
     Returns: 
         dictionary of error codes: {logfile: returncode}. Prints status messages to the console
@@ -185,7 +186,7 @@ def runcmd(command, logfile, msg):
         t0 = time.time()
         print('Starting at {}'.format(time.asctime()), file=logfx)
         print('RUNNING {}'.format(command), file=logfx)
-        err = subprocess.call(args, stdout=logfx, stderr=logfx)
+        err = subprocess.call(args, stdout=logfx, stderr=logfx, env=env)
         dt = time.time() - t0
         print('Done at {} ({:0f} sec)'.format(time.asctime(), dt), file=logfx)
 
@@ -219,11 +220,18 @@ def run_assemble_fibermap(rawfile, outdir):
             log.info('Creating {}'.format(outdir))
             os.makedirs(outdir, exist_ok=True)
 
+        # Environment override required at KPNO.
+        new_env = dict(os.environ)
+        if 'DESI_SPECTRO_DATA' not in new_env:
+            if 'HOSTNAME' in new_env:
+                if 'desi-7' == new_env['HOSTNAME']:
+                    new_env['DESI_SPECTRO_DATA'] = '/data/dts/exposures/raw'
+
         fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
         cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
         logfile = '{}/assemble_fibermap-{:08d}.log'.format(outdir, expid)
         msg = 'assemble_fibermap {}/{}'.format(night, expid)
-        err = runcmd(cmd, logfile, msg)
+        err = runcmd(cmd, logfile, msg, env=new_env)
 
         return fibermap
 
