@@ -47,7 +47,7 @@ def main():
     if 'DESI_SPECTRO_DATA' not in os.environ:
         if 'HOSTNAME' in os.environ:
             if 'desi-7' == os.environ['HOSTNAME']:
-                os.environ['DESI_SPECTRO_DATA'] = '/exposures/desi'
+                os.environ['DESI_SPECTRO_DATA'] = '/data/dts/exposures/raw'
 
     command = sys.argv[1]
     if command == 'monitor':
