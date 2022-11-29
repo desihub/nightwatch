@@ -35,7 +35,7 @@ def downsample_image(image, n):
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
-def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=None):
+def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsample=2, title=None):
     """
     plots image downsampled, returning bokeh figure of requested width
     """
@@ -54,13 +54,26 @@ def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=
     #- Set up mask if not None. For now, do not distinguish the mask bits
     if mask is not None:
         mask2 = downsample_image(mask, downsample)
+
+        # Masked pixels are set to 2, unmasked pixels to 0.
         select = mask2 > 0
-        mask2[select]  = 1.0
+        mask2[select]  = 2.0
         mask2[~select] = 0.0
+
+        # DARK exposures with bright unmasked pixels are set to 1.
+        if imghdr is not None:
+            if 'OBSTYPE' in imghdr:
+                if imghdr['OBSTYPE'] == 'DARK':
+                    mask2[(mask2==0) & (image2 > 100)] = 1.0
+
         u8mask = mask2.astype(np.uint8)
-        yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
-                                               f'rgba(255, 255,   0, {mask_alpha})'],
-                                               low=0.0, high=1.0)
+
+        # Masked pixels are set to yellow. Unmasked but very bright pixels are
+        # set to red.
+        maskmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
+                                            f'rgba(255,  0,  0, {mask_alpha})',
+                                            f'rgba(255, 255, 0, {mask_alpha})'],
+                                             low=0, high=2)
 
     #- Create figure
     fig = bk.figure(width=width, height=width-50,
@@ -78,7 +91,7 @@ def plot_image(image, mask=None, mask_alpha=0.7, width=800, downsample=2, title=
 
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
     if mask is not None:
-        fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
+        fig.image([u8mask,], 0, 0, nx, ny, color_mapper=maskmap)
 
     fig.x_range.start = 0
     fig.x_range.end = nx
@@ -127,12 +140,22 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                 if mask is not None:
                     mask2 = downsample_image(mask, downsample)
                     select = mask2 > 0
-                    mask2[select]  = 1.0
-                    mask2[~select] = 0.0
+                    mask2[select]  = 2.0    # Masked pixels = 2.
+                    mask2[~select] = 0.0    # Unmasked pixels = 0.
+
+                    # DARK exposures with bright unmasked pixels are set to 1.
+                    if 'OBSTYPE' in imghdr:
+                        if imghdr['OBSTYPE'] == 'DARK':
+                            mask2[(mask2==0) & (image2 > 100)] = 1.0
+
                     u8mask = mask2.astype(np.uint8)
-                    yellowmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
-                                                           f'rgba(255, 255,   0, {mask_alpha})'],
-                                                           low=0.0, high=1.0)
+
+                    # Masked pixels are set to yellow. Unmasked but very bright
+                    # pixels are set to red in DARK exposures.
+                    maskmap = LinearColorMapper(palette=['rgba(255, 255, 255, 0.0)',
+                                                        f'rgba(255,  0,  0, {mask_alpha})',
+                                                        f'rgba(255, 255, 0, {mask_alpha})'],
+                                                         low=0, high=2)
 
                 #- Create figure of CCD
 #                fig = bk.figure(width=width, height=width, toolbar_location=None)
@@ -152,7 +175,7 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
 
                 fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
                 if mask is not None:
-                    fig.image([u8mask,], 0, 0, nx, ny, color_mapper=yellowmap)
+                    fig.image([u8mask,], 0, 0, nx, ny, color_mapper=maskmap)
 
                 # Label spectrograph ID
                 label = Label(x=10, y=160, x_units='screen', y_units='screen',
@@ -233,12 +256,13 @@ def main(input_in = None, output_in = None, downsample_in = None):
     if np.isscalar(input_in):
         with fits.open(img_input) as hdul:
             image = hdul[0].data
+            imhdr = hdul[0].header
             mask  = hdul[2].data
 
         short_title = '{basename} {n}x{n}'.format(basename=os.path.splitext(basename)[0], n=n)
         long_title = '{basename} downsampled {n}x{n}'.format(basename=basename, n=n)
 
-        fig = plot_image(image, mask, downsample=n, title=long_title)
+        fig = plot_image(image, mask, imhdr, downsample=n, title=long_title)
 
         if (output != None):
             bk.output_file(output, title=short_title, mode='inline')
