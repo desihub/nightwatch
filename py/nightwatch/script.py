@@ -156,6 +156,9 @@ def main_monitor(options=None):
                     print('{} Submitting batch job for {}'.format(time.strftime('%H:%M'), rawfile))
                     batch_run(rawfile, args.outdir, cameras, args.batch_queue, args.batch_time, args.batch_opts)
                 else:
+                    print('{} Running assemble_fibermap'.format(time.strftime('%H:%M')))
+                    fibermap = run.run_assemble_fibermap(rawfile, outdir)
+
                     print('{} Running qproc on {}'.format(time.strftime('%H:%M'), rawfile))
                     sys.stdout.flush()
                     header = run.run_qproc(rawfile, outdir, cameras=cameras)

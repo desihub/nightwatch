@@ -213,6 +213,7 @@ def run_assemble_fibermap(rawfile, outdir):
     night, expid = get_night_expid_header(hdr)
 
     log = desiutil.log.get_logger()
+    log.info(f'Running assemble_fibermap on {rawfile}')
 
     if 'TILEID' in hdr:
 
