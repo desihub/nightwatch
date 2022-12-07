@@ -221,12 +221,14 @@ def run_assemble_fibermap(rawfile, outdir):
             log.info('Creating {}'.format(outdir))
             os.makedirs(outdir, exist_ok=True)
 
-        # Environment override required at KPNO.
-        new_env = dict(os.environ)
+        # Environment variable DESI_SPECTRO_DATA required if not defined.
+        new_env = os.environ
         if 'DESI_SPECTRO_DATA' not in new_env:
-            if 'HOSTNAME' in new_env:
-                if 'desi-7' == new_env['HOSTNAME']:
-                    new_env['DESI_SPECTRO_DATA'] = '/data/dts/exposures/raw'
+            subfolder = f'{night}/{expid:08d}/{os.path.basename(rawfile)}'
+            rawdir = rawfile.replace(subfolder, '')
+            if os.path.isdir(rawdir):
+                new_env.update({'DESI_SPECTRO_DATA' : rawdir})
+                log.info(f'Updated DESI_SPECTRO_DATA to {new_env["DESI_SPECTRO_DATA"]}')
 
         fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
         cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
