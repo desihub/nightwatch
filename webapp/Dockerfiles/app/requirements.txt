@@ -1,7 +1,9 @@
-Flask==1.1.2
-bokeh==2.1.1
-uWSGI==2.0.17.1
-astropy==4.0.1
-scipy==1.5.0
-numpy==1.19.1
-fitsio==1.1.2
+Flask==2.0.*
+bokeh==2.4.*
+uWSGI==2.0.17.*
+astropy==5.0.*
+scipy==1.7.*
+numpy==1.21.*
+fitsio==1.1.7
+git+https://github.com/desihub/desiutil.git@3.2.5#egg=desiutil
+git+https://github.com/desihub/desimodel.git@0.17.0#egg=desimodel
