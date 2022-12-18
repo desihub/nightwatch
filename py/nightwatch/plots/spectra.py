@@ -8,6 +8,8 @@ from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverT
 import numpy as np
 import random, os, sys, re
 
+from desitarget.targets import desi_mask
+
 from .. import io
 
 from packaging import version
@@ -344,12 +346,28 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
             assert len(spectrofibers) == len(indexes)
 
             for i, ifiber in zip(indexes, spectrofibers):
+                # Extract flux and wavelength.
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 length = len(dwavelength)
+
+                # Extract object type (TGT or SKY) and bitmask info.
                 objtype = fibermap['OBJTYPE'][i]
+                desitgt = fibermap['DESI_TARGET'][i]
+                desinms = desi_mask.names(desitgt)
+                tgtname = desinms[0] if len(desinms) > 0 else 'None'
+
+                if not objtype:
+                    objtype = 'None'
+                else:
+                    if 'TGT' in objtype:
+                        objtype = f'{objtype}: {tgtname}'
+
+                # Get sky coordinates of the spectrum.
                 ra  = fibermap['TARGET_RA'][i]
                 dec = fibermap['TARGET_DEC'][i]
+
+                # Create a column data source used for mouseover info.
                 source = ColumnDataSource(data=dict(
                             fiber = [ifiber]*length,
                             cam = [cam]*length,
