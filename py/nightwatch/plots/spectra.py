@@ -1,9 +1,11 @@
 from astropy.io import fits
+import fitsio
 
 import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import gridplot
 from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+from glob import glob
 
 import numpy as np
 import random, os, sys, re
@@ -34,7 +36,7 @@ def downsample(data, n, agg=np.mean):
     return resultx
 
 
-def set_spectrum_objname(objtype, desi_target):
+def get_spectrum_objname(objtype, desi_target):
     '''
     Convert object type and bit masks from fibermap into a user-friendly string.
 
@@ -206,23 +208,22 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     colors = { 'B':'steelblue', 'R':'crimson', 'Z':'forestgreen' }
     expid = str(expid_num).zfill(8)
 
-    onlyfiles = [f for f in os.listdir(os.path.join(data, expid)) if os.path.isfile(os.path.join(data, expid, f))]
-    qframes = [i for i in onlyfiles if re.match(r'{}.*'.format(frame), i)]
+    # Find a list of files corresponding to the desired frame.
+    qframes = sorted(glob(os.path.join(data, expid, f'{frame}*.fits')))
     if len(qframes) == 0:
-        print("no supported {}-*.fits files".format(frame))
+        print(f'no supported {frame}-*.fits files')
         return None
-    spectr = [int(i.split("-")[1][1]) for i in qframes]
+    spectr = [int(os.path.basename(qf).split('-')[1][1]) for qf in qframes]
     spectros = random.choices(list(set(spectr)), k=num_fibs)
 
-    print(onlyfiles)
     print(qframes)
     print(data, expid)
 
     gridlist = []
 
     # Set up a unique list of object names.
-    fmap = fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')
-#    unique_nms = list(set([set_spectrum_objname(o, d) \
+#    fmap = fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')
+#    unique_nms = list(set([get_spectrum_objname(o, d) \
 #                      for o,d in zip(fmap['OBJTYPE'], fmap['DESI_TARGET'])]))
 #    unique_nms.sort()
 
@@ -236,17 +237,17 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         for spectro in spectros:
             filename = os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))
             r_fib = fits.getdata(filename, extname='FIBERMAP')
-#            bool_array = set_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
+#            bool_array = get_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
             bool_array = r_fib['OBJTYPE'] == obj
             r_fib = r_fib['FIBER']
             r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
             b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
-#            b_fib = b_fib[set_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
+#            b_fib = b_fib[get_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
             b_fib = b_fib[b_fib['OBJTYPE'] == obj]['FIBER']
 
             z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
-#            z_fib = z_fib[set_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
+#            z_fib = z_fib[get_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
             z_fib = z_fib[z_fib['OBJTYPE'] == obj]['FIBER']
 
             common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
@@ -395,7 +396,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 # Extract object type (TGT or SKY) and bitmask info.
                 objtype = fibermap['OBJTYPE'][i]
                 desitgt = fibermap['DESI_TARGET'][i]
-                objtype = set_spectrum_objname(objtype, desitgt)
+                objtype = get_spectrum_objname(objtype, desitgt)
 
                 # Get sky coordinates of the spectrum.
                 ra  = fibermap['TARGET_RA'][i]
