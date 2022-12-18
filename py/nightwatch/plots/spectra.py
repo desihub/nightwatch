@@ -221,7 +221,16 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
     gridlist = []
 
-    # Set up a unique list of object names.
+    # Set up a unique list of object names (quickly sort through all qframes).
+    unique_nms = None
+    for qframe in qframes:
+        fmap = fitsio.read(qframe, columns=['OBJTYPE','DESI_TARGET'], ext='FIBERMAP')
+        objnames = get_spectrum_objname(fmap['OBJTYPE'], fmap['DESI_TARGET'])
+        if unique_nms is None:
+            unique_nms = np.unique(objnames)
+        else:
+            unique_nms = np.unique(np.concatenate([unique_nms, objnames]))
+
 #    fmap = fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')
 #    unique_nms = list(set([get_spectrum_objname(o, d) \
 #                      for o,d in zip(fmap['OBJTYPE'], fmap['DESI_TARGET'])]))
