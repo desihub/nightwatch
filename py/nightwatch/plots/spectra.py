@@ -34,6 +34,30 @@ def downsample(data, n, agg=np.mean):
     return resultx
 
 
+def set_spectrum_objname(objtype, desi_target):
+    '''
+    Convert object type and bit masks from fibermap into a user-friendly string.
+
+    Args:
+        objtype: str such as "TGT," "SKY", or ""
+        desi_target: DESI target bitmask.
+
+    Returns: str corresponding to object type.
+    '''
+    # Extract object type (TGT or SKY) and bitmask info.
+    # Use the first name in the DESI mask, which is the primary category.
+    desinames = desi_mask.names(desi_target)
+    tgtname = desinames[0] if len(desinames) > 0 else 'None'
+
+    objname = 'None'
+
+    if objtype:
+        if 'TGT' in objtype:
+            objname = f'{objtype}: {tgtname}'
+
+    return objname
+
+
 def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
     '''
     Produces a gridplot of 10 different spectra plots, each displaying a number of randomly
@@ -354,14 +378,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 # Extract object type (TGT or SKY) and bitmask info.
                 objtype = fibermap['OBJTYPE'][i]
                 desitgt = fibermap['DESI_TARGET'][i]
-                desinms = desi_mask.names(desitgt)
-                tgtname = desinms[0] if len(desinms) > 0 else 'None'
-
-                if not objtype:
-                    objtype = 'None'
-                else:
-                    if 'TGT' in objtype:
-                        objtype = f'{objtype}: {tgtname}'
+                objtype = set_spectrum_objname(objtype, desitgt)
 
                 # Get sky coordinates of the spectrum.
                 ra  = fibermap['TARGET_RA'][i]
