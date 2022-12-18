@@ -231,11 +231,6 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         else:
             unique_nms = np.unique(np.concatenate([unique_nms, objnames]))
 
-#    fmap = fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')
-#    unique_nms = list(set([get_spectrum_objname(o, d) \
-#                      for o,d in zip(fmap['OBJTYPE'], fmap['DESI_TARGET'])]))
-#    unique_nms.sort()
-
     unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')["OBJTYPE"]))
     unique_objs.sort()
     for obj in unique_objs:
@@ -244,18 +239,20 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         com = []
         first = True
         for spectro in spectros:
-            filename = os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))
-            r_fib = fits.getdata(filename, extname='FIBERMAP')
+            filename = os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')
+            r_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
 #            bool_array = get_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
             bool_array = r_fib['OBJTYPE'] == obj
             r_fib = r_fib['FIBER']
             r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
-            b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
+            filename = os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')
+            b_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
 #            b_fib = b_fib[get_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
             b_fib = b_fib[b_fib['OBJTYPE'] == obj]['FIBER']
 
-            z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
+            filename = os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')
+            z_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
 #            z_fib = z_fib[get_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
             z_fib = z_fib[z_fib['OBJTYPE'] == obj]['FIBER']
 
