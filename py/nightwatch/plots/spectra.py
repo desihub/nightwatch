@@ -212,11 +212,10 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     if len(qframes) == 0:
         print(f'no supported {frame}-*.fits files')
         return None
+
+    # Pick random fibers from random spectrographs.
     spectr = [int(os.path.basename(qf).split('-')[1][1]) for qf in qframes]
     spectros = random.choices(list(set(spectr)), k=num_fibs)
-
-    print(qframes)
-    print(data, expid)
 
     gridlist = []
 
@@ -230,33 +229,34 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         else:
             unique_nms = np.unique(np.concatenate([unique_nms, objnames]))
 
-#    unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')["OBJTYPE"]))
-    unique_objs = list(set(fitsio.read(qframes[0], columns=['OBJTYPE'], ext='FIBERMAP')['OBJTYPE']))
-    unique_objs.sort()
-    for obj in unique_objs:
-#    for nm in unique_nms:
+    for nm in unique_nms:
         fig=bk.figure(plot_height=height, plot_width=width)
         com = []
         first = True
         for spectro in spectros:
+            # Pick out fibers from one of the r cameras.
             filename = os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')
             r_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
-#            bool_array = get_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
-            bool_array = r_fib['OBJTYPE'] == obj
+
+            bool_array = get_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
             r_fib = r_fib['FIBER']
             r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
+            # Pick out fibers from one of the b cameras.
             filename = os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')
             b_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
-#            b_fib = b_fib[get_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
-            b_fib = b_fib[b_fib['OBJTYPE'] == obj]['FIBER']
+            b_fib = b_fib[get_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
 
             filename = os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')
+
+            # Pick out fibers from one of the z cameras.
             z_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
-#            z_fib = z_fib[get_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
-            z_fib = z_fib[z_fib['OBJTYPE'] == obj]['FIBER']
+            z_fib = z_fib[get_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
 
             common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
+            if len(common) == 0:
+                continue
+
             if len(common) > 1:
                 common = random.sample(common, k=1)
             com += common
@@ -268,6 +268,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
                     continue
                 wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
                 flux = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='FLUX')
+
                 for i in indexes:
                     dwavelength = downsample(wavelength[i], n)
                     dflux = downsample(flux[i], n)
@@ -286,7 +287,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         #grid = gridplot(p1, p2)
         fig.add_layout(Title(text= f'Downsample: {n}', text_font_style='italic'), 'above')
         fig.add_layout(Title(text= f'Fibers: {com}', text_font_style='italic'), 'above')
-        fig.add_layout(Title(text= f'OBJTYPE: {obj}', text_font_size='16pt'), 'above')
+        fig.add_layout(Title(text= f'OBJTYPE: {nm}', text_font_size='16pt'), 'above')
 
         tooltips = tooltips=[
             ('Fiber', '@fiber'),
