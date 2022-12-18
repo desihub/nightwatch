@@ -1,4 +1,3 @@
-from astropy.io import fits
 import fitsio
 
 import bokeh
@@ -88,22 +87,22 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         colors = {}
         fib = []
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')['FIBER'])]
+            fib += [list(fitsio.read(os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits'), columns=['FIBER'], ext='FIBERMAP'))]
             colors['B'] = 'steelblue'
         except:
-            print('could not find {}'.format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print('could not find {}'.format(os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')), file=sys.stderr)
 
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')['FIBER'])]
+            fib += [list(fitsio.read(os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits'), columns=['FIBER'], ext='FIBERMAP'))]
             colors['R'] = 'crimson'
         except:
-            print('could not find {}'.format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print('could not find {}'.format(os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')), file=sys.stderr)
 
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')['FIBER'])]
+            fib += [list(fitsio.read(os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits'), columns=['FIBER'], ext='FIBERMAP'))]
             colors['Z'] = 'forestgreen'
         except:
-            print('could not find {}'.format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print('could not find {}'.format(os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')), file=sys.stderr)
 
         if (len(colors) == 0 and spectro == np.max(spectrorange) and first is None):
             print("no supported {}-*.fits files".format(frame))
@@ -145,8 +144,8 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
 
         flux_total = []
         for cam in colors:
-            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), 'WAVELENGTH')
-            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), 'FLUX')
+            wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{came.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
+            flux = fitsio.read(os.path.join(data, expid, f'{frame}-{came.lower()}{spectro}-{expid}.fits'), ext='FLUX')
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
@@ -231,7 +230,8 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         else:
             unique_nms = np.unique(np.concatenate([unique_nms, objnames]))
 
-    unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')["OBJTYPE"]))
+#    unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')["OBJTYPE"]))
+    unique_objs = list(set(fitsio.read(qframes[0], columns=['OBJTYPE'], ext='FIBERMAP')['OBJTYPE']))
     unique_objs.sort()
     for obj in unique_objs:
 #    for nm in unique_nms:
@@ -266,8 +266,8 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
             for cam in colors:
                 if indexes == []:
                     continue
-                wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
-                flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
+                wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
+                flux = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='FLUX')
                 for i in indexes:
                     dwavelength = downsample(wavelength[i], n)
                     dflux = downsample(flux[i], n)
@@ -280,19 +280,19 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
                                 wave = dwavelength,
                                 flux = dflux
                             ))
-                    fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
+                    fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
             first = False
 
         #grid = gridplot(p1, p2)
-        fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-        fig.add_layout(Title(text= "Fibers: {}".format(com), text_font_style="italic"), 'above')
-        fig.add_layout(Title(text= "OBJTYPE: {}".format(obj), text_font_size="16pt"), 'above')
+        fig.add_layout(Title(text= f'Downsample: {n}', text_font_style='italic'), 'above')
+        fig.add_layout(Title(text= f'Fibers: {com}', text_font_style='italic'), 'above')
+        fig.add_layout(Title(text= f'OBJTYPE: {obj}', text_font_size='16pt'), 'above')
 
         tooltips = tooltips=[
-            ("Fiber", "@fiber"),
-            ("Cam", "@cam"),
-            ("Wavelength", "@wave"),
-            ("Flux", "@flux")
+            ('Fiber', '@fiber'),
+            ('Cam', '@cam'),
+            ('Wavelength', '@wave'),
+            ('Flux', '@flux')
         ]
 
         hover = HoverTool(
@@ -304,7 +304,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         upper = int(np.percentile(flux_total, 99.99))
         fig.y_range = Range1d(int(-0.02*upper), upper)
         gridlist += [[fig]]
-    return gridplot(gridlist, sizing_mode="fixed")
+    return gridplot(gridlist, sizing_mode='fixed')
 
 
 def lister(string):
@@ -385,10 +385,10 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 print(f"WARNING: missing {framefile}")
                 continue
 
-            fibermap = fits.getdata(framefile, 'FIBERMAP')
+            fibermap = fitsio.read(framefile, ext='FIBERMAP')
 
-            wavelength = fits.getdata(framefile, "WAVELENGTH")
-            flux = fits.getdata(framefile, "FLUX")
+            wavelength = fitsio.read(framefile, ext='WAVELENGTH')
+            flux = fitsio.read(framefile, ext='FLUX')
             spectrofibers = fibergroups[spectro]
             indexes = np.where(np.in1d(fibermap['FIBER'], spectrofibers))[0]
             assert len(spectrofibers) == len(indexes)
