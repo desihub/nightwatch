@@ -39,23 +39,24 @@ def set_spectrum_objname(objtype, desi_target):
     Convert object type and bit masks from fibermap into a user-friendly string.
 
     Args:
-        objtype: str such as "TGT," "SKY", or ""
-        desi_target: DESI target bitmask.
+        objtype: str or list or ndarray containing "TGT," "SKY", or ""
+        desi_target: DESI target bitmask(s).
 
-    Returns: str corresponding to object type.
+    Returns: str or nd.array with object types and target info.
     '''
+    # Cleanup OBJTYPE and DESITARGET into a single string.
+    # - if OBJTYPE is TGT, return the first name of DESI_TARGET from desi_mask.
+    # - else if OBJTYPE is not empty, return OBJTYPE.
+    # - else return the string 'None'
+    get_names = lambda ot, dt: 'None' if not ot else (f'{desi_mask.names(dt)[0]}' if 'TGT' in ot and dt>0 else ot)
+
     # Extract object type (TGT or SKY) and bitmask info.
-    # Use the first name in the DESI mask, which is the primary category.
-    desinames = desi_mask.names(desi_target)
-    tgtname = desinames[0] if len(desinames) > 0 else 'None'
-
-    objname = 'None'
-
-    if objtype:
-        if 'TGT' in objtype:
-            objname = f'{objtype}: {tgtname}'
-
-    return objname
+    if isinstance(desi_target, (list, np.ndarray)):
+        objnames = [get_names(ot, dt) for ot, dt in zip(objtype, desi_target)]
+        return np.asarray(objnames)
+    else:
+        objname = get_names(objtype, desi_target)
+        return objname
 
 
 def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
@@ -213,24 +214,40 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     spectr = [int(i.split("-")[1][1]) for i in qframes]
     spectros = random.choices(list(set(spectr)), k=num_fibs)
 
+    print(onlyfiles)
+    print(qframes)
+    print(data, expid)
+
     gridlist = []
+
+    # Set up a unique list of object names.
+    fmap = fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')
+#    unique_nms = list(set([set_spectrum_objname(o, d) \
+#                      for o,d in zip(fmap['OBJTYPE'], fmap['DESI_TARGET'])]))
+#    unique_nms.sort()
+
     unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')["OBJTYPE"]))
     unique_objs.sort()
     for obj in unique_objs:
-        fig=bk.figure(plot_height = height, plot_width = width)
+#    for nm in unique_nms:
+        fig=bk.figure(plot_height=height, plot_width=width)
         com = []
         first = True
         for spectro in spectros:
-            r_fib = fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
-            bool_array = r_fib["OBJTYPE"] == obj
-            r_fib = r_fib["FIBER"]
+            filename = os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))
+            r_fib = fits.getdata(filename, extname='FIBERMAP')
+#            bool_array = set_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
+            bool_array = r_fib['OBJTYPE'] == obj
+            r_fib = r_fib['FIBER']
             r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
             b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
-            b_fib = b_fib[b_fib["OBJTYPE"] == obj]["FIBER"]
+#            b_fib = b_fib[set_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
+            b_fib = b_fib[b_fib['OBJTYPE'] == obj]['FIBER']
 
             z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
-            z_fib = z_fib[z_fib["OBJTYPE"] == obj]["FIBER"]
+#            z_fib = z_fib[set_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
+            z_fib = z_fib[z_fib['OBJTYPE'] == obj]['FIBER']
 
             common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
             if len(common) > 1:
