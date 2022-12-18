@@ -85,22 +85,22 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         colors = {}
         fib = []
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["B"] = "steelblue"
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')['FIBER'])]
+            colors['B'] = 'steelblue'
         except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print('could not find {}'.format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
 
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["R"] = "crimson"
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')['FIBER'])]
+            colors['R'] = 'crimson'
         except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print('could not find {}'.format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
 
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["Z"] = "forestgreen"
+            fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')['FIBER'])]
+            colors['Z'] = 'forestgreen'
         except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print('could not find {}'.format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
 
         if (len(colors) == 0 and spectro == np.max(spectrorange) and first is None):
             print("no supported {}-*.fits files".format(frame))
@@ -122,13 +122,13 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
         # fig.add_layout(Title(text= "Fibers: {}".format(common), text_font_style="italic"), 'above')
         # fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="12pt"), 'above')
-        title = "sp{} fibers {}".format(spectro, ", ".join(map(str, common)))
-        fig.add_layout(Title(text=title, text_font_style="italic"), 'above')
+        title = 'sp{} fibers {}'.format(spectro, ', '.join(map(str, common)))
+        fig.add_layout(Title(text=title, text_font_style='italic'), 'above')
         tooltips = tooltips=[
-            ("Fiber", "@fiber"),
-            ("Cam", "@cam"),
-            ("Wavelength", "@wave"),
-            ("Flux", "@flux")
+            ('Fiber', '@fiber'),
+            ('Cam', '@cam'),
+            ('Wavelength', '@wave'),
+            ('Flux', '@flux')
         ]
 
         hover = HoverTool(
@@ -142,8 +142,8 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
 
         flux_total = []
         for cam in colors:
-            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
-            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
+            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), 'WAVELENGTH')
+            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), 'FLUX')
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
@@ -156,7 +156,7 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
                             wave = dwavelength,
                             flux = dflux,
                         ))
-                fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
+                fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
 
         if first is None:
             if len(colors) == 3:
@@ -181,7 +181,7 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         fig.x_range=first.x_range
         fig.y_range=first.y_range
 
-    grid = gridplot([p1, p2], sizing_mode="fixed")
+    grid = gridplot([p1, p2], sizing_mode='fixed')
     return grid
 
 
@@ -214,22 +214,22 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     spectros = random.choices(list(set(spectr)), k=num_fibs)
 
     gridlist = []
-    unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), 5)["OBJTYPE"]))
+    unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), extname='FIBERMAP')["OBJTYPE"]))
     unique_objs.sort()
     for obj in unique_objs:
         fig=bk.figure(plot_height = height, plot_width = width)
         com = []
         first = True
         for spectro in spectros:
-            r_fib = fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)
+            r_fib = fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
             bool_array = r_fib["OBJTYPE"] == obj
             r_fib = r_fib["FIBER"]
             r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
-            b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)
+            b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
             b_fib = b_fib[b_fib["OBJTYPE"] == obj]["FIBER"]
 
-            z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)
+            z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), extname='FIBERMAP')
             z_fib = z_fib[z_fib["OBJTYPE"] == obj]["FIBER"]
 
             common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
