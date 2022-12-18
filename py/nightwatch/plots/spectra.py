@@ -86,23 +86,30 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
     for spectro in spectrorange:
         colors = {}
         fib = []
+
+        # Read fibers from the B cameras.
+        qframe_b = os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')
         try:
-            fib += [list(fitsio.read(os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits'), columns=['FIBER'], ext='FIBERMAP'))]
+            fib += [list(fitsio.read(qframe_b, columns=['FIBER'], ext='FIBERMAP')['FIBER'])]
             colors['B'] = 'steelblue'
         except:
-            print('could not find {}'.format(os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')), file=sys.stderr)
+            print(f'could not find {qframe_b}', file=sys.stderr)
 
+        # Read fibers from the R cameras.
+        qframe_r = os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')
         try:
-            fib += [list(fitsio.read(os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits'), columns=['FIBER'], ext='FIBERMAP'))]
+            fib += [list(fitsio.read(qframe_r, columns=['FIBER'], ext='FIBERMAP')['FIBER'])]
             colors['R'] = 'crimson'
         except:
-            print('could not find {}'.format(os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')), file=sys.stderr)
+            print(f'could not find {qframe_r}', file=sys.stderr)
 
+        # Read fibers from the Z cameras.
+        qframe_z = os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')
         try:
-            fib += [list(fitsio.read(os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits'), columns=['FIBER'], ext='FIBERMAP'))]
+            fib += [list(fitsio.read(qframe_z, columns=['FIBER'], ext='FIBERMAP')['FIBER'])]
             colors['Z'] = 'forestgreen'
         except:
-            print('could not find {}'.format(os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')), file=sys.stderr)
+            print(f'could not find {qframe_z}', file=sys.stderr)
 
         if (len(colors) == 0 and spectro == np.max(spectrorange) and first is None):
             print("no supported {}-*.fits files".format(frame))
@@ -144,8 +151,8 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
 
         flux_total = []
         for cam in colors:
-            wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{came.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
-            flux = fitsio.read(os.path.join(data, expid, f'{frame}-{came.lower()}{spectro}-{expid}.fits'), ext='FLUX')
+            wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
+            flux = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='FLUX')
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
