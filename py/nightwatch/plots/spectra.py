@@ -133,6 +133,8 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         # fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="12pt"), 'above')
         title = 'sp{} fibers {}'.format(spectro, ', '.join(map(str, common)))
         fig.add_layout(Title(text=title, text_font_style='italic'), 'above')
+
+        # Add tool tips to the figure during mouseover.
         tooltips = tooltips=[
             ('Fiber', '@fiber'),
             ('Cam', '@cam'),
@@ -144,8 +146,8 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         hover = HoverTool(
             tooltips=tooltips
         )
-
         fig.add_tools(hover)
+
         if spectro not in [0, 5]:
             fig.yaxis.visible = False
             fig.plot_width = width
@@ -163,16 +165,28 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
                 if first is None:
                     flux_total += dflux
                 length = len(dwavelength)
+
+                # Object type and position for the Legacy Survey picker.
                 objtype = get_spectrum_objname(fmap['OBJTYPE'][i], fmap['DESI_TARGET'][i])
+                ra  = fmap['TARGET_RA'][i]
+                dec = fmap['TARGET_DEC'][i]
 
                 source = ColumnDataSource(data=dict(
                             fiber = [fib[0][i]]*length,
                             cam = [cam]*length,
                             objtype = [objtype]*length,
+                            ra = [ra]*length,
+                            dec = [dec]*length,
                             wave = dwavelength,
                             flux = dflux,
                         ))
                 fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
+
+#        # Open link to Legacy Survey when the user left-clicks the spectrum.
+#        # NOT WORKING: see https://github.com/desihub/nightwatch/issues/321
+#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+#        taptool = fig.select(type=TapTool)
+#        taptool.callback = OpenURL(url=url)
 
         if first is None:
             if len(colors) == 3:
@@ -280,8 +294,10 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
             for cam in colors:
                 if indexes == []:
                     continue
-                wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
-                flux = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='FLUX')
+                camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits')
+                wavelength = fitsio.read(camfile, ext='WAVELENGTH')
+                flux = fitsio.read(camfile, ext='FLUX')
+                fmap = fitsio.read(camfile, columns=['OBJTYPE', 'DESI_TARGET', 'TARGET_RA', 'TARGET_DEC'], ext='FIBERMAP')
 
                 for i in indexes:
                     dwavelength = downsample(wavelength[i], n)
@@ -289,9 +305,17 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
                     if first:
                         flux_total += dflux
                     length = len(dwavelength)
+
+                    objtype = get_spectrum_objname(fmap['OBJTYPE'][i], fmap['DESI_TARGET'][i])
+                    ra = fmap['TARGET_RA'][i]
+                    dec = fmap['TARGET_DEC'][i]
+
                     source = ColumnDataSource(data=dict(
                                 fiber = [r_fib[i]]*length,
                                 cam = [cam]*length,
+                                objtype = [objtype]*length,
+                                ra = [ra]*length,
+                                dec = [dec]*length,
                                 wave = dwavelength,
                                 flux = dflux
                             ))
@@ -303,9 +327,17 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         fig.add_layout(Title(text= f'Fibers: {com}', text_font_style='italic'), 'above')
         fig.add_layout(Title(text= f'OBJTYPE: {nm}', text_font_size='16pt'), 'above')
 
+#        # Open link to Legacy Survey when the user left-clicks the spectrum.
+#        # NOT WORKING: see https://github.com/desihub/nightwatch/issues/321
+#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+#        taptool = fig.select(type=TapTool)
+#        taptool.callback = OpenURL(url=url)
+
+        # Add over tool with spectrum info.
         tooltips = tooltips=[
             ('Fiber', '@fiber'),
             ('Cam', '@cam'),
+            ('Objtype', '@objtype'),
             ('Wavelength', '@wave'),
             ('Flux', '@flux')
         ]
@@ -319,6 +351,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         upper = int(np.percentile(flux_total, 99.99))
         fig.y_range = Range1d(int(-0.02*upper), upper)
         gridlist += [[fig]]
+
     return gridplot(gridlist, sizing_mode='fixed')
 
 
