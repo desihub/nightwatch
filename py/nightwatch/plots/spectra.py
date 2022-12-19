@@ -136,6 +136,7 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         tooltips = tooltips=[
             ('Fiber', '@fiber'),
             ('Cam', '@cam'),
+            ('Objtype', '@objtype'),
             ('Wavelength', '@wave'),
             ('Flux', '@flux')
         ]
@@ -151,17 +152,23 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
 
         flux_total = []
         for cam in colors:
-            wavelength = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='WAVELENGTH')
-            flux = fitsio.read(os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits'), ext='FLUX')
+            camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits')
+            wavelength = fitsio.read(camfile, ext='WAVELENGTH')
+            flux = fitsio.read(camfile, ext='FLUX')
+            fmap = fitsio.read(camfile, columns=['OBJTYPE','DESI_TARGET','TARGET_RA','TARGET_DEC'], ext='FIBERMAP')
+
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 if first is None:
                     flux_total += dflux
                 length = len(dwavelength)
+                objtype = get_spectrum_objname(fmap['OBJTYPE'][i], fmap['DESI_TARGET'][i])
+
                 source = ColumnDataSource(data=dict(
                             fiber = [fib[0][i]]*length,
                             cam = [cam]*length,
+                            objtype = [objtype]*length,
                             wave = dwavelength,
                             flux = dflux,
                         ))
