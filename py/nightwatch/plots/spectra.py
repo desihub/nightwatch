@@ -7,6 +7,7 @@ from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverT
 from glob import glob
 
 import numpy as np
+import numpy.lib.recfunctions as rfn
 import random, os, sys, re
 
 from desitarget.targets import desi_mask
@@ -241,90 +242,80 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         print(f'no supported {frame}-*.fits files')
         return None
 
-    # Pick random fibers from random spectrographs.
-    spectr = [int(os.path.basename(qf).split('-')[1][1]) for qf in qframes]
-    spectros = random.choices(list(set(spectr)), k=num_fibs)
+    # Get target information for all fibers in this exposure.
+    # - Extract TARGETID, OBJTYPE, DESI_TARGET, and PETAL_LOC.
+    # - Produce a unique table, then convert DESI_TARGET to object type.
+    fibtab = None
 
-    gridlist = []
-
-    # Set up a unique list of object names (quickly sort through all qframes).
-    unique_nms = None
     for qframe in qframes:
-        fmap = fitsio.read(qframe, columns=['OBJTYPE','DESI_TARGET'], ext='FIBERMAP')
-        objnames = get_spectrum_objname(fmap['OBJTYPE'], fmap['DESI_TARGET'])
-        if unique_nms is None:
-            unique_nms = np.unique(objnames)
+        fmap = fitsio.read(qframe, columns=['TARGETID','OBJTYPE','DESI_TARGET', 'PETAL_LOC', 'FIBER'], ext='FIBERMAP')
+        if fibtab is None:
+            fibtab = fmap[fmap['TARGETID'] > 0]
         else:
-            unique_nms = np.unique(np.concatenate([unique_nms, objnames]))
+            fibtab = np.concatenate([fibtab, fmap[fmap['TARGETID'] > 0]])
+
+    fibtab = np.unique(fibtab)
+    fibtab = rfn.append_fields(fibtab, 'OBJNAME', get_spectrum_objname(fibtab['OBJTYPE'], fibtab['DESI_TARGET']))
+
+    # Loop through the list of unique object types in this exposure.
+    unique_nms = np.unique(fibtab['OBJNAME'])
+    gridlist = []
 
     for nm in unique_nms:
         fig=bk.figure(plot_height=height, plot_width=width)
-        com = []
-        first = True
-        for spectro in spectros:
-            # Pick out fibers from one of the r cameras.
-            filename = os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')
-            r_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
 
-            bool_array = get_spectrum_objname(r_fib['OBJTYPE'], r_fib['DESI_TARGET']) == nm
-            r_fib = r_fib['FIBER']
-            r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
+        select = fibtab['OBJNAME'] == nm
+        nfibs = np.minimum(np.sum(select), num_fibs)
+        minflux, maxflux = 1e99, -1e99
 
-            # Pick out fibers from one of the b cameras.
-            filename = os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')
-            b_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
-            b_fib = b_fib[get_spectrum_objname(b_fib['OBJTYPE'], b_fib['DESI_TARGET']) == nm]['FIBER']
+        # Randomly select nfibs fibers of this object type.
+        targetids = np.random.choice(fibtab['TARGETID'][select], size=nfibs, replace=False)
+        idx = np.isin(fibtab['TARGETID'], targetids)
+        fibers = fibtab['FIBER'][idx]
 
-            filename = os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')
-
-            # Pick out fibers from one of the z cameras.
-            z_fib = fitsio.read(filename, columns=['OBJTYPE','DESI_TARGET','FIBER'], ext='FIBERMAP')
-            z_fib = z_fib[get_spectrum_objname(z_fib['OBJTYPE'], z_fib['DESI_TARGET']) == nm]['FIBER']
-
-            common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
-            if len(common) == 0:
-                continue
-
-            if len(common) > 1:
-                common = random.sample(common, k=1)
-            com += common
-            indexes = [r_fib.index(i) for i in common]
-            if first:
-                flux_total = []
+        for i, (tid, petal, otype, desitgt, oname, fiber) in enumerate(fibtab[idx]):
             for cam in colors:
-                if indexes == []:
-                    continue
-                camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits')
-                wavelength = fitsio.read(camfile, ext='WAVELENGTH')
-                flux = fitsio.read(camfile, ext='FLUX')
-                fmap = fitsio.read(camfile, columns=['OBJTYPE', 'DESI_TARGET', 'TARGET_RA', 'TARGET_DEC'], ext='FIBERMAP')
+                camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{petal}-{expid}.fits')
+                if os.path.exists(camfile):
 
-                for i in indexes:
-                    dwavelength = downsample(wavelength[i], n)
-                    dflux = downsample(flux[i], n)
-                    if first:
-                        flux_total += dflux
+                    # Convert TARGETID to table index in file.
+                    fits = fitsio.FITS(camfile)
+                    targetids = fits['FIBERMAP']['TARGETID'][:]
+                    j = np.argwhere(targetids == tid)
+                    if j.shape != (1,1):
+                        continue
+                    j = j.item()
+
+                    # Extract target information for this fiber.
+                    ra, dec = fits['FIBERMAP']['TARGET_RA', 'TARGET_DEC'][j]
+
+                    # Extract wavelength and flux for this fiber.
+                    wavelength = fits['WAVELENGTH'][j,:]
+                    flux = fits['FLUX'][j,:]
+
+                    # Downsample the fluxes.
+                    dwavelength = downsample(wavelength, n)
+                    dflux = downsample(flux, n)
+                    minflux = np.minimum(minflux, np.min(dflux))
+                    maxflux = np.maximum(maxflux, np.max(dflux))
                     length = len(dwavelength)
 
-                    objtype = get_spectrum_objname(fmap['OBJTYPE'][i], fmap['DESI_TARGET'][i])
-                    ra = fmap['TARGET_RA'][i]
-                    dec = fmap['TARGET_DEC'][i]
-
+                    # Create bokeh plotting objects.
                     source = ColumnDataSource(data=dict(
-                                fiber = [r_fib[i]]*length,
-                                cam = [cam]*length,
-                                objtype = [objtype]*length,
+                                fiber = [fiber]*length,
+                                cam = [f'{cam}{petal}']*length,
+                                objtype = [nm]*length,
                                 ra = [ra]*length,
                                 dec = [dec]*length,
                                 wave = dwavelength,
-                                flux = dflux
-                            ))
-                    fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
-            first = False
+                                flux = dflux,
+                                ))
 
-        #grid = gridplot(p1, p2)
+                    fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
+
+        # Configure plot for spectra of this object type.
         fig.add_layout(Title(text= f'Downsample: {n}', text_font_style='italic'), 'above')
-        fig.add_layout(Title(text= f'Fibers: {com}', text_font_style='italic'), 'above')
+        fig.add_layout(Title(text= f'Fibers: {fibers}', text_font_style='italic'), 'above')
         fig.add_layout(Title(text= f'OBJTYPE: {nm}', text_font_size='16pt'), 'above')
 
 #        # Open link to Legacy Survey when the user left-clicks the spectrum.
@@ -348,8 +339,10 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
         fig.add_tools(hover)
 
-        upper = int(np.percentile(flux_total, 99.99))
-        fig.y_range = Range1d(int(-0.02*upper), upper)
+#        maxflux = 1.05*maxflux
+#        minflux = 1.05*minflux if minflux < 0 else 0.9*minflux
+#        fig.y_range = Range1d(minflux, maxflux)
+
         gridlist += [[fig]]
 
     return gridplot(gridlist, sizing_mode='fixed')
