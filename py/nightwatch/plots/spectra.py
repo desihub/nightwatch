@@ -264,7 +264,12 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     gridlist = []
 
     for nm in unique_nms:
-        fig=bk.figure(plot_height=height, plot_width=width)
+        fig = bk.figure(plot_height=height, plot_width=width)
+        fig.yaxis.axis_label = 'counts'
+        fig.xaxis.axis_label = 'wavelength [angstroms]'
+        fig.x_range = Range1d(3500, 9950)
+        fig.add_layout(BoxAnnotation(left=5660, right=5930, fill_color='blue', fill_alpha=0.03, line_alpha=0))
+        fig.add_layout(BoxAnnotation(left=7470, right=7720, fill_color='blue', fill_alpha=0.03, line_alpha=0))
 
         select = fibtab['OBJNAME'] == nm
         nfibs = np.minimum(np.sum(select), num_fibs)
