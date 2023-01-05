@@ -251,9 +251,9 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     for qframe in qframes:
         fmap = fitsio.read(qframe, columns=keys, ext='FIBERMAP')
         if fibtab is None:
-            fibtab = fmap[fmap['TARGETID'] > 0]
+            fibtab = fmap[fmap['TARGETID'] >= 0]
         else:
-            fibtab = np.concatenate([fibtab, fmap[fmap['TARGETID'] > 0]])
+            fibtab = np.concatenate([fibtab, fmap[fmap['TARGETID'] >= 0]])
 
     fibtab = np.unique(fibtab)
     fibtab = rfn.append_fields(fibtab, 'OBJNAME', get_spectrum_objname(fibtab['OBJTYPE'], fibtab['DESI_TARGET']))
@@ -276,9 +276,8 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         minflux, maxflux = 1e99, -1e99
 
         # Randomly select nfibs fibers of this object type.
-        targetids = np.random.choice(fibtab['TARGETID'][select], size=nfibs, replace=False)
-        idx = np.isin(fibtab['TARGETID'], targetids)
-        fibers = fibtab['FIBER'][idx]
+        fibers = np.random.choice(fibtab['FIBER'][select], size=nfibs, replace=False)
+        idx = np.isin(fibtab['FIBER'], fibers)
 
         for i, (tid, petal, fiber, otype, desitgt, oname) in enumerate(fibtab[idx]):
             for cam in colors:
@@ -287,8 +286,8 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
                     # Convert TARGETID to table index in file.
                     fits = fitsio.FITS(camfile)
-                    targetids = fits['FIBERMAP']['TARGETID'][:]
-                    j = np.argwhere(targetids == tid)
+                    fits_fibers = fits['FIBERMAP']['FIBER'][:]
+                    j = np.argwhere(fits_fibers == fiber)
                     if j.shape != (1,1):
                         continue
                     j = j.item()
