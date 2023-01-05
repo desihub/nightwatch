@@ -246,9 +246,10 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     # - Extract TARGETID, OBJTYPE, DESI_TARGET, and PETAL_LOC.
     # - Produce a unique table, then convert DESI_TARGET to object type.
     fibtab = None
+    keys = ['TARGETID', 'PETAL_LOC', 'FIBER', 'OBJTYPE', 'DESI_TARGET']
 
     for qframe in qframes:
-        fmap = fitsio.read(qframe, columns=['TARGETID','OBJTYPE','DESI_TARGET', 'PETAL_LOC', 'FIBER'], ext='FIBERMAP')
+        fmap = fitsio.read(qframe, columns=keys, ext='FIBERMAP')
         if fibtab is None:
             fibtab = fmap[fmap['TARGETID'] > 0]
         else:
@@ -256,6 +257,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
     fibtab = np.unique(fibtab)
     fibtab = rfn.append_fields(fibtab, 'OBJNAME', get_spectrum_objname(fibtab['OBJTYPE'], fibtab['DESI_TARGET']))
+    keys += 'OBJNAME'
 
     # Loop through the list of unique object types in this exposure.
     unique_nms = np.unique(fibtab['OBJNAME'])
@@ -273,7 +275,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
         idx = np.isin(fibtab['TARGETID'], targetids)
         fibers = fibtab['FIBER'][idx]
 
-        for i, (tid, petal, otype, desitgt, oname, fiber) in enumerate(fibtab[idx]):
+        for i, (tid, petal, fiber, otype, desitgt, oname) in enumerate(fibtab[idx]):
             for cam in colors:
                 camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{petal}-{expid}.fits')
                 if os.path.exists(camfile):
@@ -290,14 +292,14 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
                     ra, dec = fits['FIBERMAP']['TARGET_RA', 'TARGET_DEC'][j]
 
                     # Extract wavelength and flux for this fiber.
-                    wavelength = fits['WAVELENGTH'][j,:]
-                    flux = fits['FLUX'][j,:]
+                    wavelength = fits['WAVELENGTH'][j,:].flatten()
+                    flux = fits['FLUX'][j,:].flatten()
 
                     # Downsample the fluxes.
                     dwavelength = downsample(wavelength, n)
                     dflux = downsample(flux, n)
-                    minflux = np.minimum(minflux, np.min(dflux))
-                    maxflux = np.maximum(maxflux, np.max(dflux))
+                    minflux = np.minimum(minflux, np.percentile(dflux, 1))
+                    maxflux = np.maximum(maxflux, np.percentile(dflux, 99))
                     length = len(dwavelength)
 
                     # Create bokeh plotting objects.
@@ -308,9 +310,8 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
                                 ra = [ra]*length,
                                 dec = [dec]*length,
                                 wave = dwavelength,
-                                flux = dflux,
-                                ))
-
+                                flux = dflux
+                            ))
                     fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
 
         # Configure plot for spectra of this object type.
@@ -339,9 +340,9 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
         fig.add_tools(hover)
 
-#        maxflux = 1.05*maxflux
-#        minflux = 1.05*minflux if minflux < 0 else 0.9*minflux
-#        fig.y_range = Range1d(minflux, maxflux)
+        maxflux = 1.05*maxflux
+        minflux = 1.05*minflux if minflux < 0 else 0.9*minflux
+        fig.y_range = Range1d(int(minflux), int(maxflux))
 
         gridlist += [[fig]]
 
