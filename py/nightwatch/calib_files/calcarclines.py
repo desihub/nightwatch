@@ -22,7 +22,7 @@ def find_spectral_lines(basedir, night, program, verbose=False):
 
         # Loop over cameras.
         for cam in 'BRZ':
-            qframes = sorted(glob(os.path.join(f'{basedir}', f'{night}', '*', 'qframe-{cam.lower()}{sp}*.fits')))
+            qframes = sorted(glob(os.path.join(basedir, f'{night}', '*', f'qframe-{cam.lower()}{sp}*.fits')))
 
             for qframe in qframes:
                 h = fitsio.read_header(qframe, ext='FIBERMAP')
@@ -48,23 +48,20 @@ def find_spectral_lines(basedir, night, program, verbose=False):
 
                     n[cam] += 1
 
+            if n[cam] == 0:
+                continue
+
             wl = wave[cam]
             fl = flux[cam]/n[cam]
             flstd = np.sqrt(flux2[cam]/n[cam] - fl**2)
-            flrel = flstd / fl
-
-            fluxmed = np.median(fl)
-            fluxstd = np.std(fl)
             fluxthr = np.maximum(500, np.percentile(fl, 99.5))
             peaks, _ = find_peaks(fl, height=fluxthr, distance=20)
 
             if verbose:
                 for i, pk in enumerate(peaks):
-                    print(f'{i+1:2} {pk:6} {wl[pk]:10.1f} {np.round(wl[pk]):6g} {fl[pk]:8.1f} +- {flstd[pk]:5.1f}  ({100*flrel[pk]:4.1f}%)')
+                    print(f'{i+1:2} {pk:6} {wl[pk]:10.1f} {np.round(wl[pk]):6g} {fl[pk]:8.1f} +- {flstd[pk]:5.1f}')
                     lines[cam].append(wl[pk])
                 print('    ------')
-        if verbose:
-            print('\n')
 
     # Go through the list of lines and pick out the best ones.
     arc_lines = { 'B':[], 'R':[], 'Z':[] }
@@ -116,12 +113,16 @@ if __name__ == '__main__':
 
     # First find short arcs.
     short_arcs = find_spectral_lines(args.indir, args.night, 'CALIB short Arcs all', args.verbose)
+    if args.verbose:
+        print(short_arcs)
 
     # Next find long arcs.
     long_arcs = find_spectral_lines(args.indir, args.night, 'CALIB long Arcs Cd+Xe', args.verbose)
+    if args.verbose:
+        print(long_arcs)
 
     # Output to JSON.
-    arc_lines = { 'CALIB short Arcs all', short_arcs }
+    arc_lines = { 'CALIB short Arcs all' : short_arcs }
     arc_lines['CALIB long Arcs Cd+Xe'] = long_arcs
 
     with open(args.outfile, 'w') as json_file:
