@@ -33,6 +33,12 @@
         },
         "peqw": {
             "spectrograph": {
+                "settings": {
+                    "fiberlo": 240,
+                    "fiberhi": 260,
+                    "npix": 12,
+                    "comment": "Fiber range used in spectrum; number of pixels used around line center."
+                },
                 "0": {
                     "B": [
                         13530.0,
@@ -394,6 +400,12 @@
         },
         "peqw": {
             "spectrograph": {
+                "settings": {
+                    "fiberlo": 240,
+                    "fiberhi": 260,
+                    "npix": 12,
+                    "comment": "Fiber range used in spectrum; number of pixels used around line center."
+                },
                 "0": {
                     "B": [
                         10921.0,
