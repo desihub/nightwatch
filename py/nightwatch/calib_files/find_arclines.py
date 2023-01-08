@@ -10,7 +10,8 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
 def find_spectral_lines(basedir, night, program, verbose=False):
-    """Compute positions of arc lamp lines in calibration exposures.
+    """Compute positions of arc lamp lines in calibration exposures. Uses the
+    central 20 fibers from each camera.
 
     Parameters
     ----------
@@ -49,8 +50,7 @@ def find_spectral_lines(basedir, night, program, verbose=False):
                     if [night, expid] not in nightexpids:
                         nightexpids.append([night, expid])
 
-                    # Grab the middle 20 fibers in the qframe, covering all
-                    # four amps in each camera.
+                    # Grab the middle 20 fibers in the qframe, covering all four amps in each camera.
                     fits = fitsio.FITS(qframe)
                     wl = np.median(fits['WAVELENGTH'][240:260, :], axis=0)
                     fl = np.median(fits['FLUX'][240:260, :], axis=0)
