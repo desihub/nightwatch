@@ -10,6 +10,22 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
 def find_spectral_lines(basedir, night, program, verbose=False):
+    """Compute positions of arc lamp lines in calibration exposures.
+
+    Parameters
+    ----------
+    basedir : str
+        Path to Nightwatch qframe exposures (basedir/YYYYMMDD)
+    night : str or int
+        Date in format YYYYMMDD
+    program : str
+        Arc lamp calibration program name.
+    verbose : bool
+        Print output if true.
+
+    Returns
+    -------
+    """
     lines = { 'B':[], 'R':[], 'Z':[] }
     nightexpids = []
 
@@ -22,6 +38,7 @@ def find_spectral_lines(basedir, night, program, verbose=False):
 
         # Loop over cameras.
         for cam in 'BRZ':
+            # Find all exposures from this night matching the camera and spectrograph.
             qframes = sorted(glob(os.path.join(basedir, f'{night}', '*', f'qframe-{cam.lower()}{sp}*.fits')))
 
             for qframe in qframes:
