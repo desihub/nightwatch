@@ -510,6 +510,17 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 
+    #- Spectra QA page: check calibration exposures.
+    htmlfile = f'{expdir}/qa-spectra-{expid:08d}.html'
+    if 'CALIB_ARCS' in qadata:
+        try:
+            pc = web_spectra.write_spectra_html(htmlfile, qadata['CALIB_ARCS'], header)
+            print(f'Wrote {htmlfile}')
+        except Exception as err:
+            web_placeholder.handle_failed_plot(htmlfile, header, 'CALIB_ARCS')
+    else:
+        pc = web_placeholder.write_placeholder_html(htmlfile, header, 'CALIB_ARCS')
+
     #- QA summary page.
     htmlfile = f'{expdir}/qa-summary-{expid:08d}.html'
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
