@@ -518,9 +518,11 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     return fig
 
 
-def plot_spectra_qa(data, names):
+def plot_spectra_qa(data, names, calstandards):
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
+
+    calwaves = calstandards['wavelength']
 
     figs = []
     for name in names:
@@ -530,24 +532,44 @@ def plot_spectra_qa(data, names):
         linearea = data[name]
         select = linearea > 0
 
-        ds = 0.1 * linearea[select]
-        lower = linearea[select] - ds
-        upper = linearea[select] + ds
-        mcolors = ['black']*len(upper)
-        msizes = [5]*len(upper)
+        # Get the calibration standards from input.
+        # Convert data stored vs. spectrograph to a plot 
+        camwaves = np.asarray(calwaves[cam])
+        iwave = np.argmin(np.abs(camwaves - wave))
+
+        upper_err, upper_warn, nominal, lower_warn, lower_err = [], [], [], [], []
+        for sp in spectro:
+            cals = calstandards['area']['spectrograph'][f'{sp}'][cam]
+            upper_err.append(cals['upper_err'][iwave])
+            upper_warn.append(cals['upper'][iwave])
+            nominal.append(cals['nominal'][iwave])
+            lower_warn.append(cals['lower'][iwave])
+            lower_err.append(cals['lower_err'][iwave])
+
+#        cals = calstandards['area']['spectrograph']#[f'{spectro}'][cam]
+#        for sp in spectro:
+#            print('SPECTRO: ', sp)
+#        upper_err = cals['upper_err']
+#        upper_warn = cals['upper']
+#        nominal = cals['nominal']
+#        lower_warn = cals['lower']
+#        lower_err = cals['lower_err']
+
+        mcolors = ['black']*len(nominal)
+        msizes = [5]*len(nominal)
 
         source = ColumnDataSource(data=dict(
             data_val=linearea[select],
             locations=spectro[select],
-            lower=lower,
-            upper=upper,
+            lower=lower_warn,
+            upper=upper_warn,
             colors=mcolors,
             sizes=msizes
         ))
 
         # Set up figures and labels.
-        plotmin = 0.9*np.min(np.minimum(lower, linearea[select]))
-        plotmax = 1.1*np.max(np.maximum(upper, linearea[select]))
+        plotmin = 0.9*np.min(np.minimum(lower_err, linearea[select]))
+        plotmax = 1.1*np.max(np.maximum(upper_err, linearea[select]))
 
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
@@ -570,7 +592,7 @@ def plot_spectra_qa(data, names):
         fig.add_layout(
             Band(base='locations', lower='lower', upper='upper',
                  source=source, level='underlay',
-                 fill_alpha=0.2, fill_color=colors[cam],
+                 fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
         figs.append([fig])

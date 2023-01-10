@@ -9,7 +9,7 @@ from bokeh.embed import components
 
 from ..plots import spectra
 from ..plots.spectra import plot_spectra_qa
-from ..thresholds import pick_threshold_file, get_thresholds
+from ..calibrations import pick_calib_file, get_calibrations
 
 from desiutil.log import get_logger
 
@@ -77,7 +77,10 @@ def write_spectra_html(outfile, qadata, header, nightdir):
         arclines = [n for n in qadata['PER_SPECTRO'].dtype.names \
                     if re.match('[BRZ][0-9]{4}', n)]
 
-        arclinefig = spectra.plot_spectra_qa(qadata['PER_SPECTRO'], arclines)
+        calsfile = pick_calib_file('CALIB-ARCS', night)
+        cals = get_calibrations(calsfile, program)
+
+        arclinefig = spectra.plot_spectra_qa(qadata['PER_SPECTRO'], arclines, cals)
 
         script, div = components(arclinefig)
         html_components['CAL_ARCS'] = dict(script=script, div=div)
