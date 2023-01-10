@@ -1,0 +1,15 @@
+{% extends "qabase.html" %}
+
+{% block body %}
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+
+<div class="flex-container">
+
+{% if SPECTRA %}
+    <div>{{ SPECTRA.script | safe }} {{ SPECTRA.div | safe }}</div>
+{% endif %}
+
+</div>
+
+{% endblock %}
