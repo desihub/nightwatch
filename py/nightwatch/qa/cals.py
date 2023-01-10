@@ -65,7 +65,7 @@ class QACalibArcs(QA):
 
             # Loop over cameras.
             for cam in 'BRZ':
-                qframe = os.path.join(indir, f'qframe-{cam}{spectro}-{expid:08d}.fits')
+                qframe = os.path.join(indir, f'qframe-{cam.lower()}{spectro}-{expid:08d}.fits')
 
                 # Loop over the brightest arc lines in each camera.
                 if os.path.exists(qframe):
