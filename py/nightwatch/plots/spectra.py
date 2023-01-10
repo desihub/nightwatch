@@ -551,34 +551,40 @@ def plot_spectra_qa(data, names, calstandards):
             lower_warn.append(cals['lower'][iwave])
             lower_err.append(cals['lower_err'][iwave])
 
+        upper_err = np.asarray(upper_err)
+        upper_warn = np.asarray(upper_warn)
+        nominal = np.asarray(nominal)
+        lower_warn = np.asarray(lower_warn)
+        lower_err = np.asarray(lower_err)
+
         # Set marker colors and sizes to indicate out-of-range alerts.
         mcolors = get_spectraqa_colors(linearea[select],
-                                       np.asarray(lower_err)[select],
-                                       np.asarray(lower_warn)[select],
-                                       np.asarray(upper_warn)[select],
-                                       np.asarray(upper_err)[select])
+                                       lower_err[select],
+                                       lower_warn[select],
+                                       upper_warn[select],
+                                       upper_err[select])
 
         msizes = get_spectraqa_size(linearea[select],
-                                    np.asarray(lower_err)[select],
-                                    np.asarray(lower_warn)[select],
-                                    np.asarray(upper_warn)[select],
-                                    np.asarray(upper_err)[select])
+                                    lower_err[select],
+                                    lower_warn[select],
+                                    upper_warn[select],
+                                    upper_err[select])
 
         # Store data in a bokeh column object.
         source = ColumnDataSource(data=dict(
             data_val=linearea[select],
             locations=spectro[select],
-            lower=lower_warn,
-            upper=upper_warn,
-            lower_err=lower_err,
-            upper_err=upper_err,
+            lower=lower_warn[select],
+            upper=upper_warn[select],
+            lower_err=lower_err[select],
+            upper_err=upper_err[select],
             colors=mcolors,
             sizes=msizes
         ))
 
         # Set up figures and labels.
-        plotmin = 0.9*np.min(np.minimum(lower_err, linearea[select]))
-        plotmax = 1.1*np.max(np.maximum(upper_err, linearea[select]))
+        plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
+        plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
 
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
