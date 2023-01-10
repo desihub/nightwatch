@@ -9,12 +9,16 @@ from astropy.table import Table
 
 from .base import QA
 from ..thresholds import pick_threshold_file
+from ..calibrations import pick_calib_file, get_calibrations
 
 import enum
+
+
 class Status(enum.IntEnum):
     ok = 0
     warning = 1
     error = 2
+
 
 def get_status(qadata, night):
     '''
@@ -41,7 +45,8 @@ def get_status(qadata, night):
                 status[qatype][col] = data[col]
             else:
                 status[qatype][col] = np.full(n, Status.ok, dtype=np.int16)
-    #- Set thresholds for readnoise suspiciously low or high
+
+    #- Set thresholds for readnoise, bias, or cosmics rate too low or high
     data = qadata['PER_AMP']
     exptime = qadata['HEADER']['EXPTIME']
     for metric in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
@@ -140,7 +145,21 @@ def get_status(qadata, night):
                         continue
                 except ValueError:
                     continue
-    
+
+#    #- QA for arc line pseudo-equivalent widths.
+#    for metric in ['CALIB-ARCS']:
+#        try:
+#            sp_data = qadata['PER_SPECTRO']
+#        except:
+#            continue
+#
+#        # Get calibrations.
+#        program = sp_data['PROGRAM'][0]
+#        filepath = pick_calib_file(metric, night)
+#        cals = get_calibrations(filepath, program)
+#        wavelengths = cals['wavelengths']
+#        peqws = cals['peqw']['spectrographs']
+
     #- Update global QASTATUS for all QA types
     for qatype, data in status.items():
         n = len(data)

@@ -68,6 +68,7 @@ class QACalibArcs(QA):
 
             dico['NIGHT'] = night
             dico['EXPID'] = expid
+            dico['PROGRAM'] = program
             dico['SPECTRO'] = spectro
             dico['CAM'] = cam
 
