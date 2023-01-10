@@ -278,10 +278,10 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
     if title == None:
         title = name
         
-    labels = [(spec, amp) for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
+    labels = [(f'{spec}', amp) for spec in range(10) for amp in 'ABCD']
     
     figs = []
-    for cam in ['B', 'R', 'Z']:
+    for cam in 'BRZ':
         if cam == 'B':
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height+25, plot_width=plot_width, ymin=ymin[0], ymax=ymax[0])
         if cam == 'R':
