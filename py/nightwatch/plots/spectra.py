@@ -457,7 +457,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 # Create a column data source used for mouseover info.
                 source = ColumnDataSource(data=dict(
                             fiber = [ifiber]*length,
-                            cam = [cam]*length,
+                            cam = [f'{cam}{spectro}']*length,
                             objtype = [objtype]*length,
                             ra = [ra]*length,
                             dec = [dec]*length,
