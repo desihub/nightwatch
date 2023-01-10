@@ -28,7 +28,7 @@ calarcs = {
 }
 
 
-def calc_arc_lines(datadir, night, expids, prog, wavelengths):
+def calc_arc_lines(datadir, night, expids, prog, wavelengths, warnlevel=0.075, errlevel=0.1):
     """Compute pseudo-equivalent widths of bright lines from the arc lamps.
 
     Parameters
@@ -42,17 +42,21 @@ def calc_arc_lines(datadir, night, expids, prog, wavelengths):
     prog : str
         Calibration program, e.g., 'CALIB short Arcs all'
     wavelengths : dict
-        Calibration wavelengths for this program in BRZ cameras.
+        Calibration wavelengths for this program (for the B, R, Z cameras).
+    warnlevel : float
+        Fractional deviation from nominal level for warnings [0-1].
+    errlevel : float
+        Fractional deviation from nominal level for errors [0-1].
 
     Returns
     -------
-    linepeqws : dict
+    lineareas : dict
         Dictionary of pseudo-equivalent widths for calibration lines.
     """
     fiberlo = 240       # ID of lowest fiber used in extracting spectrum.
     fiberhi = 260       # ID of highest fiber used in extracting spectrum.
     npix = 12           # Number of pixels around the line center for computing pEW
-    linepeqws = {
+    lineareas = {
         'settings' : {
             'fiberlo' : fiberlo,
             'fiberhi' : fiberhi,
@@ -63,7 +67,7 @@ def calc_arc_lines(datadir, night, expids, prog, wavelengths):
 
     # Loop over all spectrographs.
     for sp in tqdm(range(10)):
-        linepeqws[sp] = { 'B' : {}, 'R' : {}, 'Z' : {} }
+        lineareas[sp] = { 'B' : {}, 'R' : {}, 'Z' : {} }
 
         # Loop over exposure IDs specified on input.
         for expid in expids:
@@ -95,30 +99,40 @@ def calc_arc_lines(datadir, night, expids, prog, wavelengths):
                     pk = np.argmin(np.abs(wave - arcline))
                     i = np.maximum(pk-npix, 0)
                     j = np.minimum(pk+npix, len(wave)-1)
-                    peqw = np.trapz(flux[i:j], wave[i:j])
+                    area = np.trapz(flux[i:j], wave[i:j])
 
-                    if arcline in linepeqws[sp][cam]:
-                        linepeqws[sp][cam][arcline].append(peqw)
+                    if arcline in lineareas[sp][cam]:
+                        lineareas[sp][cam][arcline].append(area)
                     else:
-                        linepeqws[sp][cam][arcline] = [peqw]
+                        lineareas[sp][cam][arcline] = [area]
 
         # Compute mean and uncertainty for each line.
         for cam in 'BRZ':
-            for arcline in linepeqws[sp][cam]:
-                peqw  = np.average(linepeqws[sp][cam][arcline])
-                dpeqw = np.std(linepeqws[sp][cam][arcline])
-                if np.abs(dpeqw / peqw) > 0.1:
-                    print(f'Warning: large pEQW uncertainty in {arcline} line: {peqw:.1f} +- {dpeqw:.1f}')
-                linepeqws[sp][cam][arcline] = np.round(peqw)
+            for arcline in lineareas[sp][cam]:
+                area  = np.average(lineareas[sp][cam][arcline])
+                darea = np.std(lineareas[sp][cam][arcline])
+                if np.abs(darea / area) > 0.1:
+                    print(f'Warning: large uncertainty in {arcline} line area: {area:.1f} +- {darea:.1f}')
+                lineareas[sp][cam][arcline] = np.round(area)
 
-            # Store only the list of pseudo-equivalent widths for all lines in the camera.
-            linepeqws[sp][cam] = list(linepeqws[sp][cam].values())
+            # Store only the list of areas for all lines in the camera.
+            nominal = [v for v in lineareas[sp][cam].values()]
+            upper_err = [(1 + errlevel)*n for n in nominal]
+            upper = [(1 + warnlevel)*n for n in nominal]
+            lower = [(1 - warnlevel)*n for n in nominal]
+            lower_err = [(1 - errlevel)*n for n in nominal]
+
+            lineareas[sp][cam] =      { 'upper_err' : list(upper_err) }
+            lineareas[sp][cam].update({ 'upper' : list(upper) })
+            lineareas[sp][cam].update({ 'nominal' : list(nominal) })
+            lineareas[sp][cam].update({ 'lower' : list(lower) })
+            lineareas[sp][cam].update({ 'lower_err' : list(lower_err) })
 
         # Store inputs.
         inputs = { 'comment' : '(night,expid) used to compute arc lamp lines' }
         inputs['nightexpids'] = [[night, expid] for expid in expids]
 
-    return linepeqws, inputs
+    return lineareas, inputs
 
 
 if __name__ == '__main__':
@@ -129,6 +143,10 @@ if __name__ == '__main__':
     p.add_argument('-i', '--indir', type=str,
                    help='Base folder with Nightwatch processed data.',
                    default='/global/cfs/cdirs/desi/spectro/nightwatch/nersc')
+    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.075,
+                   help='Frac. deviation from nominal line area for warnings.')
+    p.add_argument('--level-error', dest='leverr', type=float, default=0.1,
+                   help='Frac. deviation from nominal line area for errors.')
     p.add_argument('-o', '--outfile', type=str,
                    help='Output json file with line info.',
                    default='test.json')
@@ -148,10 +166,12 @@ if __name__ == '__main__':
         expids = [int(_) for _ in conf[cal]['expids'].split()]
         program = conf[cal]['program']
 
-        lpeqw, inputs = calc_arc_lines(args.indir, night, expids, program,
-                                       wavelengths=calarcs[program]['wavelength'])
-        calarcs[program]['peqw'] = { 'spectrograph' : lpeqw }
-        calarcs[program]['peqw']['inputs'] = inputs
+        lnarea, inputs = calc_arc_lines(args.indir, night, expids, program,
+                                wavelengths = calarcs[program]['wavelength'],
+                                warnlevel = args.levwarn,
+                                errlevel = args.leverr)
+        calarcs[program]['area'] = { 'spectrograph' : lnarea }
+        calarcs[program]['area']['inputs'] = inputs
 
     # Output to JSON.
     with open(args.outfile, 'w') as json_file:
