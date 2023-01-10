@@ -2,8 +2,8 @@ import fitsio
 
 import bokeh
 import bokeh.plotting as bk
-from bokeh.layouts import gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+from bokeh.layouts import column, gridplot
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
 from glob import glob
 
 import numpy as np
@@ -516,3 +516,63 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     fig.yaxis.formatter = NumeralTickFormatter(format='0a')
 
     return fig
+
+
+def plot_spectra_qa(data, names):
+    spectro = data['SPECTRO']
+    colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
+
+    figs = []
+    for name in names:
+        cam = name[0]
+        wave = int(name[1:])
+
+        linearea = data[name]
+        select = linearea > 0
+
+        ds = 0.1 * linearea[select]
+        lower = linearea[select] - ds
+        upper = linearea[select] + ds
+        mcolors = ['black']*len(upper)
+        msizes = [5]*len(upper)
+
+        source = ColumnDataSource(data=dict(
+            data_val=linearea[select],
+            locations=spectro[select],
+            lower=lower,
+            upper=upper,
+            colors=mcolors,
+            sizes=msizes
+        ))
+
+        # Set up figures and labels.
+        plotmin = 0.9*np.min(np.minimum(lower, linearea[select]))
+        plotmax = 1.1*np.max(np.maximum(upper, linearea[select]))
+
+        fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
+                        y_range=Range1d(start=plotmin, end=plotmax),
+                        plot_height=200, plot_width=1000)
+
+        fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
+        fig.xaxis.axis_label = 'spectrograph'
+        fig.yaxis.minor_tick_line_color = None
+        fig.ygrid.grid_line_color = None
+        fig.yaxis.axis_label = 'line area'
+
+        # Plot the line areas for all spectrographs.
+        fig.circle(x='locations', y='data_val', 
+                   fill_color='colors', size='sizes', line_color=None,
+                   source=source, name='circles')
+        fig.title.text = f'{cam} camera: λ{name[1:]}'
+        fig.title.text_color = colors[cam]
+
+        # Add a visual indication of the typical range of variations.
+        fig.add_layout(
+            Band(base='locations', lower='lower', upper='upper',
+                 source=source, level='underlay',
+                 fill_alpha=0.2, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        figs.append([fig])
+
+    return gridplot(figs, toolbar_location='right')

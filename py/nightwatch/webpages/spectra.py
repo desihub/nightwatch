@@ -1,4 +1,5 @@
 import os
+import re
 import numpy as np
 
 import jinja2
@@ -7,14 +8,14 @@ import bokeh, sys
 from bokeh.embed import components
 
 from ..plots import spectra
-from ..plots.amp import plot_amp_qa
+from ..plots.spectra import plot_spectra_qa
 from ..thresholds import pick_threshold_file, get_thresholds
 
 from desiutil.log import get_logger
 
 
 def write_spectra_html(outfile, qadata, header, nightdir):
-    '''Write CCD amp QA webpage
+    '''Write spectra QA webpage
 
     Args:
         outfile: output HTML filename
@@ -68,9 +69,18 @@ def write_spectra_html(outfile, qadata, header, nightdir):
 
         specfig = spectra.plot_spectra_input(nightdir, expid, frame,
                       downsample, fibers, height=400, width=1000)
-        print(specfig)
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
+
+    #- Plot calibration exposure QA.
+    if obstype.upper() == 'ARC' and 'PER_SPECTRO' in qadata:
+        arclines = [n for n in qadata['PER_SPECTRO'].dtype.names \
+                    if re.match('[BRZ][0-9]{4}', n)]
+
+        arclinefig = spectra.plot_spectra_qa(qadata['PER_SPECTRO'], arclines)
+
+        script, div = components(arclinefig)
+        html_components['CAL_ARCS'] = dict(script=script, div=div)
 
     html = template.render(**html_components)
 
