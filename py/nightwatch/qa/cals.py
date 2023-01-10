@@ -46,7 +46,7 @@ class QACalibArcs(QA):
         # get arc line calibration data. 
         calibfile = pick_calib_file('CALIB-ARCS', night)
         cals = get_calibrations(calibfile, program)
-        settings = cals['peqw']['spectrograph']['settings']
+        settings = cals['area']['spectrograph']['settings']
 
         fiberlo = settings['fiberlo']
         fiberhi = settings['fiberhi']
@@ -81,8 +81,8 @@ class QACalibArcs(QA):
                         pk = np.argmin(np.abs(wave - arcline))
                         i = np.maximum(pk-npix, 0)
                         j = np.minimum(pk+npix, len(wave)-1)
-                        peqw = np.trapz(flux[i:j], wave[i:j])
-                        dico[linelabel] = peqw
+                        area = np.trapz(flux[i:j], wave[i:j])
+                        dico[linelabel] = area
                 else:
                     for arcline in wavelengths[cam]:
                         linelabel = f'{cam}{arcline:g}'

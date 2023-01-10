@@ -522,6 +522,7 @@ def plot_spectra_qa(data, names, calstandards):
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
+    # Get the calibration standards from input.
     calwaves = calstandards['wavelength']
 
     figs = []
@@ -532,12 +533,16 @@ def plot_spectra_qa(data, names, calstandards):
         linearea = data[name]
         select = linearea > 0
 
-        # Get the calibration standards from input.
-        # Convert data stored vs. spectrograph to a plot 
+        # Convert cal standards stored vs. spectrograph to data vs. camera.
         camwaves = np.asarray(calwaves[cam])
         iwave = np.argmin(np.abs(camwaves - wave))
 
-        upper_err, upper_warn, nominal, lower_warn, lower_err = [], [], [], [], []
+        upper_err = []
+        upper_warn = []
+        nominal = []
+        lower_warn = []
+        lower_err = []
+
         for sp in spectro:
             cals = calstandards['area']['spectrograph'][f'{sp}'][cam]
             upper_err.append(cals['upper_err'][iwave])
@@ -546,23 +551,27 @@ def plot_spectra_qa(data, names, calstandards):
             lower_warn.append(cals['lower'][iwave])
             lower_err.append(cals['lower_err'][iwave])
 
-#        cals = calstandards['area']['spectrograph']#[f'{spectro}'][cam]
-#        for sp in spectro:
-#            print('SPECTRO: ', sp)
-#        upper_err = cals['upper_err']
-#        upper_warn = cals['upper']
-#        nominal = cals['nominal']
-#        lower_warn = cals['lower']
-#        lower_err = cals['lower_err']
+        # Set marker colors and sizes to indicate out-of-range alerts.
+        mcolors = get_spectraqa_colors(linearea[select],
+                                       np.asarray(lower_err)[select],
+                                       np.asarray(lower_warn)[select],
+                                       np.asarray(upper_warn)[select],
+                                       np.asarray(upper_err)[select])
 
-        mcolors = ['black']*len(nominal)
-        msizes = [5]*len(nominal)
+        msizes = get_spectraqa_size(linearea[select],
+                                    np.asarray(lower_err)[select],
+                                    np.asarray(lower_warn)[select],
+                                    np.asarray(upper_warn)[select],
+                                    np.asarray(upper_err)[select])
 
+        # Store data in a bokeh column object.
         source = ColumnDataSource(data=dict(
             data_val=linearea[select],
             locations=spectro[select],
             lower=lower_warn,
             upper=upper_warn,
+            lower_err=lower_err,
+            upper_err=upper_err,
             colors=mcolors,
             sizes=msizes
         ))
@@ -595,6 +604,66 @@ def plot_spectra_qa(data, names, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
+        fig.add_layout(
+            Band(base='locations', lower='lower_err', upper='upper_err',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
         figs.append([fig])
 
     return gridplot(figs, toolbar_location='right')
+
+
+def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
+    '''takes in per spectro data and the acceptable threshold for that metric.
+    Args:
+        data: array of spectraqa metric data
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
+    Output: array of colors to be put into a ColumnDataSource
+    '''
+    colors = []
+    for i in range(len(data)):
+        if lower[i] == None or upper[i] == None:
+            continue
+        if data[i] <= lower_err[i]:
+            colors.append('red')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            colors.append('orange')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            colors.append('black')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            colors.append('orange')
+        if data[i] >= upper_err[i]:
+            colors.append('red')
+    return colors
+
+
+def get_spectraqa_size(data, lower_err, lower, upper, upper_err):
+    '''takes in per spectraqa data and the acceptable threshold for that metric
+    Args:
+        data: array of spectraqa metric data
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
+    Output: array of sizes for markers to be put into a ColumnDataSource
+    '''
+    sizes = []
+    for i in range(len(data)):
+        if lower[i] == None or upper[i] == None:
+            continue
+        if data[i] <= lower_err[i]:
+            sizes.append('9')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            sizes.append('9')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            sizes.append('5')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            sizes.append('9')
+        if data[i] >= upper_err[i]:
+            sizes.append('9')
+    return sizes
