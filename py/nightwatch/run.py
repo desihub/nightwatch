@@ -511,7 +511,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 
     #- Spectra QA page.
-    htmlfile = f'{expdir}/qa-spectra-{expid:08d}.html'
+    htmlfile = f'{expdir}/qa-spectro-{expid:08d}.html'
     try:
         #pc = web_spectra.write_spectra_html(htmlfile, qadata['PER_SPECTRO'], header)
         qfdir = os.path.join(os.path.abspath(basedir), dirnight)

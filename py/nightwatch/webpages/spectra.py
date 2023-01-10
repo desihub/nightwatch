@@ -48,12 +48,12 @@ def write_spectra_html(outfile, qadata, header, nightdir):
                                      default=True)
     )
     
-    template = env.get_template('spectraqa.html')
+    template = env.get_template('spectro.html')
 
     html_components = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
-        obstype=obstype, program=program, qatype='spectraqa',
+        obstype=obstype, program=program, qatype='spectro',
         num_dirs=2,
     )
     
