@@ -586,9 +586,14 @@ def plot_spectra_qa(data, names, calstandards):
         plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
         plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
 
+        hover = HoverTool(names=['circles'],
+                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val')],
+                    line_policy='nearest')
+
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
-                        plot_height=200, plot_width=1000)
+                        plot_height=200, plot_width=1000,
+                        tools=[hover, 'reset', 'box_zoom', 'pan'])
 
         fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
         fig.xaxis.axis_label = 'spectrograph'
@@ -600,7 +605,7 @@ def plot_spectra_qa(data, names, calstandards):
         fig.circle(x='locations', y='data_val', 
                    fill_color='colors', size='sizes', line_color=None,
                    source=source, name='circles')
-        fig.title.text = f'{cam} camera: λ{name[1:]}'
+        fig.title.text = f'{cam} camera: λ{wave}'
         fig.title.text_color = colors[cam]
 
         # Add a visual indication of the typical range of variations.
