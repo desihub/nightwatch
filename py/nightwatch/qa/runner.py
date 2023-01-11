@@ -14,6 +14,7 @@ from astropy.table import join, Table
 import desiutil.log
 
 from .amp import QAAmp
+from .cals import QACalibArcs
 from .noisecorr import QANoiseCorr
 from .specscore import QASpecscore
 from .traceshift import QATraceShift
@@ -26,7 +27,7 @@ from ..run import timestamp
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF,QAFiberflat,QASNR, QAQPROCStatus)
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF, QAFiberflat, QASNR, QACalibArcs, QAQPROCStatus)
 
     def __init__(self, qalist=None):
         '''TODO: document'''

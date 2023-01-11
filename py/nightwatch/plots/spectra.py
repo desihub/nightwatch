@@ -2,8 +2,8 @@ import fitsio
 
 import bokeh
 import bokeh.plotting as bk
-from bokeh.layouts import gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+from bokeh.layouts import column, gridplot
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
 from glob import glob
 
 import numpy as np
@@ -457,7 +457,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 # Create a column data source used for mouseover info.
                 source = ColumnDataSource(data=dict(
                             fiber = [ifiber]*length,
-                            cam = [cam]*length,
+                            cam = [f'{cam}{spectro}']*length,
                             objtype = [objtype]*length,
                             ra = [ra]*length,
                             dec = [dec]*length,
@@ -516,3 +516,160 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     fig.yaxis.formatter = NumeralTickFormatter(format='0a')
 
     return fig
+
+
+def plot_spectra_qa(data, names, calstandards):
+    spectro = data['SPECTRO']
+    colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
+
+    # Get the calibration standards from input.
+    calwaves = calstandards['wavelength']
+
+    figs = []
+    for name in names:
+        cam = name[0]
+        wave = int(name[1:])
+
+        linearea = data[name]
+        select = linearea > 0
+
+        # Convert cal standards stored vs. spectrograph to data vs. camera.
+        camwaves = np.asarray(calwaves[cam])
+        iwave = np.argmin(np.abs(camwaves - wave))
+
+        upper_err = []
+        upper_warn = []
+        nominal = []
+        lower_warn = []
+        lower_err = []
+
+        for sp in spectro:
+            cals = calstandards['area']['spectrograph'][f'{sp}'][cam]
+            upper_err.append(cals['upper_err'][iwave])
+            upper_warn.append(cals['upper'][iwave])
+            nominal.append(cals['nominal'][iwave])
+            lower_warn.append(cals['lower'][iwave])
+            lower_err.append(cals['lower_err'][iwave])
+
+        upper_err = np.asarray(upper_err)
+        upper_warn = np.asarray(upper_warn)
+        nominal = np.asarray(nominal)
+        lower_warn = np.asarray(lower_warn)
+        lower_err = np.asarray(lower_err)
+
+        # Set marker colors and sizes to indicate out-of-range alerts.
+        mcolors = get_spectraqa_colors(linearea[select],
+                                       lower_err[select],
+                                       lower_warn[select],
+                                       upper_warn[select],
+                                       upper_err[select])
+
+        msizes = get_spectraqa_size(linearea[select],
+                                    lower_err[select],
+                                    lower_warn[select],
+                                    upper_warn[select],
+                                    upper_err[select])
+
+        # Store data in a bokeh column object.
+        source = ColumnDataSource(data=dict(
+            data_val=linearea[select],
+            locations=spectro[select],
+            lower=lower_warn[select],
+            upper=upper_warn[select],
+            lower_err=lower_err[select],
+            upper_err=upper_err[select],
+            colors=mcolors,
+            sizes=msizes
+        ))
+
+        # Set up figures and labels.
+        plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
+        plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
+
+        fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
+                        y_range=Range1d(start=plotmin, end=plotmax),
+                        plot_height=200, plot_width=1000)
+
+        fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
+        fig.xaxis.axis_label = 'spectrograph'
+        fig.yaxis.minor_tick_line_color = None
+        fig.ygrid.grid_line_color = None
+        fig.yaxis.axis_label = 'line area'
+
+        # Plot the line areas for all spectrographs.
+        fig.circle(x='locations', y='data_val', 
+                   fill_color='colors', size='sizes', line_color=None,
+                   source=source, name='circles')
+        fig.title.text = f'{cam} camera: λ{name[1:]}'
+        fig.title.text_color = colors[cam]
+
+        # Add a visual indication of the typical range of variations.
+        fig.add_layout(
+            Band(base='locations', lower='lower', upper='upper',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        fig.add_layout(
+            Band(base='locations', lower='lower_err', upper='upper_err',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        figs.append([fig])
+
+    return gridplot(figs, toolbar_location='right')
+
+
+def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
+    '''takes in per spectro data and the acceptable threshold for that metric.
+    Args:
+        data: array of spectraqa metric data
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
+    Output: array of colors to be put into a ColumnDataSource
+    '''
+    colors = []
+    for i in range(len(data)):
+        if lower[i] == None or upper[i] == None:
+            continue
+        if data[i] <= lower_err[i]:
+            colors.append('red')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            colors.append('orange')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            colors.append('black')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            colors.append('orange')
+        if data[i] >= upper_err[i]:
+            colors.append('red')
+    return colors
+
+
+def get_spectraqa_size(data, lower_err, lower, upper, upper_err):
+    '''takes in per spectraqa data and the acceptable threshold for that metric
+    Args:
+        data: array of spectraqa metric data
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
+    Output: array of sizes for markers to be put into a ColumnDataSource
+    '''
+    sizes = []
+    for i in range(len(data)):
+        if lower[i] == None or upper[i] == None:
+            continue
+        if data[i] <= lower_err[i]:
+            sizes.append('9')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            sizes.append('9')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            sizes.append('5')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            sizes.append('9')
+        if data[i] >= upper_err[i]:
+            sizes.append('9')
+    return sizes

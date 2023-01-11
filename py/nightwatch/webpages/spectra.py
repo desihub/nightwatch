@@ -1,3 +1,5 @@
+import os
+import re
 import numpy as np
 
 import jinja2
@@ -6,6 +8,91 @@ import bokeh, sys
 from bokeh.embed import components
 
 from ..plots import spectra
+from ..plots.spectra import plot_spectra_qa
+from ..calibrations import pick_calib_file, get_calibrations
+
+from desiutil.log import get_logger
+
+
+def write_spectra_html(outfile, qadata, header, nightdir):
+    '''Write spectra QA webpage
+
+    Args:
+        outfile: output HTML filename
+        qadata: exposure QA table
+        header: dict-like data header with keys NIGHT, EXPID, PROGRAM
+        nightdir: path to qproc outputs
+
+    Returns:
+        html_components dict with keys 'script', 'div' from bokeh
+    '''
+    
+    log = get_logger() 
+    night = header['NIGHT']
+    expid = header['EXPID']
+    if 'OBSTYPE' in header :
+        obstype = header['OBSTYPE'].rstrip().upper()
+    else :
+        log.warning('Use FLAVOR instead of missing OBSTYPE')
+        obstype = header['FLAVOR'].rstrip().upper()
+    if 'PROGRAM' not in header :
+        program = 'no program in header!'
+    else :
+        program = header['PROGRAM'].rstrip()
+    exptime = header['EXPTIME']
+
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True)
+    )
+    
+    template = env.get_template('spectro.html')
+
+    html_components = dict(
+        bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
+        night=night, expid=expid, zexpid='{:08d}'.format(expid),
+        obstype=obstype, program=program, qatype='spectro',
+        num_dirs=2,
+    )
+    
+    #- Plot random spectra.
+    if obstype.upper() in ['ARC','FLAT','TESTARC','TESTFLAT','SCIENCE','SKY','TWILIGHT'] and \
+            'PER_CAMFIBER' in qadata:
+        downsample = 4
+        nfib = min(5, len(qadata['PER_CAMFIBER']))
+        fibers = sorted(np.random.choice(qadata['PER_CAMFIBER']['FIBER'], size=nfib, replace=False))
+        fibers = ','.join([str(tmp) for tmp in fibers])
+
+        frame = 'qcframe' if obstype.upper() == 'SCIENCE' else 'qframe'
+
+        specfig = spectra.plot_spectra_input(nightdir, expid, frame,
+                      downsample, fibers, height=400, width=1000)
+        script, div = components(specfig)
+        html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
+
+    #- Plot calibration exposure QA.
+    if obstype.upper() == 'ARC' and 'PER_SPECTRO' in qadata:
+        arclines = [n for n in qadata['PER_SPECTRO'].dtype.names \
+                    if re.match('[BRZ][0-9]{4}', n)]
+
+        calsfile = pick_calib_file('CALIB-ARCS', night)
+        cals = get_calibrations(calsfile, program)
+
+        arclinefig = spectra.plot_spectra_qa(qadata['PER_SPECTRO'], arclines, cals)
+
+        script, div = components(arclinefig)
+        html_components['CAL_ARCS'] = dict(script=script, div=div)
+
+    html = template.render(**html_components)
+
+    #- Write HTML text to the output file
+    with open(outfile, 'w') as fx:
+        fx.write(html)
+
+    return html_components
+
 
 def get_spectra_html(data, night, expid, view, frame, downsample_str, select_string = None):
     '''
