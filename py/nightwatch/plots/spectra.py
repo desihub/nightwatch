@@ -572,8 +572,9 @@ def plot_spectra_qa(data, names, calstandards):
 
         # Store data in a bokeh column object.
         source = ColumnDataSource(data=dict(
-            data_val=linearea[select],
+            data_val=np.round(linearea[select]),
             locations=spectro[select],
+            nominal=nominal[select],
             lower=lower_warn[select],
             upper=upper_warn[select],
             lower_err=lower_err[select],
@@ -586,9 +587,14 @@ def plot_spectra_qa(data, names, calstandards):
         plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
         plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
 
+        hover = HoverTool(names=['circles'],
+                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
+                    line_policy='nearest')
+
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
-                        plot_height=200, plot_width=1000)
+                        plot_height=200, plot_width=1000,
+                        tools=[hover, 'reset', 'box_zoom', 'pan'])
 
         fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
         fig.xaxis.axis_label = 'spectrograph'
@@ -596,11 +602,13 @@ def plot_spectra_qa(data, names, calstandards):
         fig.ygrid.grid_line_color = None
         fig.yaxis.axis_label = 'line area'
 
-        # Plot the line areas for all spectrographs.
+        # Plot measured line areas + nominal values for all spectrographs.
         fig.circle(x='locations', y='data_val', 
                    fill_color='colors', size='sizes', line_color=None,
                    source=source, name='circles')
-        fig.title.text = f'{cam} camera: λ{name[1:]}'
+        fig.line('locations', 'nominal', source=source, alpha=0.3,
+                 line_dash='dashed', color=colors[cam])
+        fig.title.text = f'{cam} camera: λ{wave}'
         fig.title.text_color = colors[cam]
 
         # Add a visual indication of the typical range of variations.

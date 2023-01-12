@@ -13,8 +13,10 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 calarcs = {
     'CALIB short Arcs all': {
         'wavelength' : {
-            'B': [4048.0, 4360.0, 4679.0, 4801.0, 5087.0, 5462.0],
-            'R': [6145.0, 6385.0, 6404.0, 6508.0, 6680.0, 6931.0, 7034.0, 7247.0, 7604.0],
+#            'B': [4048.0, 4360.0, 4679.0, 4801.0, 5087.0, 5462.0],
+#            'R': [6145.0, 6385.0, 6404.0, 6508.0, 6680.0, 6931.0, 7034.0, 7247.0, 7604.0],
+            'B': [4048.0, 4679.0, 4801.0, 5087.0, 5462.0],
+            'R': [6145.0, 6385.0, 6404.0, 6508.0, 6680.0, 6931.0, 7034.0, 7247.0],
             'Z': [7604.0, 8115.0, 8192.0, 8266.0, 8301.0, 8779.0, 8822.0, 8931.0]
         }
     },
@@ -143,10 +145,14 @@ if __name__ == '__main__':
     p.add_argument('-i', '--indir', type=str,
                    help='Base folder with Nightwatch processed data.',
                    default='/global/cfs/cdirs/desi/spectro/nightwatch/nersc')
-    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.075,
-                   help='Frac. deviation from nominal line area for warnings.')
-    p.add_argument('--level-error', dest='leverr', type=float, default=0.1,
-                   help='Frac. deviation from nominal line area for errors.')
+    p.add_argument('--level-warn-long', dest='levwarnlg', type=float, default=0.06,
+                   help='Deviation from nominal area: warnings (long arc).')
+    p.add_argument('--level-error-long', dest='leverrlg', type=float, default=0.12,
+                   help='Deviation from nominal area: errors (long arc).')
+    p.add_argument('--level-warn-short', dest='levwarnsh', type=float, default=0.12,
+                   help='Deviation from nominal area: warnings (short arc).')
+    p.add_argument('--level-error-short', dest='leverrsh', type=float, default=0.24,
+                   help='Deviation from nominal area: errors (short arc).')
     p.add_argument('-o', '--outfile', type=str,
                    help='Output json file with line info.',
                    default='test.json')
@@ -165,11 +171,18 @@ if __name__ == '__main__':
         night = int(conf[cal]['night'])
         expids = [int(_) for _ in conf[cal]['expids'].split()]
         program = conf[cal]['program']
+        if 'short' in program:
+            level_wrn = args.levwarnsh
+            level_err = args.leverrsh
+        else:
+            level_wrn = args.levwarnlg
+            level_err = args.leverrlg
+
+        print(program, level_wrn, level_err)
 
         lnarea, inputs = calc_arc_lines(args.indir, night, expids, program,
                                 wavelengths = calarcs[program]['wavelength'],
-                                warnlevel = args.levwarn,
-                                errlevel = args.leverr)
+                                warnlevel = level_wrn, errlevel = level_err)
         calarcs[program]['area'] = { 'spectrograph' : lnarea }
         calarcs[program]['area']['inputs'] = inputs
 
