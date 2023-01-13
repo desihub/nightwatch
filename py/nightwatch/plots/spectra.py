@@ -1,12 +1,16 @@
-from astropy.io import fits
+import fitsio
 
 import bokeh
 import bokeh.plotting as bk
-from bokeh.layouts import gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+from bokeh.layouts import column, gridplot
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+from glob import glob
 
 import numpy as np
+import numpy.lib.recfunctions as rfn
 import random, os, sys, re
+
+from desitarget.targets import desi_mask
 
 from .. import io
 
@@ -30,6 +34,31 @@ def downsample(data, n, agg=np.mean):
     length = len(data)
     resultx = [agg(data[j:(j+n)]) if (j+n <= length) else agg(data[j:length]) for j in range(0, length, n)]
     return resultx
+
+
+def get_spectrum_objname(objtype, desi_target):
+    '''
+    Convert object type and bit masks from fibermap into a user-friendly string.
+
+    Args:
+        objtype: str or list or ndarray containing "TGT," "SKY", or ""
+        desi_target: DESI target bitmask(s).
+
+    Returns: str or nd.array with object types and target info.
+    '''
+    # Cleanup OBJTYPE and DESITARGET into a single string.
+    # - if OBJTYPE is TGT, return the first name of DESI_TARGET from desi_mask.
+    # - else if OBJTYPE is not empty, return OBJTYPE.
+    # - else return the string 'None'
+    get_names = lambda ot, dt: 'None' if not ot else (f'{desi_mask.names(dt)[0]}' if 'TGT' in ot and dt>0 else ot)
+
+    # Extract object type (TGT or SKY) and bitmask info.
+    if isinstance(desi_target, (list, np.ndarray)):
+        objnames = [get_names(ot, dt) for ot, dt in zip(objtype, desi_target)]
+        return np.asarray(objnames)
+    else:
+        objname = get_names(objtype, desi_target)
+        return objname
 
 
 def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, width=240):
@@ -58,23 +87,30 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
     for spectro in spectrorange:
         colors = {}
         fib = []
-        try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["B"] = "steelblue"
-        except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
 
+        # Read fibers from the B cameras.
+        qframe_b = os.path.join(data, expid, f'{frame}-b{spectro}-{expid}.fits')
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["R"] = "crimson"
+            fib += [list(fitsio.read(qframe_b, columns=['FIBER'], ext='FIBERMAP')['FIBER'])]
+            colors['B'] = 'steelblue'
         except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print(f'could not find {qframe_b}', file=sys.stderr)
 
+        # Read fibers from the R cameras.
+        qframe_r = os.path.join(data, expid, f'{frame}-r{spectro}-{expid}.fits')
         try:
-            fib += [list(fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)["FIBER"])]
-            colors["Z"] = "forestgreen"
+            fib += [list(fitsio.read(qframe_r, columns=['FIBER'], ext='FIBERMAP')['FIBER'])]
+            colors['R'] = 'crimson'
         except:
-            print("could not find {}".format(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid))), file=sys.stderr)
+            print(f'could not find {qframe_r}', file=sys.stderr)
+
+        # Read fibers from the Z cameras.
+        qframe_z = os.path.join(data, expid, f'{frame}-z{spectro}-{expid}.fits')
+        try:
+            fib += [list(fitsio.read(qframe_z, columns=['FIBER'], ext='FIBERMAP')['FIBER'])]
+            colors['Z'] = 'forestgreen'
+        except:
+            print(f'could not find {qframe_z}', file=sys.stderr)
 
         if (len(colors) == 0 and spectro == np.max(spectrorange) and first is None):
             print("no supported {}-*.fits files".format(frame))
@@ -96,41 +132,62 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
         # fig.add_layout(Title(text= "Fibers: {}".format(common), text_font_style="italic"), 'above')
         # fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="12pt"), 'above')
-        title = "sp{} fibers {}".format(spectro, ", ".join(map(str, common)))
-        fig.add_layout(Title(text=title, text_font_style="italic"), 'above')
+        title = 'sp{} fibers {}'.format(spectro, ', '.join(map(str, common)))
+        fig.add_layout(Title(text=title, text_font_style='italic'), 'above')
+
+        # Add tool tips to the figure during mouseover.
         tooltips = tooltips=[
-            ("Fiber", "@fiber"),
-            ("Cam", "@cam"),
-            ("Wavelength", "@wave"),
-            ("Flux", "@flux")
+            ('Fiber', '@fiber'),
+            ('Cam', '@cam'),
+            ('Objtype', '@objtype'),
+            ('Wavelength', '@wave'),
+            ('Flux', '@flux')
         ]
 
         hover = HoverTool(
             tooltips=tooltips
         )
-
         fig.add_tools(hover)
+
         if spectro not in [0, 5]:
             fig.yaxis.visible = False
             fig.plot_width = width
 
         flux_total = []
         for cam in colors:
-            wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
-            flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
+            camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{spectro}-{expid}.fits')
+            wavelength = fitsio.read(camfile, ext='WAVELENGTH')
+            flux = fitsio.read(camfile, ext='FLUX')
+            fmap = fitsio.read(camfile, columns=['OBJTYPE','DESI_TARGET','TARGET_RA','TARGET_DEC'], ext='FIBERMAP')
+
             for i in indexes:
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 if first is None:
                     flux_total += dflux
                 length = len(dwavelength)
+
+                # Object type and position for the Legacy Survey picker.
+                objtype = get_spectrum_objname(fmap['OBJTYPE'][i], fmap['DESI_TARGET'][i])
+                ra  = fmap['TARGET_RA'][i]
+                dec = fmap['TARGET_DEC'][i]
+
                 source = ColumnDataSource(data=dict(
                             fiber = [fib[0][i]]*length,
                             cam = [cam]*length,
+                            objtype = [objtype]*length,
+                            ra = [ra]*length,
+                            dec = [dec]*length,
                             wave = dwavelength,
                             flux = dflux,
                         ))
-                fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
+                fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
+
+#        # Open link to Legacy Survey when the user left-clicks the spectrum.
+#        # NOT WORKING: see https://github.com/desihub/nightwatch/issues/321
+#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+#        taptool = fig.select(type=TapTool)
+#        taptool.callback = OpenURL(url=url)
 
         if first is None:
             if len(colors) == 3:
@@ -155,7 +212,7 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
         fig.x_range=first.x_range
         fig.y_range=first.y_range
 
-    grid = gridplot([p1, p2], sizing_mode="fixed")
+    grid = gridplot([p1, p2], sizing_mode='fixed')
     return grid
 
 
@@ -179,70 +236,106 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     colors = { 'B':'steelblue', 'R':'crimson', 'Z':'forestgreen' }
     expid = str(expid_num).zfill(8)
 
-    onlyfiles = [f for f in os.listdir(os.path.join(data, expid)) if os.path.isfile(os.path.join(data, expid, f))]
-    qframes = [i for i in onlyfiles if re.match(r'{}.*'.format(frame), i)]
+    # Find a list of files corresponding to the desired frame.
+    qframes = sorted(glob(os.path.join(data, expid, f'{frame}*.fits')))
     if len(qframes) == 0:
-        print("no supported {}-*.fits files".format(frame))
+        print(f'no supported {frame}-*.fits files')
         return None
-    spectr = [int(i.split("-")[1][1]) for i in qframes]
-    spectros = random.choices(list(set(spectr)), k=num_fibs)
 
+    # Get target information for all fibers in this exposure.
+    # - Extract TARGETID, OBJTYPE, DESI_TARGET, and PETAL_LOC.
+    # - Produce a unique table, then convert DESI_TARGET to object type.
+    fibtab = None
+    keys = ['TARGETID', 'PETAL_LOC', 'FIBER', 'OBJTYPE', 'DESI_TARGET']
+
+    for qframe in qframes:
+        fmap = fitsio.read(qframe, columns=keys, ext='FIBERMAP')
+        if fibtab is None:
+            fibtab = fmap[fmap['TARGETID'] >= 0]
+        else:
+            fibtab = np.concatenate([fibtab, fmap[fmap['TARGETID'] >= 0]])
+
+    fibtab = np.unique(fibtab)
+    fibtab = rfn.append_fields(fibtab, 'OBJNAME', get_spectrum_objname(fibtab['OBJTYPE'], fibtab['DESI_TARGET']))
+    keys += 'OBJNAME'
+
+    # Loop through the list of unique object types in this exposure.
+    unique_nms = np.unique(fibtab['OBJNAME'])
     gridlist = []
-    unique_objs = list(set(fits.getdata(os.path.join(data, expid, qframes[0]), 5)["OBJTYPE"]))
-    unique_objs.sort()
-    for obj in unique_objs:
-        fig=bk.figure(plot_height = height, plot_width = width)
-        com = []
-        first = True
-        for spectro in spectros:
-            r_fib = fits.getdata(os.path.join(data, expid, '{}-r{}-{}.fits'.format(frame, spectro, expid)), 5)
-            bool_array = r_fib["OBJTYPE"] == obj
-            r_fib = r_fib["FIBER"]
-            r_fib = [r_fib[i] if bool_array[i] else None for i in range(len(r_fib))]
 
-            b_fib = fits.getdata(os.path.join(data, expid, '{}-b{}-{}.fits'.format(frame, spectro, expid)), 5)
-            b_fib = b_fib[b_fib["OBJTYPE"] == obj]["FIBER"]
+    for nm in unique_nms:
+        fig = bk.figure(plot_height=height, plot_width=width)
+        fig.yaxis.axis_label = 'counts'
+        fig.xaxis.axis_label = 'wavelength [angstroms]'
+        fig.x_range = Range1d(3500, 9950)
+        fig.add_layout(BoxAnnotation(left=5660, right=5930, fill_color='blue', fill_alpha=0.03, line_alpha=0))
+        fig.add_layout(BoxAnnotation(left=7470, right=7720, fill_color='blue', fill_alpha=0.03, line_alpha=0))
 
-            z_fib = fits.getdata(os.path.join(data, expid, '{}-z{}-{}.fits'.format(frame, spectro, expid)), 5)
-            z_fib = z_fib[z_fib["OBJTYPE"] == obj]["FIBER"]
+        select = fibtab['OBJNAME'] == nm
+        nfibs = np.minimum(np.sum(select), num_fibs)
+        minflux, maxflux = 1e99, -1e99
 
-            common = list(set(r_fib).intersection(b_fib).intersection(z_fib))
-            if len(common) > 1:
-                common = random.sample(common, k=1)
-            com += common
-            indexes = [r_fib.index(i) for i in common]
-            if first:
-                flux_total = []
+        # Randomly select nfibs fibers of this object type.
+        fibers = np.random.choice(fibtab['FIBER'][select], size=nfibs, replace=False)
+        idx = np.isin(fibtab['FIBER'], fibers)
+
+        for i, (tid, petal, fiber, otype, desitgt, oname) in enumerate(fibtab[idx]):
             for cam in colors:
-                if indexes == []:
-                    continue
-                wavelength = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "WAVELENGTH")
-                flux = fits.getdata(os.path.join(data, expid, '{}-{}{}-{}.fits'.format(frame, cam.lower(), spectro, expid)), "FLUX")
-                for i in indexes:
-                    dwavelength = downsample(wavelength[i], n)
-                    dflux = downsample(flux[i], n)
-                    if first:
-                        flux_total += dflux
+                camfile = os.path.join(data, expid, f'{frame}-{cam.lower()}{petal}-{expid}.fits')
+                if os.path.exists(camfile):
+
+                    # Convert TARGETID to table index in file.
+                    fits = fitsio.FITS(camfile)
+                    fits_fibers = fits['FIBERMAP']['FIBER'][:]
+                    j = np.argwhere(fits_fibers == fiber)
+                    if j.shape != (1,1):
+                        continue
+                    j = j.item()
+
+                    # Extract target information for this fiber.
+                    ra, dec = fits['FIBERMAP']['TARGET_RA', 'TARGET_DEC'][j]
+
+                    # Extract wavelength and flux for this fiber.
+                    wavelength = fits['WAVELENGTH'][j,:].flatten()
+                    flux = fits['FLUX'][j,:].flatten()
+
+                    # Downsample the fluxes.
+                    dwavelength = downsample(wavelength, n)
+                    dflux = downsample(flux, n)
+                    minflux = np.minimum(minflux, np.percentile(dflux, 1))
+                    maxflux = np.maximum(maxflux, np.percentile(dflux, 99))
                     length = len(dwavelength)
+
+                    # Create bokeh plotting objects.
                     source = ColumnDataSource(data=dict(
-                                fiber = [r_fib[i]]*length,
-                                cam = [cam]*length,
+                                fiber = [fiber]*length,
+                                cam = [f'{cam}{petal}']*length,
+                                objtype = [nm]*length,
+                                ra = [ra]*length,
+                                dec = [dec]*length,
                                 wave = dwavelength,
                                 flux = dflux
                             ))
-                    fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
-            first = False
+                    fig.line('wave', 'flux', source=source, alpha=0.5, color=colors[cam])
 
-        #grid = gridplot(p1, p2)
-        fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
-        fig.add_layout(Title(text= "Fibers: {}".format(com), text_font_style="italic"), 'above')
-        fig.add_layout(Title(text= "OBJTYPE: {}".format(obj), text_font_size="16pt"), 'above')
+        # Configure plot for spectra of this object type.
+        fig.add_layout(Title(text= f'Downsample: {n}', text_font_style='italic'), 'above')
+        fig.add_layout(Title(text= f'Fibers: {fibers}', text_font_style='italic'), 'above')
+        fig.add_layout(Title(text= f'OBJTYPE: {nm}', text_font_size='16pt'), 'above')
 
+#        # Open link to Legacy Survey when the user left-clicks the spectrum.
+#        # NOT WORKING: see https://github.com/desihub/nightwatch/issues/321
+#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+#        taptool = fig.select(type=TapTool)
+#        taptool.callback = OpenURL(url=url)
+
+        # Add over tool with spectrum info.
         tooltips = tooltips=[
-            ("Fiber", "@fiber"),
-            ("Cam", "@cam"),
-            ("Wavelength", "@wave"),
-            ("Flux", "@flux")
+            ('Fiber', '@fiber'),
+            ('Cam', '@cam'),
+            ('Objtype', '@objtype'),
+            ('Wavelength', '@wave'),
+            ('Flux', '@flux')
         ]
 
         hover = HoverTool(
@@ -251,10 +344,13 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
         fig.add_tools(hover)
 
-        upper = int(np.percentile(flux_total, 99.99))
-        fig.y_range = Range1d(int(-0.02*upper), upper)
+        maxflux = 1.05*maxflux
+        minflux = 1.05*minflux if minflux < 0 else 0.9*minflux
+        fig.y_range = Range1d(int(minflux), int(maxflux))
+
         gridlist += [[fig]]
-    return gridplot(gridlist, sizing_mode="fixed")
+
+    return gridplot(gridlist, sizing_mode='fixed')
 
 
 def lister(string):
@@ -335,24 +431,33 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 print(f"WARNING: missing {framefile}")
                 continue
 
-            fibermap = fits.getdata(framefile, 'FIBERMAP')
+            fibermap = fitsio.read(framefile, ext='FIBERMAP')
 
-            wavelength = fits.getdata(framefile, "WAVELENGTH")
-            flux = fits.getdata(framefile, "FLUX")
+            wavelength = fitsio.read(framefile, ext='WAVELENGTH')
+            flux = fitsio.read(framefile, ext='FLUX')
             spectrofibers = fibergroups[spectro]
             indexes = np.where(np.in1d(fibermap['FIBER'], spectrofibers))[0]
             assert len(spectrofibers) == len(indexes)
 
             for i, ifiber in zip(indexes, spectrofibers):
+                # Extract flux and wavelength.
                 dwavelength = downsample(wavelength[i], n)
                 dflux = downsample(flux[i], n)
                 length = len(dwavelength)
+
+                # Extract object type (TGT or SKY) and bitmask info.
                 objtype = fibermap['OBJTYPE'][i]
+                desitgt = fibermap['DESI_TARGET'][i]
+                objtype = get_spectrum_objname(objtype, desitgt)
+
+                # Get sky coordinates of the spectrum.
                 ra  = fibermap['TARGET_RA'][i]
                 dec = fibermap['TARGET_DEC'][i]
+
+                # Create a column data source used for mouseover info.
                 source = ColumnDataSource(data=dict(
                             fiber = [ifiber]*length,
-                            cam = [cam]*length,
+                            cam = [f'{cam}{spectro}']*length,
                             objtype = [objtype]*length,
                             ra = [ra]*length,
                             dec = [dec]*length,
@@ -411,3 +516,168 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     fig.yaxis.formatter = NumeralTickFormatter(format='0a')
 
     return fig
+
+
+def plot_spectra_qa(data, names, calstandards):
+    spectro = data['SPECTRO']
+    colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
+
+    # Get the calibration standards from input.
+    calwaves = calstandards['wavelength']
+
+    figs = []
+    for name in names:
+        cam = name[0]
+        wave = int(name[1:])
+
+        linearea = data[name]
+        select = linearea > 0
+
+        # Convert cal standards stored vs. spectrograph to data vs. camera.
+        camwaves = np.asarray(calwaves[cam])
+        iwave = np.argmin(np.abs(camwaves - wave))
+
+        upper_err = []
+        upper_warn = []
+        nominal = []
+        lower_warn = []
+        lower_err = []
+
+        for sp in spectro:
+            cals = calstandards['area']['spectrograph'][f'{sp}'][cam]
+            upper_err.append(cals['upper_err'][iwave])
+            upper_warn.append(cals['upper'][iwave])
+            nominal.append(cals['nominal'][iwave])
+            lower_warn.append(cals['lower'][iwave])
+            lower_err.append(cals['lower_err'][iwave])
+
+        upper_err = np.asarray(upper_err)
+        upper_warn = np.asarray(upper_warn)
+        nominal = np.asarray(nominal)
+        lower_warn = np.asarray(lower_warn)
+        lower_err = np.asarray(lower_err)
+
+        # Set marker colors and sizes to indicate out-of-range alerts.
+        mcolors = get_spectraqa_colors(linearea[select],
+                                       lower_err[select],
+                                       lower_warn[select],
+                                       upper_warn[select],
+                                       upper_err[select])
+
+        msizes = get_spectraqa_size(linearea[select],
+                                    lower_err[select],
+                                    lower_warn[select],
+                                    upper_warn[select],
+                                    upper_err[select])
+
+        # Store data in a bokeh column object.
+        source = ColumnDataSource(data=dict(
+            data_val=np.round(linearea[select]),
+            locations=spectro[select],
+            nominal=nominal[select],
+            lower=lower_warn[select],
+            upper=upper_warn[select],
+            lower_err=lower_err[select],
+            upper_err=upper_err[select],
+            colors=mcolors,
+            sizes=msizes
+        ))
+
+        # Set up figures and labels.
+        plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
+        plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
+
+        hover = HoverTool(names=['circles'],
+                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
+                    line_policy='nearest')
+
+        fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
+                        y_range=Range1d(start=plotmin, end=plotmax),
+                        plot_height=200, plot_width=1000,
+                        tools=[hover, 'reset', 'box_zoom', 'pan'])
+
+        fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
+        fig.xaxis.axis_label = 'spectrograph'
+        fig.yaxis.minor_tick_line_color = None
+        fig.ygrid.grid_line_color = None
+        fig.yaxis.axis_label = 'line area'
+
+        # Plot measured line areas + nominal values for all spectrographs.
+        fig.circle(x='locations', y='data_val', 
+                   fill_color='colors', size='sizes', line_color=None,
+                   source=source, name='circles')
+        fig.line('locations', 'nominal', source=source, alpha=0.3,
+                 line_dash='dashed', color=colors[cam])
+        fig.title.text = f'{cam} camera: λ{wave}'
+        fig.title.text_color = colors[cam]
+
+        # Add a visual indication of the typical range of variations.
+        fig.add_layout(
+            Band(base='locations', lower='lower', upper='upper',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        fig.add_layout(
+            Band(base='locations', lower='lower_err', upper='upper_err',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        figs.append([fig])
+
+    return gridplot(figs, toolbar_location='right')
+
+
+def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
+    '''takes in per spectro data and the acceptable threshold for that metric.
+    Args:
+        data: array of spectraqa metric data
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
+    Output: array of colors to be put into a ColumnDataSource
+    '''
+    colors = []
+    for i in range(len(data)):
+        if lower[i] == None or upper[i] == None:
+            continue
+        if data[i] <= lower_err[i]:
+            colors.append('red')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            colors.append('orange')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            colors.append('black')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            colors.append('orange')
+        if data[i] >= upper_err[i]:
+            colors.append('red')
+    return colors
+
+
+def get_spectraqa_size(data, lower_err, lower, upper, upper_err):
+    '''takes in per spectraqa data and the acceptable threshold for that metric
+    Args:
+        data: array of spectraqa metric data
+        lower_err: array of lower thresholds that trigger errors
+        lower: array of lower thresholds that trigger warnings
+        upper: array of upper thresholds that trigger warnings
+        upper_err: array of upper thresholds that trigger errors
+    Output: array of sizes for markers to be put into a ColumnDataSource
+    '''
+    sizes = []
+    for i in range(len(data)):
+        if lower[i] == None or upper[i] == None:
+            continue
+        if data[i] <= lower_err[i]:
+            sizes.append('9')
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
+            sizes.append('9')
+        if data[i] > lower[i] and data[i] < upper[i]:
+            sizes.append('5')
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
+            sizes.append('9')
+        if data[i] >= upper_err[i]:
+            sizes.append('9')
+    return sizes

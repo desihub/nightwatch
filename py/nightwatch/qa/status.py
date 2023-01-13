@@ -1,20 +1,25 @@
 """
 Placeholder code for the concept of raising warnings and errors on metrics
 """
-
-import numpy as np
+import os
+import re
 import json
+import numpy as np
 
 from astropy.table import Table
 
 from .base import QA
 from ..thresholds import pick_threshold_file
+from ..calibrations import pick_calib_file, get_calibrations
 
 import enum
+
+
 class Status(enum.IntEnum):
     ok = 0
     warning = 1
     error = 2
+
 
 def get_status(qadata, night):
     '''
@@ -41,7 +46,8 @@ def get_status(qadata, night):
                 status[qatype][col] = data[col]
             else:
                 status[qatype][col] = np.full(n, Status.ok, dtype=np.int16)
-    #- Set thresholds for readnoise suspiciously low or high
+
+    #- Amp QA: check if readnoise, bias, or cosmics rate too low or high
     data = qadata['PER_AMP']
     exptime = qadata['HEADER']['EXPTIME']
     for metric in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
@@ -67,7 +73,7 @@ def get_status(qadata, night):
                     else:
                         continue
     
-    #- TODO: add more threshold checks here
+    #- Camera QA: check the traceshifts (wavelength and fiber fits).
     for metric in ['DX', 'DY']:
         try:
             cam_data = qadata['PER_CAMERA']
@@ -83,26 +89,15 @@ def get_status(qadata, night):
                 data_loc = (cam_data['CAM'] == cam) & (cam_data['SPECTRO']==spec)
                 if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                     warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
-#                     warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-#                     warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                     error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper_err']))
-#                     error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.5*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-#                     error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.5*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                     if warn_mean: 
                         status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
-#                     if warn_min: 
-#                         status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
-#                     if warn_max: 
-#                         status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
                     if error_mean:
                         status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
-#                     if error_min:
-#                         status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
-#                     if error_max:
-#                         status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
                 else:
                     continue
     
+    # Camera QA: PSFs
     for metric in ['XSIG', 'YSIG']:
         try:
             cam_data = qadata['PER_CAMERA']
@@ -119,28 +114,65 @@ def get_status(qadata, night):
                 try:
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                         warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
-#                         warn_min = (abs(cam_data[data_loc]['MIN'+metric]) >= (abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-#                         warn_max = (abs(cam_data[data_loc]['MAX'+metric]) >= (abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                         error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower'])+abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['upper'])+abs(thresholds[key]['upper_err'])))
-#                         error_min = (abs(cam_data[data_loc]['MIN'+metric]) >= 1.5*(abs(thresholds[key]['lower_err']) + abs(thresholds[key]['lower'])))
-#                         error_max = (abs(cam_data[data_loc]['MAX'+metric]) >= 1.5*(abs(thresholds[key]['upper_err']) + abs(thresholds[key]['upper'])))
                         if warn_mean: 
                             status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
-#                         if warn_min: 
-#                             status['PER_CAMERA']['MIN'+metric][status_loc] = Status.warning
-#                         if warn_max: 
-#                             status['PER_CAMERA']['MAX'+metric][status_loc] = Status.warning
                         if error_mean:
                             status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
-#                         if error_min:
-#                             status['PER_CAMERA']['MIN'+metric][status_loc] = Status.error
-#                         if error_max:
-#                             status['PER_CAMERA']['MAX'+metric][status_loc] = Status.error
                     else:
                         continue
                 except ValueError:
                     continue
-    
+
+    # Spectro QA: check to see if calibrations match standard levels.
+    if 'PER_SPECTRO' in qadata:
+        try:
+            sp_data = qadata['PER_SPECTRO']
+            program = sp_data['PROGRAM'][0]
+
+            # Get arc calibrations.
+            if 'Arcs' in program:
+                spectrographs = sp_data['SPECTRO']
+                arcnames = [n for n in sp_data.dtype.names if re.match('[BRZ][0-9]{4}', n)]
+
+                filepath = pick_calib_file('CALIB-ARCS', night)
+                calstandards = get_calibrations(filepath, program)
+                calwaves = calstandards['wavelength']
+
+                for arcname in arcnames:
+                    cam = arcname[0]
+                    wave = int(arcname[1:])
+                    camwaves = np.asarray(calwaves[cam])
+                    iwave = np.argmin(np.abs(camwaves - wave))
+
+                    for j, sp in enumerate(spectrographs):
+                        cals = calstandards['area']['spectrograph'][f'{sp}'][cam]
+                        # Check line area. Negative area means no data; skip.
+                        area = sp_data[arcname][j]
+                        if area < 0:
+                            continue
+
+                        # Compare line area to cal standard warning/err ranges.
+                        upper_err = cals['upper_err'][iwave]
+                        upper_warn = cals['upper'][iwave]
+                        nominal = cals['nominal'][iwave]
+                        lower_warn = cals['lower'][iwave]
+                        lower_err = cals['lower_err'][iwave]
+
+                        warn_area = (area > lower_err and area <= lower_warn) or (area < upper_err and area >= upper_warn)
+                        err_area  = (area < lower_err) | (area > upper_err)
+
+                        if warn_area:
+                            status['PER_SPECTRO'][arcname][j] = Status.warning
+
+                        if err_area:
+                            status['PER_SPECTRO'][arcname][j] = Status.error
+
+            #elif 'Flats' in program:
+            #    ...
+        except Exception as err:
+            print(err)
+
     #- Update global QASTATUS for all QA types
     for qatype, data in status.items():
         n = len(data)

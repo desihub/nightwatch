@@ -21,16 +21,19 @@
       </ul>
   </li>
   
-  <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">spectra</a>
+  <!-- Spectra QA pages -->
+  <li class="dropdown"><a id="spectra" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-spectro-{{ zexpid }}.html">spectra</a>
       <ul class="dropdown-content">
+        <a id="spectraQA" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-spectro-{{ zexpid }}.html">QA</a>
         <a id="input" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/input">input</a>
         <a id="spectrograph" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/spectrograph">spectrograph</a>
         <a id="objtype" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/spectra/objtype">objtype</a>
       </ul>
   </li>
 
-  <li><a id="spectro" class="noHover">spectro</a></li>
+  <!-- <li><a id="spectro" class="noHover">spectro</a></li> -->
 
+  <!-- Camfiber QA pages -->
   <li class="dropdown"><a id="camfiber" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">camfiber</a>
       <ul class="dropdown-content">
         <a id="camfiber" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">fibernum</a>
@@ -39,16 +42,24 @@
       </ul>
   </li>
 
-  <li><a id="fiber" class="noHover">fiber</a></li>
+  <!-- <li><a id="fiber" class="noHover">fiber</a></li> -->
 
-  <li><a id="camera" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camera-{{ zexpid }}.html">camera</a></li>
+  <!-- Camera QA page -->
+  <li class="dropdown"><a id="camera" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camera-{{ zexpid }}.html">camera</a>
+      <ul class="dropdown-content">
+        <a id="cameraQA" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camera-{{ zexpid }}.html">QA</a>
+      </ul>
+  </li>
 
+  <!-- CCD QA and images pages -->
   <li class="dropdown"><a id="amp" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">ccd</a>
       <ul class="dropdown-content">
         <a id="ampQA" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}.html">QA</a>
         <a id="preproc_table" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-amp-{{ zexpid }}-preproc_table.html">images</a>
       </ul>
   </li>
+
+  <!-- Summary page -->
   <li class="dropdown"><a id="summary" href = "{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-summary-{{ zexpid }}.html">summary</a>
       <ul class="dropdown-content">
         <a id="summary" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-summary-{{ zexpid }}.html">summary</a>

@@ -89,11 +89,11 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
                 if re.match('\d{8}', expid) and os.path.isdir(expdir):
                     fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
                     if fits_fz_exists:
-                        qafile = os.path.join(outdir, night, expid, 'qa-{}.fits'.format(expid))
+                        qafile = os.path.join(outdir, night, expid, f'qa-{expid}.fits')
                         if (not os.path.exists(qafile)) and (expdir not in processed):
                             return expdir
                     else:
-                        print('Skipping {}/{} with no desi*.fits.fz data'.format(night, expid))
+                        print(f'Skipping {night}/{expid} with no desi*.fits.fz data')
 
     return None
 
@@ -129,11 +129,11 @@ def find_latest_expdir(basedir, processed, startdate=None):
             break
     #- if for loop completes without finding nightdir to break, run this else
     else:
-        log.debug('No YEARMMDD dirs found in {}'.format(basedir))
+        log.debug(f'No YEARMMDD dirs found in {basedir}')
         return None
 
     night = dirname
-    log.debug('{} Looking for exposures in {}'.format(timestamp(), nightdir))
+    log.debug(f'{timestamp()} Looking for exposures in {nightdir}')
 
     spectrofiles = sorted(glob.glob(nightdir + '/*/desi*.fits.fz'))
     if len(spectrofiles) > 0:
@@ -450,6 +450,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     from nightwatch.webpages import amp as web_amp
     from nightwatch.webpages import camfiber as web_camfiber
     from nightwatch.webpages import camera as web_camera
+    from nightwatch.webpages import spectra as web_spectra
     from nightwatch.webpages import summary as web_summary
     from nightwatch.webpages import lastexp as web_lastexp
     from nightwatch.webpages import guide as web_guide
@@ -468,74 +469,88 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     #- YEARMMDD/EXPID/infile
     dirnight = os.path.basename(os.path.dirname(os.path.dirname(infile)))
     if re.match('20\d{6}', dirnight) and dirnight != str(night):
-        log.warning('Correcting {} header night {} to {}'.format(infile, night, dirnight))
+        log.warning(f'Correcting {infile} header night {night} to {dirnight}')
         night = int(dirnight)
         header['NIGHT'] = night
 
     #- Create output exposures plot directory if needed
-    expdir = os.path.join(basedir, str(night), '{:08d}'.format(expid))
+    expdir = os.path.join(basedir, str(night), f'{expid:08d}')
     if not os.path.isdir(expdir):
-        log.info('Creating {}'.format(expdir))
+        log.info(f'Creating {expdir}')
         os.makedirs(expdir, exist_ok=True)
 
+    #- Amp QA page: CCD readnoise, cosmic rates, etc.
     if 'PER_AMP' in qadata:
-        htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
+        htmlfile = f'{expdir}/qa-amp-{expid:08d}.html'
         pc = web_amp.write_amp_html(htmlfile, qadata['PER_AMP'], header)
-        print('Wrote {}'.format(htmlfile))
+        print(f'Wrote {htmlfile}')
     else:
-        htmlfile = '{}/qa-amp-{:08d}.html'.format(expdir, expid)
+        htmlfile = f'{expdir}/qa-amp-{expid:08d}.html'
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_AMP")
 
-    htmlfile = '{}/qa-camfiber-{:08d}.html'.format(expdir, expid)
+    #- Camfiber QA page: flux vs fiber number for all cameras.
+    htmlfile = f'{expdir}/qa-camfiber-{expid:08d}.html'
     if 'PER_CAMFIBER' in qadata:
         try:
             pc = web_camfiber.write_camfiber_html(htmlfile, qadata['PER_CAMFIBER'], header)
-            print('Wrote {}'.format(htmlfile))
+            print(f'Wrote {htmlfile}')
         except Exception as err:
             web_placeholder.handle_failed_plot(htmlfile, header, "PER_CAMFIBER")
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMFIBER")
 
-    htmlfile = '{}/qa-camera-{:08d}.html'.format(expdir, expid)
+    #- Camera QA page: plots of qproc trace shifts, etc.
+    htmlfile = f'{expdir}/qa-camera-{expid:08d}.html'
     if 'PER_CAMERA' in qadata:
         try:
             pc = web_camera.write_camera_html(htmlfile, qadata['PER_CAMERA'], header)
-            print('Wrote {}'.format(htmlfile))
+            print(f'Wrote {htmlfile}')
         except Exception as err:
             web_placeholder.handle_failed_plot(htmlfile, header, "PER_CAMERA")
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMERA")
 
-    htmlfile = '{}/qa-summary-{:08d}.html'.format(expdir, expid)
+    #- Spectra QA page.
+    htmlfile = f'{expdir}/qa-spectro-{expid:08d}.html'
+    try:
+        #pc = web_spectra.write_spectra_html(htmlfile, qadata['PER_SPECTRO'], header)
+        qfdir = os.path.join(os.path.abspath(basedir), dirnight)
+        pc = web_spectra.write_spectra_html(htmlfile, qadata, header, qfdir)
+        print(f'Wrote {htmlfile}')
+    except Exception as err:
+        web_placeholder.handle_failed_plot(htmlfile, header, 'PER_SPECTRO')
+
+    #- QA summary page.
+    htmlfile = f'{expdir}/qa-summary-{expid:08d}.html'
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
-    print('Wrote {}'.format(htmlfile))
+    print(f'Wrote {htmlfile}')
 
     #- Note: last exposure goes in basedir, not expdir=basedir/NIGHT/EXPID
-    htmlfile = '{}/qa-lastexp.html'.format(basedir)
+    htmlfile = f'{basedir}/qa-lastexp.html'
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
-    print('Wrote {}'.format(htmlfile))
+    print(f'Wrote {htmlfile}')
     
     if rawdir:
         #- plot guide metric plots
         try:
             guidedata = io.get_guide_data(night, expid, rawdir)
-            htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+            htmlfile = f'{expdir}/qa-guide-{expid:08d}.html'
             web_guide.write_guide_html(htmlfile, header, guidedata)
-            print('Wrote {}'.format(htmlfile))
+            print(f'Wrote {htmlfile}')
         except (FileNotFoundError, OSError, IOError):
             print('Unable to find guide data, not plotting guide plots')
-            htmlfile = '{}/qa-guide-{:08d}.html'.format(expdir, expid)
+            htmlfile = f'{expdir}/qa-guide-{expid:08d}.html'
             pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDING")
         
         #- plot guide image movies
         try:
-            htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+            htmlfile = f'{expdir}/guide-image-{expid:08d}.html'
             image_data = io.get_guide_images(night, expid, rawdir)
             web_guideimage.write_guide_image_html(image_data, htmlfile, night, expid)
-            print('Wrote {}'.format(htmlfile))
+            print(f'Wrote {htmlfile}')
         except (FileNotFoundError, OSError, IOError):
             print('Unable to find guide data, not plotting guide image plots')
-            htmlfile = '{expdir}/guide-image-{expid:08d}.html'.format(expdir=expdir, expid=expid)
+            htmlfile = f'{expdir}/guide-image-{expid:08d}.html'
             pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDE_IMAGES")
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
@@ -578,26 +593,27 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
                 web_plotimage.write_image_html(*args)
 
         #- plot preproc nav table
-        navtable_output = '{}/qa-amp-{:08d}-preproc_table.html'.format(expdir, expid)
+        navtable_output = f'{expdir}/qa-amp-{expid:08d}-preproc_table.html'
         web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
 
     if (logdir is not None):
         #- plot logfiles        
-        log.debug('Log directory: {}'.format(logdir))
+        log.debug(f'Log directory: {logdir}')
 
         error_colors = dict()
         for log_cam in log_cams:
-            qinput = os.path.join(logdir, "qproc-{}-{:08d}.log".format(log_cam, expid))
-            output = os.path.join(expdir, "qproc-{}-{:08d}-logfile.html".format(log_cam, expid))
-            log.debug('qproc log: {}'.format(qinput))
+            qinput = os.path.join(logdir, f'qproc-{log_cam}-{expid:08d}.log')
+            output = os.path.join(expdir, f'qproc-{log_cam}-{expid:08d}-logfile.html')
+            log.debug(f'qproc log: {qinput}')
             e = web_summary.write_logfile_html(qinput, output, night)
             
             error_colors[log_cam] = e
 
         #- plot logfile nav table
-        htmlfile = '{}/qa-summary-{:08d}-logfiles_table.html'.format(expdir, expid)
+        htmlfile = f'{expdir}/qa-summary-{expid:08d}-logfiles_table.html'
         web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
                                         error_colors=error_colors)
+
 
 def write_tables(indir, outdir, expnights=None):
     '''
@@ -645,7 +661,7 @@ def write_tables(indir, outdir, expnights=None):
             night = int(night)
             expid = int(expid)
 
-            qafile = os.path.join(expdir, 'qa-{:08d}.fits'.format(expid))
+            qafile = os.path.join(expdir, f'qa-{expid:08d}.fits')
 
             #- gets the list of failed qprocs for each expid
             expfiles = os.listdir(expdir)
@@ -664,11 +680,11 @@ def write_tables(indir, outdir, expnights=None):
 
                 rows.append(dict(NIGHT=night, EXPID=expid, FAIL=0, QPROC=qfails, QPROC_EXIT=exitcode))
             else:
-                log.error('Missing {}'.format(qafile))
+                log.error(f'Missing {qafile}')
                 rows.append(dict(NIGHT=night, EXPID=expid, FAIL=1, QPROC=None, QPROC_EXIT=None))
 
     if len(rows) == 0:
-        msg = "No exp dirs found in {}/NIGHT/EXPID".format(indir)
+        msg = f'No exp dirs found in {indir}/NIGHT/EXPID'
         raise RuntimeError(msg)
 
     exposures = Table(rows)
@@ -714,15 +730,15 @@ def write_nights_summary(indir, last):
 
     for night in nights:
         jsonfile = os.path.join(indir, night, "summary.json")
-        night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+        night_qafile = f'{indir}/{night}/qa-n{night}.fits'
         if (not os.path.isfile(jsonfile)) or (not os.path.isfile(night_qafile)):
             expids = next(os.walk(os.path.join(indir, night)))[1]
             expids = [expid for expid in expids if re.match(r"[0-9]{8}", expid)]
             qadata_stacked = dict()
             for expid in expids:
-                fitsfile = '{indir}/{night}/{expid}/qa-{expid}.fits'.format(indir=indir, night=night, expid=expid)
+                fitsfile = f'{indir}/{night}/{expid}/qa-{expid}.fits'
                 if not os.path.isfile(fitsfile):
-                    print("could not find {}".format(fitsfile))
+                    print(f'could not find {fitsfile}')
                 else:
                     for attr in QA.metacols:
                         try:
@@ -736,13 +752,13 @@ def write_nights_summary(indir, last):
                         else:
                             qadata_stacked[attr] = vstack([qadata_stacked[attr], qadata], metadata_conflicts='silent')
 
-                        print("processed {}".format(fitsfile))
+                        print(f'processed {fitsfile}')
 
             if len(qadata_stacked) == 0:
                 print("no exposures found")
                 return
 
-            night_qafile = '{indir}/{night}/qa-n{night}.fits'.format(indir=indir, night=night)
+            night_qafile = f'{indir}/{night}/qa-n{night}.fits'
             if not os.path.isfile(night_qafile):
                 with fitsio.FITS(night_qafile, 'rw', clobber=True) as fx:
                     fx.write(np.zeros(3, dtype=float), extname='PRIMARY', header=hdr)
@@ -753,7 +769,7 @@ def write_nights_summary(indir, last):
             try:
                 cam_qadata_stacked = qadata_stacked["PER_CAMERA"]
             except:
-                print('No PER_CAMERA data available for {}'.format(night))
+                print(f'No PER_CAMERA data available for {night}')
                 cam_qadata_stacked = [None]*len(amp_qadata_stacked)
 
             readnoise_sca = dict()
@@ -821,7 +837,7 @@ def write_nights_summary(indir, last):
                         dy[c] = dy_dict
                         
                 except KeyError:
-                    print('No data for DX or DY on {}'.format(night))
+                    print(f'No data for DX or DY on {night}')
                 try:
                     cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
                     if len(cam_specific) > 0:
@@ -865,7 +881,7 @@ def write_nights_summary(indir, last):
                         ysig[c] = ysig_dict
                         
                 except KeyError:
-                    print('No data for XSIG, YSIG on {}'.format(night))
+                    print(f'No data for XSIG, YSIG on {night}')
 
             data = dict(
                 PER_AMP=dict(
@@ -884,7 +900,7 @@ def write_nights_summary(indir, last):
             import json
             with open(jsonfile, 'w') as out:
                 json.dump(data, out, indent=4)
-            print('Wrote {}'.format(jsonfile))
+            print(f'Wrote {jsonfile}')
             
 
 def write_thresholds(indir, outdir, start_date, end_date):
@@ -899,7 +915,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
         print('Added threshold_files directory to nightwatch/py/nightwatch')
     
     if not os.path.isdir(outdir):
-        #log.info('Creating {}'.format(outdir))
+        #log.info(f'Creating {outdir}')
         os.makedirs(outdir, exist_ok=True)
 
     for name in ['READNOISE']:
@@ -918,9 +934,9 @@ def write_thresholds(indir, outdir, start_date, end_date):
     
     from nightwatch.webpages import thresholds as web_thresholds
     
-    htmlfile = '{}/threshold-inspector-{}-{}.html'.format(outdir, start_date, end_date)
+    htmlfile = f'{outdir}/threshold-inspector-{start_date}-{end_date}.html'
     pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
-    print('Wrote {}'.format(htmlfile))
+    print(f'Wrote {htmlfile}')
 
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
@@ -957,15 +973,14 @@ def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_
     nights_sub = sorted(set(exposures_sub['NIGHT']))
 
     exptiles = np.unique(exposures['TILEID'])
-    print('Generating QA for {} exposures, {} nights'.format(
-        len(exposures), len(nights_sub)))
+    print(f'Generating QA for {len(exposures)} exposures, {len(nights_sub)} nights')
 
     if show_summary=="subset":
         web_summaryqa.get_summaryqa_html(exposures_sub, fine_data_sub, tiles, outdir)
     elif show_summary=="all":
         web_summaryqa.get_summaryqa_html(exposures, fine_data, tiles, outdir)
     elif show_summary!="no":
-        raise ValueError('show_summary should be "all", "subset", or "no". The value of show_summary was: {}'.format(show_summary))
+        raise ValueError(f'show_summary should be "all", "subset", or "no". The value of show_summary was: {show_summary}')
 
     link_dict = io.write_night_linkage(outdir, nights_sub, nights != None)
 
@@ -973,14 +988,14 @@ def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_
     argslist = [(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict) for night in nights_sub]
     
     if ncpu > 1:
-        print('Running surveyqa in parallel on {} cores for {} nights'.format(ncpu, len(nights_sub)))
+        print(f'Running surveyqa in parallel on {ncpu} cores for {nights_sub} nights')
         pool = mp.Pool(ncpu)
         pool.starmap(web_nightlyqa.get_nightlyqa_html, argslist)
         pool.close()
         pool.join()
     
     else:
-        print('Running surveyqa serially for {} nights'.format(len(nights_sub)))
+        print(f'Running surveyqa serially for {nights_sub} nights')
         for night in nights_sub:
             web_nightlyqa.get_nightlyqa_html(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict)
         
