@@ -644,7 +644,8 @@ def plot_spectra_qa_flats(data, calstandards):
         lower_err = []
 
         for sp in spectro:
-            iflux = data[(data['SPECTRO']==sp) & (data['CAM']==cam)]
+            select = (data['SPECTRO']==sp) & (data['CAM']==cam)
+            iflux = data[select]['INTEG_FLUX'][0]
             if iflux < 0:
                 continue
 
@@ -652,9 +653,9 @@ def plot_spectra_qa_flats(data, calstandards):
 
             spcam = f'{cam}{sp}'
             upper_err.append(calstandards[spcam]['upper_err'])
-            upper.append(calstandards[spcam]['upper'])
+            upper_warn.append(calstandards[spcam]['upper'])
             nominal.append(calstandards[spcam]['nominal'])
-            lower.append(calstandards[spcam]['lower'])
+            lower_warn.append(calstandards[spcam]['lower'])
             lower_err.append(calstandards[spcam]['lower_err'])
 
         # Set marker colors and sizes to indicate out-of-range alerts.
@@ -688,7 +689,7 @@ def plot_spectra_qa_flats(data, calstandards):
         plotmax = 1.1*np.max(np.maximum(upper_err, integ_flux))
 
         hover = HoverTool(names=['circles'],
-                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
+                    tooltips=[('spec', '@locations'), (f'INTEG_FLUX', '@data_val'), ('nominal', '@nominal')],
                     line_policy='nearest')
 
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
@@ -700,7 +701,7 @@ def plot_spectra_qa_flats(data, calstandards):
         fig.xaxis.axis_label = 'spectrograph'
         fig.yaxis.minor_tick_line_color = None
         fig.ygrid.grid_line_color = None
-        fig.yaxis.axis_label = 'line area'
+        fig.yaxis.axis_label = 'INTEG_RAW_FLUX'
 
         # Plot measured line areas + nominal values for all spectrographs.
         fig.circle(x='locations', y='data_val', 
@@ -708,7 +709,7 @@ def plot_spectra_qa_flats(data, calstandards):
                    source=source, name='circles')
         fig.line('locations', 'nominal', source=source, alpha=0.3,
                  line_dash='dashed', color=colors[cam])
-        fig.title.text = f'{cam} camera: λ{wave}'
+        fig.title.text = f'{cam} camera'
         fig.title.text_color = colors[cam]
 
         # Add a visual indication of the typical range of variations.
