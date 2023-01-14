@@ -136,14 +136,14 @@ class QACalibFlats(QA):
         # Loop through spectrographs.
         for spectro in range(10):
 
+            dico = dict()
+            dico['NIGHT'] = night
+            dico['EXPID'] = expid
+            dico['PROGRAM'] = program
+            dico['SPECTRO'] = spectro
+
             # Loop over cameras.
             for cam in 'BRZ':
-
-                dico = dict()
-                dico['NIGHT'] = night
-                dico['EXPID'] = expid
-                dico['PROGRAM'] = program
-                dico['SPECTRO'] = spectro
 
                 qframe = os.path.join(indir, f'qframe-{cam.lower()}{spectro}-{expid:08d}.fits')
 
@@ -153,12 +153,10 @@ class QACalibFlats(QA):
                     flux = np.median(fits['FLUX'][fiberlo:fiberhi, :], axis=0)
                     integ_flux = np.trapz(flux, wave)
 
-                    dico['CAM'] = cam
-                    dico['INTEG_FLUX'] = integ_flux
+                    dico[f'{cam}_INTEG_FLUX'] = integ_flux
                 else:
-                    dico['CAM'] = cam
-                    dico['INTEG_FLUX'] = -1
+                    dico[f'{cam}_INTEG_FLUX'] = -1
 
-                results.append(collections.OrderedDict(**dico))
+            results.append(collections.OrderedDict(**dico))
 
         return Table(results, names=results[0].keys())

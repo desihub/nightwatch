@@ -644,8 +644,8 @@ def plot_spectra_qa_flats(data, calstandards):
         lower_err = []
 
         for sp in spectro:
-            select = (data['SPECTRO']==sp) & (data['CAM']==cam)
-            iflux = data[select]['INTEG_FLUX'][0]
+            select = (data['SPECTRO']==sp)
+            iflux = data[select][f'{cam}_INTEG_FLUX'][0]
             if iflux < 0:
                 continue
 
