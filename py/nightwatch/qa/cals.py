@@ -16,7 +16,7 @@ class QACalibArcs(QA):
     """Class representing arc lamp QA, tracking identified bright lines.
     
     Methods:
-        valid_obstype(self, obstype): Given the obstype of an exposure, returns whether QACalibArcs is a valid QA metric. QACalibArcs is currently valid for all exposures.
+        valid_obstype(self, obstype): Given the obstype of an exposure, returns whether QACalibArcs is a valid QA metric.
         run(self, indir): Given path to directory containing qproc logfiles + errorcodes.txt file, returns Astropy table with QPROCStatus data.
     """
     
@@ -92,3 +92,71 @@ class QACalibArcs(QA):
 
         return Table(results, names=results[0].keys())
 
+
+class QACalibFlats(QA):
+    """Class representing QA for camera flat-field exposures QA.
+    
+    Methods:
+        valid_obstype(self, obstype): Given the obstype of an exposure, returns whether QACalibFlats is a valid QA metric.
+        run(self, indir): Given path to directory containing qproc logfiles + errorcodes.txt file, returns Astropy table with QPROCStatus data.
+    """
+    
+    def __init__(self):
+        self.output_type = 'PER_SPECTRO'
+    
+    def valid_obstype(self, obstype):
+        """Obstype must be a FLAT exposure.
+        """
+        return obstype.upper() == 'FLAT'
+    
+    def run(self, indir):
+        """Loop through FLAT qframes and compute integral flux in each camera.
+
+        Returns Table object with columns:
+    
+        NIGHT  EXPID  SPECTRO  LINE1  LINE2  LINE3 ...
+                               [arc line pseudo-eq widths in these columns]
+        """
+        # get night, expid data
+        qframes = sorted(glob(os.path.join(indir, 'qframe-*.fits')))
+        hdr = fitsio.read_header(qframes[0], ext='FIBERMAP')
+        night = hdr['NIGHT']
+        expid = hdr['EXPID']
+        program = hdr['PROGRAM']
+
+        # get arc line calibration data. 
+        calibfile = pick_calib_file('CALIB-FLATS', night)
+        cals = get_calibrations(calibfile, program)
+        settings = cals['settings']
+
+        fiberlo = settings['fiberlo']
+        fiberhi = settings['fiberhi']
+
+        results = []
+        # Loop through spectrographs.
+        for spectro in range(10):
+
+            dico = dict()
+            dico['NIGHT'] = night
+            dico['EXPID'] = expid
+            dico['PROGRAM'] = program
+            dico['SPECTRO'] = spectro
+
+            # Loop over cameras.
+            for cam in 'BRZ':
+
+                qframe = os.path.join(indir, f'qframe-{cam.lower()}{spectro}-{expid:08d}.fits')
+
+                if os.path.exists(qframe):
+                    fits = fitsio.FITS(qframe)
+                    wave = np.median(fits['WAVELENGTH'][fiberlo:fiberhi, :], axis=0)
+                    flux = np.median(fits['FLUX'][fiberlo:fiberhi, :], axis=0)
+                    integ_flux = np.trapz(flux, wave)
+
+                    dico[f'{cam}_INTEG_FLUX'] = integ_flux
+                else:
+                    dico[f'{cam}_INTEG_FLUX'] = -1
+
+            results.append(collections.OrderedDict(**dico))
+
+        return Table(results, names=results[0].keys())

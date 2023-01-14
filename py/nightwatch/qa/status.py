@@ -130,7 +130,45 @@ def get_status(qadata, night):
             sp_data = qadata['PER_SPECTRO']
             program = sp_data['PROGRAM'][0]
 
-            # Get arc calibrations.
+            # Handle flat calibrations.
+            if 'LED' in program:
+                spectrographs = sp_data['SPECTRO']
+
+                filepath = pick_calib_file('CALIB-FLATS', night)
+                calstandards = get_calibrations(filepath, program)
+
+                for cam in 'BRZ':
+                    fluxname = f'{cam}_INTEG_FLUX'
+
+                    for sp in spectrographs:
+                        select = sp_data['SPECTRO'] == sp
+                        j = np.argwhere(select).flatten()[0]
+
+                        spcam = f'{cam}{sp}'
+                        cals = calstandards[spcam]
+
+                        # Check integrated flux. Negative means no data; skip.
+                        integ_flux = sp_data[fluxname][j]
+                        if integ_flux < 0:
+                            continue
+
+                        # Compare line area to cal standard warning/err ranges.
+                        upper_err = cals['upper_err']
+                        upper_warn = cals['upper']
+                        nominal = cals['nominal']
+                        lower_warn = cals['lower']
+                        lower_err = cals['lower_err']
+
+                        warn_integ_flux = (integ_flux > lower_err and integ_flux <= lower_warn) or (integ_flux < upper_err and integ_flux >= upper_warn)
+                        err_integ_flux  = (integ_flux < lower_err) | (integ_flux > upper_err)
+
+                        if warn_integ_flux:
+                            status['PER_SPECTRO'][fluxname][j] = Status.warning
+
+                        if err_integ_flux:
+                            status['PER_SPECTRO'][fluxname][j] = Status.error
+
+            # Handle arc calibrations.
             if 'Arcs' in program:
                 spectrographs = sp_data['SPECTRO']
                 arcnames = [n for n in sp_data.dtype.names if re.match('[BRZ][0-9]{4}', n)]
@@ -167,9 +205,6 @@ def get_status(qadata, night):
 
                         if err_area:
                             status['PER_SPECTRO'][arcname][j] = Status.error
-
-            #elif 'Flats' in program:
-            #    ...
         except Exception as err:
             print(err)
 
