@@ -518,7 +518,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     return fig
 
 
-def plot_spectra_qa(data, names, calstandards):
+def plot_spectra_qa_arcs(data, names, calstandards):
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
@@ -586,6 +586,106 @@ def plot_spectra_qa(data, names, calstandards):
         # Set up figures and labels.
         plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
         plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
+
+        hover = HoverTool(names=['circles'],
+                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
+                    line_policy='nearest')
+
+        fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
+                        y_range=Range1d(start=plotmin, end=plotmax),
+                        plot_height=200, plot_width=1000,
+                        tools=[hover, 'reset', 'box_zoom', 'pan'])
+
+        fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
+        fig.xaxis.axis_label = 'spectrograph'
+        fig.yaxis.minor_tick_line_color = None
+        fig.ygrid.grid_line_color = None
+        fig.yaxis.axis_label = 'line area'
+
+        # Plot measured line areas + nominal values for all spectrographs.
+        fig.circle(x='locations', y='data_val', 
+                   fill_color='colors', size='sizes', line_color=None,
+                   source=source, name='circles')
+        fig.line('locations', 'nominal', source=source, alpha=0.3,
+                 line_dash='dashed', color=colors[cam])
+        fig.title.text = f'{cam} camera: λ{wave}'
+        fig.title.text_color = colors[cam]
+
+        # Add a visual indication of the typical range of variations.
+        fig.add_layout(
+            Band(base='locations', lower='lower', upper='upper',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        fig.add_layout(
+            Band(base='locations', lower='lower_err', upper='upper_err',
+                 source=source, level='underlay',
+                 fill_alpha=0.1, fill_color=colors[cam],
+                 line_width=0.7, line_color='black'))
+
+        figs.append([fig])
+
+    return gridplot(figs, toolbar_location='right')
+
+
+def plot_spectra_qa_flats(data, calstandards):
+    spectro = data['SPECTRO']
+    colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
+
+    figs = []
+    for cam in 'BRZ': 
+
+        integ_flux = []
+        upper_err = []
+        upper_warn = []
+        nominal = []
+        lower_warn = []
+        lower_err = []
+
+        for sp in spectro:
+            iflux = data[(data['SPECTRO']==sp) & (data['CAM']==cam)]
+            if iflux < 0:
+                continue
+
+            integ_flux.append(iflux)
+
+            spcam = f'{cam}{sp}'
+            upper_err.append(calstandards[spcam]['upper_err'])
+            upper.append(calstandards[spcam]['upper'])
+            nominal.append(calstandards[spcam]['nominal'])
+            lower.append(calstandards[spcam]['lower'])
+            lower_err.append(calstandards[spcam]['lower_err'])
+
+        # Set marker colors and sizes to indicate out-of-range alerts.
+        mcolors = get_spectraqa_colors(integ_flux,
+                                       lower_err,
+                                       lower_warn,
+                                       upper_warn,
+                                       upper_err)
+
+        msizes = get_spectraqa_size(integ_flux,
+                                    lower_err,
+                                    lower_warn,
+                                    upper_warn,
+                                    upper_err)
+
+        # Store data in a bokeh column object.
+        source = ColumnDataSource(data=dict(
+            data_val=np.round(integ_flux),
+            locations=spectro,
+            nominal=nominal,
+            lower=lower_warn,
+            upper=upper_warn,
+            lower_err=lower_err,
+            upper_err=upper_err,
+            colors=mcolors,
+            sizes=msizes
+        ))
+
+        # Set up figures and labels.
+        plotmin = 0.9*np.min(np.minimum(lower_err, integ_flux))
+        plotmax = 1.1*np.max(np.maximum(upper_err, integ_flux))
 
         hover = HoverTool(names=['circles'],
                     tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
