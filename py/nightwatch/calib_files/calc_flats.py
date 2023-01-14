@@ -49,7 +49,7 @@ def calc_flats(datadir, night, expids, prog, warnlevel=0.01, errlevel=0.02):
         'settings' : {
             'fiberlo' : fiberlo,
             'fiberhi' : fiberhi,
-            'comment' : 'Fiber range used in spectrum.'
+            'comment' : 'Fiber range used in integrated fluxes.'
         }
     }
 
@@ -142,7 +142,6 @@ if __name__ == '__main__':
         print(program, level_wrn, level_err)
 
         intflux, inputs = calc_flats(args.indir, night, expids, program,
-                                wavelengths = calflats[program]['wavelength'],
                                 warnlevel = level_wrn, errlevel = level_err)
         calflats[program] = intflux
         calflats[program].update(inputs)
