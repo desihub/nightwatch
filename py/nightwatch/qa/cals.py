@@ -127,7 +127,7 @@ class QACalibFlats(QA):
         # get arc line calibration data. 
         calibfile = pick_calib_file('CALIB-FLATS', night)
         cals = get_calibrations(calibfile, program)
-        settings = cals['area']['spectrograph']['settings']
+        settings = cals['settings']
 
         fiberlo = settings['fiberlo']
         fiberhi = settings['fiberhi']
@@ -135,31 +135,30 @@ class QACalibFlats(QA):
         results = []
         # Loop through spectrographs.
         for spectro in range(10):
-            dico = dict()
-            dico['NIGHT'] = night
-            dico['EXPID'] = expid
-            dico['PROGRAM'] = program
-            dico['SPECTRO'] = spectro
 
             # Loop over cameras.
             for cam in 'BRZ':
+
+                dico = dict()
+                dico['NIGHT'] = night
+                dico['EXPID'] = expid
+                dico['PROGRAM'] = program
+                dico['SPECTRO'] = spectro
+
                 qframe = os.path.join(indir, f'qframe-{cam.lower()}{spectro}-{expid:08d}.fits')
 
-                # Loop over the brightest arc lines in each camera.
                 if os.path.exists(qframe):
                     fits = fitsio.FITS(qframe)
                     wave = np.median(fits['WAVELENGTH'][fiberlo:fiberhi, :], axis=0)
                     flux = np.median(fits['FLUX'][fiberlo:fiberhi, :], axis=0)
                     integ_flux = np.trapz(flux, wave)
 
-                    fluxlabel = f'{cam}{spectro}_INTFLUX'
-                    dico[fluxlabel] = integ_flux
+                    dico['CAM'] = cam
+                    dico['INTEG_FLUX'] = integ_flux
                 else:
-                    fluxlabel = f'{cam}{spectro}_INTFLUX'
-                    dico[fluxlabel] = -1
+                    dico['CAM'] = cam
+                    dico['INTEG_FLUX'] = -1
 
-            results.append(collections.OrderedDict(**dico))
+                results.append(collections.OrderedDict(**dico))
 
         return Table(results, names=results[0].keys())
-
-
