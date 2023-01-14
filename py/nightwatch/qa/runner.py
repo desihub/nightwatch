@@ -27,7 +27,7 @@ from ..run import timestamp
 class QARunner(object):
 
     #- class-level variable of default QA classes to run
-    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF, QAFiberflat, QASNR, QACalibArcs, QAQPROCStatus)
+    default_qalist = (QAAmp, QANoiseCorr, QASpecscore, QATraceShift, QAPSF, QAFiberflat, QASNR, QACalibArcs, QACalibFlats, QAQPROCStatus)
 
     def __init__(self, qalist=None):
         '''TODO: document'''
