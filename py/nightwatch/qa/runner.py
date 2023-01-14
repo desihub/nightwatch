@@ -14,7 +14,7 @@ from astropy.table import join, Table
 import desiutil.log
 
 from .amp import QAAmp
-from .cals import QACalibArcs
+from .cals import QACalibArcs, QACalibFlats
 from .noisecorr import QANoiseCorr
 from .specscore import QASpecscore
 from .traceshift import QATraceShift
