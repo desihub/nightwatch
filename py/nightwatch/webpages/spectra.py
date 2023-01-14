@@ -8,7 +8,7 @@ import bokeh, sys
 from bokeh.embed import components
 
 from ..plots import spectra
-from ..plots.spectra import plot_spectra_qa
+from ..plots.spectra import plot_spectra_qa_arcs, plot_spectra_qa_flats
 from ..calibrations import pick_calib_file, get_calibrations
 
 from desiutil.log import get_logger
@@ -72,7 +72,7 @@ def write_spectra_html(outfile, qadata, header, nightdir):
         script, div = components(specfig)
         html_components['SPECTRA'] = dict(script=script, div=div, fibers=fibers)
 
-    #- Plot calibration exposure QA.
+    #- Plot calibration exposure QA: Arcs.
     if obstype.upper() == 'ARC' and 'PER_SPECTRO' in qadata:
         arclines = [n for n in qadata['PER_SPECTRO'].dtype.names \
                     if re.match('[BRZ][0-9]{4}', n)]
@@ -80,10 +80,20 @@ def write_spectra_html(outfile, qadata, header, nightdir):
         calsfile = pick_calib_file('CALIB-ARCS', night)
         cals = get_calibrations(calsfile, program)
 
-        arclinefig = spectra.plot_spectra_qa(qadata['PER_SPECTRO'], arclines, cals)
+        arclinefig = spectra.plot_spectra_qa_arcs(qadata['PER_SPECTRO'], arclines, cals)
 
         script, div = components(arclinefig)
         html_components['CAL_ARCS'] = dict(script=script, div=div)
+
+    #- Plot calibration exposure QA: Flats.
+    if obstype.upper() == 'FLAT' and 'PER_SPECTRO' in qadata:
+        calsfile = pick_calib_file('CALIB-FLATS', night)
+        cals = get_calibrations(calsfile, program)
+
+        flatsfig = spectra.plot_spectra_qa_flats(qadata['PER_SPECTRO'], cals)
+
+        script, div = components(flatsfig)
+        html_components['CAL_FLATS'] = dict(script=script, div=div)
 
     html = template.render(**html_components)
 
