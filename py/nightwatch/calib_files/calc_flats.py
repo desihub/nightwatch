@@ -114,9 +114,9 @@ if __name__ == '__main__':
     p.add_argument('-i', '--indir', type=str,
                    help='Base folder with Nightwatch processed data.',
                    default='/global/cfs/cdirs/desi/spectro/nightwatch/nersc')
-    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.01,
+    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.05,
                    help='Deviation from nominal area: warnings.')
-    p.add_argument('--level-error', dest='leverr', type=float, default=0.02,
+    p.add_argument('--level-error', dest='leverr', type=float, default=0.10,
                    help='Deviation from nominal area: errors.')
     p.add_argument('-o', '--outfile', type=str,
                    help='Output json file with line info.',
