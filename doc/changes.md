@@ -8,7 +8,7 @@
 
 ### Major Updates
 
-* Added calibration standards for ARCS and FLATS: [PR #326](https://github.com/desihub/nightwatch/pulls/326), [PR #328](https://github.com/desihub/nightwatch/pulls/328), [PR #329](https://github.com/desihub/nightwatch/pulls/329).
+* Added calibration standards for ARCS and FLATS: PRs [#326](https://github.com/desihub/nightwatch/pulls/326), [#328](https://github.com/desihub/nightwatch/pulls/328), [#329](https://github.com/desihub/nightwatch/pulls/329).
   - Stnadards defined for integrated flux (FLATS) and areas of bright lines (ARCS) in JSON format.
   - New `calibrations` module to load JSON standards for any given cal program.
   - Arc/flat cal info stored in `PER_SPECTRO` QA data structures.
@@ -43,81 +43,62 @@
 
 ## 0.2.0 (2022-08-19)
 
-* Cosmics rate 0 converted to warning for all cameras ([PR #290](https://github.com/desihub/nightwatch/pulls/290))
-* Ncpu may22 ([PR #285](https://github.com/desihub/nightwatch/pulls/285))
-* Enable prev/next links in preproc table pages. ([PR #282](https://github.com/desihub/nightwatch/pulls/282))
-* Fix help redirect for grid plot of CCD images. ([PR #278](https://github.com/desihub/nightwatch/pulls/278))
-* Make summary plot consistent with QA pages. ([PR #277](https://github.com/desihub/nightwatch/pulls/277))
-* Improvements for accessing preproc plots and logs ([PR #275](https://github.com/desihub/nightwatch/pulls/275))
-* read noise thresholds increased by 20% ([PR #274](https://github.com/desihub/nightwatch/pulls/274))
-* Add overlay of masked pixels to CCD images. ([PR #272](https://github.com/desihub/nightwatch/pulls/272))
-* Fix kwargs incompatible with bokeh version at KPNO. ([PR #269](https://github.com/desihub/nightwatch/pulls/269))
-* Redirect HelpTool to Nightwatch wiki. ([PR #268](https://github.com/desihub/nightwatch/pulls/268))
-* Convert B camera 0 cosmics errors -> warnings. ([PR #267](https://github.com/desihub/nightwatch/pulls/267))
-* Add links to update instructions. ([PR #266](https://github.com/desihub/nightwatch/pulls/266))
-* Fixed a bug in reporting qproc fails for the summary tables ([PR #262](https://github.com/desihub/nightwatch/pulls/262))
-* Standard reference spectra for arcs and flats ([PR #261](https://github.com/desihub/nightwatch/pulls/261))
-* Trace thresh jan22 ([PR #256](https://github.com/desihub/nightwatch/pulls/256))
-* Backdated thresholds for reprocessing. ([PR #254](https://github.com/desihub/nightwatch/pulls/254))
-* Fibermap fix jan22 ([PR #253](https://github.com/desihub/nightwatch/pulls/253))
-* Fix dx jan22 ([PR #251](https://github.com/desihub/nightwatch/pulls/251))
-* Camfiber pos fixed ([PR #250](https://github.com/desihub/nightwatch/pulls/250))
-* Delete the old README in the bin folder. ([PR #249](https://github.com/desihub/nightwatch/pulls/249))
-* Move test instructions to docs and add links. ([PR #248](https://github.com/desihub/nightwatch/pulls/248))
-* Fix typo in path name. ([PR #247](https://github.com/desihub/nightwatch/pulls/247))
-* Test readme jan22 ([PR #246](https://github.com/desihub/nightwatch/pulls/246))
-* Update Z1C thresholds due to voltage adjustment on 22/01/07. ([PR #245](https://github.com/desihub/nightwatch/pulls/245))
-* Check environment and clean up path join. ([PR #244](https://github.com/desihub/nightwatch/pulls/244))
-* Include image masks in amplifier QA ([PR #243](https://github.com/desihub/nightwatch/pulls/243))
-* COSMICS_RATE update + pick threshold code cleanup ([PR #240](https://github.com/desihub/nightwatch/pulls/240))
-* ZERO+DARK threshold updates: 20211206 ([PR #236](https://github.com/desihub/nightwatch/pulls/236))
-* support 2-amp readout ([PR #233](https://github.com/desihub/nightwatch/pulls/233))
-* Clip values for reported RMS Final Move. ([PR #232](https://github.com/desihub/nightwatch/pulls/232))
-* ZERO+DARK threshold updates ([PR #231](https://github.com/desihub/nightwatch/pulls/231))
-* Read noise threshold update. ([PR #229](https://github.com/desihub/nightwatch/pulls/229))
-* Fix focalplane prev/next navigation ([PR #227](https://github.com/desihub/nightwatch/pulls/227))
-* Improved camfiber/positioning plots ([PR #225](https://github.com/desihub/nightwatch/pulls/225))
-* Composite pre-processed spectrograph frames ([PR #221](https://github.com/desihub/nightwatch/pulls/221))
-* Read noise calibration ([PR #217](https://github.com/desihub/nightwatch/pulls/217))
-* robust to NIGHT=None; requires latest desispec ([PR #215](https://github.com/desihub/nightwatch/pulls/215))
-* Default calibrated spectra plots ([PR #212](https://github.com/desihub/nightwatch/pulls/212))
-* Add more info to exposures list ([PR #205](https://github.com/desihub/nightwatch/pulls/205))
-* plot robustness; handle coordinates files with and without FIBER column ([PR #189](https://github.com/desihub/nightwatch/pulls/189))
-* more robust handling of failed plotting ([PR #187](https://github.com/desihub/nightwatch/pulls/187))
-* fix XSS vulnerability ([PR #186](https://github.com/desihub/nightwatch/pulls/186))
-* make calendar writing faster ([PR #184](https://github.com/desihub/nightwatch/pulls/184))
-* fix random spectra plotting ([PR #181](https://github.com/desihub/nightwatch/pulls/181))
-* added a missing logger call to placeholder ([PR #180](https://github.com/desihub/nightwatch/pulls/180))
-* pandas, bokeh, bytes, str ([PR #178](https://github.com/desihub/nightwatch/pulls/178))
-* batch updates; no tempdir ([PR #177](https://github.com/desihub/nightwatch/pulls/177))
-* Improve focal plane plot color scaling ([PR #176](https://github.com/desihub/nightwatch/pulls/176))
-* rancher2 docs ([PR #174](https://github.com/desihub/nightwatch/pulls/174))
-* redo docker directory structure ([PR #173](https://github.com/desihub/nightwatch/pulls/173))
-* XSS changes to placeholder.html ([PR #172](https://github.com/desihub/nightwatch/pulls/172))
-* Fix XSS vulnerability in nightwatch Spin service ([PR #171](https://github.com/desihub/nightwatch/pulls/171))
-* Xss vulnerability ([PR #170](https://github.com/desihub/nightwatch/pulls/170))
-* Fitsio compatibility ([PR #168](https://github.com/desihub/nightwatch/pulls/168))
-* Parallelize qa/amp.py ([PR #167](https://github.com/desihub/nightwatch/pulls/167))
-* Write to temporary directory ([PR #166](https://github.com/desihub/nightwatch/pulls/166))
-* Flag qproc errors ([PR #165](https://github.com/desihub/nightwatch/pulls/165))
-* placeholder html for missing plots ([PR #164](https://github.com/desihub/nightwatch/pulls/164))
-* Guide image rotation ([PR #163](https://github.com/desihub/nightwatch/pulls/163))
-* parallelize noisecorr ([PR #161](https://github.com/desihub/nightwatch/pulls/161))
-* Parallelize SNR calculations ([PR #159](https://github.com/desihub/nightwatch/pulls/159))
-* fixed amp axis labels ([PR #158](https://github.com/desihub/nightwatch/pulls/158))
-* error handling missing guide-rois ([PR #157](https://github.com/desihub/nightwatch/pulls/157))
-* amp plot axes ([PR #156](https://github.com/desihub/nightwatch/pulls/156))
-* handling exposures with no guide data ([PR #155](https://github.com/desihub/nightwatch/pulls/155))
-* preproc images generated in parallel ([PR #154](https://github.com/desihub/nightwatch/pulls/154))
-* Adding surveyqa ([PR #153](https://github.com/desihub/nightwatch/pulls/153))
-* Add surveyqa ([PR #152](https://github.com/desihub/nightwatch/pulls/152))
-* add guide plots page to nightwatch ([PR #151](https://github.com/desihub/nightwatch/pulls/151))
-* Posacc ([PR #150](https://github.com/desihub/nightwatch/pulls/150))
-* CMX updates ([PR #148](https://github.com/desihub/nightwatch/pulls/148))
-* Create webapp_new.py ([PR #131](https://github.com/desihub/nightwatch/pulls/131))
-* Update exposures table only for current night ([PR #130](https://github.com/desihub/nightwatch/pulls/130))
-* fix spectra plotting with mismatched fibermaps ([PR #129](https://github.com/desihub/nightwatch/pulls/129))
-* use obstype instead of flavor ([PR #126](https://github.com/desihub/nightwatch/pulls/126))
+### Major updates
+
+* User interface improvements:
+  - Redirect HelpTool links to Nightwatch wiki for most plots. (PRs [#268](https://github.com/desihub/nightwatch/pulls/268), [#269](https://github.com/desihub/nightwatch/pulls/269))
+  - Fix prev/next links table and plot pages. (PRs [#227](https://github.com/desihub/nightwatch/pulls/227), [#282](https://github.com/desihub/nightwatch/pulls/282))
+  - Add gridplot of CCD images for fast QA (PRs [#275](https://github.com/desihub/nightwatch/pulls/275), [#278](https://github.com/desihub/nightwatch/pulls/278))
+  - Add overlay of masked pixels to CCD images. ([PR #272](https://github.com/desihub/nightwatch/pulls/272))
+  - Include image masks in amplifier QA ([PR #243](https://github.com/desihub/nightwatch/pulls/243))
+  - Improved camfiber and positioning plots ([PR #225](https://github.com/desihub/nightwatch/pulls/225), [#232](https://github.com/desihub/nightwatch/pulls/232))
+  - Spectra plots default to calibrated versions ([PR #212](https://github.com/desihub/nightwatch/pulls/212))
+  - Added more info to exposures list ([PR #205](https://github.com/desihub/nightwatch/pulls/205))
+  - Added placeholder HTMLs for missing plots to avoid `ERROR not found` in links ([PR #164](https://github.com/desihub/nightwatch/pulls/164))
+  - Added `surveyqa` processing and links ([PR #153](https://github.com/desihub/nightwatch/pulls/153))
+  - Added guide plots page to nightwatch ([PR #151](https://github.com/desihub/nightwatch/pulls/151))
+  - Added fibers-on-target and positioner accuracy plots ([PR #150](https://github.com/desihub/nightwatch/pulls/150))
+* Backend processing:
+  - Simplify CPU allocation at NERSC, KPNO, laptops ([PR #285](https://github.com/desihub/nightwatch/pulls/285))
+  - Creation of fibermaps during exposure processing ([PR #253](https://github.com/desihub/nightwatch/pulls/253))
+  - Support 2-amp readout ([PR #233](https://github.com/desihub/nightwatch/pulls/233))
+  - Make calendar writing faster ([PR #184](https://github.com/desihub/nightwatch/pulls/184))
+  - Updated batch processing to include plots, stop using `/tmp` ([PR #177](https://github.com/desihub/nightwatch/pulls/177))
+  - Improved parallelization in preproc, amps, noise, SNR calculations (PRs [#154](https://github.com/desihub/nightwatch/pulls/154), [#159](https://github.com/desihub/nightwatch/pulls/159), [#161](https://github.com/desihub/nightwatch/pulls/161), [#167](https://github.com/desihub/nightwatch/pulls/167))
+  - Addressed vulnerability on spin (PRs [#170](https://github.com/desihub/nightwatch/pulls/170), [#171](https://github.com/desihub/nightwatch/pulls/171), [#172](https://github.com/desihub/nightwatch/pulls/172))
+  - Avoid NERSC I/O slowdowns by writing to temporary directory ([PR #166](https://github.com/desihub/nightwatch/pulls/166))
+  - Incorporated updates to logging and `fitsio` for use at NERSC ([PR #148](https://github.com/desihub/nightwatch/pulls/148))
+  - Update exposures table only for current night ([PR #130](https://github.com/desihub/nightwatch/pulls/130))
+
+### Minor updates
+
+* Warning and error level adjustments:
+  - READNOISE thresholds (PRs [#217](https://github.com/desihub/nightwatch/pulls/217), [#229](https://github.com/desihub/nightwatch/pulls/229), [#233](https://github.com/desihub/nightwatch/pulls/233), [#245](https://github.com/desihub/nightwatch/pulls/245), [#254](https://github.com/desihub/nightwatch/pulls/254), [#274](https://github.com/desihub/nightwatch/pulls/274)).
+  - COSMIC RATE thresholds (PRs [#240](https://github.com/desihub/nightwatch/pulls/240), [#254](https://github.com/desihub/nightwatch/pulls/254), [#267](https://github.com/desihub/nightwatch/pulls/267), [#290](https://github.com/desihub/nightwatch/pulls/290)).
+  - ZERO + DARK thresholds (PRs [#231](https://github.com/desihub/nightwatch/pulls/231), [#236](https://github.com/desihub/nightwatch/pulls/236)).
+  - TRACESHIFT thresholds (PRs [#251](https://github.com/desihub/nightwatch/pulls/251), [#256](https://github.com/desihub/nightwatch/pulls/256)).
+* Documentation:
+  - Added links to update instructions ([PR #266](https://github.com/desihub/nightwatch/pulls/266))
+  - Added README with testing instructions at NERSC (PRs [#246](https://github.com/desihub/nightwatch/pulls/246), [#247](https://github.com/desihub/nightwatch/pulls/247), [#248](https://github.com/desihub/nightwatch/pulls/248))
+  - Added docs for updating docker on rancher 2 ([PR #174](https://github.com/desihub/nightwatch/pulls/174))
+* Bug fixes:
+  - Fixed a bug in reporting qproc fails for the summary tables ([PR #262](https://github.com/desihub/nightwatch/pulls/262))
+  - Fixed fibers-on-target scale problems ([PR #250](https://github.com/desihub/nightwatch/pulls/250))
+  - Environment variable guard check to avoid crashes at KPNO ([PR #244](https://github.com/desihub/nightwatch/pulls/244))
+  - Handle `NIGHT=None` cases in exposure header ([PR #215](https://github.com/desihub/nightwatch/pulls/215))
+  - Plot robustness ([PR #187](https://github.com/desihub/nightwatch/pulls/187)); handle coordinates files with and without FIBER column ([PR #189](https://github.com/desihub/nightwatch/pulls/189))
+  - Corrected random spectra selection and plotting ([PR #181](https://github.com/desihub/nightwatch/pulls/181))
+  - Bytestr/str fixes for pandas and bokeh 2.2 ([PR #178](https://github.com/desihub/nightwatch/pulls/178))
+  - Improved focal plane plot color scaling ([PR #176](https://github.com/desihub/nightwatch/pulls/176))
+  - Fixed compatibility issues with `fitsio` ([PR #168](https://github.com/desihub/nightwatch/pulls/168))
+  - Fixed incorrect handling of `qproc` errors ([PR #165](https://github.com/desihub/nightwatch/pulls/165))
+  - Fixed amp axis labels ([PR #158](https://github.com/desihub/nightwatch/pulls/158))
+  - Handle errors due to missing guide-rois (PRs [#155](https://github.com/desihub/nightwatch/pulls/155), [#157](https://github.com/desihub/nightwatch/pulls/157))
+  - Fixed spectra plotting with mismatched fibermaps ([PR #129](https://github.com/desihub/nightwatch/pulls/129))
+  - Updated to new `OBSTYPE` keyword instead of `FLAVOR` ([PR #126](https://github.com/desihub/nightwatch/pulls/126))
+* Cosmetic updates:
+  - Made docker directory neater/easier to pull and use without much modification ([PR #173](https://github.com/desihub/nightwatch/pulls/173))
+  - Blank pixels filled in rotated guide images ([PR #163](https://github.com/desihub/nightwatch/pulls/163))
 
 ## 0.1.0 (2019-10-02)
 
