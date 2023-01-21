@@ -1,8 +1,8 @@
 # Nightwatch change log
 
-## 0.3.1 (unreleased)
+## 0.3.1 (2023-01-21)
 
-* Updated flat standards thresholds ([PR #332](https://github.com/desihub/nightwatch/pull/332))
+* Updated flat standard thresholds ([PR #332](https://github.com/desihub/nightwatch/pull/332))
 
 ## 0.3.0 (2023-01-14)
 
