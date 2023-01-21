@@ -1,35 +1,45 @@
 # Nightwatch change log
 
+## 0.3.1 (unreleased)
+
 * Updated flat standards thresholds ([PR #332](https://github.com/desihub/nightwatch/pulls/332))
 
 ## 0.3.0 (2023-01-14)
 
-* Flat cals ([PR #329](https://github.com/desihub/nightwatch/pulls/329))
-* Tune cal arcs ([PR #328](https://github.com/desihub/nightwatch/pulls/328))
-* Calib arc checks ([PR #326](https://github.com/desihub/nightwatch/pulls/326))
-* Select by FIBER instead of TARGETID. ([PR #325](https://github.com/desihub/nightwatch/pulls/325))
-* Targetype dec 2022 ([PR #323](https://github.com/desihub/nightwatch/pulls/323))
-* Fix for nightwatch monitor on desi-7. ([PR #318](https://github.com/desihub/nightwatch/pulls/318))
-* Fix fibermap assembly at KNPO. ([PR #317](https://github.com/desihub/nightwatch/pulls/317))
-* Highlight bright unmasked pixels in DARKs. ([PR #316](https://github.com/desihub/nightwatch/pulls/316))
-* KPNO fibermap fix nov22 ([PR #313](https://github.com/desihub/nightwatch/pulls/313))
-* Add spectrograph labels to CCD QA index page. ([PR #312](https://github.com/desihub/nightwatch/pulls/312))
-* Address broken SurveyQA link in exposure tables. ([PR #311](https://github.com/desihub/nightwatch/pulls/311))
-* Spectra cleanup nov 22 ([PR #309](https://github.com/desihub/nightwatch/pulls/309))
-* Close anchor tag. ([PR #308](https://github.com/desihub/nightwatch/pulls/308))
-* Update updating.md ([PR #306](https://github.com/desihub/nightwatch/pulls/306))
-* Z5 readnoise update ([PR #305](https://github.com/desihub/nightwatch/pulls/305))
-* fixed squashed focalplane plots in Safari ([PR #303](https://github.com/desihub/nightwatch/pulls/303))
-* Clean camfiber ([PR #302](https://github.com/desihub/nightwatch/pulls/302))
-* Suppress deprecation warnings in bokeh >= 2.3.0. ([PR #300](https://github.com/desihub/nightwatch/pulls/300))
-* Revert HelpTool "fix" which broke most plots :/ ([PR #299](https://github.com/desihub/nightwatch/pulls/299))
-* Multi index fix ([PR #297](https://github.com/desihub/nightwatch/pulls/297))
-* Avoid recursive subprocess creation on OS X. ([PR #296](https://github.com/desihub/nightwatch/pulls/296))
-* Cut down deprecation warnings with bokeh > 2.3.0. ([PR #295](https://github.com/desihub/nightwatch/pulls/295))
-* Color updates ([PR #294](https://github.com/desihub/nightwatch/pulls/294))
-* Dead link -> temporary link to daily nightqa page. ([PR #293](https://github.com/desihub/nightwatch/pulls/293))
-* Help links ([PR #292](https://github.com/desihub/nightwatch/pulls/292))
-* Bump numpy from 1.19.1 to 1.22.0 in /webapp/Dockerfiles/app ([PR #291](https://github.com/desihub/nightwatch/pulls/291))
+### Major Updates
+
+* Added calibration standards for ARCS and FLATS: [PR #326](https://github.com/desihub/nightwatch/pulls/326), [PR #328](https://github.com/desihub/nightwatch/pulls/328), [PR #329](https://github.com/desihub/nightwatch/pulls/329).
+  - Stnadards defined for integrated flux (FLATS) and areas of bright lines (ARCS) in JSON format.
+  - New `calibrations` module to load JSON standards for any given cal program.
+  - Arc/flat cal info stored in `PER_SPECTRO` QA data structures.
+  - Include plots of arc line areas and integrated fluxes to `qa-spectro*.html` pages.
+  - Added of `PER_SPECTRO` exposure status to the top-level exposure table.
+  - Removed disused fiber and spectro QA menu links.
+  - Created static spectra QA page similar to the QA pages for amps and cameras.
+* User interface improvements:
+  - Classify spectra using `DESI_MASK` rather than `OBJTYPE`, useful with science targets. See PRs [#323](https://github.com/desihub/nightwatch/pulls/323), [#325](https://github.com/desihub/nightwatch/pulls/325).
+  - Enable taptool to link to target images on [Legacy Survey Viewer](https://www.legacysurvey.org/viewer-desi) ([PR #309](https://github.com/desihub/nightwatch/pulls/309)).
+  - Move camfiber plots into tabs for faster and easier comparisons ([PR #302](https://github.com/desihub/nightwatch/pulls/302)).
+* Fixed broken assembly of fibermaps at KPNO: PRs [#313](https://github.com/desihub/nightwatch/pulls/313), [#317](https://github.com/desihub/nightwatch/pulls/317), [#318](https://github.com/desihub/nightwatch/pulls/318).
+
+### Minor Updates
+
+* Highlight bright unmasked pixels in DARKs ([PR #316](https://github.com/desihub/nightwatch/pulls/316)).
+* Adjusted thresholds:
+  - Z5 readnoise correction ([PR #305](https://github.com/desihub/nightwatch/pulls/305)).
+* Cosmetic improvements to plots and tables:
+  - Added spectrograph labels to CCD QA index page ([PR #312](https://github.com/desihub/nightwatch/pulls/312)).
+  - Fixed broken downsampling form due to unclosed anchor tag ([PR #308](https://github.com/desihub/nightwatch/pulls/308)).
+  - Fixed squashed focalplane plots in Safari ([PR #303](https://github.com/desihub/nightwatch/pulls/303)).
+  - Color updates with labels for spectra ([PR #294](https://github.com/desihub/nightwatch/pulls/294)).
+  - Fixed broken SurveyQA link in exposure tables ([PR #311](https://github.com/desihub/nightwatch/pulls/311)).
+  - Dead SurveyQA link pointed to Survey-Ops nightqa page ([PR #293](https://github.com/desihub/nightwatch/pulls/293)).
+* Documentation:
+  - Fixes to help tool links on several plots: PRs [#292](https://github.com/desihub/nightwatch/pulls/292), [#295](https://github.com/desihub/nightwatch/pulls/295), [#299](https://github.com/desihub/nightwatch/pulls/299), [#300](https://github.com/desihub/nightwatch/pulls/300).
+  - Modified instructions for updating Nightwatch on `cori` and `perlmutter` ([PR #306](https://github.com/desihub/nightwatch/pulls/306)).
+* Fixes to enable Nightwatch processing in OS X:
+  - Fix pandas "chained index" that caused mislabeling of disabled fibers ([PR #297](https://github.com/desihub/nightwatch/pulls/297)).
+  - Avoid recursive subprocess creation ([PR #296](https://github.com/desihub/nightwatch/pulls/296)).
 
 ## 0.2.0 (2022-08-19)
 
@@ -110,6 +120,8 @@
 * use obstype instead of flavor ([PR #126](https://github.com/desihub/nightwatch/pulls/126))
 
 ## 0.1.0 (2019-10-02)
+
+Release for DESI Commissioning
 
 * Cleanup ([PR #120](https://github.com/desihub/nightwatch/pulls/120))
 * rename qqa -> nightwatch ([PR #119](https://github.com/desihub/nightwatch/pulls/119))
