@@ -498,6 +498,10 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             web_placeholder.handle_failed_plot(htmlfile, header, "PER_CAMFIBER")
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_CAMFIBER")
+        fp_file = f'{expdir}/qa-camfiber-{expid:08d}-focalplane_plots.html'
+        pc = web_placeholder.write_placeholder_html(fp_file, header, "PER_CAMFIBER")
+        pa_file = f'{expdir}/qa-camfiber-{expid:08d}-posacc_plots.html'
+        pc = web_placeholder.write_placeholder_html(pa_file, header, "PER_CAMFIBER")
 
     #- Camera QA page: plots of qproc trace shifts, etc.
     htmlfile = f'{expdir}/qa-camera-{expid:08d}.html'
@@ -522,6 +526,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             web_placeholder.handle_failed_plot(htmlfile, header, 'PER_SPECTRO')
     else:
         pc = web_placeholder.write_placeholder_html(htmlfile, header, "PER_SPECTRO")
+
     #- QA summary page.
     htmlfile = f'{expdir}/qa-summary-{expid:08d}.html'
     web_summary.write_summary_html(htmlfile, qadata, preprocdir)
