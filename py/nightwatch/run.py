@@ -518,9 +518,9 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     htmlfile = f'{expdir}/qa-spectro-{expid:08d}.html'
     if 'PER_SPECTRO' in qadata:
         try:
-            pc = web_spectra.write_spectra_html(htmlfile, qadata['PER_SPECTRO'], header)
+            #pc = web_spectra.write_spectra_html(htmlfile, qadata['PER_SPECTRO'], header)
             qfdir = os.path.join(os.path.abspath(basedir), dirnight)
-            #pc = web_spectra.write_spectra_html(htmlfile, qadata, header, qfdir)
+            pc = web_spectra.write_spectra_html(htmlfile, qadata, header, qfdir)
             print(f'Wrote {htmlfile}')
         except Exception as err:
             web_placeholder.handle_failed_plot(htmlfile, header, 'PER_SPECTRO')
