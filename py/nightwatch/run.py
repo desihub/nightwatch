@@ -516,7 +516,6 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
 
     #- Spectra QA page.
     htmlfile = f'{expdir}/qa-spectro-{expid:08d}.html'
-    print(qadata)
     if 'PER_SPECTRO' in qadata or 'PER_CAMFIBER' in qadata:
         try:
             pc = web_spectra.write_spectra_html(htmlfile, qadata['PER_SPECTRO'], header)
