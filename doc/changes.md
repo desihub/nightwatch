@@ -1,5 +1,12 @@
 # Nightwatch change log
 
+## 0.3.3 (unreleased)
+
+## 0.3.2 (2023-03-20)
+
+* Added placeholder pages for spectro QA in ZERO and DARK exposures ([PR #338](https://github.com/desihub/nightwatch/pull/338))
+* Updated logo using DALL-E 2.
+
 ## 0.3.1 (2023-01-21)
 
 * Updated flat standard thresholds ([PR #332](https://github.com/desihub/nightwatch/pull/332))
