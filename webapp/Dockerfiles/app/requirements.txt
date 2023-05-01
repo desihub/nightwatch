@@ -1,4 +1,4 @@
-Flask==1.1.2
+Flask==2.3.2
 bokeh==2.1.1
 uWSGI==2.0.17.1
 astropy==4.0.1
