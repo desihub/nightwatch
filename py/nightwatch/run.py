@@ -48,10 +48,13 @@ def get_ncpu(ncpu):
         ncpu = min(8, ncpu)
 
     # Attempt to use 30 cores at KPNO.
-    if 'HOSTNAME' in os.environ:
-        if 'desi-7' == os.environ['HOSTNAME']:
-            if 30 < mp.cpu_count():
-                ncpu = min(30, mp.cpu_count())
+#    if 'HOSTNAME' in os.environ:
+#        if 'desi-7' == os.environ['HOSTNAME']:
+#            if 30 < mp.cpu_count():
+#                ncpu = min(30, mp.cpu_count())
+    if os.path.exists('/data/dts/exposures'):
+        if 30 < mp.cpu_count():
+            ncpu = min(30, mp.cpu_count())
 
     return ncpu
 
