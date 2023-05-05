@@ -2,6 +2,9 @@
 
 ## 0.3.3 (unreleased)
 
+* Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc.
+* Added script to correlated calibration standards with local conditions (temperature, pressure, humidity, ...).
+
 ## 0.3.2 (2023-03-20)
 
 * Added placeholder pages for spectro QA in ZERO and DARK exposures ([PR #338](https://github.com/desihub/nightwatch/pull/338))
