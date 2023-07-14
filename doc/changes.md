@@ -4,6 +4,7 @@
 
 * Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc.
 * Added script to correlated calibration standards with local conditions (temperature, pressure, humidity, ...).
+* Adapted calibration references to account for telescope air temperature.
 
 ## 0.3.2 (2023-03-20)
 
