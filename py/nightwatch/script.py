@@ -46,7 +46,7 @@ def main():
     # Environment override required at KPNO.
     if 'DESI_SPECTRO_DATA' not in os.environ:
         if 'HOSTNAME' in os.environ:
-            if 'desi-7' == os.environ['HOSTNAME']:
+            if 'desi-7' == os.environ['HOSTNAME'] or 'desi-8' == os.environ['HOSTNAME']:
                 os.environ['DESI_SPECTRO_DATA'] = '/data/dts/exposures/raw'
 
     command = sys.argv[1]
