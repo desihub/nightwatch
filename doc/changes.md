@@ -3,7 +3,9 @@
 ## 0.3.3 (unreleased)
 
 * Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc.
-* Added script to correlated calibration standards with local conditions (temperature, pressure, humidity, ...).
+* Added script to correlate calibration standards with local conditions (temperature, pressure, humidity, ...).
+* Fixes to ensure Nightwatch operates on desi-8 at KPNO.
+* Remove HTML header includes of Bokeh CSS and JavaScript files in favor of running in BOKEH_RESOURCES=inline mode.
 
 ## 0.3.2 (2023-03-20)
 
