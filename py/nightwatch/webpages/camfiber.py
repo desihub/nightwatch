@@ -248,7 +248,7 @@ def get_posacc_cd(header):
 
         final_move = np.sort(fnmatch.filter(df.columns, 'OFFSET_*'))[-1]
         df = df.merge(fiberpos, how='left',left_on=['PETAL_LOC','DEVICE_LOC'], right_on=['PETAL','DEVICE'])
-        df = df[df['DEVICE_TYPE'] == "b'POS'"]
+        df = df[(df['DEVICE_TYPE'] == 'POS') | (df['DEVICE_TYPE'] == "b'POS'") | (df['DEVICE_TYPE'] == b'POS')]
         df.reset_index(drop=True,inplace=True)
         print(len(df))
         df['DISABLED_0'] = True
