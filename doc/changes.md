@@ -4,6 +4,9 @@
 
 * Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc.
 * Added script to correlated calibration standards with local conditions (temperature, pressure, humidity, ...).
+* Updated KPNO hostname to desi-8.
+* Updated DARK and READNOISE thresholds.
+* Fixed broken check for device type in positioner loop plots.
 
 ## 0.3.2 (2023-03-20)
 
