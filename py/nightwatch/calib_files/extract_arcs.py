@@ -10,12 +10,12 @@ $> python extract_arcs.py -h
 An example command to process one month of data from one particular flat
 program on NERSC is:
 
-$> python extract_arcs.py extract -y YYYY -m MM -s N
+$> python extract_arcs.py extract -y YYYY -m MM -s [short|long]
 
 To quickly spin through a year of data, you can use GNU parallel on
 NERSC (see https://docs.nersc.gov/jobs/workflow/gnuparallel/). E.g.,
 
-$> seq 1 12 | parallel python extract_arcs.py -m {} -s 4
+$> seq 1 12 | parallel python extract_arcs.py extract -y YYYY -m {} -s [short|long]
 
 To merge the data, run something like this:
 
