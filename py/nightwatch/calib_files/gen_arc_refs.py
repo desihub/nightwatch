@@ -163,9 +163,7 @@ if __name__ == '__main__':
                 'R' : { 'slope':[], 'Tmedian':[], 'upper_error':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_error':[] },
                 'Z' : { 'slope':[], 'Tmedian':[], 'upper_error':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_error':[] }
             }
-            
-            # arcrefs[program]['area']['spectrograph'][str(spec)] = { 'B' : 0, 'R' : 0, 'Z' : 0 }
-            
+                        
             # Loop over bands:
             for band in 'BRZ':
                 wavelengths = arcrefs[program]['wavelength'][band]
