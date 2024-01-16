@@ -143,10 +143,15 @@ if __name__ == '__main__':
         # Loop over cameras:
         for band in 'BRZ':
             quantity = f'{band}_INTEG_FLUX'
+            
+            # Set up time series and reference level plots if requested.
+            if args.plot:
+                fig_ts, axes_ts = plt.subplots(10, 1, figsize=(10, 20), sharex=True, gridspec_kw={'hspace':0})
         
             # Loop over spectrographs:
             for spec in np.arange(10):
                 
+                t = caltab['DATEOBS'].datetime
                 T = caltab['TAIRTEMP']
                 f = caltab[f'{quantity}_sp{spec:d}']
                 df = np.ones_like(f)
@@ -181,7 +186,24 @@ if __name__ == '__main__':
                     'lower_err' : 0.9*favg 
                 }
                 
-        # Plot results if requested.
+                # Plot the time series if requested.
+                if args.plot:
+                    ax = axes_ts[spec]
+                    ax.scatter(t[select], f[select], label=f'{quantity}_sp{spec:d}')
+                    ax.scatter(t[select], fcorr, label=f'{quantity}_sp{spec:d} ($T$-corr.)')
+                    ax.legend(loc='upper left', fontsize=8)
+                    if spec == 1:
+                        ax.set(ylabel=f'{quantity} [$10^7$ counts]')
+            
+            # Save time series plots if requested.
+            if args.plot:
+                ax = axes_ts[-1]
+                ax.xaxis.set_major_locator(mpl.dates.MonthLocator(bymonth=range(1,13), bymonthday=1))
+                fig_ts.autofmt_xdate()
+                fig_ts.tight_layout()
+                fig_ts.savefig(f'qa_{program.replace(" ", "_")}_{quantity}_timeseries.png', dpi=100)
+                
+        # Plot reference levels if requested.
         if args.plot:
             fig, axes = plt.subplots(3, 1, figsize=(12,8), sharex=True, tight_layout=True)
             colors = ['#1f77b4', '#d62728', '#8c564b']
