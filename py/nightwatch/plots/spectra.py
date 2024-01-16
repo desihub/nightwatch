@@ -629,7 +629,7 @@ def plot_spectra_qa_arcs(data, names, calstandards):
     return gridplot(figs, toolbar_location='right')
 
 
-def plot_spectra_qa_flats(data, calstandards):
+def plot_spectra_qa_flats(data, header, calstandards):
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
@@ -649,14 +649,21 @@ def plot_spectra_qa_flats(data, calstandards):
             if iflux < 0:
                 continue
 
-            integ_flux.append(iflux)
-
+            # Read in calibration references (temperature-corrected).
             spcam = f'{cam}{sp}'
-            upper_err.append(calstandards[spcam]['upper_err'])
-            upper_warn.append(calstandards[spcam]['upper'])
-            nominal.append(calstandards[spcam]['nominal'])
-            lower_warn.append(calstandards[spcam]['lower'])
-            lower_err.append(calstandards[spcam]['lower_err'])
+            upper_err.append(calstandards[spcam]['refs']['upper_err'])
+            upper_warn.append(calstandards[spcam]['refs']['upper'])
+            nominal.append(calstandards[spcam]['refs']['nominal'])
+            lower_warn.append(calstandards[spcam]['refs']['lower'])
+            lower_err.append(calstandards[spcam]['refs']['lower_err'])
+
+            # Read in the temperature correction and apply it to the flux.
+            b    = calstandards[spcam]['tempfit']['slope']
+            Tmed = calstandards[spcam]['tempfit']['Tmedian']
+            T = header['TAIRTEMP']
+
+            iflux_corr = iflux - b*(T - Tmed)
+            integ_flux.append(iflux_corr)
 
         # Set marker colors and sizes to indicate out-of-range alerts.
         mcolors = get_spectraqa_colors(integ_flux,
