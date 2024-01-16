@@ -172,11 +172,11 @@ if __name__ == '__main__':
                 fstd = np.std(fcorr)
                 
                 flatrefs[program][bandspec]['refs'] = {
-                    'upper_error' : favg + 3*fstd,
-                    'upper'       : favg + 1.5*fstd,
-                    'nominal'     : favg,
-                    'lower'       : favg - 1.5*fstd,
-                    'lower_error' : favg - 3*fstd 
+                    'upper_err' : 1.10*favg,
+                    'upper'     : 1.05*favg,
+                    'nominal'   : favg,
+                    'lower'     : 0.95*favg,
+                    'lower_err' : 0.9*favg 
                 }
 
     # Write output to JSON.

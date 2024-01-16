@@ -159,9 +159,9 @@ if __name__ == '__main__':
         print(f'Computing fits and references for {program}...')
         for spec in tqdm(np.arange(10)):
             arcrefs[program]['area']['spectrograph'][str(spec)] = { 
-                'B' : { 'slope':[], 'Tmedian':[], 'upper_error':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_error':[] }, 
-                'R' : { 'slope':[], 'Tmedian':[], 'upper_error':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_error':[] },
-                'Z' : { 'slope':[], 'Tmedian':[], 'upper_error':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_error':[] }
+                'B' : { 'slope':[], 'Tmedian':[], 'upper_err':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_err':[] }, 
+                'R' : { 'slope':[], 'Tmedian':[], 'upper_err':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_err':[] },
+                'Z' : { 'slope':[], 'Tmedian':[], 'upper_err':[], 'upper':[], 'nominal':[], 'lower':[], 'lower_err':[] }
             }
                         
             # Loop over bands:
@@ -192,11 +192,11 @@ if __name__ == '__main__':
                     favg = np.mean(fcorr)
                     fstd = np.std(fcorr)
                     
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper_error'].append(favg + 3*fstd)
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper_err'].append(favg + 3*fstd)
                     arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper'].append(favg + 1.5*fstd)
                     arcrefs[program]['area']['spectrograph'][str(spec)][band]['nominal'].append(favg)
                     arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower'].append(favg - 1.5*fstd)
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower_error'].append(favg - 3*fstd)
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower_err'].append(favg - 3*fstd)
     
     # Write output to JSON.
     with open(args.outfile, 'w') as json_file:
