@@ -85,6 +85,8 @@ if __name__ == '__main__':
     p.add_argument('-o', '--outfile', type=str,
                    help='Output JSON file with cal info',
                    default='test.json')
+    p.add_argument('-p', '--plot', action='store_true',
+                   help='Plot fits and reference fluxes')
     p.add_argument('-v', '--verbose', action='store_true',
                    help='Verbose output during processing')
     args = p.parse_args()
@@ -178,6 +180,34 @@ if __name__ == '__main__':
                     'lower'     : 0.95*favg,
                     'lower_err' : 0.9*favg 
                 }
+                
+        # Plot results if requested.
+        if args.plot:
+            fig, axes = plt.subplots(3, 1, figsize=(12,8), sharex=True, tight_layout=True)
+            colors = ['#1f77b4', '#d62728', '#8c564b']
+
+            for i, band in enumerate('BRZ'):
+                quantity = f'{band}_INTEG_FLUX'
+                upper_err, upper, nominal, lower, lower_err = [], [], [], [], []
+
+                for spec in np.arange(10):
+                    bandspec = f'{band}{spec}'
+                    upper_err.append(flatrefs[program][bandspec]['refs']['upper_err'])
+                    upper.append(flatrefs[program][bandspec]['refs']['upper'])
+                    nominal.append(flatrefs[program][bandspec]['refs']['nominal'])
+                    lower.append(flatrefs[program][bandspec]['refs']['lower'])
+                    lower_err.append(flatrefs[program][bandspec]['refs']['lower_err'])
+
+                ax = axes[i]
+                ax.fill_between(range(10), lower_err, upper_err, color=colors[i], alpha=0.2)
+                ax.fill_between(range(10), lower, upper, color=colors[i], alpha=0.2)
+                ax.plot(range(10), nominal, color=colors[i])
+                ax.set(xticks=range(10), xlim=(0,9), ylabel=quantity)
+                if i == 2:
+                    ax.set(xlabel='spectrograph')
+
+            fig.suptitle(f'{program} flux references (detrended + cleaned) thru {night1}')
+            fig.savefig(f'qa_{program.replace(" ", "_")}.png', dpi=100)
 
     # Write output to JSON.
     with open(args.outfile, 'w') as json_file:
