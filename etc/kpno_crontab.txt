@@ -1,0 +1,3 @@
+# Delete old nightwatch files daily at 9am (desi-8)
+MAILTO=StephenBailey@lbl.gov
+0 9 * * * /usr/bin/bash /n/home/datasystems/users/sjbailey/kpno_nightwatch_cleanup.sh
