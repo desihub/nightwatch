@@ -85,6 +85,10 @@ if __name__ == '__main__':
     p.add_argument('-o', '--outfile', type=str,
                    help='Output JSON file with cal info',
                    default='test.json')
+    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.05,
+                   help='Deviation from nominal area: warnings.')
+    p.add_argument('--level-error', dest='leverr', type=float, default=0.10,
+                   help='Deviation from nominal area: errors.')
     p.add_argument('-p', '--plot', action='store_true',
                    help='Plot fits and reference fluxes')
     p.add_argument('-v', '--verbose', action='store_true',
@@ -139,9 +143,13 @@ if __name__ == '__main__':
                     select_nights = select_nights & ~((nights >= d1) & (nights <= d2))
                 else:
                     select_nights = select_nights & ~(nights == int(maskdate))
+                    
+        # Set up reference level histogram plots if requested.
+        if args.plot:
+            fig_hs, axes_hs = plt.subplots(10,3, figsize=(10, 30), tight_layout=True)
         
         # Loop over cameras:
-        for band in 'BRZ':
+        for cam, band in enumerate('BRZ'):
             quantity = f'{band}_INTEG_FLUX'
             
             # Set up time series and reference level plots if requested.
@@ -175,35 +183,64 @@ if __name__ == '__main__':
                 }
                 
                 # Compute corrected flux distributions and write reference levels.
+                # Do a quick and dirty cleanup of outliers.
                 favg = np.mean(fcorr)
                 fstd = np.std(fcorr)
                 
+                clean = (fcorr > favg-3*fstd) & (fcorr < favg+3*fstd)
+                nominal = np.percentile(fcorr[clean], 50)
+                fstd_clean = np.std(fcorr[clean])
+                
+                fracerr = fstd_clean / nominal
+                warnlev = args.levwarn if args.levwarn > fracerr else fracerr
+                errlev = args.leverr if args.leverr > 2*fracerr else 2*fracerr
+                
+                upper_err = (1 + errlev)*nominal
+                upper = (1 + warnlev)*nominal
+                lower = (1 - warnlev)*nominal
+                lower_err = (1 - errlev)*nominal
+                
+                # lower, upper = nominal - 1.5*fstd_clean, nominal + 1.5*fstd_clean
+                # lower_err, upper_err = nominal - 3*fstd_clean, nominal + 3*fstd_clean
+                                
                 flatrefs[program][bandspec]['refs'] = {
-                    'upper_err' : 1.10*favg,
-                    'upper'     : 1.05*favg,
-                    'nominal'   : favg,
-                    'lower'     : 0.95*favg,
-                    'lower_err' : 0.9*favg 
+                    'upper_err' : upper_err,
+                    'upper'     : upper,
+                    'nominal'   : nominal,
+                    'lower'     : lower,
+                    'lower_err' : lower_err 
                 }
                 
-                # Plot the time series if requested.
+                # Plot the time series and flux distributions if requested.
                 if args.plot:
+                    # Time series.
                     ax = axes_ts[spec]
                     ax.scatter(t[select], f[select], label=f'{quantity}_sp{spec:d}')
                     ax.scatter(t[select], fcorr, label=f'{quantity}_sp{spec:d} ($T$-corr.)')
                     ax.legend(loc='upper left', fontsize=8)
                     if spec == 1:
                         ax.set(ylabel=f'{quantity} [$10^7$ counts]')
+                    
+                    # Distributions.
+                    fbins = np.linspace(favg - 2*fstd, favg+2*fstd, 40)
+                    ax = axes_hs[spec][cam]
+                    ax.hist(f[select], bins=fbins, label=f'{band}{spec}', alpha=0.7)
+                    ax.hist(fcorr, bins=fbins, label=f'{band}{spec} (corr.)', alpha=0.7)
+                    for ln in (lower_err, lower, nominal, upper, upper_err):
+                        ax.axvline(ln, color='k', ls=':', alpha=0.7)
+                    ax.set(xlabel=f'{quantity}', ylabel='count')
+                    ax.legend(loc='upper left', fontsize=8)
             
-            # Save time series plots if requested.
+            # Save time series and histograms if requested.
             if args.plot:
                 ax = axes_ts[-1]
                 ax.xaxis.set_major_locator(mpl.dates.MonthLocator(bymonth=range(1,13), bymonthday=1))
                 fig_ts.autofmt_xdate()
                 fig_ts.tight_layout()
                 fig_ts.savefig(f'qa_{program.replace(" ", "_")}_{quantity}_timeseries.png', dpi=100)
+                plt.close(fig_ts)
                 
-        # Plot reference levels if requested.
+        # Plot flux histograms and reference levels if requested.
         if args.plot:
             fig, axes = plt.subplots(3, 1, figsize=(12,8), sharex=True, tight_layout=True)
             colors = ['#1f77b4', '#d62728', '#8c564b']
@@ -230,6 +267,10 @@ if __name__ == '__main__':
 
             fig.suptitle(f'{program} flux references (detrended + cleaned) thru {night1}')
             fig.savefig(f'qa_{program.replace(" ", "_")}.png', dpi=100)
+            plt.close(fig)
+            
+            fig_hs.savefig(f'qa_{program.replace(" ", "_")}_hist.png', dpi=100)
+            plt.close(fig_hs)
 
     # Write output to JSON.
     with open(args.outfile, 'w') as json_file:
