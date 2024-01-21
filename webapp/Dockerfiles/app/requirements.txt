@@ -1,7 +1,0 @@
-Flask==1.1.2
-bokeh==2.1.1
-uWSGI==2.0.17.1
-astropy==4.0.1
-scipy==1.5.0
-numpy==1.19.1
-fitsio==1.1.2
