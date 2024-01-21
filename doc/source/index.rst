@@ -9,6 +9,7 @@ Welcome to Nightwatch's documentation!
    :caption: Contents:
 
    overview.rst
+   running.rst
 
 Indices and tables
 ==================
