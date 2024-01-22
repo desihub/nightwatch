@@ -8,6 +8,7 @@ Welcome to Nightwatch!
 .. image:: nw-logo.png
   :alt: A logo of an eye with stars.
   :width: 340px
+  :align: left
 
 Nightwatch is a Python package that generates and displays realtime quality
 assurance (QA) metrics for nightly DESI observing shifts. It calculates metrics
