@@ -313,7 +313,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
 
-
     hdr = fitsio.read_header(rawfile, 0)
     if ( 'OBSTYPE' not in hdr ) and ( 'FLAVOR' not in hdr ) :
         log.warning("no obstype nor flavor keyword in first hdu header, moving to the next one")
@@ -379,11 +378,8 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         )
 
         # Set up the qproc command call.
-        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera} --fallback-on-dark-not-found".format(**outfiles)
         cmdlist.append(cmd)
-
-        # qproc should fall back to an older dark when one is not found.
-        cmdlist.append('--fallback-on-dark-not-found')
 
         # Set up qproc logging.
         loglist.append(outfiles['logfile'])
