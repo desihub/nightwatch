@@ -273,8 +273,6 @@ def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
 
     arglist = list()
 
-    arglist.append('--fail-on-dark-not-found')
-
     # Preproc should fall back to a previous dark if one is not found.
     arglist.append('--fallback_on_dark_not_found')
 
