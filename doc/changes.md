@@ -7,6 +7,9 @@
 * Updated KPNO hostname to desi-8.
 * Updated DARK and READNOISE thresholds.
 * Fixed broken check for device type in positioner loop plots.
+* Added preproc and qproc --fallback-on-dark-not-found
+  ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
+  [desispec PR #2162](https://github.com/desihub/desispec/pull/2162). 
 
 ## 0.3.2 (2023-03-20)
 
