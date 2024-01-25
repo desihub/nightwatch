@@ -272,6 +272,12 @@ def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     header = fitsio.read_header(rawfile, 0)
 
     arglist = list()
+
+    arglist.append('--fail-on-dark-not-found')
+
+    # Preproc should fall back to a previous dark if one is not found.
+    arglist.append('--fallback_on_dark_not_found')
+
     for camera in cameras:
         args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermap, '--cameras', camera]
         arglist.append(args)
@@ -377,8 +383,14 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             camera = camera
         )
 
+        # Set up the qproc command call.
         cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
         cmdlist.append(cmd)
+
+        # qproc should fall back to an older dark when one is not found.
+        cmdlist.append('--fallback-on-dark-not-found')
+
+        # Set up qproc logging.
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
