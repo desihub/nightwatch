@@ -2,10 +2,15 @@
 
 ## 0.4.0 (unreleased)
 
-* Updated readnoise levels for spurious warnings from amps ([PR #366](https://github.com/desihub/nightwatch/pull/366)).
+### Major updates
+
 * Added temperature corrections to calibration references for flats ([PR #368](https://github.com/desihub/nightwatch/pull/368)).
-* Added KPNO and NERSC cleanup scripts for intermediate FITS files ([PR #370](https://github.com/desihub/nightwatch/pull/370)).
 * Set up sphinx documentation and readthedocs webhooks ([PR #374](https://github.com/desihub/nightwatch/pull/374), [PR #378](https://github.com/desihub/nightwatch/pull/378)).
+
+### Minor updates
+
+* Updated readnoise levels for spurious warnings from amps ([PR #366](https://github.com/desihub/nightwatch/pull/366)).
+* Added KPNO and NERSC cleanup scripts for intermediate FITS files ([PR #370](https://github.com/desihub/nightwatch/pull/370)).
 * Added preproc and qproc --fallback-on-dark-not-found
   ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
   [desispec PR #2162](https://github.com/desihub/desispec/pull/2162).
