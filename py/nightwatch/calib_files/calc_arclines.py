@@ -138,8 +138,6 @@ def calc_arc_lines(datadir, night, expids, prog, wavelengths, warnlevel=0.075, e
 
 
 if __name__ == '__main__':
-    print('\n\033[91m ** WARNING ** This program is deprecated; use gen_arc_refs.py\n\033[0m')
-
     p = ArgumentParser(usage='{prog} [options]',
                        formatter_class=ArgumentDefaultsHelpFormatter)
     p.add_argument('-n', '--nightexpids', type=str,
