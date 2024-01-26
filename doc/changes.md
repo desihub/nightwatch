@@ -1,15 +1,27 @@
 # Nightwatch change log
 
-## 0.3.3 (unreleased)
+## 0.4.0 (unreleased)
+
+### Major Updates
+
+* Added temperature corrections to calibration references for flats ([PR #368](https://github.com/desihub/nightwatch/pull/368)).
+* Set up sphinx documentation and readthedocs webhooks ([PR #374](https://github.com/desihub/nightwatch/pull/374), [PR #378](https://github.com/desihub/nightwatch/pull/378)).
+
+### Minor Updates
+
+* Updated readnoise levels for spurious warnings from amps ([PR #366](https://github.com/desihub/nightwatch/pull/366)).
+* Added KPNO and NERSC cleanup scripts for intermediate FITS files ([PR #370](https://github.com/desihub/nightwatch/pull/370)).
+* Added preproc and qproc --fallback-on-dark-not-found
+  ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
+  [desispec PR #2162](https://github.com/desihub/desispec/pull/2162).
+
+## 0.3.3 (2023-12-06)
 
 * Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc ([PR #343](https://github.com/desihub/nightwatch/pull/343)).
 * Added script to correlate calibration standards with local conditions (temperature, pressure, humidity, ...).
 * Updated KPNO hostname to desi-8 ([PR #349](https://github.com/desihub/nightwatch/pull/349)).
 * Updated DARK and READNOISE thresholds ([PR #357](https://github.com/desihub/nightwatch/pull/357)).
 * Fixed broken check for device type in positioner loop plots ([PR #361](https://github.com/desihub/nightwatch/pull/361)).
-* Added preproc and qproc --fallback-on-dark-not-found
-  ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
-  [desispec PR #2162](https://github.com/desihub/desispec/pull/2162).
 
 ## 0.3.2 (2023-03-20)
 
