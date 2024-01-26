@@ -90,7 +90,7 @@ def write_spectra_html(outfile, qadata, header, nightdir):
         calsfile = pick_calib_file('CALIB-FLATS', night)
         cals = get_calibrations(calsfile, program)
 
-        flatsfig = spectra.plot_spectra_qa_flats(qadata['PER_SPECTRO'], cals)
+        flatsfig = spectra.plot_spectra_qa_flats(qadata['PER_SPECTRO'], header, cals)
 
         script, div = components(flatsfig)
         html_components['CAL_FLATS'] = dict(script=script, div=div)

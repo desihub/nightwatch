@@ -9,6 +9,7 @@ from tqdm import tqdm
 from configparser import ConfigParser
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
+from warnings import warn
 
 calflats = {
     'CALIB DESI-CALIB-00 LEDs only' : None,
@@ -107,6 +108,8 @@ def calc_flats(datadir, night, expids, prog, warnlevel=0.01, errlevel=0.02):
 
 
 if __name__ == '__main__':
+    print('\n** WARNING ** This program is deprecated; use gen_flats.py\n')
+
     p = ArgumentParser(usage='{prog} [options]',
                        formatter_class=ArgumentDefaultsHelpFormatter)
     p.add_argument('-n', '--nightexpids', type=str,
