@@ -2,12 +2,12 @@
 
 ## 0.4.0 (unreleased)
 
-### Major updates
+### Major Updates
 
 * Added temperature corrections to calibration references for flats ([PR #368](https://github.com/desihub/nightwatch/pull/368)).
 * Set up sphinx documentation and readthedocs webhooks ([PR #374](https://github.com/desihub/nightwatch/pull/374), [PR #378](https://github.com/desihub/nightwatch/pull/378)).
 
-### Minor updates
+### Minor Updates
 
 * Updated readnoise levels for spurious warnings from amps ([PR #366](https://github.com/desihub/nightwatch/pull/366)).
 * Added KPNO and NERSC cleanup scripts for intermediate FITS files ([PR #370](https://github.com/desihub/nightwatch/pull/370)).
