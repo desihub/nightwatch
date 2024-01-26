@@ -108,7 +108,7 @@ def calc_flats(datadir, night, expids, prog, warnlevel=0.01, errlevel=0.02):
 
 
 if __name__ == '__main__':
-    print('\n** WARNING ** This program is deprecated; use gen_flats.py\n')
+    print('\033[91m\n** WARNING** : script eprecated. Use gen_flat_refs.py\033[0m\n')
 
     p = ArgumentParser(usage='{prog} [options]',
                        formatter_class=ArgumentDefaultsHelpFormatter)
