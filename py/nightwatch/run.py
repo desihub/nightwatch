@@ -272,8 +272,9 @@ def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     header = fitsio.read_header(rawfile, 0)
 
     arglist = list()
+
     for camera in cameras:
-        args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermap, '--cameras', camera]
+        args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermap, '--cameras', camera, '--fallback-on-dark-not-found']
         arglist.append(args)
 
     ncpu = min(len(arglist), get_ncpu(ncpu))
@@ -311,7 +312,6 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     if not os.path.isdir(outdir):
         log.info('Creating {}'.format(outdir))
         os.makedirs(outdir, exist_ok=True)
-
 
     hdr = fitsio.read_header(rawfile, 0)
     if ( 'OBSTYPE' not in hdr ) and ( 'FLAVOR' not in hdr ) :
@@ -377,8 +377,11 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
             camera = camera
         )
 
-        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera}".format(**outfiles)
+        # Set up the qproc command call.
+        cmd = "desi_qproc -i {rawfile} --fibermap {fibermap} --auto --auto-output-dir {outdir} --cam {camera} --fallback-on-dark-not-found".format(**outfiles)
         cmdlist.append(cmd)
+
+        # Set up qproc logging.
         loglist.append(outfiles['logfile'])
         msglist.append('qproc {}/{} {}'.format(night, expid, camera))
 
