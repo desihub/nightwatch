@@ -108,6 +108,7 @@ def calc_flats(datadir, night, expids, prog, warnlevel=0.01, errlevel=0.02):
 
 
 if __name__ == '__main__':
+
     p = ArgumentParser(usage='{prog} [options]',
                        formatter_class=ArgumentDefaultsHelpFormatter)
     p.add_argument('-n', '--nightexpids', type=str,
