@@ -25,9 +25,13 @@ broken out so that each one can be run and tested separately if need be.
 
 To see the list of available subcommands, run
 
-``nightwatch --help``
+.. code-block:: bash
+  
+  nightwatch --help
 
 for an overview of all available commands. To get detailed help on individual
 commands, run
 
-``nightwatch <command> --help``
+.. code-block:: bash
+  
+  nightwatch <command> --help
