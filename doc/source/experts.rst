@@ -77,3 +77,55 @@ To modify the Nightwatch script, follow these steps:
 
 #. Resume the scron job by running ``scrontab -e`` and uncommenting the code block ending with ``source $CFS/desi/spectro/nightwatch/nersc/scron_nightwatch.sh``. The job will restart at the time indicated in the scrontab entry; it should be at 30 minutes past the hour.
 
+KPNO DOS Nightwatch Service
+---------------------------
+
+At KPNO, Nightwatch runs on ``desi-8`` as a system service. The processes are
+executed under the ``datasystems`` user.
+
+Two scripts are provided to control the services:
+
+#. ``nwctl`` and ``nwlogs`` for the Nightwatch service.
+#. ``nwwactl`` and ``nwwalogs`` for the Nightwatch web application service.
+
+These scripts have been copied to the ``~/bin`` directory of the datasystems
+user and are in the execution path. No sudo or root privileges are required.
+Further details are available on the `DESI wiki
+<https://desi.lbl.gov/trac/wiki/DOS/NightWatchService>`_.
+
+The Nightwatch service can be run as follows:
+
+.. code-block:: bash
+
+  nwctl [stop|start|restart]
+
+starts, stops or restarts the service.
+
+.. code-block:: bash
+
+  nwctl status
+
+returns status information for the service.
+
+.. code-block:: bash
+
+  nwlogs
+
+Prints the (journalctl) log file. The (user) logs messages from Nightwatch are
+written to ``/exposures/nightwatch/nightwatch.logs``.
+
+.. code-block::bash
+
+  nwlogs -f
+
+Continuously prints the last (journalctl) log messages. Similar commands
+options are available for ``nwwactl`` and ``nwwalogs``.
+
+On ``desi-8``, pausing Nightwatch just requires running
+
+.. code-block:: bash
+
+  nwctl stop
+
+Unlike NERSC, a stopfile is not needed. The DOS Service will automatically
+restart the Nightwatch monitor and webapp when the system is rebooted.
