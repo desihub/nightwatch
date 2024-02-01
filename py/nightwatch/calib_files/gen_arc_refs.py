@@ -211,6 +211,36 @@ if __name__ == '__main__':
                     lower = (1 - warnlev)*nominal
                     lower_err = (1 - errlev)*nominal
                     
+#                     # Hack levels in Z1 and B cameras:
+#                     if 'long' in program:
+#                         if band=='Z' and spec==1:
+#                             nominal = lower_err
+#                             upper_err = (1 + errlev)*nominal
+#                             upper = (1 + warnlev)*nominal
+#                             lower = (1 - warnlev)*nominal
+#                             lower_err = (1 - errlev)*nominal
+
+#                         if band=='B':
+#                             nominal = lower
+#                             upper_err = (1 + errlev)*nominal
+#                             upper = (1 + warnlev)*nominal
+#                             lower = (1 - warnlev)*nominal
+#                             lower_err = (1 - errlev)*nominal
+                    
+#                     if 'short' in program:
+#                         errlev *= 1.5
+#                         warnlev *= 1.5
+                        
+#                         if band=='B':
+#                             nominal = lower
+#                         if band=='Z' and (spec==1 or spec==5):
+#                             nominal = lower
+                            
+#                         upper_err = (1 + errlev)*nominal
+#                         upper = (1 + warnlev)*nominal
+#                         lower = (1 - warnlev)*nominal
+#                         lower_err = (1 - errlev)*nominal                            
+                    
                     arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper_err'].append(upper_err)
                     arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper'].append(upper)
                     arcrefs[program]['area']['spectrograph'][str(spec)][band]['nominal'].append(nominal)
