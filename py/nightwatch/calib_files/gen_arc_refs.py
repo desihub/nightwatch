@@ -85,6 +85,12 @@ if __name__ == '__main__':
     p.add_argument('-o', '--outfile', type=str,
                    help='Output JSON file with cal info',
                    default='test.json')
+    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.05,
+                   help='Deviation from nominal area: warnings.')
+    p.add_argument('--level-error', dest='leverr', type=float, default=0.10,
+                   help='Deviation from nominal area: errors.')
+    p.add_argument('-p', '--plot', action='store_true',
+                   help='Plot fits and reference fluxes')
     p.add_argument('-v', '--verbose', action='store_true',
                    help='Verbose output during processing')
     args = p.parse_args()
@@ -192,11 +198,54 @@ if __name__ == '__main__':
                     favg = np.mean(fcorr)
                     fstd = np.std(fcorr)
                     
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper_err'].append(favg + 3*fstd)
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper'].append(favg + 1.5*fstd)
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['nominal'].append(favg)
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower'].append(favg - 1.5*fstd)
-                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower_err'].append(favg - 3*fstd)
+                    clean = (fcorr > favg-3*fstd) & (fcorr < favg+3*fstd)
+                    nominal = np.percentile(fcorr[clean], 50)
+                    fstd_clean = np.std(fcorr[clean])
+                
+                    fracerr = fstd_clean / nominal
+                    warnlev = args.levwarn if args.levwarn > fracerr else fracerr
+                    errlev = args.leverr if args.leverr > 2*fracerr else 2*fracerr
+                    
+                    upper_err = (1 + errlev)*nominal
+                    upper = (1 + warnlev)*nominal
+                    lower = (1 - warnlev)*nominal
+                    lower_err = (1 - errlev)*nominal
+                    
+#                     # Hack levels in Z1 and B cameras:
+#                     if 'long' in program:
+#                         if band=='Z' and spec==1:
+#                             nominal = lower_err
+#                             upper_err = (1 + errlev)*nominal
+#                             upper = (1 + warnlev)*nominal
+#                             lower = (1 - warnlev)*nominal
+#                             lower_err = (1 - errlev)*nominal
+
+#                         if band=='B':
+#                             nominal = lower
+#                             upper_err = (1 + errlev)*nominal
+#                             upper = (1 + warnlev)*nominal
+#                             lower = (1 - warnlev)*nominal
+#                             lower_err = (1 - errlev)*nominal
+                    
+#                     if 'short' in program:
+#                         errlev *= 1.5
+#                         warnlev *= 1.5
+                        
+#                         if band=='B':
+#                             nominal = lower
+#                         if band=='Z' and (spec==1 or spec==5):
+#                             nominal = lower
+                            
+#                         upper_err = (1 + errlev)*nominal
+#                         upper = (1 + warnlev)*nominal
+#                         lower = (1 - warnlev)*nominal
+#                         lower_err = (1 - errlev)*nominal                            
+                    
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper_err'].append(upper_err)
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['upper'].append(upper)
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['nominal'].append(nominal)
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower'].append(lower)
+                    arcrefs[program]['area']['spectrograph'][str(spec)][band]['lower_err'].append(lower_err)
     
     # Write output to JSON.
     with open(args.outfile, 'w') as json_file:
