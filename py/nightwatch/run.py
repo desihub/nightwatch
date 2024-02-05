@@ -274,7 +274,7 @@ def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     arglist = list()
 
     for camera in cameras:
-        args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermap, '--cameras', camera, '--fallback-on-dark-not-found']
+        args = ['--infile', rawfile, '--outdir', outdir, '--fibermap', fibermap, '--cameras', camera, '--fallback-on-dark-not-found', '--no-cte-correction']
         arglist.append(args)
 
     ncpu = min(len(arglist), get_ncpu(ncpu))
