@@ -1,6 +1,8 @@
 # Nightwatch change log
 
-## 0.4.0 (unreleased)
+## 0.4.1 (unreleased)
+
+## 0.4.0 (2024-03-11)
 
 ### Major Updates
 
@@ -14,6 +16,8 @@
 * Added preproc and qproc --fallback-on-dark-not-found
   ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
   [desispec PR #2162](https://github.com/desihub/desispec/pull/2162).
+* Use `desi_assemble_fibermap`; `assemble_fibermap` was a duplicate of this script.
+  ([PR #391](https://github.com/desihub/nightwatch/pull/391)).
 
 ## 0.3.3 (2023-12-06)
 
