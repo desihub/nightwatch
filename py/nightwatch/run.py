@@ -172,14 +172,14 @@ def which_cameras(rawfile):
 
 def runcmd(command, logfile, msg, env=dict(os.environ)):
     '''Runs a given command and writes a logfile, returns a SUCCESS or ERROR message.
-    
+
     Args:
         command: string, command you would call from the command line
         logfile: path to file where logs should be written (string)
         msg: name of the process (str)
         env: dictionary of environment variables. Default is current environment.
-    
-    Returns: 
+
+    Returns:
         dictionary of error codes: {logfile: returncode}. Prints status messages to the console
     '''
     args = command.split()
@@ -197,7 +197,7 @@ def runcmd(command, logfile, msg, env=dict(os.environ)):
     if err != 0:
         print('ERROR {} while running {}'.format(err, msg))
         print('See {}'.format(logfile))
-    
+
     return {os.path.basename(logfile):err}
 
 
@@ -233,7 +233,7 @@ def run_assemble_fibermap(rawfile, outdir):
                 log.info(f'Updated DESI_SPECTRO_DATA to {new_env["DESI_SPECTRO_DATA"]}')
 
         fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
-        cmd = f'assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
+        cmd = f'desi_assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
         logfile = '{}/assemble_fibermap-{:08d}.log'.format(outdir, expid)
         msg = 'assemble_fibermap {}/{}'.format(night, expid)
         err = runcmd(cmd, logfile, msg, env=new_env)
@@ -241,8 +241,8 @@ def run_assemble_fibermap(rawfile, outdir):
         return fibermap
 
     return None
-    
-    
+
+
 def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     '''Runs preproc on the input raw data file, outputting to outdir
 
@@ -399,12 +399,12 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
             err = runcmd(cmd, logfile, msg)
             errs.append(err)
-    
+
     errorcodes = dict()
     for err in errs:
         for key in err.keys():
             errorcodes[key] = err[key]
-    
+
     jsonfile = '{}/errorcodes-{:08d}.txt'.format(outdir, expid)
     with open(jsonfile, 'w') as outfile:
         json.dump(errorcodes, outfile)
@@ -444,7 +444,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             preproc fits file.
         logdir: directory to where the "qproc-*-*.log" are located. If
             not provided, function will NOT display any logfiles.
-        rawdir: directory to where the raw data files are located, including 
+        rawdir: directory to where the raw data files are located, including
         "guide-rois-*.fits" and "centroid-*.json" files, are located. If
             not provided, the function will not plot the guide plots.
         cameras: list of cameras (strings) to generate image files of. If not
@@ -541,7 +541,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     htmlfile = f'{basedir}/qa-lastexp.html'
     web_lastexp.write_lastexp_html(htmlfile, qadata, preprocdir)
     print(f'Wrote {htmlfile}')
-    
+
     if rawdir:
         #- plot guide metric plots
         try:
@@ -553,7 +553,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             print('Unable to find guide data, not plotting guide plots')
             htmlfile = f'{expdir}/qa-guide-{expid:08d}.html'
             pc = web_placeholder.write_placeholder_html(htmlfile, header, "GUIDING")
-        
+
         #- plot guide image movies
         try:
             htmlfile = f'{expdir}/guide-image-{expid:08d}.html'
@@ -567,13 +567,13 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
 
     #- regardless of if logdir or preprocdir, identifying failed qprocs by comparing
     #- generated preproc files to generated logfiles
-    qproc_fails = []    
+    qproc_fails = []
     if cameras is None:
         cameras = []
         import glob
         for preprocfile in glob.glob(os.path.join(preprocdir, 'preproc-*-*.fits')):
             cameras += [os.path.basename(preprocfile).split('-')[1]]
-    
+
     log_cams = []
     log_outputs = [i for i in os.listdir(logdir) if re.match(r'qproc.*\.log', i)]
     for log_output in log_outputs:
@@ -581,25 +581,25 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         log_cams += [l_cam]
         if l_cam not in cameras:
             qproc_fails.append(l_cam)
-        
-    
+
+
     from nightwatch.webpages import plotimage as web_plotimage
     if (preprocdir is not None):
         #- plot preprocessed images
         downsample = 4
-        
+
         ncpu = get_ncpu(None)
         pinput = os.path.join(preprocdir, "preproc-{}-{:08d}.fits")
         output = os.path.join(expdir, "preproc-{}-{:08d}-4x.html")
-        
+
         argslist = [(pinput.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
-    
+
         if ncpu > 1:
             pool = mp.Pool(ncpu)
             pool.starmap(web_plotimage.write_image_html, argslist)
             pool.close()
             pool.join()
-            
+
         else:
             for args in argslist:
                 web_plotimage.write_image_html(*args)
@@ -609,7 +609,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         web_plotimage.write_preproc_table_html(preprocdir, night, expid, downsample, navtable_output)
 
     if (logdir is not None):
-        #- plot logfiles        
+        #- plot logfiles
         log.debug(f'Log directory: {logdir}')
 
         error_colors = dict()
@@ -618,12 +618,12 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
             output = os.path.join(expdir, f'qproc-{log_cam}-{expid:08d}-logfile.html')
             log.debug(f'qproc log: {qinput}')
             e = web_summary.write_logfile_html(qinput, output, night)
-            
+
             error_colors[log_cam] = e
 
         #- plot logfile nav table
         htmlfile = f'{expdir}/qa-summary-{expid:08d}-logfiles_table.html'
-        web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams, 
+        web_summary.write_logtable_html(htmlfile, logdir, night, expid, available=log_cams,
                                         error_colors=error_colors)
 
 
@@ -631,7 +631,7 @@ def write_tables(indir, outdir, expnights=None):
     '''
     Parses directory for available nights, exposures to generate
     nights and exposures tables
-    
+
     Args:
         indir : directory of nights
         outdir : directory where to write nights table
@@ -700,7 +700,7 @@ def write_tables(indir, outdir, expnights=None):
         raise RuntimeError(msg)
 
     exposures = Table(rows)
-    
+
     caldir = os.path.join(outdir, 'static')
     if not os.path.isdir(caldir):
         os.makedirs(caldir)
@@ -718,7 +718,7 @@ def write_tables(indir, outdir, expnights=None):
     web_tables.write_calendar(nightsfile, num_exp_per_night)
 
     web_tables.write_exposures_tables(indir, outdir, exposures, nights=expnights)
-    
+
 
 def write_nights_summary(indir, last):
     '''
@@ -825,7 +825,7 @@ def write_nights_summary(indir, last):
                 try:
                     cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
                     if len(cam_specific) > 0:
-                        
+
                         max_diffx = np.array(cam_specific['MAXDX'])-np.array(cam_specific['MEANDX'])
                         min_diffx = np.array(cam_specific['MINDX'])-np.array(cam_specific['MEANDX'])
                         dx_dict = dict(
@@ -836,7 +836,7 @@ def write_nights_summary(indir, last):
                             num_exp=len(cam_specific),
                         )
                         dx[c] = dx_dict
-                        
+
                         max_diffy = np.array(cam_specific['MAXDY'])-np.array(cam_specific['MEANDY'])
                         min_diffy = np.array(cam_specific['MINDY'])-np.array(cam_specific['MEANDY'])
                         dy_dict = dict(
@@ -847,23 +847,23 @@ def write_nights_summary(indir, last):
                             num_exp=len(cam_specific),
                         )
                         dy[c] = dy_dict
-                        
+
                 except KeyError:
                     print(f'No data for DX or DY on {night}')
                 try:
                     cam_specific = cam_qadata_stacked[cam_qadata_stacked["CAM"]==c]
                     if len(cam_specific) > 0:
-                
+
                         max_xsig = cam_specific['MAXXSIG']
                         max_xsig = np.array([i for i in max_xsig if not np.ma.is_masked(i)])
                         min_xsig = cam_specific['MINXSIG']
                         min_xsig = np.array([i for i in min_xsig if not np.ma.is_masked(i)])
                         mean_xsig = cam_specific['MEANXSIG']
                         mean_xsig = np.array([i for i in mean_xsig if not np.ma.is_masked(i)])
-                        
+
                         max_diffx = max_xsig - mean_xsig
                         min_diffx = min_xsig - mean_xsig
-                        
+
                         xsig_dict = dict(
                             med=np.average([float(abs(i)) for i in mean_xsig]),
                             std=np.std([float(abs(i)) for i in mean_xsig]),
@@ -872,17 +872,17 @@ def write_nights_summary(indir, last):
                             num_exp=len(cam_specific),
                         )
                         xsig[c] = xsig_dict
-                        
+
                         max_ysig = cam_specific['MAXYSIG']
                         max_ysig = np.array([i for i in max_ysig if not np.ma.is_masked(i)])
                         min_ysig = cam_specific['MINYSIG']
                         min_ysig = np.array([i for i in min_ysig if not np.ma.is_masked(i)])
                         mean_ysig = cam_specific['MEANYSIG']
                         mean_ysig = np.array([i for i in mean_ysig if not np.ma.is_masked(i)])
-                        
+
                         max_diffy = max_ysig - mean_ysig
                         min_diffy = min_ysig - mean_ysig
-                        
+
                         ysig_dict = dict(
                             med=np.average([float(abs(i)) for i in mean_ysig]),
                             std=np.std([float(abs(i)) for i in mean_ysig]),
@@ -891,7 +891,7 @@ def write_nights_summary(indir, last):
                             num_exp=len(cam_specific),
                         )
                         ysig[c] = ysig_dict
-                        
+
                 except KeyError:
                     print(f'No data for XSIG, YSIG on {night}')
 
@@ -913,11 +913,11 @@ def write_nights_summary(indir, last):
             with open(jsonfile, 'w') as out:
                 json.dump(data, out, indent=4)
             print(f'Wrote {jsonfile}')
-            
+
 
 def write_thresholds(indir, outdir, start_date, end_date):
     '''Writes threshold files for each metric over a given date range.
-    Input: 
+    Input:
         indir: directory that contains nightly directories (which contain summary.json files)
         outdir: directory to threshold inspector html files
         start_date: beginning of date range
@@ -925,7 +925,7 @@ def write_thresholds(indir, outdir, start_date, end_date):
     if not os.path.isdir(get_outdir()):
         os.makedirs(get_outdir(), exist_ok=True)
         print('Added threshold_files directory to nightwatch/py/nightwatch')
-    
+
     if not os.path.isdir(outdir):
         #log.info(f'Creating {outdir}')
         os.makedirs(outdir, exist_ok=True)
@@ -939,13 +939,13 @@ def write_thresholds(indir, outdir, start_date, end_date):
             calcnominalnoise(nightwatchdir=indir, nightexpids=zeros_file, outfile="READNOISE-"+nightid+".json")
         except:
             write_threshold_json(indir, outdir, start_date, end_date, name)
-    
+
     # HARDCODE: skipping XSIG, YSIG threshold files because summary.json is blank for these metrics
     for name in ['BIAS', 'COSMICS_RATE', 'DX', 'DY']: #, 'XSIG', 'YSIG']:
         write_threshold_json(indir, outdir, start_date, end_date, name)
-    
+
     from nightwatch.webpages import thresholds as web_thresholds
-    
+
     htmlfile = f'{outdir}/threshold-inspector-{start_date}-{end_date}.html'
     pc = web_thresholds.write_threshold_html(htmlfile, outdir, indir, start_date, end_date)
     print(f'Wrote {htmlfile}')
@@ -963,25 +963,25 @@ def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_
     Options:
         nights: subset of nights to generate nightly pages for.
         show_summary: Whether to generate summary page for all available nights, a given subset, or not at all. Either "no", "all", or "subset". Default "all".'''
-    
+
     from .webpages import summaryqa as web_summaryqa
     from .webpages import nightlyqa as web_nightlyqa
     from . import io
-    
+
     if not os.path.isdir(os.path.join(outdir, 'surveyqa')):
         os.mkdir(os.path.join(outdir, 'surveyqa'))
-    
+
     io.check_offline_files(outdir)
-    
+
     exposures, fine_data = io.get_surveyqa_data(infile, name_dict, rawdir, program=True)
-    
+
     exposures_sub = exposures
     fine_data_sub = fine_data
     if nights is not None:
         nights = [str(i) for i in nights]
         exposures_sub = exposures[[x in nights for x in exposures['NIGHT']]]
         fine_data_sub = fine_data[[x in nights for x in fine_data['NIGHT']]]
-    
+
     nights_sub = sorted(set(exposures_sub['NIGHT']))
 
     exptiles = np.unique(exposures['TILEID'])
@@ -998,17 +998,17 @@ def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_
 
     ncpu = get_ncpu(None)
     argslist = [(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict) for night in nights_sub]
-    
+
     if ncpu > 1:
         print(f'Running surveyqa in parallel on {ncpu} cores for {nights_sub} nights')
         pool = mp.Pool(ncpu)
         pool.starmap(web_nightlyqa.get_nightlyqa_html, argslist)
         pool.close()
         pool.join()
-    
+
     else:
         print(f'Running surveyqa serially for {nights_sub} nights')
         for night in nights_sub:
             web_nightlyqa.get_nightlyqa_html(night, exposures_sub, fine_data_sub, tiles, outdir, link_dict)
-        
+
     print('Done')

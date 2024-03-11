@@ -14,6 +14,8 @@
 * Added preproc and qproc --fallback-on-dark-not-found
   ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
   [desispec PR #2162](https://github.com/desihub/desispec/pull/2162).
+* Use `desi_assemble_fibermap`; `assemble_fibermap` was actually a duplicate of this scropt.
+  ([PR #400](https://github.com/desihub/nightwatch/pull/400)).
 
 ## 0.3.3 (2023-12-06)
 
