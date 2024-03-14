@@ -35,8 +35,8 @@ def plot_fvc_image(image, imghdr=None, width=800, downsample=4, title=None):
     fig: bokeh.Figure
         Figure containing the image.
     """
-    nx, ny = image.shape
     img = downsample_image(image, downsample)
+    nx, ny = img.shape
 
     # Image scaling. Note that the FVC seems to have a different dynamic
     # ranges in the left and right halves of the image.
@@ -59,8 +59,6 @@ def plot_fvc_image(image, imghdr=None, width=800, downsample=4, title=None):
                     tools='pan,box_zoom,wheel_zoom,save,reset')
 
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
-    if mask is not None:
-        fig.image([u8mask,], 0, 0, nx, ny, color_mapper=maskmap)
 
     fig.x_range.start = 0
     fig.x_range.end = nx
