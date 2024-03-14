@@ -78,10 +78,10 @@ def write_camfiber_html(outfile, data, header):
 
     #- FVC IMAGES
     index_fvc_file = outfile.index('.html')
-    fvc_outfile = outfile[:index_fvc_file] + '-fvc_plots.html')
+    fvc_outfile = outfile[:index_fvc_file] + '-fvc_plots.html'
     fvc_template = env.get_template('fvc-ccd.html')
     try:
-        write_fvc_plots(data, fvc_template, fvcc_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TILTLESPERCAM, TOOLS)
+        write_fvc_plots(data, fvc_template, fvc_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
     except Exception as err:
         handle_failed_plot(fvc_outfile, header, 'PER_CAMFIBER')
 
