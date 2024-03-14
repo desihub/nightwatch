@@ -8,10 +8,14 @@ from astropy.visualization import ZScaleInterval
 
 import bokeh
 import bokeh.plotting as bk
+from bokeh.models import HelpTool
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
 
 from .plotimage import downsample_image
+
+from packaging import version
+_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
 
 
 def plot_fvc_image(image, imghdr=None, width=800, downsample=4, title=None):
@@ -57,6 +61,14 @@ def plot_fvc_image(image, imghdr=None, width=800, downsample=4, title=None):
                     active_drag='box_zoom',
                     active_scroll='wheel_zoom',
                     tools='pan,box_zoom,wheel_zoom,save,reset')
+
+    # Redirect help button to DESI wiki
+    if _is_bokeh23:
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non FVC images',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#FVCImages'))
+    else:
+        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non FVC images',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#FVCImages'))
 
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
 
