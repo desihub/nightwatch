@@ -38,7 +38,8 @@
       <ul class="dropdown-content">
         <a id="camfiber" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}.html">fibernum</a>
         <a id="focalplane" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-focalplane_plots.html">focalplane</a>
-	<a id="positioning" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-posacc_plots.html">positioning</a>
+        <a id="positioning" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-posacc_plots.html">positioning</a>
+        <a id="fvc" href="{% for i in range(num_dirs) %}../{% endfor %}{{night}}/{{zexpid}}/qa-camfiber-{{ zexpid }}-fvc_plots.html">FVC images</a>
       </ul>
   </li>
 
@@ -98,6 +99,8 @@ function get_explinks(links) {
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-focalplane_plots.html";
         {% elif positioning %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-posacc_plots.html";
+        {% elif fvc %}
+          "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-fvc_plots.html";
         {% elif preproc_table %}
           "../../"+next_item.night+"/"+next_item.zexpid+"/qa-{{ qatype }}-"+next_item.zexpid+"-preproc_table.html";
         {% else %}
@@ -126,6 +129,8 @@ function get_explinks(links) {
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-focalplane_plots.html";
         {% elif positioning %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-posacc_plots.html";
+        {% elif fvc %}
+          "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-fvc_plots.html";
         {% elif preproc_table %}
           "../../"+prev_item.night+"/"+prev_item.zexpid+"/qa-{{ qatype }}-"+prev_item.zexpid+"-preproc_table.html";
         {% else %}

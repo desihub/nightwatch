@@ -7,13 +7,13 @@ Setting up the DESI software stack
 ----------------------------------
 
 At NERSC or KPNO, you will need to set up the DESI software stack to run
-Nightwatch. On NERSC, this is done by running the command
+Nightwatch. On NERSC, this is done by running the commands
 
-``source /global/common/software/desi/desi_environment.sh``
+.. code-block:: bash
 
-followed by
+  source /global/common/software/desi/desi_environment.sh
+  module load nightwatch/main
 
-``module load nightwatch/main``
 
 if you want to use the main installed version of Nightwatch set up for daily
 processing. (Instructions are provided below on setting up a private working
@@ -86,6 +86,9 @@ A list of available nights and exposure IDs is available `here
 <https://nightwatch.desi.lbl.gov/nights.html>`_. An example of the calling
 syntax is
 
-``nightwatch run -n YYYYMMDD -e NNNNNNNNN -o $SCRATCH/nightwatch``
+.. code-block:: bash
+
+  nightwatch run -n YYYYMMDD -e NNNNNNNNN -o $SCRATCH/nightwatch
 
 if you want to test Nightwatch output.
+

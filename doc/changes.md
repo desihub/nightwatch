@@ -2,6 +2,10 @@
 
 ## 0.4.1 (unreleased)
 
+### Major Updates
+
+* Added FVC plots to Nightwatch camfiber QA ([PR #396](https://github.com/desihub/nightwatch/pull/396)).
+
 ## 0.4.0 (2024-03-11)
 
 ### Major Updates

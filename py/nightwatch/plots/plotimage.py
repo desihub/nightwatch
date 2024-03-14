@@ -25,19 +25,51 @@ _is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
 
 
 def downsample_image(image, n):
-    '''Downsample input image n x n
+    """Downsample input image to n x n.
 
-    Returns resampled images with shape = image.shape//n
-    '''
+    Parameters
+    ----------
+    image : ndarray
+        Input image of size nx x ny.
+    n : int
+        Downsampling factor to produce image of size nx//n x ny//n.
+
+    Returns
+    -------
+    image2 : ndarray
+        Resampled image of shape image.shape//n.
+    """
     ny, nx = image.shape
     ny = (ny//n) * n
     nx = (nx//n) * n
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
+
 def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsample=2, title=None):
-    """
-    plots image downsampled, returning bokeh figure of requested width
+    """Plot a spectrograph CCD image.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image from CCD, e.g., from FITS output of preproc.
+    mask : ndarray or None
+        Image pixel mask bits after preprocessing.
+    imghdr : astropy.header or None
+        Header of the image HDU.
+    mask_alpha : float
+        Alpha level to use in plotting the pixel mask.
+    width : int
+        Width of the image, in pixels.
+    downsample : int
+        Downsampling factor for the input.
+    title : str or None
+        Output figure title.
+
+    Returns
+    -------
+    fig : bokeh.Figure
+        Figure containing image.
     """
     #- Downsample image 2x2 (or whatever downsample specifies)
     ny, nx = image.shape
@@ -103,8 +135,27 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
 
     return fig
 
+
 def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title=None):
     """Generate summary images given a set of preproc FITS files.
+
+    Parameters
+    ----------
+    input_files : list or ndarray
+        List of paths to preproc input FITS files.
+    mask_alpha : float
+        Alpha level to use for masked pixels.
+    width : int
+        Output image width, in pixels.
+    downsample : int
+        Image downsampling factor.
+    title : str or None
+        Output figure title.
+
+    Returns
+    -------
+    tabs : bokeh.model.widgets.Tabs
+        Set of tabs with CCD image gridplots for the b, r, and z cameras.
     """
 
     #- Loop over cameras (b, r, z).
@@ -213,6 +264,7 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
 
     return Tabs(tabs=camtabs)
 
+
 def main(input_in = None, output_in = None, downsample_in = None):
     '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
     command line as well).
@@ -274,6 +326,7 @@ def main(input_in = None, output_in = None, downsample_in = None):
         fig = plot_all_images(input_in)
 
     return components(fig)
+
 
 if __name__ == '__main__':
     main()

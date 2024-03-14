@@ -170,6 +170,7 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
 
     return figs_list
 
+
 def plot_camfib_posacc(pcd,attribute,percentiles={},
                       tools='pan,box_zoom,reset'):
 

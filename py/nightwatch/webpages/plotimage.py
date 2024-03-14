@@ -4,6 +4,7 @@ import bokeh, os, re, sys
 
 from ..plots.plotimage import main
 
+
 def write_image_html(input, output, downsample, night):
     '''
     Writes a downsampled image to a given output file.
