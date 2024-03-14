@@ -366,7 +366,7 @@ def write_fvc_plots(data, template, outfile, header,
         for extname in ['F0000', 'F0001']:
             # Read CCD data from FVC FITS file.
             img = fitsio.read(fvcfile, ext=extname)
-            fig = plot_fvc_image(img)
+            fig = plot_fvc_image(img, width=700)
 
             # Store bokeh figure of CCD plot in a tab panel.
             tab = Panel(child=fig, title=extname)
