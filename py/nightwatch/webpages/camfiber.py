@@ -15,6 +15,7 @@ from bokeh.models import Panel, Tabs, Div
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
+from ..plots.fvc import plot_fvc_image
 from .placeholder import handle_failed_plot
 
 
@@ -74,6 +75,15 @@ def write_camfiber_html(outfile, data, header):
         write_posacc_plots(data, pa_template, pa_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
     except Exception as err:
         handle_failed_plot(pa_outfile, header, 'PER_CAMFIBER')
+
+    #- FVC IMAGES
+    index_fvc_file = outfile.index('.html')
+    fvc_outfile = outfile[:index_fvc_file] + '-fvc_plots.html')
+    fvc_template = env.get_template('fvcccd.html')
+    try:
+        write_fvc_plots(data, fvc_template, fvcc_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TILTLESPERCAM, TOOLS)
+    except Exception as err:
+        handle_failed_plot(fvc_outfile, header, 'PER_CAMFIBER')
 
     return dict({})
 
@@ -344,6 +354,12 @@ def create_cds(data, attributes, bin_size=25):
 
     cds = ColumnDataSource(data=data_dict)
     return cds
+
+
+def write_fvc_plots(data, template, outfile, header,
+        ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
+        TOOLS='pan,box_select,reset'):
+    pass
 
 
 def write_htmlfile(layout, template, outfile, header):
