@@ -12,6 +12,7 @@ from bokeh.layouts import gridplot, layout
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
 from bokeh.models import Panel, Tabs, Div
+from bokeh.models.widgets import Paragraph
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
@@ -374,9 +375,12 @@ def write_fvc_plots(data, template, outfile, header,
 
         # Put FVC images into tabs.
         fvc_plots_layout = Tabs(tabs=fvcplots)
+    else:
+        expid = header['EXPID']
+        fvc_plots_layout = Paragraph(text=f"""No FVC image for exposure {expid}.""")
 
-        # Write the htmlfile
-        write_file = write_htmlfile(fvc_plots_layout, template, outfile, header)
+    # Write the HTML file
+    write_file = write_htmlfile(fvc_plots_layout, template, outfile, header)
 
 
 def get_fvc_file(header):
