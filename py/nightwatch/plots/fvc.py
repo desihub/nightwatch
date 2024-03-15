@@ -46,15 +46,16 @@ def plot_fvc_image(image, imghdr=None, width=800, downsample=4, title=None):
     # ranges in the left and right halves of the image.
     z = ZScaleInterval()
 
-    # Separately normalize the left and right halves into 8-bit range, then rejoin.
-    zmin, zmax = z.get_limits(img[:,:ny//2])
-    u8img_left = (255*(img[:,:ny//2].clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
+    # Output image: downsampled and scaled to 8-bit dynamic range (0-255).
+    u8img = np.zeros_like(img, dtype=np.uint8)
 
-    zmin, zmax = z.get_limits(img[:,ny//2:])
-    u8img_right = (255*(img[:,ny//2:].clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
+    for (i1, i2) in zip([0, nx//2], [nx//2, nx]):
+        for (j1, j2) in zip([0, ny//2], [ny//2, ny]):
+            # Normalize and reescale image by CCD quadrants.
+            zmin, zmax = z.get_limits(img[i1:i2, j1:j2])
+            u8img[i1:i2, j1:j2] = (255*(img[i1:i2, j1:j2].clip(zmin, zmax) - zmin) / (zmax-zmin)).astype(np.uint8)
 
-    u8img = np.concatenate((u8img_left, u8img_right), axis=1)
-    colormap = LinearColorMapper(palette=gray(256), low=0, high=255)
+    colormap = LinearColorMapper(palette=cividis(256), low=0, high=255)
 
     # Create figure
     fig = bk.figure(width=width, height=width-50,
