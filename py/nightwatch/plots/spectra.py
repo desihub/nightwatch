@@ -820,13 +820,14 @@ def plot_spectra_qa_flats(data, header, calstandards):
 #        figs.append([fig])
         lvfigs.append([fig])
     
-    gp = gridplot([fpfigs], toolbar_location='right')
-#    lvfigs.insert(0, [gp])
-    lvfigs.append([gp])
+    gp_fp = gridplot([fpfigs], toolbar_location='right')
+    gp_lv = gridplot(lvfigs, toolbar_location='right')
+#    lvfigs.append([gp])
 
 #    return gridplot(figs, toolbar_location='right')
 #    return layout(flatfigs)
-    return gridplot(lvfigs, toolbar_location='right')
+#    return gridplot(lvfigs, toolbar_location='right')
+    return layout([[gp_lv], [gp_fp]])
 
 
 def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
