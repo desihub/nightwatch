@@ -677,6 +677,8 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
 
     hover = HoverTool(tooltips=[
                 ('spec', f'{cam.upper()}@locations'),
+                ('iflux', '@observations'),
+                ('iflux (ref)', '@references'),
                 ('ratio', '@data_val')
             ])
     fig.add_tools(hover)
@@ -684,7 +686,7 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
     if cam:
         bdry = fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
                             line_color=camcolors[cam.upper()],
-                            line_alpha=0.5, line_width=2)
+                            line_alpha=1.0, line_width=3)
 
         fig.title.text = f'{cam.upper()} camera'
         fig.title.text_color = camcolors[cam.upper()]
@@ -724,6 +726,7 @@ def plot_spectra_qa_flats(data, header, calstandards):
     for cam in 'BRZ': 
 
         integ_flux = []
+        integ_flux_ref = []
         upper_err = []
         upper_warn = []
         nominal = []
@@ -757,13 +760,17 @@ def plot_spectra_qa_flats(data, header, calstandards):
 
             # Compute the ratio of the integrated flux against the calibration reference.
             iflux_corr_ref = calstandards[spcam]['refs']['nominal']
+            integ_flux_ref.append(iflux_corr_ref)
+
             ratio = iflux_corr / iflux_corr_ref
             flux_ratio.append(ratio)
 
         # Create a data source and produce a focal plane figure.
         source = ColumnDataSource(data=dict(
             data_val=flux_ratio,
-            locations=spectro
+            locations=spectro,
+            observations=integ_flux,
+            references=integ_flux_ref
         ))
 
         fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4, colorbar=True)
@@ -844,8 +851,8 @@ def plot_spectra_qa_flats(data, header, calstandards):
     gp_lv = gridplot(lvfigs, toolbar_location='right')
     gp_fp = gridplot([fpfigs], toolbar_location='right')
 
-    title = Div(text="""<h3>Integrated Flux Ratios</h3>
-<p>Ratio of observed integrated LED fluxes to nominal reference values (temperature correction included).</p>""")
+    title = Div(text="""<h3>Integrated Flux Ratios per Petal</h3>
+<p>Ratio of observed integrated LED fluxes to nominal reference values for each petal (temperature correction included).</p>""")
 
     return layout([[gp_lv], [column(title, gp_fp)]])
 
