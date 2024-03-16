@@ -636,12 +636,11 @@ def plot_spectra_qa_arcs(data, names, calstandards):
     return gridplot(figs, toolbar_location='right')
 
 
-def plot_spec_focalplane(source, name, cam='',
-            camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
-            width=333, height=275, zmin=0, zmax=1,
-            fig_x_range=(-1.1,1.1), fig_y_range=(-1,1),
-            colorbar=False, palette=None, mpl_colormap=None,
-            tools=['pan', 'box_select', 'reset', 'tap'], tooltips=None):
+def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
+						 width=333, height=333, zmin=0, zmax=1,
+						 fig_x_range=(-1.1,1.1), fig_y_range=(-1.1,1.1),
+						 colorbar=False, palette=None, mpl_colormap=None,
+						 tools=['pan', 'box_select', 'reset', 'tap'], tooltips=None):
 
     if palette is None or mpl_colormap is None:
         palette = np.array(bp.brewer['RdBu'][9])
@@ -651,39 +650,61 @@ def plot_spec_focalplane(source, name, cam='',
     mpl_colormap.set_bad('gray')
     norm = mpl.colors.Normalize(zmin, zmax)
 
+    height = height if not colorbar else int(1.2*height)
+
     fig = bk.figure(width=width, height=height,
-                    x_range=fig_x_range, y_range=fig_y_range,
+                    x_range=fig_x_range, y_range=fig_y_range, tools=tools,
                     match_aspect=True)
 
-    vals = source.data['data_val']
-    specs = source.data['locations']
+    source.data['starts'] = np.arange(252, 252+360, 36)
+    source.data['ends'] = np.arange(288, 288+360, 36)
+    source.data['radius'] = np.full(10, 0.98)
+    source.data['x'] = np.zeros(10)
+    source.data['y'] = np.zeros(10)
 
-    for val, sp in zip(vals, specs):
-         vcolor = mpl.colors.rgb2hex(mpl_colormap(norm(val)))
+    colors = [mpl.colors.rgb2hex(mpl_colormap(norm(v))) for v in source.data['data_val']]
+    source.data['colors'] = colors
 
-         fig.wedge(x=[0], y=[0], radius=0.98,
-                   start_angle=252 + sp*36, start_angle_units='deg',
-                   end_angle=288 + sp*36, end_angle_units='deg',
-                   color=vcolor,
-                   line_color='black')
+    petals = fig.wedge(x='x', y='y', radius='radius', direction='anticlock',
+                       start_angle='starts', start_angle_units='deg',
+                       end_angle='ends', end_angle_units='deg',
+                       color='colors', line_color='black',
+                       source=source)
+
+    hover = HoverTool(tooltips=[
+                ('spec', f'{cam.upper()}@locations'),
+                ('ratio', '@data_val')
+            ])
+    fig.add_tools(hover)
 
     if cam:
-        fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
+        bdry = fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
                             line_color=camcolors[cam.upper()],
                             line_alpha=0.5, line_width=2)
 
-    color_bar = ColorBar(color_mapper=bp_mapper['transform'],
-                         label_standoff=12,
-                         border_line_color=None,
-                         location=(0,0), ticker=BasicTicker(), width=10,
-                         formatter=NumeralTickFormatter(format='0.0a'))
+        fig.title.text = f'{cam.upper()} camera'
+        fig.title.text_color = camcolors[cam.upper()]
 
-    fig.add_layout(color_bar, 'right')
+    hover.renderers = [petals]
+
+    if colorbar:
+        title = f'{cam.upper()}_INTEG_FLUX ratio' if cam else 'INTEG_FLUX ratio'
+
+        color_bar = ColorBar(color_mapper=bp_mapper['transform'],
+                             label_standoff=8,
+                             width=int(0.9*width),
+                             height=10,
+                             border_line_color=None,
+                             location=(0,0),
+                             ticker=BasicTicker(),
+                             title=title,
+                             formatter=NumeralTickFormatter(format='0.0a'))
+
+        fig.add_layout(color_bar, 'below')
+
     fig.axis.visible = False
     fig.grid.visible = False
     fig.outline_line_color = None
-    fig.title.text = f'{cam.upper()} camera'
-    fig.title.text_color = camcolors[cam.upper()]
 
     return fig
 
@@ -741,7 +762,7 @@ def plot_spectra_qa_flats(data, header, calstandards):
             locations=spectro
         ))
 
-        fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4)
+        fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4, colorbar=True)
         fpfigs.append(fpfig)
 
 
