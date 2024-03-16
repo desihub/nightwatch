@@ -2,11 +2,10 @@ import fitsio
 
 import bokeh
 import bokeh.plotting as bk
-import bokeh.palettes as bp
 from bokeh.layouts import column, gridplot, layout
 from bokeh.transform import linear_cmap
 from bokeh.models import LinearColorMapper, ColorBar
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title
+from bokeh.models import Div, BoxAnnotation, ColumnDataSource, Range1d, Band, Title
 from bokeh.models import HoverTool, OpenURL, TapTool, HelpTool
 from bokeh.models import BasicTicker, NumeralTickFormatter
 from glob import glob
@@ -841,10 +840,14 @@ def plot_spectra_qa_flats(data, header, calstandards):
 
         lvfigs.append([fig])
     
-    gp_fp = gridplot([fpfigs], toolbar_location='right')
-    gp_lv = gridplot(lvfigs, toolbar_location='right')
 
-    return layout([[gp_lv], [gp_fp]])
+    gp_lv = gridplot(lvfigs, toolbar_location='right')
+    gp_fp = gridplot([fpfigs], toolbar_location='right')
+
+    title = Div(text="""<h3>Integrated Flux Ratios</h3>
+<p>Ratio of observed integrated LED fluxes to nominal reference values (temperature correction included).</p>""")
+
+    return layout([[gp_lv], [column(title, gp_fp)]])
 
 
 def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
