@@ -660,6 +660,7 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
                     x_range=fig_x_range, y_range=fig_y_range, tools=tools,
                     match_aspect=True)
 
+    # Set up the wedge plots for all petals. Petals with missing data should appear grayed out.
     source.data['starts'] = np.arange(252, 252+360, 36)
     source.data['ends'] = np.arange(288, 288+360, 36)
     source.data['radius'] = np.full(10, 0.98)
@@ -675,14 +676,18 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
                        color='colors', line_color='black',
                        source=source)
 
+    # Add hover tool to provide the integrated flux and flux ratio per petal.
     hover = HoverTool(tooltips=[
                 ('spec', f'{cam.upper()}@locations'),
-                ('iflux', '@observations'),
-                ('iflux (ref)', '@references'),
+                ('INTEG_FLUX', '@observations'),
+                ('nominal', '@references'),
                 ('ratio', '@data_val')
             ])
     fig.add_tools(hover)
 
+    hover.renderers = [petals]
+
+    # Add camera boundaries and labels.
     if cam:
         bdry = fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
                             line_color=camcolors[cam.upper()],
@@ -691,8 +696,11 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
         fig.title.text = f'{cam.upper()} camera'
         fig.title.text_color = camcolors[cam.upper()]
 
-    hover.renderers = [petals]
+    # Add a help tool that redirects to the DESI wiki.
+    fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
 
+    # Add a horizontal colorbar to the plot.
     if colorbar:
         title = f'{cam.upper()}_INTEG_FLUX ratio' if cam else 'INTEG_FLUX ratio'
 
@@ -708,6 +716,7 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
 
         fig.add_layout(color_bar, 'below')
 
+    # Turn off axes and gridlines.
     fig.axis.visible = False
     fig.grid.visible = False
     fig.outline_line_color = None
@@ -844,6 +853,10 @@ def plot_spectra_qa_flats(data, header, calstandards):
                  source=source, level='underlay',
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
+
+        # Add a help tool that redirects to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
 
         lvfigs.append([fig])
     
