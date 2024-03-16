@@ -6,6 +6,10 @@
 
 * Added FVC plots to Nightwatch camfiber QA ([PR #396](https://github.com/desihub/nightwatch/pull/396)).
 
+### Minor Updates
+
+* Added focal plane plots for LED calibrations ([PR #400](https://github.com/desihub/nightwatch/pull/400)).
+
 ## 0.4.0 (2024-03-11)
 
 ### Major Updates
