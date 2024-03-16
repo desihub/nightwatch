@@ -671,8 +671,6 @@ def plot_spec_focalplane(source, name, cam='',
         fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
                             line_color=camcolors[cam.upper()],
                             line_alpha=0.5, line_width=2)
-        fig.text([0.9*fig_x_range[0],], [0.9*fig_y_range[1],], [cam.upper(),],
-                    text_align='center', text_baseline='middle')
 
     color_bar = ColorBar(color_mapper=bp_mapper['transform'],
                          label_standoff=12,
@@ -684,6 +682,8 @@ def plot_spec_focalplane(source, name, cam='',
     fig.axis.visible = False
     fig.grid.visible = False
     fig.outline_line_color = None
+    fig.title.text = f'{cam.upper()} camera'
+    fig.title.text_color = camcolors[cam.upper()]
 
     return fig
 
@@ -692,8 +692,6 @@ def plot_spectra_qa_flats(data, header, calstandards):
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
-#    figs = []
-#    flatfigs = [[]]
     fpfigs = []
     lvfigs = []
 
@@ -744,7 +742,6 @@ def plot_spectra_qa_flats(data, header, calstandards):
         ))
 
         fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4)
-#        flatfigs[0].append(fpfig)
         fpfigs.append(fpfig)
 
 
@@ -816,17 +813,11 @@ def plot_spectra_qa_flats(data, header, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
-#        flatfigs.append([fig])
-#        figs.append([fig])
         lvfigs.append([fig])
     
     gp_fp = gridplot([fpfigs], toolbar_location='right')
     gp_lv = gridplot(lvfigs, toolbar_location='right')
-#    lvfigs.append([gp])
 
-#    return gridplot(figs, toolbar_location='right')
-#    return layout(flatfigs)
-#    return gridplot(lvfigs, toolbar_location='right')
     return layout([[gp_lv], [gp_fp]])
 
 
