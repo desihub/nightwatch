@@ -639,16 +639,21 @@ def plot_spectra_qa_arcs(data, names, calstandards):
 def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
 						 width=333, height=333, zmin=0, zmax=1,
 						 fig_x_range=(-1.1,1.1), fig_y_range=(-1.1,1.1),
-						 colorbar=False, palette=None, mpl_colormap=None,
+						 colorbar=False, mpl_colormap=None,
 						 tools=['pan', 'box_select', 'reset', 'tap'], tooltips=None):
 
-    if palette is None or mpl_colormap is None:
-        palette = np.array(bp.brewer['RdBu'][9])
+    # Default colormap is a blue->red palette.
+    if mpl_colormap is None:
         mpl_colormap = mpl.colormaps['RdBu_r']
+        mpl_colormap.set_bad('gray')
 
-    bp_mapper = linear_cmap('bokehmap', palette, low=zmin, high=zmax+0.01, nan_color='gray')
-    mpl_colormap.set_bad('gray')
+    # Set up color normalization.
     norm = mpl.colors.Normalize(zmin, zmax)
+
+    # Define the palette for bokeh; just needs a list of RGB hex values.
+    dz = (zmax - zmin)/256
+    palette = [mpl.colors.rgb2hex(mpl_colormap(norm(z))) for z in np.arange(zmin, zmax+dz, dz)]
+    bp_mapper = linear_cmap('bokehmap', palette, low=zmin-dz, high=zmax+dz, nan_color='gray')
 
     height = height if not colorbar else int(1.2*height)
 
