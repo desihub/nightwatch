@@ -2,9 +2,16 @@ import fitsio
 
 import bokeh
 import bokeh.plotting as bk
-from bokeh.layouts import column, gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+import bokeh.palettes as bp
+from bokeh.layouts import column, gridplot, layout
+from bokeh.transform import linear_cmap
+from bokeh.models import LinearColorMapper, ColorBar
+from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title
+from bokeh.models import HoverTool, OpenURL, TapTool, HelpTool
+from bokeh.models import BasicTicker, NumeralTickFormatter
 from glob import glob
+
+import matplotlib as mpl
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -629,11 +636,68 @@ def plot_spectra_qa_arcs(data, names, calstandards):
     return gridplot(figs, toolbar_location='right')
 
 
+def plot_spec_focalplane(source, name, cam='',
+            camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
+            width=333, height=275, zmin=0, zmax=1,
+            fig_x_range=(-1.1,1.1), fig_y_range=(-1,1),
+            colorbar=False, palette=None, mpl_colormap=None,
+            tools=['pan', 'box_select', 'reset', 'tap'], tooltips=None):
+
+    if palette is None or mpl_colormap is None:
+        palette = np.array(bp.brewer['RdBu'][9])
+        mpl_colormap = mpl.colormaps['RdBu_r']
+
+    bp_mapper = linear_cmap('bokehmap', palette, low=zmin, high=zmax+0.01, nan_color='gray')
+    mpl_colormap.set_bad('gray')
+    norm = mpl.colors.Normalize(zmin, zmax)
+
+    fig = bk.figure(width=width, height=height,
+                    x_range=fig_x_range, y_range=fig_y_range,
+                    match_aspect=True)
+
+    vals = source.data['data_val']
+    specs = source.data['locations']
+
+    for val, sp in zip(vals, specs):
+         vcolor = mpl.colors.rgb2hex(mpl_colormap(norm(val)))
+
+         fig.wedge(x=[0], y=[0], radius=0.98,
+                   start_angle=252 + sp*36, start_angle_units='deg',
+                   end_angle=288 + sp*36, end_angle_units='deg',
+                   color=vcolor,
+                   line_color='black')
+
+    if cam:
+        fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
+                            line_color=camcolors[cam.upper()],
+                            line_alpha=0.5, line_width=2)
+        fig.text([0.9*fig_x_range[0],], [0.9*fig_y_range[1],], [cam.upper(),],
+                    text_align='center', text_baseline='middle')
+
+    color_bar = ColorBar(color_mapper=bp_mapper['transform'],
+                         label_standoff=12,
+                         border_line_color=None,
+                         location=(0,0), ticker=BasicTicker(), width=10,
+                         formatter=NumeralTickFormatter(format='0.0a'))
+
+    fig.add_layout(color_bar, 'right')
+    fig.axis.visible = False
+    fig.grid.visible = False
+    fig.outline_line_color = None
+
+    return fig
+
+
 def plot_spectra_qa_flats(data, header, calstandards):
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
-    figs = []
+#    figs = []
+#    flatfigs = [[]]
+    fpfigs = []
+    lvfigs = []
+
+    # Loop over cameras.
     for cam in 'BRZ': 
 
         integ_flux = []
@@ -642,11 +706,14 @@ def plot_spectra_qa_flats(data, header, calstandards):
         nominal = []
         lower_warn = []
         lower_err = []
+        flux_ratio = []
 
+        # Extract spectrograph integrated fluxes.
         for sp in spectro:
             select = (data['SPECTRO']==sp)
             iflux = data[select][f'{cam}_INTEG_FLUX'][0]
             if iflux < 0:
+                flux_ratio.append(np.nan)
                 continue
 
             # Read in calibration references (temperature-corrected).
@@ -665,6 +732,23 @@ def plot_spectra_qa_flats(data, header, calstandards):
             iflux_corr = iflux - b*(T - Tmed)
             integ_flux.append(iflux_corr)
 
+            # Compute the ratio of the integrated flux against the calibration reference.
+            iflux_corr_ref = calstandards[spcam]['refs']['nominal']
+            ratio = iflux_corr / iflux_corr_ref
+            flux_ratio.append(ratio)
+
+        # Create a data source and produce a focal plane figure.
+        source = ColumnDataSource(data=dict(
+            data_val=flux_ratio,
+            locations=spectro
+        ))
+
+        fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4)
+#        flatfigs[0].append(fpfig)
+        fpfigs.append(fpfig)
+
+
+        # Generate plot of integrated flux vs spectrograph for each camera.
         # Set marker colors and sizes to indicate out-of-range alerts.
         mcolors = get_spectraqa_colors(integ_flux,
                                        lower_err,
@@ -732,9 +816,17 @@ def plot_spectra_qa_flats(data, header, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
-        figs.append([fig])
+#        flatfigs.append([fig])
+#        figs.append([fig])
+        lvfigs.append([fig])
+    
+    gp = gridplot([fpfigs], toolbar_location='right')
+#    lvfigs.insert(0, [gp])
+    lvfigs.append([gp])
 
-    return gridplot(figs, toolbar_location='right')
+#    return gridplot(figs, toolbar_location='right')
+#    return layout(flatfigs)
+    return gridplot(lvfigs, toolbar_location='right')
 
 
 def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
