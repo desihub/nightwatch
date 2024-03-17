@@ -646,6 +646,10 @@ def plot_spectra_qa_arcs(data, names, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
+        # Add a help tool that redirects to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
+
         figs.append([fig])
 
     title = Div(text="""<h3>Arc Lamp Emission Line Values</h3>
