@@ -525,6 +525,22 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
 
 
 def plot_spectra_qa_arcs(data, names, calstandards):
+    """Generate plots for ARC calibration exposures.
+
+    Parameters
+    ----------
+    data : dict
+        Petal-level plotting data for LED flat exposures.
+    names : list or tuple
+        List of arc lamp emission lines for each camera.
+    calstandards : dict
+        Calibration references for LED flat exposures.
+
+    Returns
+    -------
+    layout : bokeh.layouts.layout
+        Layout object containing all requested plots.
+    """
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
@@ -630,9 +646,18 @@ def plot_spectra_qa_arcs(data, names, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
+        # Add a help tool that redirects to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
+
         figs.append([fig])
 
-    return gridplot(figs, toolbar_location='right')
+    title = Div(text="""<h3>Arc Lamp Emission Line Values</h3>
+<p>Integrated areas of brightest arc lamp emission lines compared to nominal reference values.<br />Click the help button on the plots for more information.</p>""")
+
+    return column(title, gridplot(figs, toolbar_location='right'))
+
+#    return gridplot(figs, toolbar_location='right')
 
 
 def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
@@ -640,6 +665,44 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
 						 fig_x_range=(-1.1,1.1), fig_y_range=(-1.1,1.1),
 						 colorbar=False, mpl_colormap=None,
 						 tools=['pan', 'box_select', 'reset', 'tap'], tooltips=None):
+    """Plot petal data in the focal plane, such as LED integrated fluxes.
+
+    Parameters
+    ----------
+    source : bokeh.model.ColumnDataSource
+        Input data for focal plane plots.
+    name : str
+        Data name.
+    cam : str
+        Camera b, r, z; case insensitive.
+    camcolors: dict
+        Dictionary of colors for camera plots.
+    width : int
+        Figure width.
+    height: int
+        Figure height.
+    zmin : float
+        Lower range of plot scale.
+    zmax : float
+        Upper range of plot scale.
+    fig_x_range : list or tuple
+        Range of plot values on the x-axis.
+    fig_y_range : list or tuple
+        Range of plot values on the y-ayis.
+    colorbar : bool
+        Add a colorbar to the plot if True.
+    mpl_colormap : str or None
+        Name of matplotlib colormap to use for plotting values.
+    tools : list or tuple
+        List of bokeh tools to include with the plot (pan, tap, help, etc.)
+    tooltips : list or None
+        Tips for bokeh plot tools.
+
+    Returns
+    -------
+    fig : bokeh.figure
+        Figure object containing focal plane plots for each camera.
+    """
 
     # Default colormap is a blue->red palette.
     if mpl_colormap is None:
@@ -725,6 +788,22 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
 
 
 def plot_spectra_qa_flats(data, header, calstandards):
+    """Generate plots for LED flat field exposures.
+
+    Parameters
+    ----------
+    data : dict
+        Petal-level plotting data for LED flat exposures.
+    header : FITS header
+        Exposure header containing telemetry and timing info.
+    calstandards : dict
+        Calibration references for LED flat exposures.
+
+    Returns
+    -------
+    layout : bokeh.layouts.layout
+        Layout object containing all requested plots.
+    """
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
@@ -860,14 +939,15 @@ def plot_spectra_qa_flats(data, header, calstandards):
 
         lvfigs.append([fig])
     
-
     gp_lv = gridplot(lvfigs, toolbar_location='right')
+    title_lv = Div(text="""<h3>Integrated Fluxes per Petal</h3>
+<p>Integrated LED fluxes per petal for each camera, with nominal reference values (temperature correction included).<br />Click the help button on the plots for more information.</p>""")
+
     gp_fp = gridplot([fpfigs], toolbar_location='right')
+    title_fp = Div(text="""<h3>Integrated Flux Ratios per Petal</h3>
+<p>Ratio of observed integrated LED fluxes to nominal reference values for each petal (temperature correction included).<br />Click the help button on the plots for more information.</p>""")
 
-    title = Div(text="""<h3>Integrated Flux Ratios per Petal</h3>
-<p>Ratio of observed integrated LED fluxes to nominal reference values for each petal (temperature correction included).</p>""")
-
-    return layout([[gp_lv], [column(title, gp_fp)]])
+    return layout([[column(title_lv, gp_lv)], [column(title_fp, gp_fp)]])
 
 
 def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):

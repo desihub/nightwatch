@@ -9,6 +9,7 @@
 ### Minor Updates
 
 * Added focal plane plots for LED calibrations ([PR #400](https://github.com/desihub/nightwatch/pull/400)).
+* Improved doctrings and UI instructions for calibration plots ([PR #401](https://github.com/desihub/nightwatch/pull/401)).
 
 ## 0.4.0 (2024-03-11)
 
