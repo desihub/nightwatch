@@ -653,7 +653,7 @@ def plot_spectra_qa_arcs(data, names, calstandards):
         figs.append([fig])
 
     title = Div(text="""<h3>Arc Lamp Emission Line Values</h3>
-<p>Integrated areas of brightest arc lamp emission lines compared to nominal reference values.</p>""")
+<p>Integrated areas of brightest arc lamp emission lines compared to nominal reference values.<br />Click the help button on the plots for more information.</p>""")
 
     return column(title, gridplot(figs, toolbar_location='right'))
 
@@ -941,11 +941,11 @@ def plot_spectra_qa_flats(data, header, calstandards):
     
     gp_lv = gridplot(lvfigs, toolbar_location='right')
     title_lv = Div(text="""<h3>Integrated Fluxes per Petal</h3>
-<p>Integrated LED fluxes per petal for each camera, with nominal reference values (temperature correction included).</p>""")
+<p>Integrated LED fluxes per petal for each camera, with nominal reference values (temperature correction included).<br />Click the help button on the plots for more information.</p>""")
 
     gp_fp = gridplot([fpfigs], toolbar_location='right')
     title_fp = Div(text="""<h3>Integrated Flux Ratios per Petal</h3>
-<p>Ratio of observed integrated LED fluxes to nominal reference values for each petal (temperature correction included).</p>""")
+<p>Ratio of observed integrated LED fluxes to nominal reference values for each petal (temperature correction included).<br />Click the help button on the plots for more information.</p>""")
 
     return layout([[column(title_lv, gp_lv)], [column(title_fp, gp_fp)]])
 
