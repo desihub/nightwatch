@@ -42,6 +42,115 @@ from tqdm import tqdm
 nw_path = '/global/cfs/cdirs/desi/spectro/nightwatch/nersc/'
 
 
+def get_qframe_integ_flux(qframefile):
+    """Extract integrated LED flux from qframe.
+
+    Parameters
+    ----------
+    qframefile : str
+        Path to qframe with CCD data reduced by qproc.
+
+    Returns
+    -------
+    integ_flux : float
+        Integrated median flux from the center of the CCD.
+    """
+    fiberlo = 240
+    fiberhi = 260
+
+    fits = fitsio.FITS(qframefile)
+    wave = np.median(fits['WAVELENGTH'][fiberlo:fiberhi, :], axis=0)
+    flux = np.median(fits['FLUX'][fiberlo:fiberhi, :], axis=0)
+    integ_flux = np.trapz(flux, wave)
+
+    return integ_flux
+
+
+def get_fluxes_from_qframes(night, expid):
+    """Extract integrated LED fluxes from qframes. Loop over all qframes for a given exposure.
+
+    Parameters
+    ----------
+    night: str
+        Absolute or relative path to night of reductions.
+    expid: str
+        Exposure ID to obtain qframe files.
+
+    Returns
+    -------
+    integ_fluxes : float
+        Integrated median flux from the center of the CCD.
+    """
+    yyyymmdd = os.path.basename(night)
+    integ_fluxes = {}
+
+    for cam in 'brz':
+        for sp in np.arange(10):
+            qframe = os.path.join(night, f'{expid}', f'qframe-{cam}{sp}-{expid}.fits')
+            integ_flux = 0
+            if os.path.exists(qframe):
+                integ_flux = get_qframe_integ_flux(qframe)
+            integ_fluxes[f'{cam.upper()}_INTEG_FLUX_sp{sp}'] = integ_flux
+
+    return integ_fluxes
+
+
+def get_qframe_program_data(night, program):
+    """Compile integrated LED fluxes using Nightwatch qframe files from qproc.
+
+    Parameters
+    ----------
+    night : str
+        Absolute or relative path to night of reductions.
+    program : str
+        Name of ICS program (i.e., exposure type).
+    """
+    yyyymmdd = os.path.basename(night)
+
+    tempdata = []
+    expids = []
+    nights = []
+    datetimes = []
+    nightdata = {}
+    exposures = sorted(glob(os.path.join(night, '00*')))
+
+    for exposure in exposures:
+        expid = os.path.basename(exposure)
+        qafile = os.path.join(exposure, f'qa-{expid}.fits')
+        if not os.path.exists(qafile):
+            continue
+
+        h = fitsio.read_header(qafile)
+        if h['PROGRAM'] != program:
+            continue
+
+        tempdata.append(h['TAIRTEMP'])
+        expids.append(h['EXPID'])
+        nights.append(yyyymmdd)
+        datetimes.append(Time(h['DATE-OBS'], scale='utc'))
+
+        qframe_fluxes = get_fluxes_from_qframes(night, expid)
+        for qtty, val in qframe_fluxes.items():
+            if qtty in nightdata:
+                nightdata[qtty].append(val)
+            else:
+                nightdata[qtty] = [val]
+
+    tab = None
+
+    if bool(nightdata):
+        tab = Table()
+        tab['NIGHT'] = nights
+        tab['DATEOBS'] = datetimes
+        tab['EXPID'] = expids
+        tab['TAIRTEMP'] = tempdata
+
+        for qtty in nightdata:
+            tab[qtty] = nightdata[qtty]
+
+    return tab
+
+
 def get_program_data(night, program, qtty):
     """Extract QA data from Nightwatch files.
 
@@ -125,7 +234,11 @@ def extract_qa_data(args):
 
     tabs = None
     for night in tqdm(nights):
-        nighttab = get_program_data(night, program, ['B_INTEG_FLUX', 'R_INTEG_FLUX', 'Z_INTEG_FLUX'])
+        if args.qframes:
+            nighttab = get_qframe_program_data(night, program)
+        else:
+            nighttab = get_program_data(night, program, ['B_INTEG_FLUX', 'R_INTEG_FLUX', 'Z_INTEG_FLUX'])
+
         if nighttab is None:
             continue
             
@@ -167,6 +280,8 @@ if __name__ == '__main__':
                      help='month')
     qap.add_argument('-s', '--sequence', choices=range(0,5), default=0, type=int,
                      help='LED sequence')
+    qap.add_argument('--qframes', action='store_true',
+                     help='Extract data from qframes rather than QA file')
     qap.set_defaults(func=extract_qa_data)
     
     # Merger of QA data into a single flat file.
