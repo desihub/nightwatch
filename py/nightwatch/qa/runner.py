@@ -71,8 +71,13 @@ class QARunner(object):
                     obstype = hdr['FLAVOR'].strip()
 
                 if this_obstype == "ARC" or this_obstype == "FLAT" \
-                   or this_obstype  == "TESTARC" or this_obstype == "TESTFLAT" :
+                   or this_obstype  == "TESTARC" or this_obstype == "TESTFLAT" \
+                   or this_obstype == "OTHER" :
                     obstype = this_obstype
+
+                    if obstype == "OTHER":
+                        obstype = "TESTFLAT"
+
                     # we use this so we exit the loop
                     break
                 elif obstype == None :
