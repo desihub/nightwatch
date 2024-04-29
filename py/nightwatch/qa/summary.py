@@ -72,7 +72,10 @@ class SummaryDB(metaclass=Singleton):
     def create_tables(self):
         pass
 
-    def write_exposure_to_db(fitsfile):
+    def write_exposure_to_db(self, fitsfile):
+        pass
+
+    def get_cal_flats(self, program):
         pass
 
     def qa_header_to_dict(self, fitshdr, use_datetime=False):
@@ -433,4 +436,38 @@ class SQLiteSummaryDB(SummaryDB):
 
         except Exception as e:
             log.error(e)
+
+    def get_cal_flats(self, program):
+        """Access calibration flats from DB.
+
+        Parameters
+        ----------
+        program : str
+            Name of calibration program, e.g., "CALIB DESI-CALIB-00 LEDs only"
+
+        Returns
+        -------
+        results : ndarray or None
+            Array of results of DB query.
+        """
+
+        query = f"""SELECT nw_perspectro_flats.expid, nw_header.time, spectro, b_integ_flux, r_integ_flux, z_integ_flux
+                    FROM nw_perspectro_flats
+                    INNER JOIN nw_header ON nw_header.expid = nw_perspectro_flats.expid
+                    WHERE nw_header.program = "{program}";
+                    """
+
+        log = get_logger()
+        db_cur = self.dbconn.cursor()
+        result = None
+
+        try:
+            # Check if current exposure is in the DB.
+            result = db_cur.execute(f'SELECT expid FROM nw_header WHERE expid={header["expid"]}').fetchall()
+        except Exception as e:
+            log.error(e)
+        finally:
+            db_cur.close()
+
+        return result
 
