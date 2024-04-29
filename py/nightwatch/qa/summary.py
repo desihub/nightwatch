@@ -334,7 +334,7 @@ class SQLiteSummaryDB(SummaryDB):
 
         try:
             for tab, tab_cmd in self.table_commands.items():
-                log.info(tab_cmd)
+                log.debug(tab_cmd)
                 db_cur.execute(tab_cmd)
         finally:
             db_cur.close()
@@ -366,13 +366,11 @@ class SQLiteSummaryDB(SummaryDB):
             if len(result) == 0:
                 # Insert the exposure header.
                 insert_cmd = "INSERT INTO nw_header VALUES ({expid}, {night}, \"{obstype}\", \"{program}\", {time})".format(**header)
-                print(insert_cmd)
                 db_cur.execute(insert_cmd)
 
                 # Insert all exposure data.
                 for tab, data in data_dict.items():
                     insert_cmd = f'INSERT INTO {tab} VALUES {data}'
-                    print(insert_cmd)
                     db_cur.execute(insert_cmd)
             else:
                 if self.updates:
