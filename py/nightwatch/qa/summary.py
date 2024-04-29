@@ -467,7 +467,7 @@ class SQLiteSummaryDB(SummaryDB):
             result = db_cur.execute(query).fetchall()
             if result:
                 result = np.asarray(result, dtype=[('expid', 'i4'),
-                                                   ('time', 'i8'),
+                                                   ('time', 'datetime64[s]'),
                                                    ('spec', 'i4'),
                                                    ('b_integ_flux', np.float64),
                                                    ('r_integ_flux', np.float64),
