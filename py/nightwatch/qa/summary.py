@@ -1,5 +1,7 @@
 from desiutil.log import get_logger
 
+import numpy as np
+
 import os
 import fitsio
 from datetime import datetime
@@ -450,6 +452,9 @@ class SQLiteSummaryDB(SummaryDB):
         results : ndarray or None
             Array of results of DB query.
         """
+        log = get_logger()
+        db_cur = self.dbconn.cursor()
+        result = None
 
         query = f"""SELECT nw_perspectro_flats.expid, nw_header.time, spectro, b_integ_flux, r_integ_flux, z_integ_flux
                     FROM nw_perspectro_flats
@@ -457,13 +462,16 @@ class SQLiteSummaryDB(SummaryDB):
                     WHERE nw_header.program = "{program}";
                     """
 
-        log = get_logger()
-        db_cur = self.dbconn.cursor()
-        result = None
-
         try:
             # Check if current exposure is in the DB.
-            result = db_cur.execute(f'SELECT expid FROM nw_header WHERE expid={header["expid"]}').fetchall()
+            result = db_cur.execute(query).fetchall()
+            if result:
+                result = np.asarray(result, dtype=[('expid', 'i4'),
+                                                   ('time', 'i8'),
+                                                   ('spec', 'i4'),
+                                                   ('b_integ_flux', np.float64),
+                                                   ('r_integ_flux', np.float64),
+                                                   ('z_integ_flux', np.float64)])
         except Exception as e:
             log.error(e)
         finally:
