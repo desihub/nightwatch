@@ -69,6 +69,12 @@ class SummaryDB(metaclass=Singleton):
 
     programs_all = programs_other | programs_arcs_short | programs_arcs_long | programs_flats
 
+    def create_tables(self):
+        pass
+
+    def write_exposure_to_db(fitsfile):
+        pass
+
     def qa_header_to_dict(self, fitshdr, use_datetime=False):
         """Pack QA exposure FITS header into a dictionary.
 
@@ -176,12 +182,6 @@ class SummaryDB(metaclass=Singleton):
             dastring = ','.join([str(d) for d in row[4:]])
             data.append("({}, '{}', {})".format(row[1], row[3], dastring))
         return ','.join(data)
-
-    def create_tables(self):
-        pass
-
-    def write_exposure_to_db(fitsfile):
-        pass
 
 
 class SQLiteSummaryDB(SummaryDB):
