@@ -6,8 +6,13 @@ import os, json, re, time
 from collections import OrderedDict, Counter
 
 import numpy as np
+
 import jinja2
 from jinja2 import select_autoescape
+
+import bokeh
+from bokeh.embed import components
+
 from astropy.table import Table
 from astropy.time import Time
 
@@ -15,14 +20,27 @@ import desiutil.log
 
 from .. import io
 
-def write_history(outfile):
+
+from ..qa.history import SQLiteSummaryDB
+from ..plots.historyqa import plot_flats_timeseries
+
+def write_history(infile, outfile):
     """Write history plots.
 
     Args:
+        infile: input SQLite file
         outfile: output HTML file
 
     Returns: HTML file written to output path
     """
+    log = desiutil.log.get_logger(level='INFO')
+    log.info(f'Access history data from {infile}')
+
+    db = SQLiteSummaryDB(infile)
+    tab = db.get_cal_flats('CALIB DESI-CALIB-03 LEDs only')
+
+    fig = plot_flats_timeseries(tab)
+
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
@@ -32,7 +50,19 @@ def write_history(outfile):
     
     template = env.get_template('history.html')
 
-    html = template.render()
+    html_components = dict(
+        bokeh_version=bokeh.__version__, 
+#        exptime='{:.1f}'.format(exptime),
+#        night=night, expid=expid, zexpid='{:08d}'.format(expid),
+#        obstype=obstype, program=program,
+        qatype='history',
+        num_dirs=2,
+    )
+
+    script, div = components(fig)
+    html_components['CALFLATS'] = dict(script=script, div=div)
+
+    html = template.render(**html_components)
     tmpfile = outfile + '.tmp' + str(os.getpid())
     with open(tmpfile, 'w') as fx:
         fx.write(html)

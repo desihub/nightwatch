@@ -6,7 +6,8 @@
 </ul>
 <ul class="navigationbar">
   <li style="float:left"><a href="../nights.html">Calendar</a></li>
-  <li style="float:left"><a href="https://data.desi.lbl.gov/desi/spectro/redux/daily/nightqa/">SurveyQA</a></li>
+  <li style="float:left"><a href="https://data.desi.lbl.gov/desi/spectro/redux/daily/nightqa/" target="_blank">SurveyQA</a></li>
+  <li style="float:left"><a href="https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription" target="_blank">Nightwatch Help</a></li>
 </ul>
 
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
@@ -28,6 +29,11 @@
     }
 </script>
 <script src="../nightlinks.js"></script>
+
+{% if CALFLATS %}
+    <p> CALFLATS defined! </p>
+    <div>{{ CALFLATS.script | safe }} {{ CALFLATS.div | safe }}</div>
+{% endif %}
 
 {#
 <p>
