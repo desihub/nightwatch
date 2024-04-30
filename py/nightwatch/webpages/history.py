@@ -30,9 +30,9 @@ def write_history(infile, outdir):
     Args:
         infile: input SQLite file
         outdir: location of output HTML files
-
-    Returns: HTML file written to output path
     """
+    log = desiutil.log.get_logger(level='INFO')
+
     #- Set up HTML template for output.
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
@@ -43,8 +43,24 @@ def write_history(infile, outdir):
     
     template = env.get_template('history.html')
 
+    #- Update/create the index file.
+    outfile = os.path.join(outdir, 'history.html')
+
+    html_components = dict(
+        bokeh_version=bokeh.__version__, 
+        qatype='history',
+        HISTORY_INDEX=True
+    )
+    html = template.render(**html_components)
+    tmpfile = outfile + '.tmp' + str(os.getpid())
+    with open(tmpfile, 'w') as fx:
+        fx.write(html)
+    log.info(f'Wrote {outfile}')
+
+    os.rename(tmpfile, outfile)
+    log.info(f'Wrote {outfile}')
+
     #- Set up access to history DB.
-    log = desiutil.log.get_logger(level='INFO')
     log.info(f'Access history data from {infile}')
 
     db = SQLiteSummaryDB(infile)

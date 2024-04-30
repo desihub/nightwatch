@@ -6,6 +6,7 @@
 </ul>
 <ul class="navigationbar">
   <li style="float:left"><a href="../nights.html">Calendar</a></li>
+  <li style="float:left"><a href="history.html">HistoryQA</a></li>
   <li style="float:left"><a href="https://data.desi.lbl.gov/desi/spectro/redux/daily/nightqa/" target="_blank">SurveyQA</a></li>
   <li style="float:left"><a href="https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription" target="_blank">Nightwatch Help</a></li>
 </ul>
@@ -30,6 +31,20 @@
 </script>
 <script src="../nightlinks.js"></script>
 
+{# Index page for all history plots #}
+{% if HISTORY_INDEX %}
+  <h1>History Plots</h1>
+  <h2>Calibrations</h2>
+  <h3>LED Flats</h3>
+  <ul>
+    <li><a href="history-flats-leds-00.html">FLAT : CALIB DESI-CALIB-00 LEDs only</a></li>
+    <li><a href="history-flats-leds-01.html">FLAT : CALIB DESI-CALIB-01 LEDs only</a></li>
+    <li><a href="history-flats-leds-02.html">FLAT : CALIB DESI-CALIB-02 LEDs only</a></li>
+    <li><a href="history-flats-leds-03.html">FLAT : CALIB DESI-CALIB-03 LEDs only</a></li>
+  </ul>
+{% endif %}
+
+{# Template page for calibration LEDs (FLAT obstype) #}
 {% if FLATS %}
     <p> {{obstype}} : {{program}} </p>
     <div>{{ FLATS.script | safe }} {{ FLATS.div | safe }}</div>
