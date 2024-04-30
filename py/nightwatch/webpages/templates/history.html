@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block body %}
+<ul class="titlebar">
+  <li><a>Nightwatch: History Plots</a></li>
+</ul>
+<ul class="navigationbar">
+  <li style="float:left"><a href="../nights.html">Calendar</a></li>
+  <li style="float:left"><a href="https://data.desi.lbl.gov/desi/spectro/redux/daily/nightqa/">SurveyQA</a></li>
+</ul>
+
+{# Each plot is wrapped in if/endif for robustness against missing plots #}
+<script>
+    function get_nightlinks(dict) {
+        var next_prev = dict["{{night}}"];
+        var next_item = next_prev.next_n;
+        if (next_item==null) {
+            document.getElementById("next").className = "noHover";
+        } else {
+            document.getElementById("next").href = next_item;
+        }
+        var prev_item = next_prev.prev_n;
+        if (prev_item==null) {
+            document.getElementById("prev").className = "noHover";
+        } else {
+            document.getElementById("prev").href = prev_item;
+        }
+    }
+</script>
+<script src="../nightlinks.js"></script>
+
+{#
+<p>
+<a href="../qa-lastexp.html">Summary of latest exposure</a> (auto-updating)
+</p>
+#}
+
+{#
+<table>
+<tr>
+  <th colspan="7">Metadata</th>
+  <th colspan="7">QA Status</th>
+<tr>
+  <th>EXPID</th>
+  <th>TILEID</th>
+  <th>OBSTYPE</th>
+  <th>MST</th>
+  <th>T<sub>exp</sub></th>
+  <th>Program</th>
+  <th>SP</th>
+  <th>Qproc</th>
+  <th>Amp</th>
+  <th>Camera</th>
+  <th>Fiber</th>
+  <th>CamFib</th>
+  <th>Spectro</th>
+  <th>Exp</th>
+</tr>
+
+{% for exp in exposures|reverse %}
+<tr>
+{% if exp.fail == 1 %}
+    <td style="color:red">{{ exp.expid }}</td>
+    <td colspan="13">Failed to process</td>
+{% else %}
+    <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
+    {% if exp.TILEID_LINK != "na" %}
+      <td><a href="{{ exp.TILEID_LINK }}">{{ exp.TILEID }}</a></td>
+    {% else %}
+      <td>{{ exp.TILEID }}</td>
+    {% endif %}
+
+    <td>{{ exp.obstype }}</td>
+    <td>{{ exp.MST }}</td>
+    <td>{{ '%.1f' % exp.exptime }}</td>
+    <td>{{ exp.PROGRAM }}</td>
+    <td>{{ exp.spectros }}</td>
+
+    {% if exp.QPROC_LINK != "na" %}
+      <td><a href="{{ exp.QPROC_link }}">{{ exp.QPROC }}</a></td>
+    {% else %}
+      <td>{{ exp.QPROC }}</td>
+    {% endif %}
+
+    {% if exp.PER_AMP_link != "na" %}
+      <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>
+    {% else %}
+      <td>{{ exp.PER_AMP }}</td>
+    {% endif %}
+
+    {% if exp.PER_CAMERA_link != "na" %}
+      <td><a href="{{ exp.PER_CAMERA_link }}">{{ exp.PER_CAMERA }}</a></td>
+    {% else %}
+      <td>{{ exp.PER_CAMERA }}</td>
+    {% endif %}
+
+    {% if exp.PER_FIBER_link != "na" %}
+      <td><a href="{{ exp.PER_FIBER_link }}">{{ exp.PER_FIBER }}</a></td>
+    {% else %}
+      <td>{{ exp.PER_FIBER }}</td>
+    {% endif %}
+
+    {% if exp.PER_CAMFIBER_link != "na" %}
+      <td><a href="{{ exp.PER_CAMFIBER_link }}">{{ exp.PER_CAMFIBER }}</a></td>
+    {% else %}
+      <td>{{ exp.PER_CAMFIBER }}</td>
+    {% endif %}
+
+    {% if exp.PER_SPECTRO_link != "na" %}
+      <td><a href="{{ exp.PER_SPECTRO_link }}">{{ exp.PER_SPECTRO }}</a></td>
+    {% else %}
+      <td>{{ exp.PER_SPECTRO }}</td>
+    {% endif %}
+
+    {% if exp.PER_EXP_link != "na" %}
+      <td><a href="{{ exp.PER_EXP_link }}">{{ exp.PER_EXP }}</a></td>
+    {% else %}
+      <td>{{ exp.PER_EXP }}</td>
+    {% endif %}
+
+{% endif %}
+    
+</tr>
+{% endfor %}
+#}
+
+{% endblock %}
