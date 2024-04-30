@@ -191,7 +191,7 @@ class QARunner(object):
 
             #- Save QA output to summary DB using the qa-00EXPID.fits output
             nwbase = Path(outfile).parents[2]
-            dbdir = os.path.join(nwbase, 'surveyqa')
+            dbdir = os.path.join(nwbase, 'historyqa')
             dbfile = os.path.join(dbdir, 'nightwatch_summary_qa.db')
             os.makedirs(dbdir, exist_ok=True)
 
