@@ -954,8 +954,9 @@ def write_thresholds(indir, outdir, start_date, end_date):
 def write_historyqa(infile, outdir):
     from .webpages import history as web_history
 
-    outfile = os.path.join(outdir, 'historyqa', 'history.html')
-    web_history.write_history(infile, outfile)
+#    outfile = os.path.join(outdir, 'historyqa', 'history.html')
+    outfolder = os.path.join(outdir, 'historyqa')
+    web_history.write_history(infile, outfolder)
 
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):

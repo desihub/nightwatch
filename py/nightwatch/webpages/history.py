@@ -24,12 +24,12 @@ from .. import io
 from ..qa.history import SQLiteSummaryDB
 from ..plots.historyqa import plot_flats_timeseries
 
-def write_history(infile, outfile):
+def write_history(infile, outdir):
     """Write history plots.
 
     Args:
         infile: input SQLite file
-        outfile: output HTML file
+        outdir: location of output HTML files
 
     Returns: HTML file written to output path
     """
@@ -53,6 +53,7 @@ def write_history(infile, outfile):
     for flatid in np.arange(4):
         obstype = 'FLAT'
         program = f'CALIB DESI-CALIB-{flatid:02d} LEDs only'
+        outfile = os.path.join(outdir, f'history-flats-leds-{flatid:02d}.html')
 
         tab = db.get_cal_flats(program)
 
@@ -73,7 +74,7 @@ def write_history(infile, outfile):
             fx.write(html)
 
         os.rename(tmpfile, outfile)
-        break
+        log.info(f'Wrote {outfile}')
 
 #
 #def write_calendar(outfile, nights):
