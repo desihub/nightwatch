@@ -30,9 +30,9 @@
 </script>
 <script src="../nightlinks.js"></script>
 
-{% if CALFLATS %}
-    <p> CALFLATS defined! </p>
-    <div>{{ CALFLATS.script | safe }} {{ CALFLATS.div | safe }}</div>
+{% if FLATS %}
+    <p> {{obstype}} : {{program}} </p>
+    <div>{{ FLATS.script | safe }} {{ FLATS.div | safe }}</div>
 {% endif %}
 
 {#

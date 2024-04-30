@@ -33,14 +33,7 @@ def write_history(infile, outfile):
 
     Returns: HTML file written to output path
     """
-    log = desiutil.log.get_logger(level='INFO')
-    log.info(f'Access history data from {infile}')
-
-    db = SQLiteSummaryDB(infile)
-    tab = db.get_cal_flats('CALIB DESI-CALIB-03 LEDs only')
-
-    fig = plot_flats_timeseries(tab)
-
+    #- Set up HTML template for output.
     env = jinja2.Environment(
         loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
         autoescape=select_autoescape(disabled_extensions=('txt',),
@@ -50,24 +43,37 @@ def write_history(infile, outfile):
     
     template = env.get_template('history.html')
 
-    html_components = dict(
-        bokeh_version=bokeh.__version__, 
-#        exptime='{:.1f}'.format(exptime),
-#        night=night, expid=expid, zexpid='{:08d}'.format(expid),
-#        obstype=obstype, program=program,
-        qatype='history',
-        num_dirs=2,
-    )
+    #- Set up access to history DB.
+    log = desiutil.log.get_logger(level='INFO')
+    log.info(f'Access history data from {infile}')
 
-    script, div = components(fig)
-    html_components['CALFLATS'] = dict(script=script, div=div)
+    db = SQLiteSummaryDB(infile)
 
-    html = template.render(**html_components)
-    tmpfile = outfile + '.tmp' + str(os.getpid())
-    with open(tmpfile, 'w') as fx:
-        fx.write(html)
+    #- Loop over calibration FLAT programs.
+    for flatid in np.arange(4):
+        obstype = 'FLAT'
+        program = f'CALIB DESI-CALIB-{flatid:02d} LEDs only'
 
-    os.rename(tmpfile, outfile)
+        tab = db.get_cal_flats(program)
+
+        fig = plot_flats_timeseries(tab)
+
+        html_components = dict(
+            bokeh_version=bokeh.__version__, 
+            obstype=obstype, program=program,
+            qatype='history'
+        )
+
+        script, div = components(fig)
+        html_components['FLATS'] = dict(script=script, div=div)
+
+        html = template.render(**html_components)
+        tmpfile = outfile + '.tmp' + str(os.getpid())
+        with open(tmpfile, 'w') as fx:
+            fx.write(html)
+
+        os.rename(tmpfile, outfile)
+        break
 
 #
 #def write_calendar(outfile, nights):

@@ -15,9 +15,15 @@ from .timeseries import plot_timeseries
 
 def plot_flats_timeseries(flats,
     camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+    """Produce time series of flat exposures using DB data.
 
-    tooltips = None
+    Args
+        flats : ndarray containing calibration fluxes.
+        camcolors : dict with color data.
 
+    Returns
+        tabs : Tabs with columns of LED flat calibrations.
+    """
     #- Loop over all cameras
     camtabs = []
 
