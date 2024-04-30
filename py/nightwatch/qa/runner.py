@@ -22,7 +22,7 @@ from .traceshift import QATraceShift
 from .psf import QAPSF
 from .fiberflat import QAFiberflat
 from .snr import QASNR
-from .summary import SQLiteSummaryDB
+from .history import SQLiteSummaryDB
 from .qprocstatus import QAQPROCStatus
 from ..run import timestamp
 
