@@ -951,6 +951,20 @@ def write_thresholds(indir, outdir, start_date, end_date):
     print(f'Wrote {htmlfile}')
 
 
+def write_historyqa(infile, outdir):
+    from .qa.summary import SQLiteSummaryDB
+    from .plots.summaryqa import plot_flats_timeseries
+
+    from .webpages import summaryqa as web_summaryqa
+
+    db = SQLiteSummaryDB(infile)
+    tab = db.get_cal_flats('CALIB DESI-CALIB-03 LEDs only')
+    print(tab)
+
+    f = plot_flats_timeseries(tab)
+    print(f)
+
+
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
     '''Writes surveyqa html files.
     Args:
