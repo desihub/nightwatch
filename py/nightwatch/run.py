@@ -952,8 +952,8 @@ def write_thresholds(indir, outdir, start_date, end_date):
 
 
 def write_historyqa(infile, outdir):
-    from .qa.summary import SQLiteSummaryDB
-    from .plots.summaryqa import plot_flats_timeseries
+    from .qa.history import SQLiteSummaryDB
+    from .plots.historyqa import plot_flats_timeseries
 
     from .webpages import summaryqa as web_summaryqa
 
