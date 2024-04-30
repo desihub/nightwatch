@@ -15,7 +15,7 @@ import desiutil.log
 
 from .. import io
 
-def write_history(outfile)
+def write_history(outfile):
     """Write history plots.
 
     Args:
