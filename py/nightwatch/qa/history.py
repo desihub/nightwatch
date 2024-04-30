@@ -456,7 +456,7 @@ class SQLiteSummaryDB(SummaryDB):
         db_cur = self.dbconn.cursor()
         result = None
 
-        query = f"""SELECT nw_perspectro_flats.expid, nw_header.time, spectro, b_integ_flux, r_integ_flux, z_integ_flux
+        query = f"""SELECT nw_perspectro_flats.expid, nw_header.night, nw_header.time, spectro, b_integ_flux, r_integ_flux, z_integ_flux
                     FROM nw_perspectro_flats
                     INNER JOIN nw_header ON nw_header.expid = nw_perspectro_flats.expid
                     WHERE nw_header.program = "{program}";
@@ -467,6 +467,7 @@ class SQLiteSummaryDB(SummaryDB):
             result = db_cur.execute(query).fetchall()
             if result:
                 result = np.asarray(result, dtype=[('expid', 'i4'),
+                                                   ('night', 'i4'),
                                                    ('time', 'datetime64[s]'),
                                                    ('spec', 'i4'),
                                                    ('b_integ_flux', np.float64),
