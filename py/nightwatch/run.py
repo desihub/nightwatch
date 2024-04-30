@@ -954,8 +954,10 @@ def write_thresholds(indir, outdir, start_date, end_date):
 def write_historyqa(infile, outdir):
     from .qa.history import SQLiteSummaryDB
     from .plots.historyqa import plot_flats_timeseries
+    from .webpages import history as web_history
 
-    from .webpages import summaryqa as web_summaryqa
+    log = desiutil.log.get_logger(level='INFO')
+    log.info(f'Access history data from {infile}')
 
     db = SQLiteSummaryDB(infile)
     tab = db.get_cal_flats('CALIB DESI-CALIB-03 LEDs only')
@@ -963,6 +965,9 @@ def write_historyqa(infile, outdir):
 
     f = plot_flats_timeseries(tab)
     print(f)
+
+    outfile = os.path.join(outdir, 'historyqa', 'history.html')
+    web_history.write_history(outfile)
 
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
