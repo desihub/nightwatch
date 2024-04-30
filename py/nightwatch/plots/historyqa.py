@@ -37,39 +37,39 @@ def plot_flats_timeseries(flats,
     camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
 
     figs = []
-
-    x = list(range(11))
-    y0 = x
-    y1 = [10 - i for i in x]
-    y2 = [abs(i - 5) for i in x]
+    tooltips = None
 
     for cam in 'R':
-        name = f'{cam.lower()}_integ_flux'
+        for spec in np.arange(10):
+            name = f'{cam.lower()}_integ_flux'
+            select = flats['spec'] == spec
 
-        fig = bk.figure(width=800, height=300, x_axis_type='datetime',
-                        y_axis_label=name.upper(),
-                        y_range=Range1d(0, np.percentile(flats[name], 99.5), bounds=(0, None))
-            )
-        fig.xaxis.major_label_orientation = np.radians(45)
-        fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig = bk.figure(width=800, height=300, x_axis_type='datetime',
+                            y_axis_label=name.upper(),
+                            y_range=Range1d(0, np.percentile(flats[name][select], 99.5), bounds=(0, None))
+                )
+            fig.xaxis.major_label_orientation = np.radians(45)
+            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.title.text = f'{cam}{spec}'
+            fig.title.text_color = camcolors[cam]
 
-        source = ColumnDataSource(data={'time' : flats['time'],
-                                        'expid' : flats['expid'],
-                                        'spec' : flats['spec'],
-                                        f'{name}' : flats[name]})
+            source = ColumnDataSource(data={'time'  : flats['time'][select],
+                                            'expid' : flats['expid'][select],
+                                            'spec'  : flats['spec'][select],
+                                            f'{name}' : flats[name][select]})
 
 #        fig = plot_timeseries(source, name, cam=cam)
-        s = fig.scatter('time', name, source=source, color=camcolors[cam])
+            s = fig.scatter('time', name, source=source, color=camcolors[cam])
 
-        figs.append(fig)
+            #- Add hover tool
+            if tooltips is None:
+                tooltips = [('Time', '@time'),
+                            ('Cam', f'{cam}@spec'),
+                            ('INTEG_FLUX', f'@{name}')]
+            hover = HoverTool(renderers=[s], tooltips=tooltips)
+            fig.add_tools(hover)
 
-#    fig = bk.figure(width=700, height=200, x_axis_type='datetime')
-##    fig.scatter(flats['time'], flats['b_integ_flux'])
-#    source = ColumnDataSource(data={'time':flats['time'], 'expid':flats['expid'], 'b_integ_flux':flats['b_integ_flux']})
-#    fig.scatter('time', 'b_integ_flux', source=source)
-
-    print(flats['time'][:10], flats['b_integ_flux'][:10])
-#    figs.append(fig)
+            figs.append(fig)
 
     return column(figs)
 
