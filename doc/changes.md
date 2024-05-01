@@ -1,15 +1,17 @@
 # Nightwatch change log
 
-## 0.4.1 (unreleased)
+## 0.5.0 (2024-05-01)
 
 ### Major Updates
 
 * Added FVC plots to Nightwatch camfiber QA ([PR #396](https://github.com/desihub/nightwatch/pull/396)).
+* Integrate SQLite history DB into nightly processing ([PR * #403](https://github.com/desihub/nightwatch/pull/403)).
 
 ### Minor Updates
 
 * Added focal plane plots for LED calibrations ([PR #400](https://github.com/desihub/nightwatch/pull/400)).
 * Improved doctrings and UI instructions for calibration plots ([PR #401](https://github.com/desihub/nightwatch/pull/401)).
+* Enable processing of `spec_tests` with obstype `OTHER` ([PR * #402](https://github.com/desihub/nightwatch/pull/402)).
 
 ## 0.4.0 (2024-03-11)
 
