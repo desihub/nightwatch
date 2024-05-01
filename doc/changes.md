@@ -1,5 +1,7 @@
 # Nightwatch change log
 
+## 0.5.1 (unreleased)
+
 ## 0.5.0 (2024-05-01)
 
 ### Major Updates
