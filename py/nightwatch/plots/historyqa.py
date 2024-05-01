@@ -14,6 +14,76 @@ from bokeh.layouts import column, gridplot
 from .timeseries import plot_timeseries
 
 
+def plot_camera_timeseries(camdata, spec,
+    camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+    """Produce time series of CCD QA values using DB data.
+
+    Args
+        ccds : ndarray containing CCD QA data
+        spec : spectrograph 0-9
+        camcolors : dict with color data
+
+    Returns
+        tabs : Tabs with columns of camera QA plots.
+    """
+    camtabs = []
+
+    #- Loop over metrics
+    for metric, label in zip([('meandx', 'mindx', 'maxdx'),
+                              ('meandy', 'mindy', 'maxdy')],
+                             ['Δx: Fiber', 'Δy: Wavelength']):
+
+        figs = []
+
+        #- Loop over cameras
+        for cam in 'brz':
+            select = camdata['cam'] == cam.upper()
+
+            fig = bk.figure(width=800, height=300, x_axis_type='datetime',
+                            y_axis_label=f'{label} (pixels)',
+                            tools=['pan', 'box_zoom', 'reset', 'tap']
+                            )
+            fig.xaxis.major_label_orientation = np.radians(45)
+            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.title.text = f'{cam.upper()}{spec}'
+            fig.title.text_color = camcolors[cam.upper()]
+
+            source = ColumnDataSource(data={'time'  : camdata['time'][select],
+                                            'expid' : camdata['expid'][select],
+                                            'night' : camdata['night'][select],
+                                            f'{metric[0]}' : camdata[metric[0]][select],
+                                            f'{metric[1]}' : camdata[metric[1]][select],
+                                            f'{metric[2]}' : camdata[metric[2]][select]})
+
+            error = Whisker(base='time', upper=metric[2], lower=metric[1], source=source, level='annotation', line_width=1)
+            error.upper_head_size=1
+            error.lower_head_size=1
+            fig.add_layout(error)
+
+            #- Add hover tool
+            fig.add_tools(HoverTool(
+                tooltips = [('night', '@night'),
+                            ('expid', '@expid'),
+                            (f'{metric[0]}', f'@{metric[0]}')],
+                renderers = [s]
+            ))
+
+            #- Add tap tool
+            taptool = fig.select(type=TapTool)
+            taptool.behavior = 'select'
+            taptool.callback = OpenURL(url='../@night/00@expid/qa-camera-00@expid.html')
+
+            #- Store figures in list for column display
+            figs.append(fig)
+
+        #- Add figures to columns and columns to a camera panel.
+        col = column(figs)
+        tab = Panel(child=col, title=f'{label}')
+        camtabs.append(tab)
+
+    return Tabs(tabs=camtabs)
+
+
 def plot_ccd_timeseries(ccds, cam, spec,
     camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
     """Produce time series of CCD QA values using DB data.
