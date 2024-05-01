@@ -13,9 +13,6 @@ from jinja2 import select_autoescape
 import bokeh
 from bokeh.embed import components
 
-from astropy.table import Table
-from astropy.time import Time
-
 import desiutil.log
 
 from .. import io
@@ -59,8 +56,62 @@ def write_history(outdir):
     os.rename(tmpfile, outfile)
 
 
+def write_ccd_qa(infile, outdir):
+    """Write CCD readnoise, bias, and cosmic rate plots.
+
+    Args:
+        infile: input SQLite file
+        outdir: location of output HTML files
+    """
+    log = desiutil.log.get_logger(level='INFO')
+
+    #- Set up HTML template for output.
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True)
+    )
+    
+    template = env.get_template('history.html')
+
+    #- Set up access to history DB.
+    log.info(f'Access history data from {infile}')
+    db = SQLiteSummaryDB(infile)
+    data = db.get_ccd_qa()
+
+    #- Loop over cameras.
+    for cam in 'brz':
+        #- Loop over spectrographs.
+        for spec in np.arange(10):
+            outfile = os.path.join(outdir, f'history-ccd-{cam}{spec}.html')
+
+            select = (data['cam'] == cam) & (data['spec'] == spec)
+            fig = plot_ccd_timeseries(data, cam, spec)
+
+            html_components = dict(
+                bokeh_version=bokeh.__version__, 
+                obstype=obstype, program=program,
+                qatype='history'
+            )
+
+            script, div = components(fig)
+            html_components['CCD'] = dict(script=script, div=div)
+
+            html = template.render(**html_components)
+            tmpfile = outfile + '.tmp' + str(os.getpid())
+            with open(tmpfile, 'w') as fx:
+                fx.write(html)
+
+            os.rename(tmpfile, outfile)
+            log.info(f'Wrote {outfile}')
+
+            break
+        break
+
+
 def write_flat_cals(infile, outdir):
-    """Write history plots.
+    """Write flat-fielding LED history plots.
 
     Args:
         infile: input SQLite file
@@ -88,9 +139,8 @@ def write_flat_cals(infile, outdir):
         program = f'CALIB DESI-CALIB-{flatid:02d} LEDs only'
         outfile = os.path.join(outdir, f'history-flats-leds-{flatid:02d}.html')
 
-        tab = db.get_cal_flats(program)
-
-        fig = plot_flats_timeseries(tab)
+        data = db.get_cal_flats(program)
+        fig = plot_flats_timeseries(data)
 
         html_components = dict(
             bokeh_version=bokeh.__version__, 
