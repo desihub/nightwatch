@@ -32,34 +32,36 @@ def plot_ccd_timeseries(ccds, cam, spec,
     #- Loop over metrics
     for metric, label in zip(['readnoise', 'bias', 'cosmic_rate'],
                              ['Read Noise', 'Overscan Bias', 'Cosmic Rate']):
+
+        figs = []
         
         #- Loop over amplifiers
         for amp in 'ABCD':
             select = ccds['amp'] == amp
 
+            scale = 4 if metric=='cosmic_rate' else 2
+
             fig = bk.figure(width=800, height=300, x_axis_type='datetime',
                             y_axis_label=label,
-                            y_range=Range1d(-1, np.median(ccds[metric][select]) + 2*np.std(flats[metric][select]), bounds=(-1, None)),
+                            y_range=Range1d(-1, scale*np.median(ccds[metric][select]), bounds=(-1, None)),
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
             fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
-            fig.title.text = f'{cam}{spec}'
+            fig.title.text = f'{cam.upper()}{spec}{amp}'
             fig.title.text_color = camcolors[cam.upper()]
 
             source = ColumnDataSource(data={'time'  : ccds['time'][select],
                                             'expid' : ccds['expid'][select],
                                             'night' : ccds['night'][select],
-                                            'spec'  : ccds['spec'][select],
                                             f'{metric}' : ccds[metric][select]})
 
-            s = fig.scatter('time', name, source=source, color=camcolors[cam.upper()])
+            s = fig.scatter('time', metric, source=source, color=camcolors[cam.upper()], alpha=0.3)
 
             #- Add hover tool
             fig.add_tools(HoverTool(
                 tooltips = [('night', '@night'),
                             ('expid', '@expid'),
-                            ('cam', f'{cam}@spec'),
                             (f'{metric}', f'@{metric}')],
                 renderers = [s]
             ))
@@ -74,7 +76,7 @@ def plot_ccd_timeseries(ccds, cam, spec,
 
         #- Add figures to columns and columns to a camera panel.
         col = column(figs)
-        tab = Panel(child=col, title=f'Label')
+        tab = Panel(child=col, title=f'{label}')
         ccdtabs.append(tab)
 
     return Tabs(tabs=ccdtabs)

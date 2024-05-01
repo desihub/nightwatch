@@ -19,7 +19,7 @@ from .. import io
 
 
 from ..qa.history import SQLiteSummaryDB
-from ..plots.historyqa import plot_flats_timeseries
+from ..plots.historyqa import plot_ccd_timeseries, plot_flats_timeseries
 
 
 def write_history(outdir):
@@ -78,7 +78,7 @@ def write_ccd_qa(infile, outdir):
     #- Set up access to history DB.
     log.info(f'Access history data from {infile}')
     db = SQLiteSummaryDB(infile)
-    data = db.get_ccd_qa()
+    data = db.get_ccd_qadata()
 
     #- Loop over cameras.
     for cam in 'brz':
@@ -86,12 +86,12 @@ def write_ccd_qa(infile, outdir):
         for spec in np.arange(10):
             outfile = os.path.join(outdir, f'history-ccd-{cam}{spec}.html')
 
-            select = (data['cam'] == cam) & (data['spec'] == spec)
-            fig = plot_ccd_timeseries(data, cam, spec)
+            select = (data['cam'] == cam.upper()) & (data['spec'] == spec)
+            fig = plot_ccd_timeseries(data[select], cam, spec)
 
             html_components = dict(
                 bokeh_version=bokeh.__version__, 
-                obstype=obstype, program=program,
+                camera=cam.upper(), spectrograph=spec,
                 qatype='history'
             )
 

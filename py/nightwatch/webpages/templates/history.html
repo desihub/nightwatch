@@ -65,6 +65,12 @@
     <div>{{ FLATS.script | safe }} {{ FLATS.div | safe }}</div>
 {% endif %}
 
+{# Template page for CCD QA (read noise, bias, cosmic rate) #}
+{% if CCD %}
+    <p> CCD QA for {{camera}}{{spectrograph}} </p>
+    <div>{{ CCD.script | safe }} {{ CCD.div | safe }}</div>
+{% endif %}
+
 {#
 <p>
 <a href="../qa-lastexp.html">Summary of latest exposure</a> (auto-updating)
