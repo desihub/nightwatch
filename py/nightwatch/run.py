@@ -951,6 +951,30 @@ def write_thresholds(indir, outdir, start_date, end_date):
     print(f'Wrote {htmlfile}')
 
 
+def write_historyqa(infile, outdir):
+    """Write historyqa HTML files.
+
+    Args:
+        infile : path to SQLite database with summary data.
+        outdir : path to top-level of Nightwatch output.
+    """
+    from .webpages import history as web_history
+
+    outfolder = os.path.join(outdir, 'historyqa')
+
+    #- Write history index file.
+    web_history.write_history(outfolder)
+
+    #- Write CCD QA files.
+#    web_history.write_ccd_qa(infile, outfolder)
+
+    #- Write camera QA files.
+    web_history.write_camera_qa(infile, outfolder)
+
+    #- Write flat calibration history
+    web_history.write_flat_cals(infile, outfolder)
+
+
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):
     '''Writes surveyqa html files.
     Args:

@@ -6,6 +6,7 @@ import os, sys
 import json
 import traceback
 import glob
+from pathlib import Path
 
 import numpy as np
 import fitsio
@@ -21,6 +22,7 @@ from .traceshift import QATraceShift
 from .psf import QAPSF
 from .fiberflat import QAFiberflat
 from .snr import QASNR
+from .history import SQLiteSummaryDB
 from .qprocstatus import QAQPROCStatus
 from ..run import timestamp
 
@@ -186,5 +188,15 @@ class QARunner(object):
 
             os.rename(tmpfile, outfile)
             log.info('{} Finished writing {}'.format(timestamp(), outfile))
+
+            #- Save QA output to summary DB using the qa-00EXPID.fits output
+            nwbase = Path(outfile).parents[2]
+            dbdir = os.path.join(nwbase, 'historyqa')
+            dbfile = os.path.join(dbdir, 'nightwatch_summary_qa.db')
+            os.makedirs(dbdir, exist_ok=True)
+
+            log.info(f'Saving QA to DB {dbfile}')
+            db = SQLiteSummaryDB(dbfile)
+            db.write_exposure_to_db(outfile)
 
         return results
