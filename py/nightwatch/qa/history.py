@@ -439,6 +439,43 @@ class SQLiteSummaryDB(SummaryDB):
         except Exception as e:
             log.error(e)
 
+    def get_ccd_qadata(self):
+        """Access CCD readnoise, bias, and cosmic rate.
+
+        Returns
+        -------
+        results : ndarray or None
+            Array of results of DB query.
+        """
+        log = get_logger()
+        db_cur = self.dbconn.cursor()
+        result = None
+
+        query = """SELECT nw_peramp.expid, nw_header.night, nw_header.time, cam, spectro, amp, readnoise, bias, cosmic_rate
+                   FROM nw_peramp
+                   INNER JOIN nw_header ON nw_header.expid = nw_peramp.expid
+                   """
+
+        try:
+            # Check for non-null result.
+            result = db_cur.execute(query).fetchall()
+            if result:
+                result = np.asarray(result, dtype=[('expid', 'i4'),
+                                                   ('night', 'i4'),
+                                                   ('time', 'datetime64[s]'),
+                                                   ('cam', '<U1'),
+                                                   ('spec', 'i4'),
+                                                   ('amp', '<U1'),
+                                                   ('readnoise', np.float64),
+                                                   ('bias', np.float64),
+                                                   ('cosmic_rate', np.float64)])
+        except Exception as e:
+            log.error(e)
+        finally:
+            db_cur.close()
+
+        return result
+
     def get_cal_flats(self, program):
         """Access calibration flats from DB.
 
@@ -463,7 +500,7 @@ class SQLiteSummaryDB(SummaryDB):
                     """
 
         try:
-            # Check if current exposure is in the DB.
+            # Check for non-null result
             result = db_cur.execute(query).fetchall()
             if result:
                 result = np.asarray(result, dtype=[('expid', 'i4'),
