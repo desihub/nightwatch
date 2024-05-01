@@ -106,9 +106,6 @@ def write_ccd_qa(infile, outdir):
             os.rename(tmpfile, outfile)
             log.info(f'Wrote {outfile}')
 
-            break
-        break
-
 
 def write_flat_cals(infile, outdir):
     """Write flat-fielding LED history plots.

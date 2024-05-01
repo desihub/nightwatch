@@ -1,6 +1,36 @@
 {% extends "base.html" %}
 
 {% block body %}
+
+<style>
+label {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  text-align: right;
+  width: 400px;
+  line-height: 26px;
+  margin-bottom: 10px;
+}
+
+input {
+  height: 20px;
+  flex: 0 0 200px;
+  margin-left: 10px;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.container{
+  display: flex;
+}
+.flex-item{
+  flex-grow: 1;
+}
+</style>
+
 <ul class="titlebar">
   <li><a>Nightwatch: History Plots</a></li>
 </ul>
@@ -67,103 +97,32 @@
 
 {# Template page for CCD QA (read noise, bias, cosmic rate) #}
 {% if CCD %}
-    <p> CCD QA for {{camera}}{{spectrograph}} </p>
-    <div>{{ CCD.script | safe }} {{ CCD.div | safe }}</div>
+  <p> CCD QA for {{camera}}{{spectrograph}} </p>
+
+  <div class="container">
+    {# CCD QA plots #}
+    <div class=flex-item>{{ CCD.script | safe }} {{ CCD.div | safe }}</div>
+
+    {# Table of links to different CCD QA plots #}
+    <div class=flex-item style="padding-right:10px">
+      <br>
+      <table border="1" cellpadding="8">
+        <tr>
+        {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
+          {% for c in ["b", "r", "z"] %}
+            <td {% if c + i == current %} bgcolor="#6495ed" {% endif %}>
+              <a href="history-ccd-{{c}}{{i}}.html">
+              <text style="font-weight:bold">{{c}}{{i}}</text>
+              </a>
+            </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+      <br>
+    </div>
+
+  </div>
 {% endif %}
-
-{#
-<p>
-<a href="../qa-lastexp.html">Summary of latest exposure</a> (auto-updating)
-</p>
-#}
-
-{#
-<table>
-<tr>
-  <th colspan="7">Metadata</th>
-  <th colspan="7">QA Status</th>
-<tr>
-  <th>EXPID</th>
-  <th>TILEID</th>
-  <th>OBSTYPE</th>
-  <th>MST</th>
-  <th>T<sub>exp</sub></th>
-  <th>Program</th>
-  <th>SP</th>
-  <th>Qproc</th>
-  <th>Amp</th>
-  <th>Camera</th>
-  <th>Fiber</th>
-  <th>CamFib</th>
-  <th>Spectro</th>
-  <th>Exp</th>
-</tr>
-
-{% for exp in exposures|reverse %}
-<tr>
-{% if exp.fail == 1 %}
-    <td style="color:red">{{ exp.expid }}</td>
-    <td colspan="13">Failed to process</td>
-{% else %}
-    <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
-    {% if exp.TILEID_LINK != "na" %}
-      <td><a href="{{ exp.TILEID_LINK }}">{{ exp.TILEID }}</a></td>
-    {% else %}
-      <td>{{ exp.TILEID }}</td>
-    {% endif %}
-
-    <td>{{ exp.obstype }}</td>
-    <td>{{ exp.MST }}</td>
-    <td>{{ '%.1f' % exp.exptime }}</td>
-    <td>{{ exp.PROGRAM }}</td>
-    <td>{{ exp.spectros }}</td>
-
-    {% if exp.QPROC_LINK != "na" %}
-      <td><a href="{{ exp.QPROC_link }}">{{ exp.QPROC }}</a></td>
-    {% else %}
-      <td>{{ exp.QPROC }}</td>
-    {% endif %}
-
-    {% if exp.PER_AMP_link != "na" %}
-      <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>
-    {% else %}
-      <td>{{ exp.PER_AMP }}</td>
-    {% endif %}
-
-    {% if exp.PER_CAMERA_link != "na" %}
-      <td><a href="{{ exp.PER_CAMERA_link }}">{{ exp.PER_CAMERA }}</a></td>
-    {% else %}
-      <td>{{ exp.PER_CAMERA }}</td>
-    {% endif %}
-
-    {% if exp.PER_FIBER_link != "na" %}
-      <td><a href="{{ exp.PER_FIBER_link }}">{{ exp.PER_FIBER }}</a></td>
-    {% else %}
-      <td>{{ exp.PER_FIBER }}</td>
-    {% endif %}
-
-    {% if exp.PER_CAMFIBER_link != "na" %}
-      <td><a href="{{ exp.PER_CAMFIBER_link }}">{{ exp.PER_CAMFIBER }}</a></td>
-    {% else %}
-      <td>{{ exp.PER_CAMFIBER }}</td>
-    {% endif %}
-
-    {% if exp.PER_SPECTRO_link != "na" %}
-      <td><a href="{{ exp.PER_SPECTRO_link }}">{{ exp.PER_SPECTRO }}</a></td>
-    {% else %}
-      <td>{{ exp.PER_SPECTRO }}</td>
-    {% endif %}
-
-    {% if exp.PER_EXP_link != "na" %}
-      <td><a href="{{ exp.PER_EXP_link }}">{{ exp.PER_EXP }}</a></td>
-    {% else %}
-      <td>{{ exp.PER_EXP }}</td>
-    {% endif %}
-
-{% endif %}
-    
-</tr>
-{% endfor %}
-#}
 
 {% endblock %}
