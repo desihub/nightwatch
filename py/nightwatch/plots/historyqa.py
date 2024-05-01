@@ -41,6 +41,7 @@ def plot_camera_timeseries(camdata, spec,
 
             fig = bk.figure(width=800, height=300, x_axis_type='datetime',
                             y_axis_label=f'{label} (pixels)',
+                            y_range=Range1d(1.1*np.min(camdata[metric[1]][select]), 1.1*np.max(camdata[metric[2]][select]), bounds=(-1, None)),
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
@@ -58,9 +59,14 @@ def plot_camera_timeseries(camdata, spec,
             #- Add scatterplot with error bars (whisker plot)
             s = fig.scatter('time', metric[0], source=source, color=camcolors[cam.upper()], alpha=0.3)
 
-            error = Whisker(base='time', upper=metric[2], lower=metric[1], source=source, level='annotation', line_width=1, line_alpha=0.5)
-            error.upper_head.size=1
-            error.lower_head.size=1
+            error = Whisker(base='time', upper=metric[2], lower=metric[1], source=source, level='annotation', line_color=camcolors[cam.upper()], line_width=1, line_alpha=0.5)
+            error.upper_head.size=2
+            error.upper_head.line_color=camcolors[cam.upper()]
+            error.upper_head.line_alpha=0.5
+            error.lower_head.size=2
+            error.lower_head.line_color=camcolors[cam.upper()]
+            error.lower_head.line_alpha=0.5
+
             fig.add_layout(error)
 
             #- Add hover tool
