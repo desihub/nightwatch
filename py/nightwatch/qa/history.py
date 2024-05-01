@@ -77,6 +77,12 @@ class SummaryDB(metaclass=Singleton):
     def write_exposure_to_db(self, fitsfile):
         pass
 
+    def get_ccd_qadata(self):
+        pass
+
+    def get_camera_qadata(self):
+        pass
+
     def get_cal_flats(self, program):
         pass
 
@@ -469,6 +475,45 @@ class SQLiteSummaryDB(SummaryDB):
                                                    ('readnoise', np.float64),
                                                    ('bias', np.float64),
                                                    ('cosmic_rate', np.float64)])
+        except Exception as e:
+            log.error(e)
+        finally:
+            db_cur.close()
+
+        return result
+
+    def get_camera_qadata(self):
+        """Access camera traceshifts.
+
+        Returns
+        -------
+        results : ndarray or None
+            Array of results of DB query.
+        """
+        log = get_logger()
+        db_cur = self.dbconn.cursor()
+        result = None
+
+        query = """SELECT nw_percamera.expid, nw_header.night, nw_header.time, cam, spectro, meandx, mindx, maxdx, meandy, mindy, maxdy
+                   FROM nw_percamera
+                   INNER JOIN nw_header ON nw_header.expid = nw_percamera.expid
+                   """
+
+        try:
+            # Check for non-null result.
+            result = db_cur.execute(query).fetchall()
+            if result:
+                result = np.asarray(result, dtype=[('expid', 'i4'),
+                                                   ('night', 'i4'),
+                                                   ('time', 'datetime64[s]'),
+                                                   ('cam', '<U1'),
+                                                   ('spec', 'i4'),
+                                                   ('meandx', np.float64),
+                                                   ('mindx', np.float64),
+                                                   ('maxdx', np.float64),
+                                                   ('meandy', np.float64),
+                                                   ('mindy', np.float64),
+                                                   ('maxdy', np.float64)])
         except Exception as e:
             log.error(e)
         finally:
