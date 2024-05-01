@@ -55,9 +55,12 @@ def plot_camera_timeseries(camdata, spec,
                                             f'{metric[1]}' : camdata[metric[1]][select],
                                             f'{metric[2]}' : camdata[metric[2]][select]})
 
-            error = Whisker(base='time', upper=metric[2], lower=metric[1], source=source, level='annotation', line_width=1)
-            error.upper_head_size=1
-            error.lower_head_size=1
+            #- Add scatterplot with error bars (whisker plot)
+            s = fig.scatter('time', metric[0], source=source, color=camcolors[cam.upper()], alpha=0.3)
+
+            error = Whisker(base='time', upper=metric[2], lower=metric[1], source=source, level='annotation', line_width=1, line_alpha=0.5)
+            error.upper_head.size=1
+            error.lower_head.size=1
             fig.add_layout(error)
 
             #- Add hover tool

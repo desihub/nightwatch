@@ -19,7 +19,7 @@ from .. import io
 
 
 from ..qa.history import SQLiteSummaryDB
-from ..plots.historyqa import plot_ccd_timeseries, plot_flats_timeseries
+from ..plots.historyqa import plot_camera_timeseries, plot_ccd_timeseries, plot_flats_timeseries
 
 
 def write_history(outdir):
@@ -56,8 +56,57 @@ def write_history(outdir):
     os.rename(tmpfile, outfile)
 
 
+def write_camera_qa(infile, outdir):
+    """Write camera traceshift plots to HTML.
+
+    Args:
+        infile: input SQLite file
+        outdir: location of output HTML files
+    """
+    log = desiutil.log.get_logger(level='INFO')
+
+    #- Set up HTML template for output.
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True, 
+                                     default=True)
+    )
+    
+    template = env.get_template('history.html')
+
+    #- Set up access to history DB.
+    log.info(f'Access history data from {infile}')
+    db = SQLiteSummaryDB(infile)
+    data = db.get_camera_qadata()
+
+    #- Loop over spectrographs.
+    for spec in np.arange(10):
+        outfile = os.path.join(outdir, f'history-camera-sp{spec}.html')
+
+        select = data['spec'] == spec
+        fig = plot_camera_timeseries(data[select], spec)
+
+        html_components = dict(
+            bokeh_version=bokeh.__version__, 
+            spectrograph=spec,
+            qatype='history'
+        )
+
+        script, div = components(fig)
+        html_components['CAMERA'] = dict(script=script, div=div)
+
+        html = template.render(**html_components)
+        tmpfile = outfile + '.tmp' + str(os.getpid())
+        with open(tmpfile, 'w') as fx:
+            fx.write(html)
+
+        os.rename(tmpfile, outfile)
+        log.info(f'Wrote {outfile}')
+
+
 def write_ccd_qa(infile, outdir):
-    """Write CCD readnoise, bias, and cosmic rate plots.
+    """Write CCD readnoise, bias, and cosmic rate plots to HTML.
 
     Args:
         infile: input SQLite file

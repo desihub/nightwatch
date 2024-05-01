@@ -114,6 +114,34 @@ table {
     <div>{{ FLATS.script | safe }} {{ FLATS.div | safe }}</div>
 {% endif %}
 
+{# Template page for Camera QA (fiber and wavelength traceshifts) #}
+{% if CAMERA %}
+  <p> Camara QA for Spectrograph {{spectrograph}} </p>
+
+  <div class="container">
+    {# CAMERA QA plots #}
+    <div class=flex-item>{{ CAMERA.script | safe }} {{ CAMERA.div | safe }}</div>
+
+    {# Table of links to different CAMERA QA plots #}
+    <div class=flex-item style="padding-right:10px">
+      <br>
+      <table border="1" cellpadding="8">
+        <tr>
+        {% for i in ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] %}
+          <td {% if i == current %} bgcolor="#6495ed" {% endif %}>
+            <a href="history-camera-sp{{i}}.html">
+            <text style="font-weight:bold">sp{{i}}</text>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+      <br>
+    </div>
+
+  </div>
+{% endif %}
+
 {# Template page for CCD QA (read noise, bias, cosmic rate) #}
 {% if CCD %}
   <p> CCD QA for {{camera}}{{spectrograph}} </p>

@@ -966,10 +966,10 @@ def write_historyqa(infile, outdir):
     web_history.write_history(outfolder)
 
     #- Write CCD QA files.
-    web_history.write_ccd_qa(infile, outfolder)
+#    web_history.write_ccd_qa(infile, outfolder)
 
     #- Write camera QA files.
-    web_history.write_camara_qa(infile, outfolder)
+    web_history.write_camera_qa(infile, outfolder)
 
     #- Write flat calibration history
     web_history.write_flat_cals(infile, outfolder)
