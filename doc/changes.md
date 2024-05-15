@@ -2,12 +2,16 @@
 
 ## 0.5.1 (unreleased)
 
+### Minor Updates
+
+* Enabled history plot generation in NW monitor; cleaned up camera QA ([PR #408](https://github.com/desihub/nightwatch/pull/408)).
+
 ## 0.5.0 (2024-05-01)
 
 ### Major Updates
 
 * Added FVC plots to Nightwatch camfiber QA ([PR #396](https://github.com/desihub/nightwatch/pull/396)).
-* Integrate SQLite history DB into nightly processing ([PR * #403](https://github.com/desihub/nightwatch/pull/403)).
+* Integrate SQLite history DB into nightly processing ([PR #403](https://github.com/desihub/nightwatch/pull/403)).
 
 ### Minor Updates
 
