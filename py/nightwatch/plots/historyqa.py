@@ -39,9 +39,13 @@ def plot_camera_timeseries(camdata, spec,
         for cam in 'brz':
             select = camdata['cam'] == cam.upper()
 
+            #- Set up plot limit such that 0 is centered in the plot.
+            limit = 1.1*np.maximum(np.abs(np.min(camdata[metric[1]][select])),
+                                   np.abs(np.max(camdata[metric[2]][select])))
+
             fig = bk.figure(width=800, height=300, x_axis_type='datetime',
                             y_axis_label=f'{label} (pixels)',
-                            y_range=Range1d(1.1*np.min(camdata[metric[1]][select]), 1.1*np.max(camdata[metric[2]][select]), bounds=(-1, None)),
+                            y_range=Range1d(-limit, limit, bounds=(-1, None)),
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
