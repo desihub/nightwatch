@@ -318,11 +318,14 @@ def main_run(options=None):
         help="input raw data file")
     parser.add_argument("-o", "--outdir", type=str, required=True,
         help="output base directory")
-    parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+    parser.add_argument("--cameras", type=str,
+        help="comma separated list of cameras (for debugging)")
     parser.add_argument('-n', '--night', type=int,
         help="YEARMMDD night")
     parser.add_argument('-e', '--expid', type=int,
         help="Exposure ID")
+    parser.add_argument('--history', type=int, default=0,
+        help='Generate history plots every N exposures')
 
     if options is None:
         options = sys.argv[2:]
@@ -364,6 +367,14 @@ def main_run(options=None):
 
         print('{} Making plots'.format(time.strftime('%H:%M')))
         run.make_plots(qafile, tempdir, preprocdir=expdir, logdir=expdir, rawdir=rawdir, cameras=cameras)
+
+        if args.history > 0:
+            #- Generate history plots every N exposures.
+            N = args.history
+            if (int(expid) % N) == 0:
+                print('{} Making QA history plots'.format(time.strftime('%H:%M')))
+                dbfile = os.path.join(tempdir, 'historyqa', 'nightwatch_summary_qa.db')
+                run.write_historyqa(infile=dbfile, outdir=tempdir)
         
     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
     run.write_tables(args.outdir, args.outdir, expnights=[night,])
