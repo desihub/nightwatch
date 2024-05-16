@@ -91,6 +91,7 @@ def main_monitor(options=None):
     # parser.add_argument("--qadir", type=str,  help="QA output directory")
     parser.add_argument("--plotdir", type=str, help="QA plot output directory")
     parser.add_argument("--cameras", type=str, help="comma separated list of cameras (for debugging)")
+    parser.add_argument("--history", type=int, default=0, help="Generate history plots every N exposures")
     parser.add_argument("--catchup", action="store_true", help="Catch up on processing all unprocessed data")
     parser.add_argument("--waittime", type=int, default=10, help="Seconds to wait between checks for new data")
     parser.add_argument("--startdate", type=int, default=None, help="Earliest startdate to check for unprocessed nights (YYYYMMDD)")
@@ -157,7 +158,7 @@ def main_monitor(options=None):
             try :
                 if args.batch:
                     print('{} Submitting batch job for {}'.format(time.strftime('%H:%M'), rawfile))
-                    batch_run(rawfile, args.outdir, cameras, args.batch_queue, args.batch_time, args.batch_opts)
+                    batch_run(rawfile, args.outdir, cameras, args.history, args.batch_queue, args.batch_time, args.batch_opts)
                 else:
                     print('{} Running assemble_fibermap'.format(time.strftime('%H:%M')))
                     fibermap = run.run_assemble_fibermap(rawfile, outdir)
@@ -184,7 +185,7 @@ def main_monitor(options=None):
                     run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
                                    cameras=cameras)
 
-                    if (int(expid) % 10) == 0:
+                    if (int(expid) % args.history) == 0:
                         print('Writing QA history plots')
                         dbfile = os.path.join(outdir, 'historyqa', 'nightwatch_summary_qa.db')
                         run.write_historyqa(infile=dbfile, outdir=outdir)
@@ -259,13 +260,14 @@ class TempDirManager():
         print('{} Done copying {} files'.format(
             time.strftime('%H:%M'), len(argslist)))
 
-def batch_run(infile, outdir, cameras, queue, batchtime, batchopts):
+def batch_run(infile, outdir, cameras, nhistory, queue, batchtime, batchopts):
     """Submits batch job to `nightwatch run infile outdir ...`
 
     Args:
         infile (str): input DESI raw data file
         outdir (str): base output directory
         cameras (list or None): None, or list of cameras to include
+        nhistory (int): generate history plots every N exposures
         queue (str): slurm queue name
         batchtime (int): batch job time limit [minutes]
         batchopts (str): additional batch options
@@ -303,7 +305,7 @@ def batch_run(infile, outdir, cameras, queue, batchtime, batchopts):
 #SBATCH --output {expdir}/{jobname}-%j.joblog
 #SBATCH --exclusive
 
-nightwatch run --infile {infile} --outdir {outdir} {camera_options}
+nightwatch run --infile {infile} --outdir {outdir} {camera_options} --history {nhistory}
 """)
 
     err = subprocess.call(["sbatch", batchfile])
