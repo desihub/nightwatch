@@ -68,7 +68,7 @@
 {% else %}
     <td><a href="{{ exp.link }}">{{ exp.expid }}</a></td>
     {% if exp.TILEID_LINK != "na" %}
-      <td><a href="{{ exp.TILEID_LINK }}">{{ exp.TILEID }}</a></td>
+      <td><a href="{{ exp.TILEID_LINK }}" target="_blank" class="tilelink">{{ exp.TILEID }}</a></td>
     {% else %}
       <td>{{ exp.TILEID }}</td>
     {% endif %}
@@ -125,5 +125,26 @@
     
 </tr>
 {% endfor %}
+
+<script>
+// Replace fiberassign URLs with local links when inside the KPNO VPN.
+let url = location.href;
+let hostIsKPNO = url.includes("kpno.noao.edu");
+
+const tilelinks = document.getElementsByClassName("tilelink");
+for (let i = 0; i < tilelinks.length; i++) {
+  var tileurl = tilelinks[i].href;
+  
+  // If using Nightwatch @ KPNO, tile fiberassign QA links to a local folder.
+  if (hostIsKPNO) {
+    tileurl = tileurl.replace("https://data.desi.lbl.gov", "http://desi-7.kpno.noao.edu:8001");
+    tilelinks[i].href = tileurl;
+  }
+  // Outside the VPN, print warning about delays in fiberassign data transfers.
+  else {
+    tilelinks[i].title = "Fiberassign QA may take >24 hr to appear at NERSC.";
+  }
+}
+</script>
 
 {% endblock %}
