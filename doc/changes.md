@@ -1,10 +1,11 @@
 # Nightwatch change log
 
-## 0.5.1 (unreleased)
+## 0.5.1 (2024-07-06)
 
 ### Minor Updates
 
 * Enabled history plot generation in NW monitor; cleaned up camera QA ([PR #408](https://github.com/desihub/nightwatch/pull/408)).
+* Updated arc line references and expanded warning and error thresholds ([PR #416](https://github.com/desihub/nightwatch/pull/416)).
 
 ## 0.5.0 (2024-05-01)
 
