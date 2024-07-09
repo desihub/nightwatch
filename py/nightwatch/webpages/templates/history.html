@@ -109,6 +109,13 @@ table {
     </ul>
     <p> Details are provided in <a href="https://iopscience.iop.org/article/10.3847/1538-3881/acb212#ajacb212s4-6">J.  Guy et al., AJ 165:144, 2023</a>.  Significant outlier measurements can occur due to burned-out lamps, issues pointing the telescope to the white spot in the dome (Dec. 2023 and Jan. 2024), or the presence of stray light.</p>
 
+    <h3>Arc Lamp Data</h3>
+    <p>Selected line fluxes from arc lamps used for the wavelength calibration. At least one line from every lamp in each sequence is included. Sudden drops in the flux (25% to 50%) incidate a burned-out lamp.</p>
+    <ul>
+      <li><a href="history-arcs-short.html">ARC : CALIB short Arcs all</a></li>
+      <li><a href="history-arcs-long.html">ARC : CALIB long Arcs Cd+Xe</a></li>
+    </ul>
+
     <h3>LED Flat Field Data</h3>
     <p>Nightly flat-fielding using an array of LEDs illuminating the interior of the dome. A known anticorrelation in LED fluxes with air temperature is left uncorrected in the plots.</p>
     <ul>
@@ -118,7 +125,6 @@ table {
       <li><a href="history-flats-leds-03.html">FLAT : CALIB DESI-CALIB-03 LEDs only</a></li>
     </ul>
 
-    <!-- <h3>Arc Lamp Data</h3> -->
   </div>
 {% endif %}
 
@@ -126,6 +132,12 @@ table {
 {% if FLATS %}
     <p> {{obstype}} : {{program}} </p>
     <div>{{ FLATS.script | safe }} {{ FLATS.div | safe }}</div>
+{% endif %}
+
+{# Template page for calibration arc lamps (ARC obstype) #}
+{% if ARCS %}
+    <p> {{obstype}} : {{program}} </p>
+    <div>{{ ARCS.script | safe }} {{ ARCS.div | safe }}</div>
 {% endif %}
 
 {# Template page for Camera QA (fiber and wavelength traceshifts) #}

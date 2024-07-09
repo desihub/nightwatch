@@ -19,7 +19,7 @@ from .. import io
 
 
 from ..qa.history import SQLiteSummaryDB
-from ..plots.historyqa import plot_camera_timeseries, plot_ccd_timeseries, plot_flats_timeseries
+from ..plots.historyqa import plot_camera_timeseries, plot_ccd_timeseries, plot_flats_timeseries, plot_arcs_timeseries
 
 
 def write_history(outdir):
@@ -196,6 +196,59 @@ def write_flat_cals(infile, outdir):
 
         script, div = components(fig)
         html_components['FLATS'] = dict(script=script, div=div)
+
+        html = template.render(**html_components)
+        tmpfile = outfile + '.tmp' + str(os.getpid())
+        with open(tmpfile, 'w') as fx:
+            fx.write(html)
+
+        os.rename(tmpfile, outfile)
+        log.info(f'Wrote {outfile}')
+
+
+def write_arc_cals(infile, outdir):
+    """Write arc lamp calibration history plots.
+
+    Args:
+        infile: input SQLite file
+        outdir: location of output HTML files
+    """
+    log = desiutil.log.get_logger(level='INFO')
+
+    #- Set up HTML template for output.
+    env = jinja2.Environment(
+        loader=jinja2.PackageLoader('nightwatch.webpages', 'templates'),
+        autoescape=select_autoescape(disabled_extensions=('txt',),
+                                     default_for_string=True,
+                                     default=True)
+    )
+
+    template = env.get_template('history.html')
+
+    #- Set up access to history DB.
+    log.info(f'Access history data from {infile}')
+    db = SQLiteSummaryDB(infile)
+
+    #- Programs, lines, and lamps to loop over:
+    proglines = [('CALIB long Arcs Cd+Xe', ['B4679', 'R6440', 'Z9048'], ['Cd', 'Cd', 'Xe']),
+                 ('CALIB short Arcs all',  ['B4048', 'B4801', 'R6508', 'Z8192', 'Z8822'], ['Hg', 'Cd', 'Ne', 'Kr', 'Xe'])]
+
+    for program, lines, lamps in proglines:
+        obstype = 'ARC'
+        arcid = 'long' if 'long' in program else 'short'
+        outfile = os.path.join(outdir, f'history-arcs-{arcid}.html')
+
+        data = db.get_cal_arcs(program=program, fields=lines)
+        fig = plot_arcs_timeseries(data, lines, lamps)
+
+        html_components = dict(
+            bokeh_version=bokeh.__version__,
+            obstype=obstype, program=program,
+            qatype='history'
+        )
+
+        script, div = components(fig)
+        html_components['ARCS'] = dict(script=script, div=div)
 
         html = template.render(**html_components)
         tmpfile = outfile + '.tmp' + str(os.getpid())
