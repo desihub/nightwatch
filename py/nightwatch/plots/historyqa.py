@@ -257,7 +257,7 @@ def plot_arcs_timeseries(arcs, lines, lamps,
             select = arcs['spec'] == spec
 
             fig = bk.figure(width=800, height=300, x_axis_type='datetime',
-                            y_axis_label=name.upper(),
+                            y_axis_label=f'{name.upper()} integrated flux',
                             y_range=Range1d(-1, np.median(arcs[name][select]) + 2*np.std(arcs[name][select]), bounds=(-1, None)),
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
