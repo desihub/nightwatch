@@ -229,7 +229,7 @@ def write_arc_cals(infile, outdir):
     log.info(f'Access history data from {infile}')
     db = SQLiteSummaryDB(infile)
 
-    #- Programs/fields to loop over:
+    #- Programs, lines, and lamps to loop over:
     proglines = [('CALIB long Arcs Cd+Xe', ['B4679', 'R6440', 'Z9048'], ['Cd', 'Cd', 'Xe']),
                  ('CALIB short Arcs all',  ['B4048', 'B4801', 'R6508', 'Z8192', 'Z8822'], ['Hg', 'Cd', 'Ne', 'Kr', 'Xe'])]
 
