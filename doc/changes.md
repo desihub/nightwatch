@@ -2,6 +2,10 @@
 
 ## 0.5.2 (unreleased)
 
+### Minor Updates
+
+* Disable generation of historyqa plots in KPNO monitor ([PR #419](https://github.com/desihub/nightwatch/pull/419)).
+
 ## 0.5.1 (2024-07-06)
 
 ### Minor Updates
