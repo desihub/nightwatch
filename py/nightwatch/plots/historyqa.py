@@ -229,3 +229,72 @@ def plot_flats_timeseries(flats,
 
     return Tabs(tabs=camtabs)
 
+
+def plot_arcs_timeseries(arcs, lines, lamps,
+    camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+    """Produce time series of arc line widths using DB data.
+
+    Args
+        arcs : ndarray containing calibration fluxes.
+        lines : list of arc lines
+        lamps : list of arc lamps
+        camcolors : dict with color data.
+
+    Returns
+        tabs : Tabs with columns of LED flat calibrations.
+    """
+    #- Loop over all lines
+    linetabs = []
+
+    for line, lamp in zip(lines, lamps):
+        name = line
+        cam = line[0].upper()
+
+        figs = []
+
+        #- Loop over all spectrographs
+        for spec in np.arange(10):
+            select = flats['spec'] == spec
+
+            fig = bk.figure(width=800, height=300, x_axis_type='datetime',
+                            y_axis_label=name.upper(),
+                            y_range=Range1d(-1, np.median(flats[name][select]) + 2*np.std(flats[name][select]), bounds=(-1, None)),
+                            tools=['pan', 'box_zoom', 'reset', 'tap']
+                            )
+            fig.xaxis.major_label_orientation = np.radians(45)
+            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.title.text = f'{cam}{spec}'
+            fig.title.text_color = camcolors[cam.upper()]
+
+            source = ColumnDataSource(data={'time'  : flats['time'][select],
+                                            'expid' : flats['expid'][select],
+                                            'night' : flats['night'][select],
+                                            'spec'  : flats['spec'][select],
+                                            f'{name}' : flats[name][select]})
+
+            s = fig.scatter('time', name, source=source, color=camcolors[cam.upper()])
+
+            #- Add hover tool
+            fig.add_tools(HoverTool(
+                tooltips = [('night', '@night'),
+                            ('expid', '@expid'),
+                            ('cam', f'{cam}@spec'),
+                            ('linewidth', f'@{name}')],
+                renderers = [s]
+            ))
+
+            #- Add tap tool
+            taptool = fig.select(type=TapTool)
+            taptool.behavior = 'select'
+            taptool.callback = OpenURL(url='../@night/00@expid/qa-spectro-00@expid.html')
+
+            #- Store figures in list for column display
+            figs.append(fig)
+
+        #- Add figures to columns and columns to a camera panel.
+        col = column(figs)
+        tab = Panel(child=col, title=f'λ{line[1:]} ({lamp})')
+        linetabs.append(tab)
+
+    return Tabs(tabs=linetabs)
+
