@@ -184,11 +184,7 @@ def main_monitor(options=None):
                     run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
                                    cameras=cameras)
 
-                    if (expid % 10) == 0:
-                        print('Writing QA history plots')
-                        dbfile = os.path.join(outdir, 'historyqa', 'nightwatch_summary_qa.db')
-                        run.write_historyqa(infile=dbfile, outdir=outdir)
-
+                    print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
                     run.write_tables(args.outdir, args.plotdir, expnights=[night,])
 
                     time_end = time.time()
