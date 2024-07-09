@@ -2,6 +2,10 @@
 
 ## 0.5.2 (unreleased)
 
+### Major Updates
+
+* Added selected arc lines to the historyqa plots ([PR #420](https://github.com/desihub/nightwatch/pull/420)).
+
 ### Minor Updates
 
 * Disable generation of historyqa plots in KPNO monitor ([PR #419](https://github.com/desihub/nightwatch/pull/419)).
