@@ -962,6 +962,9 @@ def write_historyqa(infile, outdir):
 
     outfolder = os.path.join(outdir, 'historyqa')
 
+    #- Write flat calibration history
+    web_history.write_arc_cals(infile, outfolder)
+
     #- Write history index file.
     web_history.write_history(outfolder)
 
@@ -973,9 +976,6 @@ def write_historyqa(infile, outdir):
 
     #- Write flat calibration history
     web_history.write_flat_cals(infile, outfolder)
-
-    #- Write flat calibration history
-    web_history.write_arc_cals(infile, outfolder)
 
 
 def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_summary='all'):

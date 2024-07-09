@@ -254,11 +254,11 @@ def plot_arcs_timeseries(arcs, lines, lamps,
 
         #- Loop over all spectrographs
         for spec in np.arange(10):
-            select = flats['spec'] == spec
+            select = arcs['spec'] == spec
 
             fig = bk.figure(width=800, height=300, x_axis_type='datetime',
                             y_axis_label=name.upper(),
-                            y_range=Range1d(-1, np.median(flats[name][select]) + 2*np.std(flats[name][select]), bounds=(-1, None)),
+                            y_range=Range1d(-1, np.median(arcs[name][select]) + 2*np.std(arcs[name][select]), bounds=(-1, None)),
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
@@ -266,11 +266,11 @@ def plot_arcs_timeseries(arcs, lines, lamps,
             fig.title.text = f'{cam}{spec}'
             fig.title.text_color = camcolors[cam.upper()]
 
-            source = ColumnDataSource(data={'time'  : flats['time'][select],
-                                            'expid' : flats['expid'][select],
-                                            'night' : flats['night'][select],
-                                            'spec'  : flats['spec'][select],
-                                            f'{name}' : flats[name][select]})
+            source = ColumnDataSource(data={'time'  : arcs['time'][select],
+                                            'expid' : arcs['expid'][select],
+                                            'night' : arcs['night'][select],
+                                            'spec'  : arcs['spec'][select],
+                                            f'{name}' : arcs[name][select]})
 
             s = fig.scatter('time', name, source=source, color=camcolors[cam.upper()])
 

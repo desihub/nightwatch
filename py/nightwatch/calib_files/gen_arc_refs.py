@@ -85,9 +85,9 @@ if __name__ == '__main__':
     p.add_argument('-o', '--outfile', type=str,
                    help='Output JSON file with cal info',
                    default='test.json')
-    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.05,
+    p.add_argument('--level-warn', dest='levwarn', type=float, default=0.25,
                    help='Deviation from nominal area: warnings.')
-    p.add_argument('--level-error', dest='leverr', type=float, default=0.10,
+    p.add_argument('--level-error', dest='leverr', type=float, default=0.50,
                    help='Deviation from nominal area: errors.')
     p.add_argument('-p', '--plot', action='store_true',
                    help='Plot fits and reference fluxes')

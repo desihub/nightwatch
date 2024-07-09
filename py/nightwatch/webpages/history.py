@@ -19,7 +19,7 @@ from .. import io
 
 
 from ..qa.history import SQLiteSummaryDB
-from ..plots.historyqa import plot_camera_timeseries, plot_ccd_timeseries, plot_flats_timeseries
+from ..plots.historyqa import plot_camera_timeseries, plot_ccd_timeseries, plot_flats_timeseries, plot_arcs_timeseries
 
 
 def write_history(outdir):
@@ -235,10 +235,10 @@ def write_arc_cals(infile, outdir):
 
     for program, lines, lamps in proglines:
         obstype = 'ARC'
-        arcid = 'long' if long in program else 'short'
+        arcid = 'long' if 'long' in program else 'short'
         outfile = os.path.join(outdir, f'history-arcs-{arcid}.html')
 
-        data = db.get_cal_flats(program=program, fields=lines)
+        data = db.get_cal_arcs(program=program, fields=lines)
         fig = plot_arcs_timeseries(data, lines, lamps)
 
         html_components = dict(
