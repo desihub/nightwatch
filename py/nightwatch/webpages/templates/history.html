@@ -118,7 +118,13 @@ table {
       <li><a href="history-flats-leds-03.html">FLAT : CALIB DESI-CALIB-03 LEDs only</a></li>
     </ul>
 
-    <!-- <h3>Arc Lamp Data</h3> -->
+    <h3>Arc Lamp Data</h3>
+    <p>Selected line widths from arc lamps used for the wavelength calibration.</p>
+    <ul>
+      <li><a href="history-arcs-short.html">ARC : CALIB short Arcs all</a></li>
+      <li><a href="history-arcs-long.html">ARC : CALIB long Arcs Cd+Xe</a></li>
+    </ul>
+
   </div>
 {% endif %}
 
@@ -126,6 +132,12 @@ table {
 {% if FLATS %}
     <p> {{obstype}} : {{program}} </p>
     <div>{{ FLATS.script | safe }} {{ FLATS.div | safe }}</div>
+{% endif %}
+
+{# Template page for calibration arc lamps (ARC obstype) #}
+{% if ARCS %}
+    <p> {{obstype}} : {{program}} </p>
+    <div>{{ ARCS.script | safe }} {{ ARCS.div | safe }}</div>
 {% endif %}
 
 {# Template page for Camera QA (fiber and wavelength traceshifts) #}
