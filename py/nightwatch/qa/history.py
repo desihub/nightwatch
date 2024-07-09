@@ -562,3 +562,61 @@ class SQLiteSummaryDB(SummaryDB):
 
         return result
 
+    def get_cal_arcs(self, program, fields):
+        """Access arc line data from DB.
+
+        Parameters
+        ----------
+        program : str
+            Name of calibration program, e.g., "CALIB short Arcs all"
+        fields : list
+            List of arc lines, e.g., ['B4048', 'B4801', 'R6508', 'Z8192', 'Z8822']
+
+        Returns
+        -------
+        results : ndarray or None
+            Array of results of DB query.
+        """
+
+        #- Check for short arcs:
+        if program == 'CALIB short Arcs all':
+            table = 'nw_perspectro_short_arcs'
+        #- Check for long arcs:
+        elif program == 'CALIB long Arcs Cd+Xe':
+            table = 'nw_perspectro_long_arcs'
+        #- Fall through case: raise an exception.
+        else:
+            raise ValueError(f'Unrecognized arc calibration program {program}')
+
+        #- Set up the DB connection.
+        log = get_logger()
+        db_cur = self.dbconn.cursor()
+        result = None
+
+        #- Set up the query:
+        query = f"""SELECT {table}.expid, nw_header.night, nw_header.time, spectro, {', '.join(fields)}
+                    FROM {table}
+                    INNER JOIN nw_header ON nw_header.expid = {table}.expid
+                    WHERE nw_header.program = "{program}";
+                    """
+
+        try:
+            #- Check for non-null result
+            result = db_cur.execute(query).fetchall()
+            if result:
+                #- Set datatype for results array
+                datatype = [('expid', 'i4'),
+                            ('night', 'i4'),
+                            ('time', 'datetime64[s]'),
+                            ('spec', 'i4')]
+                for field in fields:
+                    datatype += [(field, np.float64)]
+
+                #- Set up results array
+                result = np.asarray(result, dtype=datatype)
+        except Exception as e:
+            log.error(e)
+        finally:
+            db_cur.close()
+
+        return result
