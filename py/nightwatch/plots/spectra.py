@@ -730,7 +730,7 @@ def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='
     source.data['x'] = np.zeros(10)
     source.data['y'] = np.zeros(10)
 
-    colors = ['#aaaaaa' if v < 0 else mpl.colors.rgb2hex(mpl_colormap(norm(v))) for v in source.data['data_val']]
+    colors = [mpl.colors.rgb2hex(mpl_colormap(norm(v))) for v in source.data['data_val']]
     source.data['colors'] = colors
 
     petals = fig.wedge(x='x', y='y', radius='radius', direction='anticlock',
@@ -822,17 +822,13 @@ def plot_spectra_qa_flats(data, header, calstandards):
         lower_err = []
         flux_ratio = []
 
-        nodata_spectro = []
-
         # Extract spectrograph integrated fluxes.
         for sp in spectro:
-
             select = (data['SPECTRO']==sp)
             iflux = data[select][f'{cam}_INTEG_FLUX'][0]
-
-            # If no data from spectrograph, remove later...
             if iflux < 0:
-                nodata_spectro.append(sp)
+                flux_ratio.append(np.nan)
+                continue
 
             # Read in calibration references (temperature-corrected).
             spcam = f'{cam}{sp}'
@@ -847,19 +843,14 @@ def plot_spectra_qa_flats(data, header, calstandards):
             Tmed = calstandards[spcam]['tempfit']['Tmedian']
             T = header['TAIRTEMP']
 
-            # Retrieve the calibration reference.
+            iflux_corr = iflux - b*(T - Tmed)
+            integ_flux.append(iflux_corr)
+
+            # Compute the ratio of the integrated flux against the calibration reference.
             iflux_corr_ref = calstandards[spcam]['refs']['nominal']
             integ_flux_ref.append(iflux_corr_ref)
 
-            # Temperature-corrected integrated flux reference
-            if iflux < 0:
-                ratio = -1
-                iflux_corr = -1
-            else:
-                iflux_corr = iflux - b*(T - Tmed)
-                ratio = iflux_corr / iflux_corr_ref
-
-            integ_flux.append(iflux_corr)
+            ratio = iflux_corr / iflux_corr_ref
             flux_ratio.append(ratio)
 
         # Create a data source and produce a focal plane figure.
@@ -872,6 +863,7 @@ def plot_spectra_qa_flats(data, header, calstandards):
 
         fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4, colorbar=True)
         fpfigs.append(fpfig)
+
 
         # Generate plot of integrated flux vs spectrograph for each camera.
         # Set marker colors and sizes to indicate out-of-range alerts.
@@ -888,22 +880,21 @@ def plot_spectra_qa_flats(data, header, calstandards):
                                     upper_err)
 
         # Store data in a bokeh column object.
-        # Remove missing spectrographs as needed.
         source = ColumnDataSource(data=dict(
-            data_val=np.delete(np.round(integ_flux), nodata_spectro),
-            locations=np.delete(spectro, nodata_spectro),
-            nominal=np.delete(nominal, nodata_spectro),
-            lower=np.delete(lower_warn, nodata_spectro),
-            upper=np.delete(upper_warn, nodata_spectro),
-            lower_err=np.delete(lower_err, nodata_spectro),
-            upper_err=np.delete(upper_err, nodata_spectro),
-            colors=np.delete(mcolors, nodata_spectro),
-            sizes=np.delete(msizes, nodata_spectro)
+            data_val=np.round(integ_flux),
+            locations=spectro,
+            nominal=nominal,
+            lower=lower_warn,
+            upper=upper_warn,
+            lower_err=lower_err,
+            upper_err=upper_err,
+            colors=mcolors,
+            sizes=msizes
         ))
 
         # Set up figures and labels.
-        plotmin = 0.9*np.min(np.minimum(np.delete(lower_err, nodata_spectro), np.delete(integ_flux, nodata_spectro)))
-        plotmax = 1.1*np.max(np.maximum(np.delete(upper_err, nodata_spectro), np.delete(integ_flux, nodata_spectro)))
+        plotmin = 0.9*np.min(np.minimum(lower_err, integ_flux))
+        plotmax = 1.1*np.max(np.maximum(upper_err, integ_flux))
 
         hover = HoverTool(names=['circles'],
                     tooltips=[('spec', '@locations'), (f'INTEG_FLUX', '@data_val'), ('nominal', '@nominal')],
@@ -975,16 +966,14 @@ def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
             continue
         if data[i] <= lower_err[i]:
             colors.append('red')
-        elif data[i] > lower_err[i] and data[i] <= lower[i]:
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
             colors.append('orange')
-        elif data[i] > lower[i] and data[i] < upper[i]:
+        if data[i] > lower[i] and data[i] < upper[i]:
             colors.append('black')
-        elif data[i] >= upper[i] and data[i] < upper_err[i]:
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
             colors.append('orange')
-        elif data[i] >= upper_err[i]:
+        if data[i] >= upper_err[i]:
             colors.append('red')
-        else:
-            colors.append('white')
     return colors
 
 
@@ -1002,16 +991,14 @@ def get_spectraqa_size(data, lower_err, lower, upper, upper_err):
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
             continue
-        elif data[i] <= lower_err[i]:
+        if data[i] <= lower_err[i]:
             sizes.append('9')
-        elif data[i] > lower_err[i] and data[i] <= lower[i]:
+        if data[i] > lower_err[i] and data[i] <= lower[i]:
             sizes.append('9')
-        elif data[i] > lower[i] and data[i] < upper[i]:
+        if data[i] > lower[i] and data[i] < upper[i]:
             sizes.append('5')
-        elif data[i] >= upper[i] and data[i] < upper_err[i]:
+        if data[i] >= upper[i] and data[i] < upper_err[i]:
             sizes.append('9')
-        elif data[i] >= upper_err[i]:
+        if data[i] >= upper_err[i]:
             sizes.append('9')
-        else:
-            sizes.append('1')
     return sizes
