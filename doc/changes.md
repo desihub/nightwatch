@@ -10,7 +10,7 @@
 
 * Disable generation of historyqa plots in KPNO monitor ([PR #419](https://github.com/desihub/nightwatch/pull/419)).
 * Fix FLATS QA when missing spectrographs ([PR #431](https://github.com/desihub/nightwatch/pull/431)). 
-* Add missing links to sp2 on history QA page (([PR #436](https://github.com/desihub/nightwatch/pull/436))).
+* Add missing links to sp2 on history QA page ([PR #436](https://github.com/desihub/nightwatch/pull/437)).
 
 ## 0.5.1 (2024-07-06)
 
