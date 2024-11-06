@@ -1,3 +1,15 @@
 # Delete old nightwatch files daily at 9am (desi-8)
 MAILTO=StephenBailey@lbl.gov
 0 9 * * * /usr/bin/bash /n/home/datasystems/users/sjbailey/kpno_nightwatch_cleanup.sh
+
+# Update historyqa plots daily at 9:15 am
+MAILTO=sbenzvi@ur.rochester.edu
+15 9 * * * /usr/bin/bash -l /exposures/nightwatch/cron_nightwatch_historyqa.sh
+
+# SVN update DESI_SPECTRO_CALIB daily at 4pm
+MAILTO=StephenBailey@lbl.gov
+0 16 * * * cd /data/datasystems/spectro/desi_spectro_calib/trunk && (svn update . > cronupdate.log)
+
+# Update DESI_SPECTRO_DARK daily at 4:20 pm
+MAILTO=sbenzvi@ur.rochester.edu
+20 16 * * * cd /data/datasystems/spectro/desi_spectro_dark && /usr/bin/bash /n/home/datasystems/sync_desi_spectro_dark.sh &> sync_desi_spectro_dark.log
