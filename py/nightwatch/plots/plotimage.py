@@ -15,7 +15,7 @@ from astropy.visualization import ZScaleInterval
 import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import layout, gridplot
-from bokeh.models import HelpTool, Label
+from bokeh.models import HelpTool, HoverTool, Label, ColumnDataSource
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
@@ -46,7 +46,7 @@ def downsample_image(image, n):
     return result
 
 
-def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsample=2, title=None):
+def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsample=2, title=None, histlim=(-40,40,201)):
     """Plot a spectrograph CCD image.
 
     Parameters
@@ -65,6 +65,8 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
         Downsampling factor for the input.
     title : str or None
         Output figure title.
+    hist : tuple or None
+        Histogram limits and number of bins.
 
     Returns
     -------
@@ -132,6 +134,41 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
 
     if title is not None:
         fig.title.text = title
+
+    #- Plot a histogram of CCD pixel values (not downsampled)
+    if histlim is not None:
+        if type(histlim) is not tuple:
+            raise ValueError('histlim is not a tuple of type (lower, upper, nbins)')
+        if len(histlim) != 3:
+            raise ValueError(f'histlim {histlim} is not of form (lower, upper, nbins)')
+
+        fig_h = bk.figure(title='CCD values', y_axis_type="log", x_range=(histlim[0], histlim[1]))
+            
+        px = np.linspace(start=histlim[0], stop=histlim[1], num=histlim[2])
+        pxc = 0.5*(px[1:] + px[:-1])
+        amps, colors, k = 'ABCD', ['mediumblue', 'darkorange', 'limegreen', 'crimson'], 0
+
+        for (i1,i2) in zip([0, nx//2], [nx//2, nx]):
+            for (j1,j2) in zip([0, ny//2], [ny//2, ny]):
+                data = image[i1:i2, j1:j2].flatten()
+                hist, _ = np.histogram(data, bins=px)
+
+                source = ColumnDataSource(data=dict(
+                            pixels = pxc,
+                            data = hist,
+                            amp = [amps[k]]*len(hist),
+                        ))
+                s = fig_h.step('pixels', 'data', source=source, color=colors[k],
+                               legend_label=f'amp {amps[k]}', alpha=0.7, line_width=2, mode='center')
+                k += 1
+
+        fig_h.legend.location = 'top_left'
+        fig_h.xaxis.axis_label = 'CCD pixel count'
+        fig_h.yaxis.axis_label = 'Count'
+
+        #- Create tabs
+        histtabs = [Panel(child=fig, title='CCD'), Panel(child=fig_h, title='Histogram')]
+        return Tabs(tabs=histtabs)
 
     return fig
 
