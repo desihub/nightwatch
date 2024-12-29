@@ -12,6 +12,7 @@
 * Fix FLATS QA when missing spectrographs ([PR #431](https://github.com/desihub/nightwatch/pull/431)). 
 * Add missing links to sp2 on history QA page ([PR #436](https://github.com/desihub/nightwatch/pull/437)).
 * Document `DESI_SPECTRO_DARK` synchronization script ([PR #436](https://github.com/desihub/nightwatch/pull/441)).
+* Adjust read noise thresholds for R1C ([PR #448](https://github.com/desihub/nightwatch/pull/448)).
 
 ## 0.5.1 (2024-07-06)
 
