@@ -84,11 +84,13 @@ table {
   <br>
 
 {% if current and downsample %}
+<!--
 <div>Downsample: <input style="width: 2.5em" type="number" min=1 max=20 id="down" value={{downsample}}></div>
 <button onclick='
     var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
     window.open(url, "_top")
     '>Generate</button>
+-->
 {% endif %}
   </div>
 </div>
