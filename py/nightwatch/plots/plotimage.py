@@ -133,41 +133,44 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
     if title is not None:
         fig.title.text = title
 
-    #- Plot a histogram of CCD pixel values (not downsampled)
-    if imghdr is not None:
-        if 'ZERO' in imghdr['PROGRAM']:
-            histlim = (-40, 40, 201)
+    #- Plot a histogram of CCD pixel values (not downsampled).
+    #  First determine histogram binning.
+    cmin, cmax = 1e99, -1e99
+    for (i1,i2) in zip([0, nx//2], [nx//2, nx]):
+        for (j1,j2) in zip([0, ny//2], [ny//2, ny]):
+            data = image[i1:i2, j1:j2].flatten()
+            p1, p2 = np.percentile(data, [0.01, 99.99])
+            cmin = np.minimum(cmin, np.floor(p1))
+            cmax = np.maximum(cmax, np.ceil(p2))
 
-            fig_h = bk.figure(title='CCD values', y_axis_type="log")#, x_range=(histlim[0], histlim[1]))
-                
-            px = np.linspace(start=histlim[0], stop=histlim[1], num=histlim[2])
-            pxc = 0.5*(px[1:] + px[:-1])
-            amps, colors, k = 'ABCD', ['mediumblue', 'darkorange', 'limegreen', 'crimson'], 0
+    px = np.linspace(start=cmin, stop=cmax, num=201)
+    pxc = 0.5*(px[1:] + px[:-1])
 
-            for (i1,i2) in zip([0, nx//2], [nx//2, nx]):
-                for (j1,j2) in zip([0, ny//2], [ny//2, ny]):
-                    data = image[i1:i2, j1:j2].flatten()
-                    hist, _ = np.histogram(data, bins=px)
+    fig_h = bk.figure(title='CCD values', y_axis_type='log')
+    amps, colors, k = 'ABCD', ['mediumblue', 'darkorange', 'limegreen', 'crimson'], 0
 
-                    source = ColumnDataSource(data=dict(
-                                pixels = pxc,
-                                data = hist,
-                                amp = [amps[k]]*len(hist),
-                            ))
-                    s = fig_h.step('pixels', 'data', source=source, color=colors[k],
-                                   legend_label=f'amp {amps[k]}', alpha=0.7, line_width=2, mode='center')
-                    k += 1
+    #- Loop over amps and plot the data.
+    for (i1,i2) in zip([0, nx//2], [nx//2, nx]):
+        for (j1,j2) in zip([0, ny//2], [ny//2, ny]):
+            data = image[i1:i2, j1:j2].flatten()
+            hist, _ = np.histogram(data, bins=px)
 
-            fig_h.legend.location = 'top_left'
-            fig_h.xaxis.axis_label = 'CCD pixel count'
-            fig_h.yaxis.axis_label = 'Count'
-            fig_h.x_range = Range1d(histlim[0], histlim[1])
+            source = ColumnDataSource(data=dict(
+                        pixels = pxc,
+                        data = hist,
+                        amp = [amps[k]]*len(hist),
+                    ))
+            s = fig_h.step('pixels', 'data', source=source, color=colors[k],
+                           legend_label=f'amp {amps[k]}', alpha=0.7, line_width=2, mode='center')
+            k += 1
 
-            #- Create tabs
-            histtabs = [Panel(child=fig, title='CCD'), Panel(child=fig_h, title='Histogram')]
-            return Tabs(tabs=histtabs)
+    fig_h.legend.location = 'top_right'
+    fig_h.xaxis.axis_label = 'CCD pixel count'
+    fig_h.yaxis.axis_label = 'Count'
+    fig_h.x_range = Range1d(cmin, cmax)
 
-    return fig
+    histtabs = [Panel(child=fig, title='CCD'), Panel(child=fig_h, title='Histogram')]
+    return Tabs(tabs=histtabs)
 
 
 def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title=None):
