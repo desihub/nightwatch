@@ -322,8 +322,8 @@
         "lower_err": 1.5222305934287783
     },
     "R1C": {
-        "upper_err": 6.39,
-        "upper": 5,79,
+        "upper_err": 6.49,
+        "upper": 5.89,
         "nominal": 4.63,
         "lower": 3.47,
         "lower_err": 2.87
