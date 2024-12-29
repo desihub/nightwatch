@@ -50,6 +50,7 @@ table {
   {% if current %}
   <!-- Plot a single preprocessed CCD image -->
   <div class=flex-item>
+    <br />
     <div>{{ plot_script | safe }} {{plot_div | safe }}</div>
     <div><p style="font-weight:bold"><a href="qproc-{{current}}-{{zexpid}}-logfile.html">Processing log for {{current}}, exposure {{expid}}</a></p></div>
   </div>
@@ -84,11 +85,13 @@ table {
   <br>
 
 {% if current and downsample %}
+<!--
 <div>Downsample: <input style="width: 2.5em" type="number" min=1 max=20 id="down" value={{downsample}}></div>
 <button onclick='
     var url = "{{basename}}-" + document.getElementById("down").value + "x.html"
     window.open(url, "_top")
     '>Generate</button>
+-->
 {% endif %}
   </div>
 </div>

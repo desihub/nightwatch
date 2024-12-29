@@ -1,10 +1,11 @@
 # Nightwatch change log
 
-## 0.5.2 (unreleased)
+## 0.6.0 (2024-12-29)
 
 ### Major Updates
 
 * Added selected arc lines to the historyqa plots ([PR #420](https://github.com/desihub/nightwatch/pull/420)).
+* Plot CCD data histograms ([PR #449](https://github.com/desihub/nightwatch/pull/449)).
 
 ### Minor Updates
 
