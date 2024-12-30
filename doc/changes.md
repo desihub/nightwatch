@@ -1,5 +1,11 @@
 # Nightwatch change log
 
+## 0.6.1 (unreleased)
+
+### Major Updates
+
+### Minor Updates
+
 ## 0.6.0 (2024-12-29)
 
 ### Major Updates
