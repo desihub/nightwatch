@@ -6,6 +6,8 @@
 
 ### Minor Updates
 
+* Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
+
 ## 0.6.0 (2024-12-29)
 
 ### Major Updates
