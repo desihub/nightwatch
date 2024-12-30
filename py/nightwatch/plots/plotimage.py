@@ -168,7 +168,7 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
             k += 1
 
     fig_h.legend.location = 'top_right'
-    fig_h.xaxis.axis_label = 'CCD pixel count'
+    fig_h.xaxis.axis_label = 'CCD charge'
     fig_h.yaxis.axis_label = 'Count'
     fig_h.x_range = Range1d(cmin, cmax)
 
