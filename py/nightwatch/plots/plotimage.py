@@ -149,7 +149,8 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
     px = np.linspace(start=cmin, stop=cmax, num=nbin)
     pxc = 0.5*(px[1:] + px[:-1])
 
-    fig_h = bk.figure(title='CCD values', y_axis_type='log')
+    fig_h = bk.figure(title='CCD values', y_axis_type='log',
+                      tools='pan,box_zoom,wheel_zoom,save,reset')
     amps, colors, k = 'ABCD', ['mediumblue', 'darkorange', 'limegreen', 'crimson'], 0
 
     #- Loop over amps and plot the data.
