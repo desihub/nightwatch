@@ -142,8 +142,11 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
             p1, p2 = np.percentile(data, [0.01, 99.99])
             cmin = np.minimum(cmin, np.floor(p1))
             cmax = np.maximum(cmax, np.ceil(p2))
+    cmin = cmin if cmin < -30. else -30.
+    cmax = cmax if cmax >  30. else  30.
+    nbin = 201
 
-    px = np.linspace(start=cmin, stop=cmax, num=201)
+    px = np.linspace(start=cmin, stop=cmax, num=nbin)
     pxc = 0.5*(px[1:] + px[:-1])
 
     fig_h = bk.figure(title='CCD values', y_axis_type='log')
