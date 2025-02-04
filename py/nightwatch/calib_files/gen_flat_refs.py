@@ -154,6 +154,7 @@ if __name__ == '__main__':
             
             # Set up time series and reference level plots if requested.
             if args.plot:
+                fig_sc, axes_sc = plt.subplots(10, 1, figsize=(10, 20), sharex=True, gridspec_kw={'hspace':0})
                 fig_ts, axes_ts = plt.subplots(10, 1, figsize=(10, 20), sharex=True, gridspec_kw={'hspace':0})
         
             # Loop over spectrographs:
@@ -211,8 +212,16 @@ if __name__ == '__main__':
                     'lower_err' : lower_err 
                 }
                 
-                # Plot the time series and flux distributions if requested.
+                # Plot f(T), time series, and flux distributions if requested.
                 if args.plot:
+                    # Scatter plots.
+                    ax = axes_sc[spec]
+                    ax.errorbar(T[select], f[select], yerr=df[select], fmt='.')
+                    ax.set(ylabel=f'{quantity}_sp{spec:d}')
+                    _Tmin, _Tmax = np.min(T[select]), np.max(T[select])
+                    _T = np.arange(_Tmin, _Tmax + 1, 1)
+                    ax.plot(_T, a + b*_T)
+
                     # Time series.
                     ax = axes_ts[spec]
                     ax.scatter(t[select], f[select], label=f'{quantity}_sp{spec:d}')
@@ -231,8 +240,14 @@ if __name__ == '__main__':
                     ax.set(xlabel=f'{quantity}', ylabel='count')
                     ax.legend(loc='upper left', fontsize=8)
             
-            # Save time series and histograms if requested.
+            # Save temp plots, time series, and histograms if requested.
             if args.plot:
+                ax = axes_sc[-1]
+                ax.set(xlabel='$T_\mathrm{air}$ [C]')
+                fig_sc.tight_layout()
+                fig_sc.savefig(f'qa_{program.replace(" ", "_")}_{quantity}_temp_dep.png', dpi=100)
+                plt.close(fig_sc)
+
                 ax = axes_ts[-1]
                 ax.xaxis.set_major_locator(mpl.dates.MonthLocator(bymonth=range(1,13), bymonthday=1))
                 fig_ts.autofmt_xdate()
