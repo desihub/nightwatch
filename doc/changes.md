@@ -4,6 +4,8 @@
 
 ### Major Updates
 
+* Updated LED flat fielding temperature correction coeffiecients.
+
 ### Minor Updates
 
 * Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
