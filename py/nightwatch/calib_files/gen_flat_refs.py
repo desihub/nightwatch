@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import datetime
+import ephem
+
 from scipy.optimize import minimize
 
 from glob import glob
@@ -75,6 +78,37 @@ def linear_fit(x, y, dy):
         a, b = fitres.x
         
     return a, b, fitres.success
+
+
+def get_fullmoons_in_range(night1: int, night2: int) -> list[int]:
+    """Get full moon dates bounding a start and stop date.
+    Assumes that night1 < night2.
+
+    Used for convenient plotting.
+    """
+    if night1 >= night2:
+        raise ValueError(f'Require night1 ({night1}) < night2 ({night2})')
+
+    #- First full moon
+    yr, mn, dy = night1//10000, night1//100 % 100, night1 % 100
+    date = ephem.Date(datetime.date(yr, mn, dy))
+    moons = [ephem.previous_full_moon(date)]
+
+    #- Last full moon
+    yr, mn, dy = night2//10000, night2//100 % 100, night2 % 100
+    date = ephem.Date(datetime.date(yr, mn, dy))
+    moonlast = ephem.next_full_moon(date)
+
+    #- Fill in the range
+    date = moons[0]
+    while date.datetime().date() < moonlast.datetime().date():
+        date = ephem.next_full_moon(date)
+        moons.append(date)
+
+    #- Convert ephem date (MJD) to night (YYYYMMDD)
+    moons = [_.datetime().date() for _ in moons]
+    moons = [_.year*10000 + _.month*100 + _.day for _ in moons]
+    return moons
 
 
 if __name__ == '__main__':
@@ -214,17 +248,19 @@ if __name__ == '__main__':
                 
                 # Plot f(T), time series, and flux distributions if requested.
                 if args.plot:
-                    # Scatter plots. Colorize data by month.
+                    # Scatter plots. Colorize data by lunation.
                     ax = axes_sc[spec]
 
-                    yrmonths = np.unique(nights // 100)
+                    moons = get_fullmoons_in_range(nights[0], nights[-1])
+                    nlunations = len(moons) - 1
                     cmap = mpl.colormaps['turbo_r']
-                    colors = cmap(np.linspace(0, 1, len(yrmonths)))
+                    colors = cmap(np.linspace(0, 1, nlunations))
 
-                    for j, yrmon in enumerate(yrmonths):
-                        yr, mon = yrmon // 100, yrmon % 100
-                        isyrmon = (nights//100) == yrmon
-                        ax.errorbar(T[select & isyrmon], f[select & isyrmon], yerr=df[select & isyrmon], fmt='.', color=colors[j], label=f'{yr}-{mon:02d}')
+                    for j in range(nlunations):
+                        inlunation = (nights >= moons[j]) & (nights < moons[j+1])
+                        date1 = f'{moons[j]//10000}-{moons[j]//100 % 100:02d}-{moons[j]%100:02d}'
+                        date2 = f'{moons[j+1]//10000}-{moons[j+1]//100 % 100:02d}-{moons[j+1]%100:02d}'
+                        ax.errorbar(T[select & inlunation], f[select & inlunation], yerr=df[select & inlunation], fmt='.', color=colors[j], label=f'Lun: {date1} - {date2}')
 
                     ax.set(ylabel=f'{quantity}_sp{spec:d}')
                     _Tmin, _Tmax = np.min(T[select]), np.max(T[select])
@@ -232,7 +268,7 @@ if __name__ == '__main__':
                     ax.plot(_T, a + b*_T)
 
                     if spec == 0:
-                        ax.legend(fontsize=9, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=8, mode='expand', borderaxespad=0.)
+                        ax.legend(fontsize=9, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=3, mode='expand', borderaxespad=0.)
 
                     # Time series.
                     ax = axes_ts[spec]
