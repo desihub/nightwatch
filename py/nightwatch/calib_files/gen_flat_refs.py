@@ -214,13 +214,25 @@ if __name__ == '__main__':
                 
                 # Plot f(T), time series, and flux distributions if requested.
                 if args.plot:
-                    # Scatter plots.
+                    # Scatter plots. Colorize data by month.
                     ax = axes_sc[spec]
-                    ax.errorbar(T[select], f[select], yerr=df[select], fmt='.')
+
+                    yrmonths = np.unique(nights // 100)
+                    cmap = mpl.colormaps['turbo_r']
+                    colors = cmap(np.linspace(0, 1, len(yrmonths)))
+
+                    for j, yrmon in enumerate(yrmonths):
+                        yr, mon = yrmon // 100, yrmon % 100
+                        isyrmon = (nights//100) == yrmon
+                        ax.errorbar(T[select & isyrmon], f[select & isyrmon], yerr=df[select & isyrmon], fmt='.', color=colors[j], label=f'{yr}-{mon:02d}')
+
                     ax.set(ylabel=f'{quantity}_sp{spec:d}')
                     _Tmin, _Tmax = np.min(T[select]), np.max(T[select])
                     _T = np.arange(_Tmin, _Tmax + 1, 1)
                     ax.plot(_T, a + b*_T)
+
+                    if spec == 0:
+                        ax.legend(fontsize=9, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left', ncols=8, mode='expand', borderaxespad=0.)
 
                     # Time series.
                     ax = axes_ts[spec]
