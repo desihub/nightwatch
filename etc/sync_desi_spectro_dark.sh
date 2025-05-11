@@ -39,9 +39,27 @@ done
 #- Get top-level CSV records
 for csv in bias_table dark_table exp_daily_dark exp_dark_zero; do
     csvfile=${csv}.csv
+
+    #- Make a copy of the file in case of download problems.
+    if [ -s ${csvfile} ]; then
+        cp ${csvfile} ${csvfile}.bak
+    fi
+    echo "Downloading ${csvfile} from ${URL}$"
+
     cd ${DESI_SPECTRO_DARK}/${VERSION}
 
     wget --user=${user} --password=${passwd} --no-check-certificate ${URL}/${csvfile} -O ${csvfile}
+    if [ $? -ne 0 ]; then
+        #- When wget fails, restore the CSV file from its backup.
+        echo "wget FAILED for ${csvfile}."
+        if [ -s ${csvfile}.bak ]; then
+            echo "Restoring backup ${csvfile}."
+            mv ${csvfile}.bak ${csvfile}
+        fi
+    else
+        #- Remove the backup CSV file under all other conditions.
+        rm -f ${csvfile}.bak
+    fi
 done
 
 echo `date --utc`
