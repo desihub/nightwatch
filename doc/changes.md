@@ -4,6 +4,7 @@
 
 ### Major Updates
 
+* Added error handling to wget in DESI_SPECTRO_DARK sync script ([PR #461](https://github.com/desihub/nightwatch/pull/461)).
 * Updated LED flat fielding temperature correction coefficients ([PR #456](https://github.com/desihub/nightwatch/pull/456)).
 
 ### Minor Updates
