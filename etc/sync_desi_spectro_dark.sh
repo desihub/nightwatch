@@ -55,7 +55,7 @@ for csv in bias_table dark_table exp_daily_dark exp_dark_zero; do
         echo "wget FAILED to retrief ${csvfile}."
     else
         #- Copy the CSV file.
-        cp ${tmpdir}/${csvfile} .
+        mv -f ${tmpdir}/${csvfile} .
     fi
 done
 rm -rf ${tmpdir}
