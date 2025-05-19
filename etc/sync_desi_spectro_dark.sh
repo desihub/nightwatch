@@ -52,7 +52,7 @@ for csv in bias_table dark_table exp_daily_dark exp_dark_zero; do
 
     if [ ${rc} -ne 0 ]; then
         #- When wget fails, just emit a warning.
-        echo "wget FAILED to retrief ${csvfile}."
+        echo "wget FAILED to retrieve ${csvfile}."
     else
         #- Copy the CSV file.
         mv -f ${tmpdir}/${csvfile} .
