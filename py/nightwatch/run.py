@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os, re, time
 import sys
 import multiprocessing as mp
@@ -223,14 +224,11 @@ def run_assemble_fibermap(rawfile, outdir):
             log.info('Creating {}'.format(outdir))
             os.makedirs(outdir, exist_ok=True)
 
-        # Environment variable DESI_SPECTRO_DATA required if not defined.
-        new_env = os.environ
-        if 'DESI_SPECTRO_DATA' not in new_env:
-            subfolder = f'{night}/{expid:08d}/{os.path.basename(rawfile)}'
-            rawdir = rawfile.replace(subfolder, '')
-            if os.path.isdir(rawdir):
-                new_env.update({'DESI_SPECTRO_DATA' : rawdir})
-                log.info(f'Updated DESI_SPECTRO_DATA to {new_env["DESI_SPECTRO_DATA"]}')
+        #- Temporarily redefine FIBER_ASSIGN_DIR to point to the raw data
+        #  folder so the fiberassign file needed by the fibermap is found.
+        new_env = deepcopy(os.environ)
+        if 'FIBER_ASSIGN_DIR' not in new_env:
+            new_env.update(dict(FIBER_ASSIGN_DIR=os.path.dirname(rawfile)))
 
         fibermap = os.path.join(outdir, 'fibermap-{:08d}.fits'.format(expid))
         cmd = f'desi_assemble_fibermap -n {night} -e {expid} -o {fibermap} --overwrite'
