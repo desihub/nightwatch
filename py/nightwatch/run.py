@@ -593,6 +593,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         argslist = [(pinput.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
 
         if ncpu > 1:
+            mp.set_start_method("spawn", force=True)
             pool = mp.Pool(ncpu)
             pool.starmap(web_plotimage.write_image_html, argslist)
             pool.close()
