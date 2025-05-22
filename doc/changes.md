@@ -1,9 +1,10 @@
 # Nightwatch change log
 
-## 0.6.1 (unreleased)
+## 0.7.0 (unreleased)
 
 ### Major Updates
 
+* Upgrade LED references after change to cal station 1 ([PR #466](https://github.com/desihub/nightwatch/pull/464)).
 * Force use of spawn in parallel threads ([PR #464](https://github.com/desihub/nightwatch/pull/464)).
 * Fix broken fibermap assembly due to undefined environment ([PR #463](https://github.com/desihub/nightwatch/pull/463)).
 * Added error handling to wget in DESI_SPECTRO_DARK sync script ([PR #461](https://github.com/desihub/nightwatch/pull/461), [PR #462](https://github.com/desihub/nightwatch/pull/462)).
