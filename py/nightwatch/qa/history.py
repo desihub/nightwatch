@@ -377,7 +377,6 @@ class SQLiteSummaryDB(SummaryDB):
             if len(result) == 0:
                 # Insert the exposure header.
                 insert_cmd = "INSERT INTO nw_header VALUES ({expid}, {night}, '{obstype}', '{program}', {time})".format(**header)
-                print(insert_cmd)
                 db_cur.execute(insert_cmd)
 
                 # Insert all exposure data.
