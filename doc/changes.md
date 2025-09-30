@@ -12,7 +12,7 @@
 
 ### Minor Updates
 
-* Fixed string literal insertion error in SQLite3 ([PR #478](https://github.com/desihub/nightwatch/pull/478)).
+* Fixed string literal insertion error in SQLite3 ([PR #478](https://github.com/desihub/nightwatch/pull/478) and [PR #479](https://github.com/desihub/nightwatch/pull/479)).
 * Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
 
 ## 0.6.0 (2024-12-29)
