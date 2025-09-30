@@ -1,6 +1,6 @@
 # Nightwatch change log
 
-## 0.7.0 (unreleased)
+## 0.7.1 (unreleased)
 
 ### Major Updates
 
@@ -12,6 +12,7 @@
 
 ### Minor Updates
 
+* Fixed string literal insertion error in SQLite3 ([PR #478](https://github.com/desihub/nightwatch/pull/478)).
 * Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
 
 ## 0.6.0 (2024-12-29)
