@@ -541,7 +541,7 @@ class SQLiteSummaryDB(SummaryDB):
         query = f"""SELECT nw_perspectro_flats.expid, nw_header.night, nw_header.time, spectro, b_integ_flux, r_integ_flux, z_integ_flux
                     FROM nw_perspectro_flats
                     INNER JOIN nw_header ON nw_header.expid = nw_perspectro_flats.expid
-                    WHERE nw_header.program = "{program}";
+                    WHERE nw_header.program = '{program}';
                     """
 
         try:
@@ -597,7 +597,7 @@ class SQLiteSummaryDB(SummaryDB):
         query = f"""SELECT {table}.expid, nw_header.night, nw_header.time, spectro, {', '.join(fields)}
                     FROM {table}
                     INNER JOIN nw_header ON nw_header.expid = {table}.expid
-                    WHERE nw_header.program = "{program}";
+                    WHERE nw_header.program = '{program}';
                     """
 
         try:
