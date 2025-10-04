@@ -12,6 +12,7 @@
 
 ### Minor Updates
 
+* Ensure that FVC images are plotted at KPNO ([PR #481](https://github.com/desihub/nightwatch/pull/481)).
 * Fixed string literal insertion error in SQLite3 ([PR #478](https://github.com/desihub/nightwatch/pull/478) and [PR #479](https://github.com/desihub/nightwatch/pull/479)).
 * Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
 
