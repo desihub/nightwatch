@@ -141,6 +141,8 @@ def main_monitor(options=None):
         night, expid = expdir.split('/')[-2:]
         night = int(night)
         rawfile = os.path.join(expdir, 'desi-{}.fits.fz'.format(expid))
+        rawdir = os.path.dirname(rawfile)
+
         if expdir not in processed and os.path.exists(rawfile):
             processed.add(expdir)
             outdir = '{}/{}/{}'.format(args.outdir, night, expid)
@@ -181,8 +183,7 @@ def main_monitor(options=None):
                     tmpdir = '{}/{}/{}'.format(args.plotdir, night, expid)
                     if not os.path.isdir(tmpdir) :
                         os.makedirs(tmpdir)
-                    run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir,
-                                   cameras=cameras)
+                    run.make_plots(infile=qafile, basedir=args.plotdir, preprocdir=outdir, logdir=outdir, rawdir=rawdir, cameras=cameras)
 
                     print('{} Updating night/exposure summary tables'.format(time.strftime('%H:%M')))
                     run.write_tables(args.outdir, args.plotdir, expnights=[night,])
