@@ -13,6 +13,19 @@
   <li><a href="../qa-lastexp.html">latest</a></li>
 </ul>
 
+{# Macro to pick text colors #}
+{% macro choose_color(status) -%}
+  {% if status == "ok" %}
+    style="color:#00aa00"
+  {% elif status == "warning" %}
+    style="color:#ffaf00"
+  {% elif status == "error" %}
+    style="color:#ff0000"
+  {% else %}
+    style="font-weight:normal"
+  {% endif %}
+{%- endmacro %}
+
 {# Each plot is wrapped in if/endif for robustness against missing plots #}
 <script>
     function get_nightlinks(dict) {
@@ -80,43 +93,43 @@
     <td>{{ exp.spectros }}</td>
 
     {% if exp.QPROC_LINK != "na" %}
-      <td><a href="{{ exp.QPROC_link }}">{{ exp.QPROC }}</a></td>
+      <td><a href="{{ exp.QPROC_link }}" {{ choose_color(exp.QPROC) }}>{{ exp.QPROC }}</a></td>
     {% else %}
       <td>{{ exp.QPROC }}</td>
     {% endif %}
 
     {% if exp.PER_AMP_link != "na" %}
-      <td><a href="{{ exp.PER_AMP_link }}">{{ exp.PER_AMP }}</a></td>
+      <td><a href="{{ exp.PER_AMP_link }}" {{ choose_color(exp.PER_AMP) }}>{{ exp.PER_AMP }}</a></td>
     {% else %}
       <td>{{ exp.PER_AMP }}</td>
     {% endif %}
 
     {% if exp.PER_CAMERA_link != "na" %}
-      <td><a href="{{ exp.PER_CAMERA_link }}">{{ exp.PER_CAMERA }}</a></td>
+      <td><a href="{{ exp.PER_CAMERA_link }}" {{ choose_color(exp.PER_CAMERA) }}>{{ exp.PER_CAMERA }}</a></td>
     {% else %}
       <td>{{ exp.PER_CAMERA }}</td>
     {% endif %}
 
     {% if exp.PER_FIBER_link != "na" %}
-      <td><a href="{{ exp.PER_FIBER_link }}">{{ exp.PER_FIBER }}</a></td>
+      <td><a href="{{ exp.PER_FIBER_link }}" {{ choose_color(exp.PER_FIBER) }}>{{ exp.PER_FIBER }}</a></td>
     {% else %}
       <td>{{ exp.PER_FIBER }}</td>
     {% endif %}
 
     {% if exp.PER_CAMFIBER_link != "na" %}
-      <td><a href="{{ exp.PER_CAMFIBER_link }}">{{ exp.PER_CAMFIBER }}</a></td>
+      <td><a href="{{ exp.PER_CAMFIBER_link }}" {{ choose_color(exp.PER_CAMFIBER) }}>{{ exp.PER_CAMFIBER }}</a></td>
     {% else %}
       <td>{{ exp.PER_CAMFIBER }}</td>
     {% endif %}
 
     {% if exp.PER_SPECTRO_link != "na" %}
-      <td><a href="{{ exp.PER_SPECTRO_link }}">{{ exp.PER_SPECTRO }}</a></td>
+      <td><a href="{{ exp.PER_SPECTRO_link }}" {{ choose_color(exp.PER_SPECTRO) }}>{{ exp.PER_SPECTRO }}</a></td>
     {% else %}
       <td>{{ exp.PER_SPECTRO }}</td>
     {% endif %}
 
     {% if exp.PER_EXP_link != "na" %}
-      <td><a href="{{ exp.PER_EXP_link }}">{{ exp.PER_EXP }}</a></td>
+      <td><a href="{{ exp.PER_EXP_link }}" {{ choose_color(exp.PER_EXP) }}>{{ exp.PER_EXP }}</a></td>
     {% else %}
       <td>{{ exp.PER_EXP }}</td>
     {% endif %}

@@ -1,9 +1,10 @@
 # Nightwatch change log
 
-## 0.7.1 (unreleased)
+## 0.7.3 (unreleased)
 
 ### Major Updates
 
+* Added status colors to exposure QA in the nightly summary tables ([PR #483](https://github.com/desihub/nightwatch/pull/483)).
 * Upgrade LED references after change to cal station 1 ([PR #466](https://github.com/desihub/nightwatch/pull/464)).
 * Force use of spawn in parallel threads ([PR #464](https://github.com/desihub/nightwatch/pull/464)).
 * Fix broken fibermap assembly due to undefined environment ([PR #463](https://github.com/desihub/nightwatch/pull/463)).
