@@ -5,7 +5,7 @@
 ### Major Updates
 
 * Increased R7 LED reference levels after spectrograph work ([PR #488](https://github.com/desihub/nightwatch/pull/488)).
-* Reduced spurious warnings by widening warn/err thresholds for cosmic rates in ZEROs ([PR #486](https://github.com/desihub/nightwatch/pull/486)).
+* Reduced spurious warnings by widening warn/err thresholds for cosmic rates in ZEROs ([PR #486](https://github.com/desihub/nightwatch/pull/486), [PR #489](https://github.com/desihub/nightwatch/pull/489)).
 * Added status colors to exposure QA in the nightly summary tables ([PR #483](https://github.com/desihub/nightwatch/pull/483)).
 * Upgrade LED references after change to cal station 1 ([PR #466](https://github.com/desihub/nightwatch/pull/464)).
 * Force use of spawn in parallel threads ([PR #464](https://github.com/desihub/nightwatch/pull/464)).

@@ -81,7 +81,7 @@ def write_amp_html(outfile, data, header):
     lower_cosmics, upper_cosmics, cosmics_keys = get_thresholds(cosmics_file, return_keys=True)
     fig = plot_amp_qa(data, 'COSMICS_RATE', lower=lower_cosmics, upper=upper_cosmics,
         amp_keys=cosmics_keys, title='CCD Amplifier cosmics per minute',
-        ymin=[0, 0, 0], ymax=[60, 100, 100])
+        ymin=[0, 0, 0], ymax=[75, 100, 100])
     script, div = components(fig)
     html_components['COSMICS_RATE'] = dict(script=script, div=div)
 
