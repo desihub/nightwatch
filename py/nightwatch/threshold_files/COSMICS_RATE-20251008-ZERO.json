@@ -1,0 +1,5 @@
+{
+    "B": {"lower_err": -1, "lower": 0, "upper": 50.37179559, "upper_err": 114.37472221},
+    "R": {"lower_err": -1, "lower": 0, "upper": 80, "upper_err": 99.13253361717676},
+    "Z": {"lower_err": -1, "lower": 0, "upper": 80, "upper_err": 191.19929794384203}
+}
