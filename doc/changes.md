@@ -4,6 +4,7 @@
 
 ### Major Updates
 
+* Increased LED-02 reference levels after lamp replacement on 30 Oct 2025 ([PR #492](https://github.com/desihub/nightwatch/pull/492)).
 * Increased R7 LED reference levels after spectrograph work ([PR #488](https://github.com/desihub/nightwatch/pull/488)).
 * Reduced spurious warnings by widening warn/err thresholds for cosmic rates in ZEROs ([PR #486](https://github.com/desihub/nightwatch/pull/486), [PR #489](https://github.com/desihub/nightwatch/pull/489)).
 * Added status colors to exposure QA in the nightly summary tables ([PR #483](https://github.com/desihub/nightwatch/pull/483)).
