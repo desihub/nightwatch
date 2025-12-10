@@ -40,3 +40,13 @@ EOF
 
 export -f clean_preproc
 find /exposures/nightwatch/20?????? -name \*preproc-\*.html -mtime +14 -exec bash -c 'clean_preproc "$1"' _ {} \;
+
+#- Delete exposure folders older than 1 year. A "manual" approach is being used because the find command has a tendency to hang without exiting.
+for ymd in `\ls /exposures/nightwatch | grep -E "^20[0-9]{6}$"`; do
+    let delta=(`date +%s`-`date +%s -d ${ymd}`)/86400
+    if [ ${delta} -gt 365 ]; then
+        if [ -d /exposures/nightwatch/${ymd} ]; then
+            rm -rf /exposures/nightwatch/${ymd}
+        fi
+    fi
+done
