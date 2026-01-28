@@ -5,6 +5,7 @@ import numpy as np
 import os
 import fitsio
 import json 
+import warnings
 
 def calcnominalnoise(nightwatchdir, nightexpids, outfile):
     """
@@ -19,7 +20,7 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
         writes json files containing the nominal (median) thresholds per amp,
     """
 
-    # extract (sorted) readnoises for ZEROs and DARKs
+    #- extract (sorted) readnoises for ZEROs and DARKs
     readnoise = []
     for night, expid in nightexpids:
         qadir = os.path.join(nightwatchdir, str(night), '{:08d}'.format(expid))
@@ -28,24 +29,31 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
         amp.sort(order=["CAM", "SPECTRO", "AMP"]) # https://numpy.org/doc/stable/reference/generated/numpy.recarray.sort.html
         readnoise.append(amp["READNOISE"])
 
-    # calculate nominal values
+    #- calculate nominal values
     noms = np.median(readnoise, axis=0)
 
-    # create thresholds files
+    #- create thresholds files
+    #  note that the total number of amps may not match the active number, due to 2-amp readout
     thresholds = dict()
     all_amps = [cam+spec+amp for cam in ['B', 'R', 'Z'] for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
+    act_amps = [f'{c}{s}{a}' for c, s, a in zip(amp['CAM'], amp['SPECTRO'], amp['AMP'])]
 
-    for i, amp in enumerate(all_amps):
+    #- issue a warning if the number of active amps is less than the nominal number
+    if len(act_amps) < len(all_amps):
+        missing = ', '.join(list(set(all_amps) - set(act_amps)))
+        warnings.warn(f'missing amps {missing}.\nCheck if this is due to 2-amp readout.')
+
+    for i, amp in enumerate(act_amps):
         ampnom = noms[i]
         thresholds[amp] = dict(upper_err=(ampnom+1)*1.2, upper=(ampnom+0.5)*1.2,
                                    nominal=ampnom,
                                    lower=(ampnom-0.5)*0.8, lower_err=(ampnom-1)*0.8)
-    # for the record, include nightexpids in output
+    #- for the record, include nightexpids in output
     thresholds['inputs'] = dict()
     thresholds['inputs']['comment'] = '(night,expid) used to calc thresholds'
     thresholds['inputs']['nightexpids'] = nightexpids
 
-    # write threshold file
+    #- write threshold file
     with open(outfile, 'w') as json_file:
         json.dump(thresholds, json_file, indent=4)
     print('Wrote {}'.format(outfile))
