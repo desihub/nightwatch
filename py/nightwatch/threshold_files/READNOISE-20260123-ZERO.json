@@ -1,4 +1,102 @@
 {
+    "R4A": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "R4B": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "R6A": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "R6B": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z1B": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z1D": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z2A": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z2B": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z3B": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z3C": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z7C": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z7D": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z8A": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
+    "Z8B": {
+        "upper_err": 0.0,
+        "upper": 0.0,
+        "nominal": 0.0,
+        "lower": 0.0,
+        "lower_err": 0.0
+    },
     "B0A": {
         "upper_err": 4.473787399869587,
         "upper": 3.8737873998695864,
