@@ -1,10 +1,12 @@
 # Nightwatch change log
 
-## 0.7.5 (unreleased)
+## 0.7.6 (unreleased)
 
 ### Major Updates
 
-* Rescale r0 LED standards after CCD replacement ([PR #498](https://github.com/desihub/nightwatch/pull/498)).
+* Updated read noise thresholds after video board upgrade to B4 and B5 ([PR #500](https://github.com/desihub/nightwatch/pull/500)).
+* Rescale R0 LED standards after CCD replacement ([PR #498](https://github.com/desihub/nightwatch/pull/498)).
+* Reduce lifetime of cached Nightwatch files at KPNO ([PR #496](https://github.com/desihub/nightwatch/pull/496)).
 * Increased LED-02 reference levels after lamp replacement on 30 Oct 2025 ([PR #492](https://github.com/desihub/nightwatch/pull/492)).
 * Increased R7 LED reference levels after spectrograph work ([PR #488](https://github.com/desihub/nightwatch/pull/488)).
 * Reduced spurious warnings by widening warn/err thresholds for cosmic rates in ZEROs ([PR #486](https://github.com/desihub/nightwatch/pull/486), [PR #489](https://github.com/desihub/nightwatch/pull/489)).
