@@ -36,22 +36,21 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
     #  note that the total number of amps may not match the active number, due to 2-amp readout
     thresholds = dict()
     all_amps = [cam+spec+amp for cam in ['B', 'R', 'Z'] for spec in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] for amp in ['A', 'B', 'C', 'D']]
-    act_amps = [f'{c}{s}{a}' for c, s, a in zip(amp['CAM'], amp['SPECTRO'], amp['AMP'])]
-    missing_amps = sorted(list(set(all_amps) - set(all_amps)))
+    active_amps = [f'{c}{s}{a}' for c, s, a in zip(amp['CAM'], amp['SPECTRO'], amp['AMP'])]
+    missing_amps = sorted(list(set(all_amps) - set(active_amps)))
 
     #- issue a warning if the number of active amps is less than the nominal number
     if len(missing_amps) > 0:
         missing = ', '.join(missing_amps)
         warnings.warn(f'missing amps {missing}.\nCheck if this is due to 2-amp readout.')
-
-    for i, amp in enumerate(all_amps):
-        if amp in missing_amps:
+        for amp in missing_amps:
             thresholds[amp] = dict(upper_err=0., upper=0., nominal=0., lower=0., lower_err=0.)
-        else:
-            ampnom = noms[i]
-            thresholds[amp] = dict(upper_err=(ampnom+1)*1.2, upper=(ampnom+0.5)*1.2,
-                                       nominal=ampnom,
-                                       lower=(ampnom-0.5)*0.8, lower_err=(ampnom-1)*0.8)
+
+    for i, amp in enumerate(active_amps):
+        ampnom = noms[i]
+        thresholds[amp] = dict(upper_err=(ampnom+1)*1.2, upper=(ampnom+0.5)*1.2,
+                                   nominal=ampnom,
+                                   lower=(ampnom-0.5)*0.8, lower_err=(ampnom-1)*0.8)
 
     #- for the record, include nightexpids in output
     thresholds['inputs'] = dict()
