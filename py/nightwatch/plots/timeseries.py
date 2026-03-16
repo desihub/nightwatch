@@ -9,6 +9,26 @@ from bokeh.models import OpenURL, ColumnDataSource, HoverTool, CustomJS
 from nightwatch.qa.base import QA
 from bokeh.models.widgets import DataTable, TableColumn
 
+
+def plot_timeseries(source, name, cam='',
+            camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
+            width=700, height=80, title=None,
+            fig_x_range=None, fig_y_range=None,
+            tools='pan,box_zoom,tap,reset',
+            toolbar_location=None, tooltips=None, xaxislabels=True):
+
+    #- Timeseries plot.
+    fig = bk.figure(width=width, height=height, title=title, tools=tools,
+                    x_axis_type='datetime', 
+#                    x_range=fig_x_range, y_range=fig_y_range,
+                    toolbar_location=toolbar_location)
+
+    s = fig.scatter('time', name, source=source,
+                    color=camcolors.get(cam.upper()), alpha=0.7)
+
+    return s
+
+
 def generate_timeseries(data_dir, start_date, end_date, hdu, aspect):
     """
     Generates timeseries plots. Includes start_date and end_date in data generation.

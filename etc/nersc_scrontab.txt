@@ -1,0 +1,23 @@
+###### Run nightwatch persistently with no more than 30 minutes between restarts
+#SCRON -A desi
+#SCRON -q workflow
+#SCRON -t 30-00:00:00
+#SCRON --time-min=24:00:00
+#SCRON -o /global/homes/d/desi/scron/nightwatch-%j.out
+#SCRON --open-mode=append
+#SCRON --mail-type=FAIL
+#SCRON --dependency=singleton
+#SCRON --mail-user=StephenBailey@lbl.gov
+#SCRON --job-name=scron_nw
+30 * * * * /bin/bash -lc "source /global/cfs/cdirs/desi/spectro/nightwatch/nersc/scron_nightwatch.sh"
+
+###### Run Nightwatch cleanup daily at 19:15 UTC / 12:15 PDT / 11:15 PST
+#SCRON -A desi
+#SCRON -q workflow
+#SCRON -t 00:15:00
+#SCRON -o /global/homes/d/desi/scron/nightwatch-cleanup-%j.out
+#SCRON --open-mode=append
+#SCRON --mail-type=FAIL
+#SCRON --mail-user=StephenBailey@lbl.gov
+#SCRON --job-name=scron_cl
+15 19 * * * /bin/bash -lc "/global/cfs/cdirs/desi/spectro/nightwatch/nersc/nersc_nightwatch_cleanup.sh -x"

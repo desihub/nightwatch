@@ -15,7 +15,8 @@ from bokeh.models import Panel, Tabs, Div
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc
-from .placeholder import handle_failed_plot
+from ..plots.fvc import plot_fvc_image
+from .placeholder import handle_failed_plot, write_placeholder_html
 
 
 def write_camfiber_html(outfile, data, header):
@@ -74,6 +75,15 @@ def write_camfiber_html(outfile, data, header):
         write_posacc_plots(data, pa_template, pa_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
     except Exception as err:
         handle_failed_plot(pa_outfile, header, 'PER_CAMFIBER')
+
+    #- FVC IMAGES
+    index_fvc_file = outfile.index('.html')
+    fvc_outfile = outfile[:index_fvc_file] + '-fvc_plots.html'
+    fvc_template = env.get_template('fvc-ccd.html')
+    try:
+        write_fvc_plots(data, fvc_template, fvc_outfile, header, ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM, TOOLS)
+    except Exception as err:
+        handle_failed_plot(fvc_outfile, header, 'PER_CAMFIBER')
 
     return dict({})
 
@@ -248,7 +258,7 @@ def get_posacc_cd(header):
 
         final_move = np.sort(fnmatch.filter(df.columns, 'OFFSET_*'))[-1]
         df = df.merge(fiberpos, how='left',left_on=['PETAL_LOC','DEVICE_LOC'], right_on=['PETAL','DEVICE'])
-        df = df[df['DEVICE_TYPE'] == "b'POS'"]
+        df = df[(df['DEVICE_TYPE'] == 'POS') | (df['DEVICE_TYPE'] == "b'POS'") | (df['DEVICE_TYPE'] == b'POS')]
         df.reset_index(drop=True,inplace=True)
         print(len(df))
         df['DISABLED_0'] = True
@@ -346,6 +356,59 @@ def create_cds(data, attributes, bin_size=25):
     return cds
 
 
+def write_fvc_plots(data, template, outfile, header,
+        ATTRIBUTES, CAMERAS, PERCENTILES, TITLESPERCAM,
+        TOOLS='pan,box_select,reset'):
+
+    fvcfile = get_fvc_file(header)
+    if fvcfile:
+        fitsfile = fitsio.FITS(fvcfile)
+        fvcplots = []
+
+        for extname in ['F0000', 'F0001']:
+            # Read CCD data from FVC FITS file.
+            if extname in fitsfile:
+                img = fitsfile[extname][:,:]
+                fig = plot_fvc_image(img, width=700)
+
+                # Store bokeh figure of CCD plot in a tab panel.
+                tab = Panel(child=fig, title=extname)
+                fvcplots.append(tab)
+
+        if fvcplots:
+            # Put FVC images into tabs.
+            fvc_plots_layout = Tabs(tabs=fvcplots)
+
+            # Write the HTML file
+            write_file = write_htmlfile(fvc_plots_layout, template, outfile, header)
+
+            return
+
+    # Fall-through case: handle missing FVC data.
+    write_placeholder_html(outfile, header, 'FVC', message=None)
+
+
+def get_fvc_file(header):
+    '''
+    Find fvc.fits file.
+    Args:
+        header : from data file
+    '''
+    night = header['NIGHT']
+    expid = header['EXPID']
+    fvcfile = f'{night}/{expid:08d}/fvc-{expid:08d}.fits.fz'
+
+    # Useful for offline tests: backup location for coordfiles at NERSC.
+    if not os.path.exists(fvcfile):
+        if 'DESI_SPECTRO_DATA' in os.environ:
+            fvcfile = os.path.join(os.environ['DESI_SPECTRO_DATA'], fvcfile)
+
+    if os.path.isfile(fvcfile):
+        return fvcfile
+
+    return None
+
+
 def write_htmlfile(layout, template, outfile, header):
     '''
     Args:
@@ -370,13 +433,14 @@ def write_htmlfile(layout, template, outfile, header):
     exptime = header['EXPTIME']
     focalplane = 'focalplane_plots' in outfile
     positioning = 'posacc_plots' in outfile
+    fvc = 'fvc_plots' in outfile
 
     # Fill components dictionary for use in webpages.
     components_dict = dict(
         bokeh_version=bokeh.__version__, exptime='{:.1f}'.format(exptime),
         night=night, expid=expid, zexpid='{:08d}'.format(expid),
         obstype=obstype, program=program, qatype='camfiber',
-        focalplane=focalplane, positioning=positioning, num_dirs=2,
+        focalplane=focalplane, positioning=positioning, fvc=fvc, num_dirs=2,
     )
 
     # Add sky coordinates if they are present in header.

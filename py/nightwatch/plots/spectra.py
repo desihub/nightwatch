@@ -2,9 +2,15 @@ import fitsio
 
 import bokeh
 import bokeh.plotting as bk
-from bokeh.layouts import column, gridplot
-from bokeh.models import BoxAnnotation, ColumnDataSource, Range1d, Band, Title, HoverTool, NumeralTickFormatter, OpenURL, TapTool, HelpTool
+from bokeh.layouts import column, gridplot, layout
+from bokeh.transform import linear_cmap
+from bokeh.models import LinearColorMapper, ColorBar
+from bokeh.models import Div, BoxAnnotation, ColumnDataSource, Range1d, Band, Title
+from bokeh.models import HoverTool, OpenURL, TapTool, HelpTool
+from bokeh.models import BasicTicker, NumeralTickFormatter
 from glob import glob
+
+import matplotlib as mpl
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
@@ -519,6 +525,22 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
 
 
 def plot_spectra_qa_arcs(data, names, calstandards):
+    """Generate plots for ARC calibration exposures.
+
+    Parameters
+    ----------
+    data : dict
+        Petal-level plotting data for LED flat exposures.
+    names : list or tuple
+        List of arc lamp emission lines for each camera.
+    calstandards : dict
+        Calibration references for LED flat exposures.
+
+    Returns
+    -------
+    layout : bokeh.layouts.layout
+        Layout object containing all requested plots.
+    """
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
@@ -624,40 +646,234 @@ def plot_spectra_qa_arcs(data, names, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
+        # Add a help tool that redirects to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
+
         figs.append([fig])
 
-    return gridplot(figs, toolbar_location='right')
+    title = Div(text="""<h3>Arc Lamp Emission Line Values</h3>
+<p>Integrated areas of brightest arc lamp emission lines compared to nominal reference values.<br />Click the help button on the plots for more information.</p>""")
+
+    return column(title, gridplot(figs, toolbar_location='right'))
+
+#    return gridplot(figs, toolbar_location='right')
 
 
-def plot_spectra_qa_flats(data, calstandards):
+def plot_spec_focalplane(source, name, cam='', camcolors=dict(B='steelblue', R='crimson', Z='forestgreen'),
+						 width=333, height=333, zmin=0, zmax=1,
+						 fig_x_range=(-1.1,1.1), fig_y_range=(-1.1,1.1),
+						 colorbar=False, mpl_colormap=None,
+						 tools=['pan', 'box_select', 'reset', 'tap'], tooltips=None):
+    """Plot petal data in the focal plane, such as LED integrated fluxes.
+
+    Parameters
+    ----------
+    source : bokeh.model.ColumnDataSource
+        Input data for focal plane plots.
+    name : str
+        Data name.
+    cam : str
+        Camera b, r, z; case insensitive.
+    camcolors: dict
+        Dictionary of colors for camera plots.
+    width : int
+        Figure width.
+    height: int
+        Figure height.
+    zmin : float
+        Lower range of plot scale.
+    zmax : float
+        Upper range of plot scale.
+    fig_x_range : list or tuple
+        Range of plot values on the x-axis.
+    fig_y_range : list or tuple
+        Range of plot values on the y-ayis.
+    colorbar : bool
+        Add a colorbar to the plot if True.
+    mpl_colormap : str or None
+        Name of matplotlib colormap to use for plotting values.
+    tools : list or tuple
+        List of bokeh tools to include with the plot (pan, tap, help, etc.)
+    tooltips : list or None
+        Tips for bokeh plot tools.
+
+    Returns
+    -------
+    fig : bokeh.figure
+        Figure object containing focal plane plots for each camera.
+    """
+
+    # Default colormap is a blue->red palette.
+    if mpl_colormap is None:
+        mpl_colormap = mpl.colormaps['RdBu_r']
+        mpl_colormap.set_bad('gray')
+
+    # Set up color normalization.
+    norm = mpl.colors.Normalize(zmin, zmax)
+
+    # Define the palette for bokeh; just needs a list of RGB hex values.
+    dz = (zmax - zmin)/256
+    palette = [mpl.colors.rgb2hex(mpl_colormap(norm(z))) for z in np.arange(zmin, zmax+dz, dz)]
+    bp_mapper = linear_cmap('bokehmap', palette, low=zmin-dz, high=zmax+dz, nan_color='gray')
+
+    height = height if not colorbar else int(1.2*height)
+
+    fig = bk.figure(width=width, height=height,
+                    x_range=fig_x_range, y_range=fig_y_range, tools=tools,
+                    match_aspect=True)
+
+    # Set up the wedge plots for all petals. Petals with missing data should appear grayed out.
+    source.data['starts'] = np.arange(252, 252+360, 36)
+    source.data['ends'] = np.arange(288, 288+360, 36)
+    source.data['radius'] = np.full(10, 0.98)
+    source.data['x'] = np.zeros(10)
+    source.data['y'] = np.zeros(10)
+
+    colors = ['#aaaaaa' if v < 0 else mpl.colors.rgb2hex(mpl_colormap(norm(v))) for v in source.data['data_val']]
+    source.data['colors'] = colors
+
+    petals = fig.wedge(x='x', y='y', radius='radius', direction='anticlock',
+                       start_angle='starts', start_angle_units='deg',
+                       end_angle='ends', end_angle_units='deg',
+                       color='colors', line_color='black',
+                       source=source)
+
+    # Add hover tool to provide the integrated flux and flux ratio per petal.
+    hover = HoverTool(tooltips=[
+                ('spec', f'{cam.upper()}@locations'),
+                ('INTEG_FLUX', '@observations'),
+                ('nominal', '@references'),
+                ('ratio', '@data_val')
+            ])
+    fig.add_tools(hover)
+
+    hover.renderers = [petals]
+
+    # Add camera boundaries and labels.
+    if cam:
+        bdry = fig.circle(x=[0,], y=[0,], radius=0.98, fill_color=None,
+                            line_color=camcolors[cam.upper()],
+                            line_alpha=1.0, line_width=3)
+
+        fig.title.text = f'{cam.upper()} camera'
+        fig.title.text_color = camcolors[cam.upper()]
+
+    # Add a help tool that redirects to the DESI wiki.
+    fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
+
+    # Add a horizontal colorbar to the plot.
+    if colorbar:
+        title = f'{cam.upper()}_INTEG_FLUX ratio' if cam else 'INTEG_FLUX ratio'
+
+        color_bar = ColorBar(color_mapper=bp_mapper['transform'],
+                             label_standoff=8,
+                             width=int(0.9*width),
+                             height=10,
+                             border_line_color=None,
+                             location=(0,0),
+                             ticker=BasicTicker(),
+                             title=title,
+                             formatter=NumeralTickFormatter(format='0.0a'))
+
+        fig.add_layout(color_bar, 'below')
+
+    # Turn off axes and gridlines.
+    fig.axis.visible = False
+    fig.grid.visible = False
+    fig.outline_line_color = None
+
+    return fig
+
+
+def plot_spectra_qa_flats(data, header, calstandards):
+    """Generate plots for LED flat field exposures.
+
+    Parameters
+    ----------
+    data : dict
+        Petal-level plotting data for LED flat exposures.
+    header : FITS header
+        Exposure header containing telemetry and timing info.
+    calstandards : dict
+        Calibration references for LED flat exposures.
+
+    Returns
+    -------
+    layout : bokeh.layouts.layout
+        Layout object containing all requested plots.
+    """
     spectro = data['SPECTRO']
     colors = { 'B':'steelblue', 'R':'firebrick', 'Z':'green' }
 
-    figs = []
+    fpfigs = []
+    lvfigs = []
+
+    # Loop over cameras.
     for cam in 'BRZ': 
 
         integ_flux = []
+        integ_flux_ref = []
         upper_err = []
         upper_warn = []
         nominal = []
         lower_warn = []
         lower_err = []
+        flux_ratio = []
 
+        nodata_spectro = []
+
+        # Extract spectrograph integrated fluxes.
         for sp in spectro:
+
             select = (data['SPECTRO']==sp)
             iflux = data[select][f'{cam}_INTEG_FLUX'][0]
+
+            # If no data from spectrograph, remove later...
             if iflux < 0:
-                continue
+                nodata_spectro.append(sp)
 
-            integ_flux.append(iflux)
-
+            # Read in calibration references (temperature-corrected).
             spcam = f'{cam}{sp}'
-            upper_err.append(calstandards[spcam]['upper_err'])
-            upper_warn.append(calstandards[spcam]['upper'])
-            nominal.append(calstandards[spcam]['nominal'])
-            lower_warn.append(calstandards[spcam]['lower'])
-            lower_err.append(calstandards[spcam]['lower_err'])
+            upper_err.append(calstandards[spcam]['refs']['upper_err'])
+            upper_warn.append(calstandards[spcam]['refs']['upper'])
+            nominal.append(calstandards[spcam]['refs']['nominal'])
+            lower_warn.append(calstandards[spcam]['refs']['lower'])
+            lower_err.append(calstandards[spcam]['refs']['lower_err'])
 
+            # Read in the temperature correction and apply it to the flux.
+            b    = calstandards[spcam]['tempfit']['slope']
+            Tmed = calstandards[spcam]['tempfit']['Tmedian']
+            T = header['TAIRTEMP']
+
+            # Retrieve the calibration reference.
+            iflux_corr_ref = calstandards[spcam]['refs']['nominal']
+            integ_flux_ref.append(iflux_corr_ref)
+
+            # Temperature-corrected integrated flux reference
+            if iflux < 0:
+                ratio = -1
+                iflux_corr = -1
+            else:
+                iflux_corr = iflux - b*(T - Tmed)
+                ratio = iflux_corr / iflux_corr_ref
+
+            integ_flux.append(iflux_corr)
+            flux_ratio.append(ratio)
+
+        # Create a data source and produce a focal plane figure.
+        source = ColumnDataSource(data=dict(
+            data_val=flux_ratio,
+            locations=spectro,
+            observations=integ_flux,
+            references=integ_flux_ref
+        ))
+
+        fpfig = plot_spec_focalplane(source, '', cam=cam, zmin=0.6, zmax=1.4, colorbar=True)
+        fpfigs.append(fpfig)
+
+        # Generate plot of integrated flux vs spectrograph for each camera.
         # Set marker colors and sizes to indicate out-of-range alerts.
         mcolors = get_spectraqa_colors(integ_flux,
                                        lower_err,
@@ -672,21 +888,22 @@ def plot_spectra_qa_flats(data, calstandards):
                                     upper_err)
 
         # Store data in a bokeh column object.
+        # Remove missing spectrographs as needed.
         source = ColumnDataSource(data=dict(
-            data_val=np.round(integ_flux),
-            locations=spectro,
-            nominal=nominal,
-            lower=lower_warn,
-            upper=upper_warn,
-            lower_err=lower_err,
-            upper_err=upper_err,
-            colors=mcolors,
-            sizes=msizes
+            data_val=np.delete(np.round(integ_flux), nodata_spectro),
+            locations=np.delete(spectro, nodata_spectro),
+            nominal=np.delete(nominal, nodata_spectro),
+            lower=np.delete(lower_warn, nodata_spectro),
+            upper=np.delete(upper_warn, nodata_spectro),
+            lower_err=np.delete(lower_err, nodata_spectro),
+            upper_err=np.delete(upper_err, nodata_spectro),
+            colors=np.delete(mcolors, nodata_spectro),
+            sizes=np.delete(msizes, nodata_spectro)
         ))
 
         # Set up figures and labels.
-        plotmin = 0.9*np.min(np.minimum(lower_err, integ_flux))
-        plotmax = 1.1*np.max(np.maximum(upper_err, integ_flux))
+        plotmin = 0.9*np.min(np.minimum(np.delete(lower_err, nodata_spectro), np.delete(integ_flux, nodata_spectro)))
+        plotmax = 1.1*np.max(np.maximum(np.delete(upper_err, nodata_spectro), np.delete(integ_flux, nodata_spectro)))
 
         hover = HoverTool(names=['circles'],
                     tooltips=[('spec', '@locations'), (f'INTEG_FLUX', '@data_val'), ('nominal', '@nominal')],
@@ -725,9 +942,21 @@ def plot_spectra_qa_flats(data, calstandards):
                  fill_alpha=0.1, fill_color=colors[cam],
                  line_width=0.7, line_color='black'))
 
-        figs.append([fig])
+        # Add a help tool that redirects to the DESI wiki.
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
 
-    return gridplot(figs, toolbar_location='right')
+        lvfigs.append([fig])
+    
+    gp_lv = gridplot(lvfigs, toolbar_location='right')
+    title_lv = Div(text="""<h3>Integrated Fluxes per Petal</h3>
+<p>Integrated LED fluxes per petal for each camera, with nominal reference values (temperature correction included).<br />Click the help button on the plots for more information.</p>""")
+
+    gp_fp = gridplot([fpfigs], toolbar_location='right')
+    title_fp = Div(text="""<h3>Integrated Flux Ratios per Petal</h3>
+<p>Ratio of observed integrated LED fluxes to nominal reference values for each petal (temperature correction included).<br />Click the help button on the plots for more information.</p>""")
+
+    return layout([[column(title_lv, gp_lv)], [column(title_fp, gp_fp)]])
 
 
 def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
@@ -746,14 +975,16 @@ def get_spectraqa_colors(data, lower_err, lower, upper, upper_err):
             continue
         if data[i] <= lower_err[i]:
             colors.append('red')
-        if data[i] > lower_err[i] and data[i] <= lower[i]:
+        elif data[i] > lower_err[i] and data[i] <= lower[i]:
             colors.append('orange')
-        if data[i] > lower[i] and data[i] < upper[i]:
+        elif data[i] > lower[i] and data[i] < upper[i]:
             colors.append('black')
-        if data[i] >= upper[i] and data[i] < upper_err[i]:
+        elif data[i] >= upper[i] and data[i] < upper_err[i]:
             colors.append('orange')
-        if data[i] >= upper_err[i]:
+        elif data[i] >= upper_err[i]:
             colors.append('red')
+        else:
+            colors.append('white')
     return colors
 
 
@@ -771,14 +1002,16 @@ def get_spectraqa_size(data, lower_err, lower, upper, upper_err):
     for i in range(len(data)):
         if lower[i] == None or upper[i] == None:
             continue
-        if data[i] <= lower_err[i]:
+        elif data[i] <= lower_err[i]:
             sizes.append('9')
-        if data[i] > lower_err[i] and data[i] <= lower[i]:
+        elif data[i] > lower_err[i] and data[i] <= lower[i]:
             sizes.append('9')
-        if data[i] > lower[i] and data[i] < upper[i]:
+        elif data[i] > lower[i] and data[i] < upper[i]:
             sizes.append('5')
-        if data[i] >= upper[i] and data[i] < upper_err[i]:
+        elif data[i] >= upper[i] and data[i] < upper_err[i]:
             sizes.append('9')
-        if data[i] >= upper_err[i]:
+        elif data[i] >= upper_err[i]:
             sizes.append('9')
+        else:
+            sizes.append('1')
     return sizes

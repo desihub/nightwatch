@@ -47,9 +47,12 @@ def get_status(qadata, night):
             else:
                 status[qatype][col] = np.full(n, Status.ok, dtype=np.int16)
 
+    #- QA header.
+    header = qadata['HEADER']
+
     #- Amp QA: check if readnoise, bias, or cosmics rate too low or high
     data = qadata['PER_AMP']
-    exptime = qadata['HEADER']['EXPTIME']
+    exptime = header['EXPTIME']
     for metric in ['READNOISE', 'BIAS', 'COSMICS_RATE']:
         filepath = pick_threshold_file(metric, night, exptime=exptime)
         with open(filepath, 'r') as json_file:
@@ -152,12 +155,18 @@ def get_status(qadata, night):
                         if integ_flux < 0:
                             continue
 
+                        # Apply temperature correction to flux.
+                        T = header['TAIRTEMP']
+                        b = cals['tempfit']['slope']
+                        Tmed = cals['tempfit']['Tmedian']
+                        integ_flux = integ_flux - b*(T - Tmed)
+
                         # Compare line area to cal standard warning/err ranges.
-                        upper_err = cals['upper_err']
-                        upper_warn = cals['upper']
-                        nominal = cals['nominal']
-                        lower_warn = cals['lower']
-                        lower_err = cals['lower_err']
+                        upper_err = cals['refs']['upper_err']
+                        upper_warn = cals['refs']['upper']
+                        nominal = cals['refs']['nominal']
+                        lower_warn = cals['refs']['lower']
+                        lower_err = cals['refs']['lower_err']
 
                         warn_integ_flux = (integ_flux > lower_err and integ_flux <= lower_warn) or (integ_flux < upper_err and integ_flux >= upper_warn)
                         err_integ_flux  = (integ_flux < lower_err) | (integ_flux > upper_err)

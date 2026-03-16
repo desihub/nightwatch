@@ -1,4 +1,4 @@
-# New set of DARK+FLAT+SCIENCE exps for readnoise calib thru 2022-03-21
+# New set of DARK+FLAT+SCIENCE exps for readnoise calib thru 2023-10-05
 
 # NIGHT EXPID
 20221110 152774
@@ -26,4 +26,3 @@
 20221111 153000
 20221111 153030
 20221111 153031
-

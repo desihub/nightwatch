@@ -15,7 +15,7 @@ from astropy.visualization import ZScaleInterval
 import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import layout, gridplot
-from bokeh.models import HelpTool, Label
+from bokeh.models import HelpTool, Label, ColumnDataSource, Range1d
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
@@ -25,19 +25,51 @@ _is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
 
 
 def downsample_image(image, n):
-    '''Downsample input image n x n
+    """Downsample input image to n x n.
 
-    Returns resampled images with shape = image.shape//n
-    '''
+    Parameters
+    ----------
+    image : ndarray
+        Input image of size nx x ny.
+    n : int
+        Downsampling factor to produce image of size nx//n x ny//n.
+
+    Returns
+    -------
+    image2 : ndarray
+        Resampled image of shape image.shape//n.
+    """
     ny, nx = image.shape
     ny = (ny//n) * n
     nx = (nx//n) * n
     result = image[0:ny, 0:nx].reshape(ny//n,n,nx//n,n).mean(axis=-1).mean(axis=-2)
     return result
 
+
 def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsample=2, title=None):
-    """
-    plots image downsampled, returning bokeh figure of requested width
+    """Plot a spectrograph CCD image.
+
+    Parameters
+    ----------
+    image : ndarray
+        Input image from CCD, e.g., from FITS output of preproc.
+    mask : ndarray or None
+        Image pixel mask bits after preprocessing.
+    imghdr : astropy.header or None
+        Header of the image HDU.
+    mask_alpha : float
+        Alpha level to use in plotting the pixel mask.
+    width : int
+        Width of the image, in pixels.
+    downsample : int
+        Downsampling factor for the input.
+    title : str or None
+        Output figure title.
+
+    Returns
+    -------
+    fig : bokeh.Figure
+        Figure containing image.
     """
     #- Downsample image 2x2 (or whatever downsample specifies)
     ny, nx = image.shape
@@ -101,10 +133,72 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
     if title is not None:
         fig.title.text = title
 
-    return fig
+    #- Plot a histogram of CCD pixel values (not downsampled).
+    #  First determine histogram binning.
+    cmin, cmax = 1e99, -1e99
+    for (i1,i2) in zip([0, nx//2], [nx//2, nx]):
+        for (j1,j2) in zip([0, ny//2], [ny//2, ny]):
+            data = image[i1:i2, j1:j2].flatten()
+            p1, p2 = np.percentile(data, [0.01, 99.99])
+            cmin = np.minimum(cmin, np.floor(p1))
+            cmax = np.maximum(cmax, np.ceil(p2))
+    cmin = cmin if cmin < -40. else -40.
+    cmax = cmax if cmax >  40. else  40.
+    nbin = 201
+
+    px = np.linspace(start=cmin, stop=cmax, num=nbin)
+    pxc = 0.5*(px[1:] + px[:-1])
+
+    fig_h = bk.figure(title='CCD values', y_axis_type='log',
+                      tools='pan,box_zoom,wheel_zoom,save,reset')
+    amps, colors, k = 'ABCD', ['mediumblue', 'darkorange', 'limegreen', 'crimson'], 0
+
+    #- Loop over amps and plot the data.
+    for (i1,i2) in zip([0, nx//2], [nx//2, nx]):
+        for (j1,j2) in zip([0, ny//2], [ny//2, ny]):
+            data = image[i1:i2, j1:j2].flatten()
+            hist, _ = np.histogram(data, bins=px)
+
+            source = ColumnDataSource(data=dict(
+                        pixels = pxc,
+                        data = hist,
+                        amp = [amps[k]]*len(hist),
+                    ))
+            s = fig_h.step('pixels', 'data', source=source, color=colors[k],
+                           legend_label=f'amp {amps[k]}', alpha=0.7, line_width=2, mode='center')
+            k += 1
+
+    fig_h.legend.location = 'top_right'
+    fig_h.xaxis.axis_label = 'CCD charge'
+    fig_h.yaxis.axis_label = 'Count'
+    fig_h.x_range = Range1d(cmin, cmax)
+    fig_h.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+                             redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
+
+    histtabs = [Panel(child=fig, title='CCD'), Panel(child=fig_h, title='Histogram')]
+    return Tabs(tabs=histtabs)
+
 
 def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title=None):
     """Generate summary images given a set of preproc FITS files.
+
+    Parameters
+    ----------
+    input_files : list or ndarray
+        List of paths to preproc input FITS files.
+    mask_alpha : float
+        Alpha level to use for masked pixels.
+    width : int
+        Output image width, in pixels.
+    downsample : int
+        Image downsampling factor.
+    title : str or None
+        Output figure title.
+
+    Returns
+    -------
+    tabs : bokeh.model.widgets.Tabs
+        Set of tabs with CCD image gridplots for the b, r, and z cameras.
     """
 
     #- Loop over cameras (b, r, z).
@@ -213,6 +307,7 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
 
     return Tabs(tabs=camtabs)
 
+
 def main(input_in = None, output_in = None, downsample_in = None):
     '''Downsamples image given a downsampling factor, writes to a given file. All args are optional (can be run from the
     command line as well).
@@ -274,6 +369,7 @@ def main(input_in = None, output_in = None, downsample_in = None):
         fig = plot_all_images(input_in)
 
     return components(fig)
+
 
 if __name__ == '__main__':
     main()
