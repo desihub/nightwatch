@@ -1,11 +1,87 @@
 # Nightwatch change log
 
-## 0.3.3 (unreleased)
+## 0.7.6 (unreleased)
 
-* Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc.
+### Major Updates
+
+* Updated read noise thresholds after video board upgrade to B4 and B5 ([PR #500](https://github.com/desihub/nightwatch/pull/500)).
+* Rescale R0 LED standards after CCD replacement ([PR #498](https://github.com/desihub/nightwatch/pull/498)).
+* Reduce lifetime of cached Nightwatch files at KPNO ([PR #496](https://github.com/desihub/nightwatch/pull/496)).
+* Increased LED-02 reference levels after lamp replacement on 30 Oct 2025 ([PR #492](https://github.com/desihub/nightwatch/pull/492)).
+* Increased R7 LED reference levels after spectrograph work ([PR #488](https://github.com/desihub/nightwatch/pull/488)).
+* Reduced spurious warnings by widening warn/err thresholds for cosmic rates in ZEROs ([PR #486](https://github.com/desihub/nightwatch/pull/486), [PR #489](https://github.com/desihub/nightwatch/pull/489)).
+* Added status colors to exposure QA in the nightly summary tables ([PR #483](https://github.com/desihub/nightwatch/pull/483)).
+* Upgrade LED references after change to cal station 1 ([PR #466](https://github.com/desihub/nightwatch/pull/464)).
+* Force use of spawn in parallel threads ([PR #464](https://github.com/desihub/nightwatch/pull/464)).
+* Fix broken fibermap assembly due to undefined environment ([PR #463](https://github.com/desihub/nightwatch/pull/463)).
+* Added error handling to wget in DESI_SPECTRO_DARK sync script ([PR #461](https://github.com/desihub/nightwatch/pull/461), [PR #462](https://github.com/desihub/nightwatch/pull/462)).
+* Updated LED flat fielding temperature correction coefficients ([PR #456](https://github.com/desihub/nightwatch/pull/456)).
+
+### Minor Updates
+
+* Ensure that FVC images are plotted at KPNO ([PR #481](https://github.com/desihub/nightwatch/pull/481)).
+* Fixed string literal insertion error in SQLite3 ([PR #478](https://github.com/desihub/nightwatch/pull/478) and [PR #479](https://github.com/desihub/nightwatch/pull/479)).
+* Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
+
+## 0.6.0 (2024-12-29)
+
+### Major Updates
+
+* Added selected arc lines to the historyqa plots ([PR #420](https://github.com/desihub/nightwatch/pull/420)).
+* Plot CCD data histograms ([PR #449](https://github.com/desihub/nightwatch/pull/449)).
+
+### Minor Updates
+
+* Disable generation of historyqa plots in KPNO monitor ([PR #419](https://github.com/desihub/nightwatch/pull/419)).
+* Fix FLATS QA when missing spectrographs ([PR #431](https://github.com/desihub/nightwatch/pull/431)). 
+* Add missing links to sp2 on history QA page ([PR #436](https://github.com/desihub/nightwatch/pull/437)).
+* Document `DESI_SPECTRO_DARK` synchronization script ([PR #436](https://github.com/desihub/nightwatch/pull/441)).
+* Adjust read noise thresholds for R1C ([PR #448](https://github.com/desihub/nightwatch/pull/448)).
+
+## 0.5.1 (2024-07-06)
+
+### Minor Updates
+
+* Enabled history plot generation in NW monitor; cleaned up camera QA ([PR #408](https://github.com/desihub/nightwatch/pull/408)).
+* Updated arc line references and expanded warning and error thresholds ([PR #416](https://github.com/desihub/nightwatch/pull/416)).
+
+## 0.5.0 (2024-05-01)
+
+### Major Updates
+
+* Added FVC plots to Nightwatch camfiber QA ([PR #396](https://github.com/desihub/nightwatch/pull/396)).
+* Integrate SQLite history DB into nightly processing ([PR #403](https://github.com/desihub/nightwatch/pull/403)).
+
+### Minor Updates
+
+* Added focal plane plots for LED calibrations ([PR #400](https://github.com/desihub/nightwatch/pull/400)).
+* Improved doctrings and UI instructions for calibration plots ([PR #401](https://github.com/desihub/nightwatch/pull/401)).
+* Enable processing of `spec_tests` with obstype `OTHER` ([PR #402](https://github.com/desihub/nightwatch/pull/402)).
+
+## 0.4.0 (2024-03-11)
+
+### Major Updates
+
+* Added temperature corrections to calibration references for flats ([PR #368](https://github.com/desihub/nightwatch/pull/368)).
+* Set up sphinx documentation and readthedocs webhooks ([PR #374](https://github.com/desihub/nightwatch/pull/374), [PR #378](https://github.com/desihub/nightwatch/pull/378)).
+
+### Minor Updates
+
+* Updated readnoise levels for spurious warnings from amps ([PR #366](https://github.com/desihub/nightwatch/pull/366)).
+* Added KPNO and NERSC cleanup scripts for intermediate FITS files ([PR #370](https://github.com/desihub/nightwatch/pull/370)).
+* Added preproc and qproc --fallback-on-dark-not-found
+  ([PR #380](https://github.com/desihub/nightwatch/pull/380)), required by
+  [desispec PR #2162](https://github.com/desihub/desispec/pull/2162).
+* Use `desi_assemble_fibermap`; `assemble_fibermap` was a duplicate of this script.
+  ([PR #391](https://github.com/desihub/nightwatch/pull/391)).
+
+## 0.3.3 (2023-12-06)
+
+* Remove job throttling at KPNO so that the Nightwatch monitor attempts to allocate 30 jobs for preproc/qproc ([PR #343](https://github.com/desihub/nightwatch/pull/343)).
 * Added script to correlate calibration standards with local conditions (temperature, pressure, humidity, ...).
-* Fixes to ensure Nightwatch operates on desi-8 at KPNO.
-* Remove HTML header includes of Bokeh CSS and JavaScript files in favor of running in BOKEH_RESOURCES=inline mode.
+* Updated KPNO hostname to desi-8 ([PR #349](https://github.com/desihub/nightwatch/pull/349)).
+* Updated DARK and READNOISE thresholds ([PR #357](https://github.com/desihub/nightwatch/pull/357)).
+* Fixed broken check for device type in positioner loop plots ([PR #361](https://github.com/desihub/nightwatch/pull/361)).
 
 ## 0.3.2 (2023-03-20)
 
