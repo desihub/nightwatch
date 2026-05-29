@@ -361,16 +361,10 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]
         
-        hover= HoverTool(names = ['circles'], tooltips = [('Amp', '@AMP'),
-                                     ('Spec', '@SPECTRO'),
-                                     ('EXPID', '@EXPID'),
-                                     ('{}'.format(title), '@aspect_values'),
-                                     ('Upper threshold', '@upper'),
-                                     ('Lower threshold', '@lower')])
         box_zoom = BoxZoomTool()
         reset = ResetTool()
         
-        fig = bk.figure(title=cam, height=plot_height, width=plot_width, tools=[hover, box_zoom, reset])
+        fig = bk.figure(title=cam, height=plot_height, width=plot_width, tools=[box_zoom, reset])
         if len(cam_src) == 0:
             continue
         else:
@@ -381,7 +375,7 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
                         source.add(cam_src[i][key], key)
                     if key == 'CAM':
                         continue
-                fig.circle(x='EXPIDZ', y='aspect_values', color=colors[cam], size=2, name='circles', source=source)
+                c = fig.circle(x='EXPIDZ', y='aspect_values', color=colors[cam], size=2, name='circles', source=source)
                 fig.line(x='EXPIDZ', y='aspect_values', line_color=colors[cam], source=source)
                 good_range = BoxAnnotation(bottom=cam_src[i]['lower'][0], top=cam_src[i]['upper'][0], 
                                            fill_color='green', fill_alpha=0.05)
@@ -392,6 +386,16 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
                 if cam in ['R', 'B']:
                     fig.xaxis.axis_label_text_color = 'white'
                 fig.yaxis.axis_label = ' '.join(title.split(sep='_')).title()
+
+                #- Add a hover tool
+                hover = HoverTool(renderer=[c], tooltips = [('Amp', '@AMP'),
+                                                            ('Spec', '@SPECTRO'),
+                                                            ('EXPID', '@EXPID'),
+                                                            (f'{title}', '@aspect_values'),
+                                                            ('Upper threshold', '@upper'),
+                                                            ('Lower threshold', '@lower')])
+                fig.add_tools(hover)
+
             cam_figs.append(fig)
     return column(cam_figs)
 

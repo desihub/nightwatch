@@ -200,26 +200,25 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
                      height=50, width=plot_width,
                      y_axis_location=None)
-    
-    hover= HoverTool(names=["circles"], tooltips = [
-        ('(spec, amp)', '@locations'),
-        ('{}'.format(name), '@data_val')],
-                      line_policy='nearest')
 
     fig = bk.figure(x_range=axis.x_range, height=plot_height,
                     width=plot_width, x_axis_location=None, 
-                    tools=[hover, 'tap', 'reset', 'box_zoom', 'pan'])
+                    tools=['tap', 'reset', 'box_zoom', 'pan'])
 
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
         fig.line(x=spec_groups[i], name='lines', y=data_groups[i], line_color='black', alpha=0.25)
 
     if len(colors) != 0 and len(sizes) != 0:
-        fig.circle(x='locations', y='data_val', line_color=None, 
-                   fill_color='colors', size='sizes', source=source, name='circles')
+        c = fig.circle(x='locations', y='data_val', line_color=None, 
+                       fill_color='colors', size='sizes', source=source, name='circles')
     else:
-        fig.circle(x='locations', y='data_val', line_color=None, 
-                   fill_color='black', size=4, source=source, name='circles')
+        c = fig.circle(x='locations', y='data_val', line_color=None, 
+                       fill_color='black', size=4, source=source, name='circles')
+    
+    #- Add a hover tool
+    hover = HoverTool(renderers=[c], tooltips = [('(spec, amp)', '@locations'), ('{}'.format(name), '@data_val')], line_policy='nearest')
+    fig.add_tools(hover)
 
     if len(data_val)>0 :
         plotmin = min(ymin, np.min(data_val)*0.9) if ymin is not None else np.min(data_val) * 0.9
@@ -253,7 +252,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     
     url = '@name'+'-4x.html'
     taptool = fig.select(type=TapTool)
-    taptool.names = ['circles']
+    taptool.renderers = [c]
     taptool.callback = OpenURL(url=url)
     
     return fig

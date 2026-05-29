@@ -155,7 +155,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
         fig.xaxis.ticker = FixedTicker(ticks=[i for i in range(0, 10, 1)])
         if cam == 'Z':
             fig.xaxis.axis_label = "Spectrograph number"
-            fig.plot_height = height+25
+            fig.height = height+25
 
         if unit is None:
             fig.yaxis.axis_label = attribute

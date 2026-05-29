@@ -79,7 +79,7 @@ def plot_fibers_focalplane(source, name, cam='',
         Will that break when plotting fiber plots individually?
     '''
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
-    view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    view_metric = CDSView(filter=BooleanFilter(booleans_metric))
 
 
     #- Plot only the fibers which measured the metric
@@ -98,7 +98,7 @@ def plot_fibers_focalplane(source, name, cam='',
     fibers_measured = source.data['FIBER'][booleans_metric]
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
-    view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
+    view_empty = CDSView(filter=BooleanFilter(booleans_empty))
     fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
 
     #- Adds colored outline based on camera
@@ -201,7 +201,7 @@ def plot_fibernums(source, name, cam='',
     #- Filter data to just this camera
     #- TODO: fails when CAM not in the data source provided
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
-    view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    view_metric = CDSView(filter=BooleanFilter(booleans_metric))
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('FIBER', name, source=source, view=view_metric,
