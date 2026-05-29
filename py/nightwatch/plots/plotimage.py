@@ -20,9 +20,6 @@ from bokeh.models import Tabs, TabPanel as Panel
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
 
-from packaging import version
-_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
-
 
 def downsample_image(image, n):
     """Downsample input image to n x n.
@@ -114,12 +111,8 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
                     tools='pan,box_zoom,wheel_zoom,save,reset')
 
     #- Redirect help button to DESI wiki
-    if _is_bokeh23:
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
-    else:
-        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
+    fig.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
     fig.image([u8img,], 0, 0, nx, ny, color_mapper=colormap)
     if mask is not None:
@@ -172,7 +165,7 @@ def plot_image(image, mask=None, imghdr=None, mask_alpha=0.7, width=800, downsam
     fig_h.xaxis.axis_label = 'CCD charge'
     fig_h.yaxis.axis_label = 'Count'
     fig_h.x_range = Range1d(cmin, cmax)
-    fig_h.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
+    fig_h.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
                              redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
     histtabs = [Panel(child=fig, title='CCD'), Panel(child=fig_h, title='Histogram')]
@@ -256,12 +249,8 @@ def plot_all_images(input_files, mask_alpha=0.3, width=200, downsample=32, title
                 fig = bk.figure(width=width, height=width, tools='pan,box_zoom,wheel_zoom,reset')
 
                 #- Redirect help button to DESI wiki
-                if _is_bokeh23:
-                    fig.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
-                                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
-                else:
-                    fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD image QA',
-                                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
+                fig.add_tools(HelpTool(description='See the DESI wiki for details\non CCD image QA',
+                                       redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CCDImages'))
 
                 #- Remove axis labels
                 fig.xaxis.visible = False

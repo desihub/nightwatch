@@ -20,9 +20,6 @@ from desitarget.targets import desi_mask
 
 from .. import io
 
-from packaging import version
-_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
-
 
 def downsample(data, n, agg=np.mean):
     '''
@@ -505,13 +502,8 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     fig.add_tools(hover)
 
     # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
-    if _is_bokeh23:
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non spectra QA',
-                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
-
-    else:
-        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non spectra QA',
-                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
+    fig.add_tools(HelpTool(description='See the DESI wiki for details\non spectra QA',
+                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Spectra'))
 
     # Set axis range.
     if len(flux_total) == 0:

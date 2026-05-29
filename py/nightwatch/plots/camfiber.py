@@ -10,9 +10,6 @@ import bokeh.palettes as bp
 from bokeh.models import HelpTool, TapTool, OpenURL
 from bokeh.models import ColumnDataSource
 
-from packaging import version
-_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
-
 from ..plots.fiber import plot_fibers_focalplane, plot_fibernums
 # from ..plots.core import get_colors
 
@@ -83,12 +80,8 @@ def plot_camfib_focalplane(cds, attribute, cameras, percentiles={},
                         colorbar=colorbar)
 
         # Add HelpTool redirection to the DESI wiki.
-        if _is_bokeh23:
-            fig.add_tools(HelpTool(description='See the DESI wiki for details\non Focalplane QA',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane'))
-        else:
-            fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Focalplane QA',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane'))
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Focalplane QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Focalplane'))
 
         figs_list.append(fig)
         hfigs_list.append(hfig)
@@ -158,12 +151,8 @@ def plot_camfib_fot(cds, attribute, cameras, percentiles={},
 
 
         # Add HelpTool redirection to the DESI wiki.
-        if _is_bokeh23:
-            fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
-        else:
-            fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Fiber positioning',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
 
         figs_list.append(fig)
 
@@ -225,12 +214,8 @@ def plot_camfib_posacc(pcd,attribute,percentiles={},
                         colorbar=True, width=500, height=500)
 
     # Add HelpTool redirection to the DESI wiki.
-    if _is_bokeh23:
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
-    else:
-        fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Fiber positioning',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
+    fig.add_tools(HelpTool(description='See the DESI wiki for details\non Fiber positioning',
+                           redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Positioning'))
 
     figs_list.append(fig)
     hfigs_list.append(hfig)
@@ -312,12 +297,8 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
                             )
 
         # Add HelpTool redirection to the DESI wiki.
-        if _is_bokeh23:
-            fig.add_tools(HelpTool(description='See the DESI wiki for details\non Cam Fiber QA',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber'))
-        else:
-            fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Cam Fiber QA',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber'))
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Cam Fiber QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#CamFiber'))
 
         taptool = fig.select(type=TapTool)
 
