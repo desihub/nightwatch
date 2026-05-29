@@ -16,7 +16,7 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import layout, gridplot
 from bokeh.models import HelpTool, Label, ColumnDataSource, Range1d
-from bokeh.models.widgets import Panel, Tabs
+from bokeh.models import Tabs, TabPanel as Panel
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
 

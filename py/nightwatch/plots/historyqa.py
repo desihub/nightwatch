@@ -7,7 +7,7 @@ from bokeh.models import (
     ColumnDataSource, OpenURL, Div, Range1d, MonthsTicker,
     TapTool, HelpTool, HoverTool, Range1d, BoxAnnotation, ResetTool, BoxZoomTool,
     LinearColorMapper, ColorBar, Whisker, Band)
-from bokeh.models.widgets import Panel, Tabs
+from bokeh.models import Tabs, TabPanel as Panel
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
