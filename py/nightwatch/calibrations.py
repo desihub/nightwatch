@@ -5,13 +5,13 @@ import numpy as np
 
 from glob import glob
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 
 def get_outdir():
     """Retrieve the path to the calibration files in the Nightwatch installation.
     """
-    return resource_filename('nightwatch', 'calib_files')
+    return importlib_resources.files('nightwatch.calib_files')
 
 
 def pick_calib_file(name, night, outdir=None, in_nightwatch=True):
@@ -34,8 +34,9 @@ def pick_calib_file(name, night, outdir=None, in_nightwatch=True):
         calib_dir = get_outdir()
 
     # Search for the most recent calibration files.
-    file_pattern = f'{name}-*.json'
+    file_pattern = rf'{name}-.*\.json'
     calib_files = sorted(glob(os.path.join(calib_dir, file_pattern)), reverse=True)
+    calib_files = sorted([x for x in calib_dir.iterdir() if re.match(file_pattern, x.name)])[::-1]
     for filepath in calib_files:
         zero_nightid = int(re.findall(r'\d{8}', os.path.basename(filepath))[0])
         if zero_nightid <= night:
