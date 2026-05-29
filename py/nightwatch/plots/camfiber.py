@@ -295,7 +295,7 @@ def plot_per_fibernum(cds, attribute, cameras, titles={},
 
         if len(cam_metric) == 0:
             #- create a blank plot as a placeholder
-            fig = bokeh.plotting.figure(plot_width=width, plot_height=height)
+            fig = bokeh.plotting.figure(width=width, height=height)
             figs_list.append(fig)
             continue
 

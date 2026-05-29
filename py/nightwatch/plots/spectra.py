@@ -134,7 +134,7 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
             indexes = [fib[0].index(i) for i in common]
         else:
             indexes = []
-        fig=bk.figure(plot_height = height, plot_width = width+50)
+        fig=bk.figure(height=height, width=width+50)
         # fig.add_layout(Title(text= "Downsample: {}".format(n), text_font_style="italic"), 'above')
         # fig.add_layout(Title(text= "Fibers: {}".format(common), text_font_style="italic"), 'above')
         # fig.add_layout(Title(text="Spectro: {}".format(spectro), text_font_size="12pt"), 'above')
@@ -270,7 +270,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
     gridlist = []
 
     for nm in unique_nms:
-        fig = bk.figure(plot_height=height, plot_width=width)
+        fig = bk.figure(height=height, width=width)
         fig.yaxis.axis_label = 'counts'
         fig.xaxis.axis_label = 'wavelength [angstroms]'
         fig.x_range = Range1d(3500, 9950)
@@ -421,7 +421,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
     else:
         foundfibers = []
 
-    fig = bk.figure(plot_height=height, plot_width=width,
+    fig = bk.figure(height=height, width=width,
                     tools=['tap', 'reset', 'box_zoom', 'pan'])
     fig.xaxis.axis_label = 'wavelength [angstroms]'
     fig.x_range = Range1d(3200, 10200)
@@ -615,7 +615,7 @@ def plot_spectra_qa_arcs(data, names, calstandards):
 
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
-                        plot_height=200, plot_width=1000,
+                        height=200, width=1000,
                         tools=[hover, 'reset', 'box_zoom', 'pan'])
 
         fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
@@ -911,7 +911,7 @@ def plot_spectra_qa_flats(data, header, calstandards):
 
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
-                        plot_height=200, plot_width=1000,
+                        height=200, width=1000,
                         tools=[hover, 'reset', 'box_zoom', 'pan'])
 
         fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]

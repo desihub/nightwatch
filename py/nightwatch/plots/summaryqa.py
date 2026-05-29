@@ -202,7 +202,7 @@ def get_hist(fine_data, attribute, color, width=250, height=250, min_border_left
 
     hist, edges = np.histogram(attr_data, density=True, bins=25)
 
-    fig = bk.figure(plot_width=width, plot_height=height,
+    fig = bk.figure(width=width, height=height,
                     x_axis_label = attribute.title(),
                     min_border_left=min_border_left, min_border_right=min_border_right,
                     title = 'title')
@@ -244,7 +244,7 @@ def get_exposuresPerTile_hist(exposures, color, width=250, height=250, min_borde
 
     hist, edges = np.histogram(exposures_nocalib["ones"], density=True, bins=np.arange(0, np.max(exposures_nocalib["ones"])+1))
 
-    fig = bk.figure(plot_width=width, plot_height=height,
+    fig = bk.figure(width=width, height=height,
                     x_axis_label = "# Exposures per Tile",
                     title = 'title',
                     min_border_left=min_border_left, min_border_right=min_border_right)

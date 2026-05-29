@@ -103,10 +103,10 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
 
         if len(cam_table) == 0:
             #- Create placeholder fig if not data for this camera
-            fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
+            fig = bk.figure(height=height, width=width, title='No {} data'.format(cam))
             continue
 
-        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
+        fig = bk.figure(height=height, width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
 
         # Add HelpTool redirection to the DESI wiki.
         if _is_bokeh23:

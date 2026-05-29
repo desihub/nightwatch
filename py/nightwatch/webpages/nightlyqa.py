@@ -134,7 +134,7 @@ def get_nightlyqa_html(night, exposures, fine_data, tiles, outdir, link_dict, he
                                     time_hist_plot_height, min_border_left=min_border_left_hist,
                                     min_border_right=min_border_right_hist, hist_min=0)
         
-        empty_plot = bk.figure(plot_width=250, plot_height=250)
+        empty_plot = bk.figure(width=250, height=250)
         empty_plot.outline_line_color = None
         empty_plot.toolbar_location = None
 

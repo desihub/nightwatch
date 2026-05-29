@@ -370,7 +370,7 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
         box_zoom = BoxZoomTool()
         reset = ResetTool()
         
-        fig = bk.figure(title=cam, plot_height=plot_height, plot_width=plot_width, tools=[hover, box_zoom, reset])
+        fig = bk.figure(title=cam, height=plot_height, width=plot_width, tools=[hover, box_zoom, reset])
         if len(cam_src) == 0:
             continue
         else:
@@ -478,7 +478,7 @@ def plot_histogram(src, bins=20, amps=None, plot_height=250, plot_width=250):
     src_selected = np.array(src)[np.array(ids)]
     cam_figs = []
     for cam in ['B', 'R', 'Z']:
-        fig = bk.figure(plot_height=plot_height, plot_width=plot_width, toolbar_location=None, title=cam)
+        fig = bk.figure(height=plot_height, width=plot_width, toolbar_location=None, title=cam)
         fig.title.text_color = 'white'
         colors = {'R': 'firebrick', 'B':'steelblue', 'Z':'green'}
         cam_src = [s for s in src_selected if s['CAM']==cam]

@@ -198,7 +198,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
 
     #plotting
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
-                     plot_height=50, plot_width=plot_width,
+                     height=50, width=plot_width,
                      y_axis_location=None)
     
     hover= HoverTool(names=["circles"], tooltips = [
@@ -206,8 +206,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
         ('{}'.format(name), '@data_val')],
                       line_policy='nearest')
 
-    fig = bk.figure(x_range=axis.x_range, plot_height=plot_height,
-                    plot_width=plot_width, x_axis_location=None, 
+    fig = bk.figure(x_range=axis.x_range, height=plot_height,
+                    width=plot_width, x_axis_location=None, 
                     tools=[hover, 'tap', 'reset', 'box_zoom', 'pan'])
 
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
@@ -304,7 +304,7 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
     
     # x-axis labels for spectrograph 0-9 and amplifier A-D
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
-                     plot_height=50, plot_width=plot_width,
+                     height=50, width=plot_width,
                      y_axis_location=None,
                      tools=[])
 

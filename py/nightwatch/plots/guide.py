@@ -25,7 +25,7 @@ def get_all_guide_scatter(data, cam, width=700, height=300, title=None):
     if title==None:
         title = 'GUIDE {cam}'.format(cam=cam)
     
-    fig = bk.figure(plot_width=width, plot_height=height, title=title)
+    fig = bk.figure(width=width, height=height, title=title)
     
     reddict = {0: RGB(150, 40, 27), 2: RGB(240, 52, 52), 1: RGB(219, 10, 91), 3: RGB(255, 148, 120)}
     bluedict = {0: RGB(77, 5, 232), 1: RGB(44, 130, 201), 2: RGB(0, 181, 204), 3: RGB(107, 185, 240)}
@@ -91,8 +91,8 @@ def get_all_stars_hist(data, cam, width=300, height=300, title=None):
         title: title for plot. Default is GUIDE {cam}.
     Returns bokeh figure object.'''
     
-    xfig = bk.figure(plot_width=width, plot_height=height, title=title)
-    yfig = bk.figure(plot_width=width, plot_height=height, title=title)
+    xfig = bk.figure(width=width, height=height, title=title)
+    yfig = bk.figure(width=width, height=height, title=title)
     
     reddict = {0: RGB(150, 40, 27), 2: RGB(240, 52, 52), 1: RGB(219, 10, 91), 3: RGB(255, 148, 120)}
     bluedict = {0: RGB(77, 5, 232), 1: RGB(44, 130, 201), 2: RGB(0, 181, 204), 3: RGB(107, 185, 240)}
@@ -165,7 +165,7 @@ def guide_scatter_combined(data, cams, width=600, height=300, ncols=2):
     for fig in figs[0:-ncols]:
         fig.xaxis.axis_label = None
     for fig in figs[-ncols:len(figs)]:
-        fig.plot_height += 20
+        fig.height += 20
         
     figs_combined = []
     for idx in range(len(cams)):
