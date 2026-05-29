@@ -134,7 +134,7 @@ def getfile(filepath):
         return send_from_directory(indir, filepath)
 
     # Try YEARMMDD/EXPID06/preproc-CAM-EXPID-Nx.html that isn't generated yet
-    m = re.match('^(20\d{6})/(\d{8})/preproc-([brz]{1}\d{1})-(\d{8})-(\d*)x.html$', filepath)
+    m = re.match(r'^(20\d{6})/(\d{8})/preproc-([brz]{1}\d{1})-(\d{8})-(\d*)x.html$', filepath)
     if m:
         night, expid, camera, expid2, downsample = m.groups()
         if expid != expid2:
