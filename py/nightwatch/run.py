@@ -641,7 +641,7 @@ def write_tables(indir, outdir, expnights=None):
     import re
     from astropy.table import Table
     from nightwatch.webpages import tables as web_tables
-    from pkg_resources import resource_filename
+    import importlib_resources
     from shutil import copyfile
     from collections import Counter
 
@@ -710,7 +710,7 @@ def write_tables(indir, outdir, expnights=None):
     for f in files:
         outfile = os.path.join(outdir, 'static', f)
         if not os.path.exists(outfile):
-            infile = resource_filename('nightwatch', os.path.join('static', f))
+            infile = importlib_resources.files('nightwatch.static') / f
             copyfile(infile, outfile)
 
     nightsfile = os.path.join(outdir, 'nights.html')
