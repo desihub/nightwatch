@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import json
 import csv
-from pkg_resources import resource_filename
+import importlib_resources
 from astropy.table import Table, vstack
 import fitsio
 
@@ -16,7 +16,7 @@ from bokeh.models.widgets import DataTable, TableColumn, NumberFormatter
 
 def get_outdir():
     '''Retrieve the path to the threshold_files directory within nightwatch code installation'''
-    return resource_filename('nightwatch', 'threshold_files')
+    return importlib_resources.files('nightwatch.threshold_files')
 
 def write_threshold_json(indir, outdir, start_date, end_date, name):
     '''
@@ -126,16 +126,17 @@ def pick_threshold_file(name, night, outdir=None, in_nightwatch=True, exptime=0)
         threshold_dir = get_outdir()
 
     # Set up search for most recent threshold files.
-    file_search_str = f'{name}-*.json'
+    file_search_str = rf'{name}-.*\.json'
     if name in ['READNOISE', 'COSMICS_RATE']:
         if exptime < 100: # use zero-calibrated nominal values for short exposure times
             nomtype = 'ZERO'
         else:             # use dark-calibrated nominal values for long exposure times
             nomtype = 'DARK'
-        file_search_str = f'{name}-*-{nomtype}.json'
+        file_search_str = rf'{name}-.*-{nomtype}\.json'
 
     # Pick the most recent thresholds available.
-    threshold_files = sorted(glob.glob(os.path.join(threshold_dir, file_search_str)), reverse=True)
+    threshold_files = sorted([x for x in threshold_dir.iterdir() if re.match(file_search_str, x.name)])[::-1]
+
     for filepath in threshold_files:
         zero_nightid = int(re.findall(r'\d{8}', os.path.basename(filepath))[0])
         if zero_nightid <= night:
