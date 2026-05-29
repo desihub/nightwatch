@@ -85,12 +85,12 @@ def find_unprocessed_expdir(datadir, outdir, processed, startdate=None):
     #- Search for the earliest unprocessed datadir/YYYYMMDD
     for night in all_nights:
         nightdir = os.path.join(datadir, night)
-        if re.match('20\d{6}', night) and os.path.isdir(nightdir) and \
+        if re.match(r'20\d{6}', night) and os.path.isdir(nightdir) and \
                 night >= startdate:
             for expid in sorted(os.listdir(nightdir)):
                 expdir = os.path.join(nightdir, expid)
-                if re.match('\d{8}', expid) and os.path.isdir(expdir):
-                    fits_fz_exists = np.any([re.match('desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
+                if re.match(r'\d{8}', expid) and os.path.isdir(expdir):
+                    fits_fz_exists = np.any([re.match(r'desi-\d{8}.fits.fz', file) for file in os.listdir(expdir)])
                     if fits_fz_exists:
                         qafile = os.path.join(outdir, night, expid, f'qa-{expid}.fits')
                         if (not os.path.exists(qafile)) and (expdir not in processed):
@@ -127,7 +127,7 @@ def find_latest_expdir(basedir, processed, startdate=None):
     #- Search for most recent basedir/YEARMMDD
     for dirname in sorted(os.listdir(basedir), reverse=True):
         nightdir = os.path.join(basedir, dirname)
-        if re.match('20\d{6}', dirname) and dirname >= startdate and \
+        if re.match(r'20\d{6}', dirname) and dirname >= startdate and \
                 os.path.isdir(nightdir):
             break
     #- if for loop completes without finding nightdir to break, run this else
@@ -348,7 +348,7 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
         log.error('Correcting blank NIGHT keyword based upon directory structure')
         #- /path/to/NIGHT/EXPID/rawfile.fits
         night = os.path.basename(os.path.dirname(os.path.dirname(os.path.abspath(rawfile))))
-        if re.match('20\d{6}', night):
+        if re.match(r'20\d{6}', night):
             log.info('Setting NIGHT to {}'.format(night))
         else:
             raise RuntimeError('Unable to derive NIGHT for {}'.format(rawfile))
@@ -471,7 +471,7 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
     #- Early data have wrong NIGHT in header; check by hand
     #- YEARMMDD/EXPID/infile
     dirnight = os.path.basename(os.path.dirname(os.path.dirname(infile)))
-    if re.match('20\d{6}', dirnight) and dirnight != str(night):
+    if re.match(r'20\d{6}', dirnight) and dirnight != str(night):
         log.warning(f'Correcting {infile} header night {night} to {dirnight}')
         night = int(dirnight)
         header['NIGHT'] = night
@@ -651,8 +651,8 @@ def write_tables(indir, outdir, expnights=None):
     #- Count night/expid directories to get num exp per night
     expdirs = sorted(glob.glob(f"{indir}/20*/[0-9]*"))
     nights = list()
-    re_expid = re.compile('^\d{8}$')
-    re_night = re.compile('^20\d{6}$')
+    re_expid = re.compile(r'^\d{8}$')
+    re_night = re.compile(r'^20\d{6}$')
     for expdir in expdirs:
         expid = os.path.basename(expdir)
         night = os.path.basename(os.path.dirname(expdir))
