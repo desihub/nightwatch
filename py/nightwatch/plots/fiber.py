@@ -84,7 +84,7 @@ def plot_fibers_focalplane(source, name, cam='',
 
     #- Plot only the fibers which measured the metric
     s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
-                    radius=5, alpha=0.7)
+                    size=5, alpha=0.7)
 
     #- Add hover tool
     if not tooltips:
@@ -99,7 +99,7 @@ def plot_fibers_focalplane(source, name, cam='',
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     view_empty = CDSView(filter=BooleanFilter(booleans_empty))
-    fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
+    fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', size=2)
 
     #- Adds colored outline based on camera
     if cam:
@@ -204,8 +204,7 @@ def plot_fibernums(source, name, cam='',
     view_metric = CDSView(filter=BooleanFilter(booleans_metric))
 
     #- Plot only the fibers which measured the metric
-    s = fig.scatter('FIBER', name, source=source, view=view_metric,
-                    color=camcolors.get(cam.upper()), alpha=0.7)
+    s = fig.scatter('FIBER', name, source=source, view=view_metric, color=camcolors.get(cam.upper()), alpha=0.7)
 
     #- Add hover tool
     if not tooltips:

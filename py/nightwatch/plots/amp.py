@@ -209,10 +209,10 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
 
     if len(colors) != 0 and len(sizes) != 0:
         c = fig.circle(x='locations', y='data_val', line_color=None, 
-                       fill_color='colors', size='sizes', source=source, name='circles')
+                       fill_color='colors', radius='sizes', source=source, name='circles')
     else:
         c = fig.circle(x='locations', y='data_val', line_color=None, 
-                       fill_color='black', size=4, source=source, name='circles')
+                       fill_color='black', radius=4, source=source, name='circles')
     
     #- Add a hover tool
     hover = HoverTool(renderers=[c], tooltips = [('(spec, amp)', '@locations'), ('{}'.format(name), '@data_val')], line_policy='nearest')

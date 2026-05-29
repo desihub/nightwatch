@@ -375,7 +375,7 @@ def plot_timeseries(src, title, amps=None, plot_height=300, plot_width=900):
                         source.add(cam_src[i][key], key)
                     if key == 'CAM':
                         continue
-                c = fig.circle(x='EXPIDZ', y='aspect_values', color=colors[cam], size=2, name='circles', source=source)
+                c = fig.circle(x='EXPIDZ', y='aspect_values', color=colors[cam], radius=2, name='circles', source=source)
                 fig.line(x='EXPIDZ', y='aspect_values', line_color=colors[cam], source=source)
                 good_range = BoxAnnotation(bottom=cam_src[i]['lower'][0], top=cam_src[i]['upper'][0], 
                                            fill_color='green', fill_alpha=0.05)
