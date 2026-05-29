@@ -130,14 +130,14 @@ def plot_fibers_focalplane(source, name, cam='',
 
     #- Add colorbar
     if colorbar:
-        fig.plot_width = fig.plot_width + 60
+        fig.width = fig.width + 60
         colorbar_offset = 12
         color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=colorbar_offset,
                 border_line_color=None, location=(0,0), ticker=BasicTicker(), width=10,
                 formatter=NumeralTickFormatter(format='0.0a'))
         fig.add_layout(color_bar, 'right')
         #- adjusting histogram width for colorbar
-        width = fig.plot_width - colorbar_offset
+        width = fig.width - colorbar_offset
 
     if not plot_hist:
         return fig, None

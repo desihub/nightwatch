@@ -11,7 +11,7 @@ from bokeh.layouts import gridplot, layout
 
 import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
-from bokeh.models import Panel, Tabs, Div
+from bokeh.models import TabPanel as Panel, Tabs, Div
 from astropy.table import Table, join, vstack, hstack
 
 from ..plots.camfiber import plot_camfib_focalplane, plot_per_fibernum, plot_camfib_fot, plot_camfib_posacc

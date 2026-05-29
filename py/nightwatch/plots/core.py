@@ -52,7 +52,10 @@ def plot_histogram(metric, num_bins=50, width=250, height=80, x_range=None, titl
 
     Returns a Bokeh figure object
     '''
-    hfig = bk.figure(width=width, height=height, x_range=x_range)
+    if x_range is not None:
+        hfig = bk.figure(width=width, height=height, x_range=x_range)
+    else:
+        hfig = bk.figure(width=width, height=height)
     hist, edges = np.histogram(metric, density=True, bins=num_bins)
     centers = 0.5 * (edges[1:] + edges[:-1])
 
