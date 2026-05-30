@@ -1,6 +1,7 @@
 # DESI Nightwatch
 
 [![Documentation Status](https://readthedocs.org/projects/nightwatch/badge/?version=latest)](https://nightwatch.readthedocs.io/en/latest/?badge=latest)
+[![tests](https://github.com/desihub/nightwatch/actions/workflows/tests.yml/badge.svg)](https://github.com/desihub/nightwatch/actions/workflows/tests.yml)
 
 ### Real-time DESI data quality monitoring
 
