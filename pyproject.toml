@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nightwatch"
+dynamic = ["version"]
+description = "A Python package for realtime quality assurance of DESI data."
+authors = [{ name = "DESI Collaboration", email = "desi-survey@desi.lbl.gov" }]
+license = "BSD-3-Clause"
+license-files = ["LICEN[CS]E*"]
+readme = {file = "README.md", content-type = "text/markdown"}
+
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy",
+    "scipy",
+    "astropy",
+    "matplotlib",
+    "tqdm",
+    "fitsio",
+    "bokeh",
+    "numba",
+    "desiutil",
+    "desitarget",
+    "desimodel",
+    "desispec"
+]
+
+[project.optional-dependencies]
+webapp = ["flask"]
+dev = ["hypothesis", "pytest", "nbval"]
+docs = ["numpydoc", "nbsphinx", "ipykernel", "tqdm[notebook]"]
+
+[project.urls]
+"Homepage" = "https://github.com/desihub/nightwatch"
+"Bug Tracker" = "https://github.com/desihub/nightwatch/issues"
+
+[tool.setuptools.package-data]
+"nightwatch" = [
+    "nightwatch.static",
+    "nightwatch.threshold_files"
+]
+
+[tool.setuptools.packages.find]
+where = ["py"]
+include = [
+    "nightwatch",
+    "nightwatch.*",
+]
+exclude = [
+    "nightwatch.calib_files",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "nightwatch.__version__"}
