@@ -102,7 +102,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
             fig = bk.figure(height=height, width=width, title='No {} data'.format(cam))
             continue
 
-        fig = bk.figure(height=height, width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
+        fig = bk.figure(height=height, width=width, title=f'{title} {cam}', tools=['reset', 'box_zoom', 'pan'])
 
         # Add HelpTool redirection to the DESI wiki.
         fig.add_tools(HelpTool(description='See the DESI wiki for details\non Camera QA',
@@ -127,7 +127,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
                 sizes = sizes
             ))
 
-            fig.circle(source=source, x="SPECTRO", y="MEANattr", color='colors', size='sizes')
+            fig.scatter(source=source, x="SPECTRO", y="MEANattr", color='colors', size='sizes')
         else:
             source = ColumnDataSource(data=dict(
                 SPECTRO = cam_table["SPECTRO"],
@@ -135,10 +135,11 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
                 MINattr = cam_table["MIN"+attribute],
                 MAXattr = cam_table["MAX"+attribute]
             ))
-            fig.circle(source=source, x="SPECTRO", y="MEANattr", color=camcolors[cam])
+            fig.scatter(source=source, x="SPECTRO", y="MEANattr", color=camcolors[cam])
 
-        fig.circle(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
-        fig.circle(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
+        fig.scatter(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
+        fig.scatter(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
+
         if line0:
             fig.line(source=source, x="SPECTRO", y=0)
         fig.add_layout(
