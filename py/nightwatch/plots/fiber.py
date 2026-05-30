@@ -82,14 +82,15 @@ def plot_fibers_focalplane(source, name, cam='',
     try:
         #- bokeh 2.x
         view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+
+        #- Plot only the fibers which measured the metric
+        s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper, radius=5, alpha=0.7)
     except AttributeError as e:
         #- bokeh 3.x
         view_metric = CDSView(filter=BooleanFilter(booleans_metric))
 
-
-    #- Plot only the fibers which measured the metric
-    s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
-                    size=5, alpha=0.7)
+        #- Plot only the fibers which measured the metric
+        s = fig.circle('X', 'Y', source=source, view=view_metric, color=mapper, radius=5, alpha=0.7)
 
     #- Add hover tool
     if not tooltips:
@@ -105,12 +106,14 @@ def plot_fibers_focalplane(source, name, cam='',
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     try:
         #- bokeh 2.x
-        view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
+        view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
+
+        fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
     except AttributeError as e:
         #- bokeh 3.x
         view_empty = CDSView(filter=BooleanFilter(booleans_empty))
 
-    fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', size=2)
+        fig.circle('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
 
     #- Adds colored outline based on camera
     if cam:
