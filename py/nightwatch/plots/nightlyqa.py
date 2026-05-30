@@ -151,7 +151,7 @@ def plot_timeseries_fine(fine_data_src, exposures_src, name, color, tools=None, 
 #         med_attr = exposures[name]
 #     ))
     
-    fig =  bk.figure(plot_height=height, plot_width=width, 
+    fig =  bk.figure(height=height, width=width, 
                      x_range=x_range, y_range=y_range, x_axis_type='datetime',
                      active_scroll='wheel_zoom', title=title,
                      x_axis_label='Time', min_border_left=min_border_left,
@@ -327,7 +327,7 @@ def overlaid_hist(all_exposures, night_exposures, attribute, color, width=300, h
     hist_all, edges_all = np.histogram(all_attr, density=True, bins=25)
     hist_night, edges_night = np.histogram(night_attr, density=True, bins=25)
 
-    fig = bk.figure(plot_width=width, plot_height=height,
+    fig = bk.figure(width=width, height=height,
                     x_axis_label = attribute.title(), y_axis_label = 'title',
                     min_border_left=min_border_left, min_border_right=min_border_right)
     fig.quad(top=hist_all, bottom=0, left=edges_all[:-1], right=edges_all[1:], fill_color=color, alpha=0.2)
@@ -378,7 +378,7 @@ def overlaid_hist_fine(all_data, night_data, attribute, color, width=300, height
     hist_all, edges_all = np.histogram(all_attr, density=True, bins=25)
     hist_night, edges_night = np.histogram(night_attr, density=True, bins=25)
 
-    fig = bk.figure(plot_width=width, plot_height=height,
+    fig = bk.figure(width=width, height=height,
                     x_axis_label = attribute.title(), y_axis_label = 'title',
                     min_border_left=min_border_left, min_border_right=min_border_right)
     fig.quad(top=hist_all, bottom=0, left=edges_all[:-1], right=edges_all[1:], fill_color=color, alpha=0.2)

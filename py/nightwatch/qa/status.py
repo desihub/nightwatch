@@ -69,9 +69,9 @@ def get_status(qadata, night):
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                         warn = (data[data_loc][metric] < thresholds[key]['lower']) | (data[data_loc][metric] > thresholds[key]['upper'])
                         error = (data[data_loc][metric] <= thresholds[key]['lower_err']) | (data[data_loc][metric] >= thresholds[key]['upper_err'])
-                        if warn: 
+                        if np.any(warn): 
                             status['PER_AMP'][metric][status_loc] = Status.warning
-                        if error:
+                        if np.any(error):
                             status['PER_AMP'][metric][status_loc] = Status.error
                     else:
                         continue

@@ -13,9 +13,6 @@ from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
-from packaging import version
-_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
-
 def get_amp_colors(data, lower_err, lower, upper, upper_err):
     '''takes in per amplifier data and the acceptable threshold for that metric.
     Args: 
@@ -89,8 +86,7 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
-    amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
     '''Plot a per-camera, per-amp visualization of data[name]
     Args:
         data: table of per_amp qa data
@@ -113,7 +109,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     if title is None:
         title = name
 
-    #unpacking data
+    #- unpacking data
     spec_loc = []
     amp_loc = []
     name_data = []
@@ -137,13 +133,16 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
             name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         else:
             continue
+
     _, ids = np.unique(spec_loc, return_index=True)
     spec_loc = np.array(spec_loc)[np.sort(ids)]
+
     _, ids = np.unique(amp_loc, return_index=True)
     amp_loc = np.array(amp_loc)[np.sort(ids)]
     
     sorted_ids = np.argsort(locations_to_sort)
     name_data = np.array(name_data)[sorted_ids]
+
     data_val = np.array(data_val)[sorted_ids]
     locations = [tuple(locations_to_sort[i]) for i in sorted_ids]
     
@@ -196,34 +195,37 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
         upper=upper_warn,
     ))
 
-    #plotting
+    #- plotting
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
-                     plot_height=50, plot_width=plot_width,
+                     height=50, width=plot_width,
                      y_axis_location=None)
     
-    hover= HoverTool(names=["circles"], tooltips = [
-        ('(spec, amp)', '@locations'),
-        ('{}'.format(name), '@data_val')],
-                      line_policy='nearest')
-
-    fig = bk.figure(x_range=axis.x_range, plot_height=plot_height,
-                    plot_width=plot_width, x_axis_location=None, 
-                    tools=[hover, 'tap', 'reset', 'box_zoom', 'pan'])
+    fig = bk.figure(x_range=axis.x_range, height=plot_height, width=plot_width, x_axis_location=None, 
+                    tools=['reset', 'box_zoom', 'pan'])
 
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
         fig.line(x=spec_groups[i], name='lines', y=data_groups[i], line_color='black', alpha=0.25)
 
     if len(colors) != 0 and len(sizes) != 0:
-        fig.circle(x='locations', y='data_val', line_color=None, 
-                   fill_color='colors', size='sizes', source=source, name='circles')
+        s = fig.scatter(x='locations', y='data_val', line_color=None, fill_color='colors', size='sizes', source=source, name='circles')
     else:
-        fig.circle(x='locations', y='data_val', line_color=None, 
-                   fill_color='black', size=4, source=source, name='circles')
+        s = fig.scatter(x='locations', y='data_val', line_color=None, fill_color='black', size=4, source=source, name='circles')
 
-    if len(data_val)>0 :
-        plotmin = min(ymin, np.min(data_val)*0.9) if ymin is not None else np.min(data_val) * 0.9
-        plotmax = max(ymax, np.max(data_val)*1.1) if ymax is not None else np.max(data_val) * 1.1
+    #- Add hover tool for mouseover value display
+    hover = HoverTool(renderers=[s], line_policy='nearest',
+                      tooltips = [('(spec, amp)', '@locations'),
+                                  ('{}'.format(name), '@data_val')])
+
+    #- Add tap tool to open amp data on right click
+    url = '@name'+'-4x.html'
+    tap = TapTool(renderers=[s], callback=OpenURL(url=url))
+
+    fig.add_tools(hover, tap)
+
+    if len(data_val) > 0 :
+        plotmin = min(ymin, np.min(data_val) * 0.9) if ymin is not None else np.min(data_val) * 0.9
+        plotmax = max(ymax, np.max(data_val) * 1.1) if ymax is not None else np.max(data_val) * 1.1
     else :
         plotmin = ymin
         plotmax = ymax
@@ -232,6 +234,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     #- style visual attributes
     fig.yaxis.axis_label = cam
     fig.yaxis.minor_tick_line_color=None
+    fig.yaxis.ticker = AdaptiveTicker(desired_num_ticks=5, min_interval=1)
+    fig.yaxis.formatter = NumeralTickFormatter(format='e') if name == 'BIAS' else NumeralTickFormatter(format='a')
     fig.ygrid.grid_line_color=None
 
     if cam == 'R':
@@ -244,17 +248,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     fig.outline_line_alpha=0.7
     
     if lower is not None and upper is not None:
-        #fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower', line_alpha=0.3))
-        fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
-            fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
-    
-#         if name in ['COSMICS_RATE']:
-#             fig.add_layout(BoxAnnotation(bottom=lower_warn[0][0], top=upper_warn[0][0], fill_alpha=0.1, fill_color='green'))
-    
-    url = '@name'+'-4x.html'
-    taptool = fig.select(type=TapTool)
-    taptool.names = ['circles']
-    taptool.callback = OpenURL(url=url)
+        fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay', fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
     
     return fig
 
@@ -288,34 +282,15 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[1], ymax=ymax[1])
         if cam == 'Z':
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[2], ymax=ymax[2])
-            
-        
-        if name == "BIAS":
-            fig.yaxis.ticker = AdaptiveTicker(base=10, desired_num_ticks=5, 
-                                              mantissas=np.arange(1, 5.5, 0.5), 
-                                              min_interval=1)
-            fig.yaxis.formatter = NumeralTickFormatter(format='e')
-        else:
-            fig.yaxis.ticker = AdaptiveTicker(base=10, desired_num_ticks=5, 
-                                              mantissas=np.arange(1, 5.5, 0.5), 
-                                              min_interval=1)
-            fig.yaxis.formatter = NumeralTickFormatter(format='a')
+
         figs.append(fig)
-    
+
     # x-axis labels for spectrograph 0-9 and amplifier A-D
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
-                     plot_height=50, plot_width=plot_width,
-                     y_axis_location=None,
-                     tools=[])
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, height=50, width=plot_width, y_axis_location=None, tools=[])
 
     # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
-    if _is_bokeh23:
-        axis.add_tools(HelpTool(description='See the DESI wiki for details\non CCD amplifier QA',
-                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
-
-    else:
-        axis.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non CCD amplifier QA',
-                                redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
+    axis.add_tools(HelpTool(description='See the DESI wiki for details\non CCD amplifier QA',
+                            redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Amplifier'))
 
     axis.line(x=labels, y=0, line_color=None)
     axis.grid.grid_line_color=None
@@ -324,3 +299,4 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
     fig = gridplot([[figs[0]], [figs[1]], [figs[2]], [axis]], toolbar_location='right')
 
     return fig
+

@@ -123,7 +123,7 @@ def guide_star_timelapse(image_data, height=170, width=170, title=None, ncols=8)
     for key in keys:
         name_key = key
         title = 'Cam {} Star {}'.format(key[5], key[7])
-        im = bk.figure(plot_width=width, plot_height=height+15, x_range = (0, 50), y_range=(0, 50), title=title)
+        im = bk.figure(width=width, height=height+15, x_range = (0, 50), y_range=(0, 50), title=title)
         im.xaxis.visible = False
         im.yaxis.visible = False
         im_glyph = Image(image=name_key, x=0, y=0, dw=50, dh=50)

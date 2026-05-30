@@ -79,12 +79,18 @@ def plot_fibers_focalplane(source, name, cam='',
         Will that break when plotting fiber plots individually?
     '''
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
-    view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    try:
+        #- bokeh 2.x
+        view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
 
+        #- Plot only the fibers which measured the metric
+        s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper, radius=5, alpha=0.7)
+    except AttributeError as e:
+        #- bokeh 3.x
+        view_metric = CDSView(filter=BooleanFilter(booleans_metric))
 
-    #- Plot only the fibers which measured the metric
-    s = fig.scatter('X', 'Y', source=source, view=view_metric, color=mapper,
-                    radius=5, alpha=0.7)
+        #- Plot only the fibers which measured the metric
+        s = fig.circle('X', 'Y', source=source, view=view_metric, color=mapper, radius=5, alpha=0.7)
 
     #- Add hover tool
     if not tooltips:
@@ -98,8 +104,16 @@ def plot_fibers_focalplane(source, name, cam='',
     fibers_measured = source.data['FIBER'][booleans_metric]
     ii = ~np.in1d(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
-    view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
-    fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
+    try:
+        #- bokeh 2.x
+        view_empty = CDSView(source=source, filters=[BooleanFilter(booleans_empty)])
+
+        fig.scatter('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
+    except AttributeError as e:
+        #- bokeh 3.x
+        view_empty = CDSView(filter=BooleanFilter(booleans_empty))
+
+        fig.circle('X', 'Y', source=source, view=view_empty, color='#DDDDDD', radius=2)
 
     #- Adds colored outline based on camera
     if cam:
@@ -130,14 +144,14 @@ def plot_fibers_focalplane(source, name, cam='',
 
     #- Add colorbar
     if colorbar:
-        fig.plot_width = fig.plot_width + 60
+        fig.width = fig.width + 60
         colorbar_offset = 12
         color_bar = ColorBar(color_mapper=mapper['transform'], label_standoff=colorbar_offset,
                 border_line_color=None, location=(0,0), ticker=BasicTicker(), width=10,
                 formatter=NumeralTickFormatter(format='0.0a'))
         fig.add_layout(color_bar, 'right')
         #- adjusting histogram width for colorbar
-        width = fig.plot_width - colorbar_offset
+        width = fig.width - colorbar_offset
 
     if not plot_hist:
         return fig, None
@@ -201,11 +215,15 @@ def plot_fibernums(source, name, cam='',
     #- Filter data to just this camera
     #- TODO: fails when CAM not in the data source provided
     booleans_metric = np.char.upper(np.array(source.data['CAM']).astype(str)) == cam.upper()
-    view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    try:
+        #- bokeh 2.x
+        view_metric = CDSView(source=source, filters=[BooleanFilter(booleans_metric)])
+    except AttributeError as e:
+        #- bokeh 3.x
+        view_metric = CDSView(filter=BooleanFilter(booleans_metric))
 
     #- Plot only the fibers which measured the metric
-    s = fig.scatter('FIBER', name, source=source, view=view_metric,
-                    color=camcolors.get(cam.upper()), alpha=0.7)
+    s = fig.scatter('FIBER', name, source=source, view=view_metric, color=camcolors.get(cam.upper()), alpha=0.7)
 
     #- Add hover tool
     if not tooltips:

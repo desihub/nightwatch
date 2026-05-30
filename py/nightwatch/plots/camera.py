@@ -7,10 +7,6 @@ from bokeh.layouts import column
 from bokeh.models.tickers import FixedTicker
 from astropy.table import Table
 
-from packaging import version
-_is_bokeh23 = version.parse(bokeh.__version__) >= version.parse('2.3.0')
-
-
 def get_qa_colors(data, lower_err, lower, upper, upper_err, basecolor='black'):
     '''takes in camera QA data and the acceptable threshold for that metric.
     Args: 
@@ -103,18 +99,14 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
 
         if len(cam_table) == 0:
             #- Create placeholder fig if not data for this camera
-            fig = bk.figure(plot_height=height, plot_width=width, title='No {} data'.format(cam))
+            fig = bk.figure(height=height, width=width, title='No {} data'.format(cam))
             continue
 
-        fig = bk.figure(plot_height=height, plot_width=width, title = title+" "+cam, tools=['reset', 'box_zoom', 'pan'])
+        fig = bk.figure(height=height, width=width, title=f'{title} {cam}', tools=['reset', 'box_zoom', 'pan'])
 
         # Add HelpTool redirection to the DESI wiki.
-        if _is_bokeh23:
-            fig.add_tools(HelpTool(description='See the DESI wiki for details\non Camera QA',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera'))
-        else:
-            fig.add_tools(HelpTool(help_tooltip='See the DESI wiki for details\non Camera QA',
-                                   redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera'))
+        fig.add_tools(HelpTool(description='See the DESI wiki for details\non Camera QA',
+                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#Camera'))
 
         if attribute == 'DX' or attribute == 'DY':
             k = keys[cam]
@@ -135,7 +127,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
                 sizes = sizes
             ))
 
-            fig.circle(source=source, x="SPECTRO", y="MEANattr", color='colors', size='sizes')
+            fig.scatter(source=source, x="SPECTRO", y="MEANattr", color='colors', size='sizes')
         else:
             source = ColumnDataSource(data=dict(
                 SPECTRO = cam_table["SPECTRO"],
@@ -143,10 +135,11 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
                 MINattr = cam_table["MIN"+attribute],
                 MAXattr = cam_table["MAX"+attribute]
             ))
-            fig.circle(source=source, x="SPECTRO", y="MEANattr", color=camcolors[cam])
+            fig.scatter(source=source, x="SPECTRO", y="MEANattr", color=camcolors[cam])
 
-        fig.circle(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
-        fig.circle(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
+        fig.scatter(source=source, x="SPECTRO", y="MAXattr", fill_alpha=0, line_alpha=0)
+        fig.scatter(source=source, x="SPECTRO", y="MINattr", fill_alpha=0, line_alpha=0)
+
         if line0:
             fig.line(source=source, x="SPECTRO", y=0)
         fig.add_layout(
@@ -155,7 +148,7 @@ def plot_camera_qa(table, attribute, unit=None, lower=None, upper=None, height=2
         fig.xaxis.ticker = FixedTicker(ticks=[i for i in range(0, 10, 1)])
         if cam == 'Z':
             fig.xaxis.axis_label = "Spectrograph number"
-            fig.plot_height = height+25
+            fig.height = height+25
 
         if unit is None:
             fig.yaxis.axis_label = attribute

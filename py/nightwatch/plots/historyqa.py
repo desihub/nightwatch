@@ -7,15 +7,19 @@ from bokeh.models import (
     ColumnDataSource, OpenURL, Div, Range1d, MonthsTicker,
     TapTool, HelpTool, HoverTool, Range1d, BoxAnnotation, ResetTool, BoxZoomTool,
     LinearColorMapper, ColorBar, Whisker, Band)
-from bokeh.models.widgets import Panel, Tabs
+try:
+    #- bokeh 2.x
+    from bokeh.models.widgets import Tabs, Panel
+except ImportError as e:
+    #- bokeh 3.x
+    from bokeh.models import Tabs, TabPanel as Panel
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
 from .timeseries import plot_timeseries
 
 
-def plot_camera_timeseries(camdata, spec,
-    camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+def plot_camera_timeseries(camdata, spec, camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
     """Produce time series of CCD QA values using DB data.
 
     Args
@@ -49,7 +53,7 @@ def plot_camera_timeseries(camdata, spec,
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
-            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.xaxis.ticker = MonthsTicker(months=[0,6])
             fig.title.text = f'{cam.upper()}{spec}'
             fig.title.text_color = camcolors[cam.upper()]
 
@@ -97,8 +101,7 @@ def plot_camera_timeseries(camdata, spec,
     return Tabs(tabs=camtabs)
 
 
-def plot_ccd_timeseries(ccds, cam, spec,
-    camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+def plot_ccd_timeseries(ccds, cam, spec, camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
     """Produce time series of CCD QA values using DB data.
 
     Args
@@ -130,7 +133,7 @@ def plot_ccd_timeseries(ccds, cam, spec,
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
-            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.xaxis.ticker = MonthsTicker(months=[0,6])
             fig.title.text = f'{cam.upper()}{spec}{amp}'
             fig.title.text_color = camcolors[cam.upper()]
 
@@ -165,8 +168,7 @@ def plot_ccd_timeseries(ccds, cam, spec,
     return Tabs(tabs=ccdtabs)
 
 
-def plot_flats_timeseries(flats,
-    camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+def plot_flats_timeseries(flats, camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
     """Produce time series of flat exposures using DB data.
 
     Args
@@ -193,7 +195,7 @@ def plot_flats_timeseries(flats,
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
-            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.xaxis.ticker = MonthsTicker(months=[0,6])
             fig.title.text = f'{cam}{spec}'
             fig.title.text_color = camcolors[cam.upper()]
 
@@ -230,8 +232,7 @@ def plot_flats_timeseries(flats,
     return Tabs(tabs=camtabs)
 
 
-def plot_arcs_timeseries(arcs, lines, lamps,
-    camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
+def plot_arcs_timeseries(arcs, lines, lamps, camcolors=dict(B='steelblue', R='crimson', Z='forestgreen')):
     """Produce time series of arc line widths using DB data.
 
     Args
@@ -262,7 +263,7 @@ def plot_arcs_timeseries(arcs, lines, lamps,
                             tools=['pan', 'box_zoom', 'reset', 'tap']
                             )
             fig.xaxis.major_label_orientation = np.radians(45)
-            fig.xaxis.ticker = MonthsTicker(months=np.arange(1,13), num_minor_ticks=4)
+            fig.xaxis.ticker = MonthsTicker(months=[0,6])
             fig.title.text = f'{cam}{spec}'
             fig.title.text_color = camcolors[cam.upper()]
 
