@@ -950,12 +950,13 @@ def write_thresholds(indir, outdir, start_date, end_date):
     print(f'Wrote {htmlfile}')
 
 
-def write_historyqa(infile, outdir):
+def write_historyqa(infile, outdir, qaplots):
     """Write historyqa HTML files.
 
     Args:
         infile : path to SQLite database with summary data.
         outdir : path to top-level of Nightwatch output.
+        qaplots : None or list of history QA plots to make
     """
     from .webpages import history as web_history
 
@@ -964,16 +965,23 @@ def write_historyqa(infile, outdir):
     #- Write history index file.
     web_history.write_history(outfolder)
 
-    #- Write CCD QA files.
+    #- If only some plots are desired, make them and exit
+    if qaplots is not None:
+        for qa in qaplots:
+            if qa == 'ccd':
+                web_history.write_ccd_qa(infile, outfolder)
+            if qa == 'cam':
+                web_history.write_camera_qa(infile, outfolder)
+            if qa == 'flats':
+                web_history.write_flat_cals(infile, outfolder)
+            if qa == 'arcs':
+                web_history.write_arc_cals(infile, outfolder)
+        return
+
+    #- Otherwise, write CCD, camera, flat, and arc QA files.
     web_history.write_ccd_qa(infile, outfolder)
-
-    #- Write camera QA files.
     web_history.write_camera_qa(infile, outfolder)
-
-    #- Write flat calibration history
     web_history.write_flat_cals(infile, outfolder)
-
-    #- Write flat calibration history
     web_history.write_arc_cals(infile, outfolder)
 
 

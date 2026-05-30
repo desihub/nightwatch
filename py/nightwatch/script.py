@@ -525,12 +525,13 @@ def main_historyqa(options=None):
 
     parser.add_argument('-i', '--infile', type=str, required=True, help='QA DB to use for historyqa')
     parser.add_argument('-o', '--outdir', type=str, required=True, help='directory for html output (outdir/historyqa, outdir should be same location as other nightwatch files)')
+    parser.add_argument('--qaplots', nargs='*', default=None, choices=['ccd', 'cam', 'flats', 'arcs'], help='Plot time series of CCD and camera QA metrics.')
 
     if options is None:
         options = sys.argv[2:]
     args = parser.parse_args(options)
 
-    run.write_historyqa(args.infile, args.outdir)
+    run.write_historyqa(args.infile, args.outdir, args.qaplots)
 
 def main_surveyqa(options=None):
     parser = argparse.ArgumentParser(usage = '{prog} [options]')
