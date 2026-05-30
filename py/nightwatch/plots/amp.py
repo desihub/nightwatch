@@ -109,7 +109,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
     if title is None:
         title = name
 
-    #unpacking data
+    #- unpacking data
     spec_loc = []
     amp_loc = []
     name_data = []
@@ -133,13 +133,16 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
             name_data += ["preproc-{cam_spect}-{expid}".format(cam_spect=cam_spect, expid='%08d'%row['EXPID'])]
         else:
             continue
+
     _, ids = np.unique(spec_loc, return_index=True)
     spec_loc = np.array(spec_loc)[np.sort(ids)]
+
     _, ids = np.unique(amp_loc, return_index=True)
     amp_loc = np.array(amp_loc)[np.sort(ids)]
     
     sorted_ids = np.argsort(locations_to_sort)
     name_data = np.array(name_data)[sorted_ids]
+
     data_val = np.array(data_val)[sorted_ids]
     locations = [tuple(locations_to_sort[i]) for i in sorted_ids]
     
@@ -220,9 +223,9 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
 
     fig.add_tools(hover, tap)
 
-    if len(data_val)>0 :
-        plotmin = min(ymin, np.min(data_val)*0.9) if ymin is not None else np.min(data_val) * 0.9
-        plotmax = max(ymax, np.max(data_val)*1.1) if ymax is not None else np.max(data_val) * 1.1
+    if len(data_val) > 0 :
+        plotmin = min(ymin, np.min(data_val) * 0.9) if ymin is not None else np.min(data_val) * 0.9
+        plotmax = max(ymax, np.max(data_val) * 1.1) if ymax is not None else np.max(data_val) * 1.1
     else :
         plotmin = ymin
         plotmax = ymax
@@ -231,6 +234,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
     #- style visual attributes
     fig.yaxis.axis_label = cam
     fig.yaxis.minor_tick_line_color=None
+    fig.yaxis.ticker = AdaptiveTicker(desired_num_ticks=5, min_interval=1)
+    fig.yaxis.formatter = NumeralTickFormatter(format='e') if name == 'BIAS' else NumeralTickFormatter(format='a')
     fig.ygrid.grid_line_color=None
 
     if cam == 'R':
@@ -243,13 +248,8 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_
     fig.outline_line_alpha=0.7
     
     if lower is not None and upper is not None:
-        #fig.add_layout(Whisker(source=source, base='locations', upper='upper', lower='lower', line_alpha=0.3))
-        fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay',
-            fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
+        fig.add_layout(Band(base='locations', lower='lower', upper='upper', source=source, level='underlay', fill_alpha=0.2, fill_color='green', line_width=0.7, line_color='black'))
     
-#         if name in ['COSMICS_RATE']:
-#             fig.add_layout(BoxAnnotation(bottom=lower_warn[0][0], top=upper_warn[0][0], fill_alpha=0.1, fill_color='green'))
-
     return fig
 
 def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700, ymin=None, ymax=None):
@@ -282,25 +282,11 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[1], ymax=ymax[1])
         if cam == 'Z':
             fig = plot_amp_cam_qa(data, name, cam, labels, title, lower=lower, upper=upper, amp_keys=amp_keys, plot_height=plot_height, plot_width=plot_width, ymin=ymin[2], ymax=ymax[2])
-            
-        
-        if name == "BIAS":
-            fig.yaxis.ticker = AdaptiveTicker(base=10, desired_num_ticks=5, 
-                                              mantissas=np.arange(1, 5.5, 0.5), 
-                                              min_interval=1)
-            fig.yaxis.formatter = NumeralTickFormatter(format='e')
-        else:
-            fig.yaxis.ticker = AdaptiveTicker(base=10, desired_num_ticks=5, 
-                                              mantissas=np.arange(1, 5.5, 0.5), 
-                                              min_interval=1)
-            fig.yaxis.formatter = NumeralTickFormatter(format='a')
+
         figs.append(fig)
-    
+
     # x-axis labels for spectrograph 0-9 and amplifier A-D
-    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None,
-                     height=50, width=plot_width,
-                     y_axis_location=None,
-                     tools=[])
+    axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, height=50, width=plot_width, y_axis_location=None, tools=[])
 
     # Use the help tool to redirect users to the DESI Nightwatch QA wiki Q&A
     axis.add_tools(HelpTool(description='See the DESI wiki for details\non CCD amplifier QA',
@@ -313,3 +299,4 @@ def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, p
     fig = gridplot([[figs[0]], [figs[1]], [figs[2]], [axis]], toolbar_location='right')
 
     return fig
+
