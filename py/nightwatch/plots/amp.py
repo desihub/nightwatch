@@ -13,7 +13,6 @@ from bokeh.models.callbacks import CustomJS
 import bokeh.palettes
 from bokeh.layouts import column, gridplot
 
-
 def get_amp_colors(data, lower_err, lower, upper, upper_err):
     '''takes in per amplifier data and the acceptable threshold for that metric.
     Args: 
@@ -87,8 +86,7 @@ def isolate_spec_lines(data_locs, data):
         data_groups.append(data[ids[i]:ids[i+1]])
     return spec_groups, data_groups
 
-def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
-    amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
+def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None, amp_keys=None, ymin=None, ymax=None, plot_height=80, plot_width=700):
     '''Plot a per-camera, per-amp visualization of data[name]
     Args:
         data: table of per_amp qa data
@@ -194,29 +192,33 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
         upper=upper_warn,
     ))
 
-    #plotting
+    #- plotting
     axis = bk.figure(x_range=FactorRange(*labels), toolbar_location=None, 
                      height=50, width=plot_width,
                      y_axis_location=None)
-
-    fig = bk.figure(x_range=axis.x_range, height=plot_height,
-                    width=plot_width, x_axis_location=None, 
-                    tools=['tap', 'reset', 'box_zoom', 'pan'])
+    
+    fig = bk.figure(x_range=axis.x_range, height=plot_height, width=plot_width, x_axis_location=None, 
+                    tools=['reset', 'box_zoom', 'pan'])
 
     spec_groups, data_groups = isolate_spec_lines(locations, data_val)
     for i in range(len(spec_groups)):
         fig.line(x=spec_groups[i], name='lines', y=data_groups[i], line_color='black', alpha=0.25)
 
     if len(colors) != 0 and len(sizes) != 0:
-        c = fig.circle(x='locations', y='data_val', line_color=None, 
-                       fill_color='colors', radius='sizes', source=source, name='circles')
+        s = fig.scatter(x='locations', y='data_val', line_color=None, fill_color='colors', size='sizes', source=source, name='circles')
     else:
-        c = fig.circle(x='locations', y='data_val', line_color=None, 
-                       fill_color='black', radius=4, source=source, name='circles')
-    
-    #- Add a hover tool
-    hover = HoverTool(renderers=[c], tooltips = [('(spec, amp)', '@locations'), ('{}'.format(name), '@data_val')], line_policy='nearest')
-    fig.add_tools(hover)
+        s = fig.scatter(x='locations', y='data_val', line_color=None, fill_color='black', size=4, source=source, name='circles')
+
+    #- Add hover tool for mouseover value display
+    hover = HoverTool(renderers=[s], line_policy='nearest',
+                      tooltips = [('(spec, amp)', '@locations'),
+                                  ('{}'.format(name), '@data_val')])
+
+    #- Add tap tool to open amp data on right click
+    url = '@name'+'-4x.html'
+    tap = TapTool(renderers=[s], callback=OpenURL(url=url))
+
+    fig.add_tools(hover, tap)
 
     if len(data_val)>0 :
         plotmin = min(ymin, np.min(data_val)*0.9) if ymin is not None else np.min(data_val) * 0.9
@@ -247,12 +249,7 @@ def plot_amp_cam_qa(data, name, cam, labels, title, lower=None, upper=None,
     
 #         if name in ['COSMICS_RATE']:
 #             fig.add_layout(BoxAnnotation(bottom=lower_warn[0][0], top=upper_warn[0][0], fill_alpha=0.1, fill_color='green'))
-    
-    url = '@name'+'-4x.html'
-    taptool = fig.select(type=TapTool)
-    taptool.renderers = [c]
-    taptool.callback = OpenURL(url=url)
-    
+
     return fig
 
 def plot_amp_qa(data, name, lower=None, upper=None, amp_keys=None, title=None, plot_height=80, plot_width=700, ymin=None, ymax=None):
