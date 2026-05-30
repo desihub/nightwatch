@@ -4,7 +4,7 @@
 
 ### Real-time DESI data quality monitoring
 
-<img align="right" alt="Night Watch" src="nightwatch.png">
+<img align="right" alt="Night Watch" src="doc/nightwatch-logo.png">
 
 Nightwatch is a Python package that generates and displays realtime quality assurance (QA) metrics for nightly DESI observing shifts. It calculates metrics at the level of individual DESI fibers, CCD amplifiers, CCD cameras, and spectrographs.
 
