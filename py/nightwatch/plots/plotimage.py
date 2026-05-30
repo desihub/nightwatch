@@ -16,10 +16,14 @@ import bokeh
 import bokeh.plotting as bk
 from bokeh.layouts import layout, gridplot
 from bokeh.models import HelpTool, Label, ColumnDataSource, Range1d
-from bokeh.models import Tabs, TabPanel as Panel
+try:
+    #- bokeh 2.x
+    from bokeh.models.widgets import Tabs, Panel
+except ImportError as e:
+    #- bokeh 3.x
+    from bokeh.models import Tabs, TabPanel as Panel
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.palettes import cividis, gray
-
 
 def downsample_image(image, n):
     """Downsample input image to n x n.

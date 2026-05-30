@@ -4,7 +4,12 @@ import bokeh
 import sys, os, re
 from bokeh.embed import components
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Tabs, TabPanel as Panel
+try:
+    #- bokeh 2.x
+    from bokeh.models.widgets import Panel, Tabs
+except ImportError as e:
+    #- bokeh 3.x
+    from bokeh.models import Tabs, TabPanel as Panel
 
 from ..thresholds import get_timeseries_dataset, plot_timeseries, get_threshold_table, get_amp_rows, pick_threshold_file, plot_histogram, get_spec_amps, get_specs
 
