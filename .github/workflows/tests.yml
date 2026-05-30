@@ -1,0 +1,52 @@
+# This is a basic workflow to help you get started with Actions
+
+name: tests
+
+# Controls when the action will run. Triggers the workflow on push or pull request events but only for the main branch
+on:
+  push:
+    branches:
+      - main
+      - release_*
+  pull_request:
+    branches:
+      - main
+      - release_*
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    strategy:
+      matrix:
+        # Test supported Python versions under Ubuntu with dependency versions
+        include:
+          - os: ubuntu-latest
+            python-version: '3.12'
+            bokeh-version: '<4'
+          - os: ubuntu-latest
+            python-version: '3.12'
+            bokeh-version: '<3'
+
+    # The type of runner that the job will run on.
+    runs-on: ${{ matrix.os }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools
+          python -m pip install "bokeh${{ matrix.bokeh-version }}"
+      - name: Install Nightwatch
+        run: |
+          pip install --upgrade-strategy only-if-needed --editable ".[dev]"
+      - name: Run unit tests with pytest
+        run: |
+          pytest
