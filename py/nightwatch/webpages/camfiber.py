@@ -13,11 +13,11 @@ import bokeh.plotting as bk
 from bokeh.models import ColumnDataSource
 from bokeh.models import Tabs, Div
 try:
-    #- bokeh 2.x
-    from bokeh.models import Panel
-except ImportError as e:
     #- bokeh 3.x
     from bokeh.models import TabPanel as Panel
+except ImportError as e:
+    #- bokeh 2.x
+    from bokeh.models import Panel
 
 from astropy.table import Table, join, vstack, hstack
 
