@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nightwatch"
 dynamic = ["version"]
-description = "A Python package DESI observing quality assurance"
+description = "A Python package for realtime quality assurance of DESI data."
 authors = [{ name = "DESI Collaboration", email = "desi-survey@desi.lbl.gov" }]
 license = "BSD-3-Clause"
 license-files = ["LICEN[CS]E*"]
@@ -37,9 +37,6 @@ docs = ["numpydoc", "nbsphinx", "ipykernel", "tqdm[notebook]"]
 "Homepage" = "https://github.com/desihub/nightwatch"
 "Bug Tracker" = "https://github.com/desihub/nightwatch/issues"
 
-[tool.setuptools.dynamic]
-version = {attr = "nightwatch.__version__"}
-
 [tool.setuptools.package-data]
 "nightwatch" = [
     "nightwatch.static",
@@ -55,3 +52,6 @@ include = [
 exclude = [
     "nightwatch.calib_files",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "nightwatch.__version__"}
