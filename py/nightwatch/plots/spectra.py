@@ -188,7 +188,7 @@ def plot_spectra_spectro(data, expid_num, frame, n, num_fibs=3, height=220, widt
 
 #        # Open link to Legacy Survey when the user left-clicks the spectrum.
 #        # NOT WORKING: see https://github.com/desihub/nightwatch/issues/321
-#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr11-early-v2&zoom=15&mark=@ra,@dec"
 #        taptool = fig.select(type=TapTool)
 #        taptool.callback = OpenURL(url=url)
 
@@ -328,7 +328,7 @@ def plot_spectra_objtype(data, expid_num, frame, n, num_fibs=5, height=500, widt
 
 #        # Open link to Legacy Survey when the user left-clicks the spectrum.
 #        # NOT WORKING: see https://github.com/desihub/nightwatch/issues/321
-#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+#        url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr11-early-v2&zoom=15&mark=@ra,@dec"
 #        taptool = fig.select(type=TapTool)
 #        taptool.callback = OpenURL(url=url)
 
@@ -471,7 +471,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
                 fig.line("wave", "flux", source=source, alpha=0.5, color=colors[cam])
 
     # Open a link to the Legacy Survey when the user taps the spectrum.
-    url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr9&zoom=15&mark=@ra,@dec"
+    url = "https://www.legacysurvey.org/viewer-desi?ra=@ra&dec=@dec&layer=ls-dr11-early-v2&zoom=15&mark=@ra,@dec"
     taptool = fig.select(type=TapTool)
     taptool.callback = OpenURL(url=url)
 
