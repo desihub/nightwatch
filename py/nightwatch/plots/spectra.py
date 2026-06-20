@@ -601,14 +601,10 @@ def plot_spectra_qa_arcs(data, names, calstandards):
         plotmin = 0.9*np.min(np.minimum(lower_err[select], linearea[select]))
         plotmax = 1.1*np.max(np.maximum(upper_err[select], linearea[select]))
 
-        hover = HoverTool(names=['circles'],
-                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
-                    line_policy='nearest')
-
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
                         height=200, width=1000,
-                        tools=[hover, 'reset', 'box_zoom', 'pan'])
+                        tools=['reset', 'box_zoom', 'pan'])
 
         fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
         fig.xaxis.axis_label = 'spectrograph'
@@ -617,13 +613,17 @@ def plot_spectra_qa_arcs(data, names, calstandards):
         fig.yaxis.axis_label = 'line area'
 
         # Plot measured line areas + nominal values for all spectrographs.
-        fig.circle(x='locations', y='data_val', 
-                   fill_color='colors', size='sizes', line_color=None,
-                   source=source, name='circles')
+        s = fig.scatter(x='locations', y='data_val', 
+                        fill_color='colors', size='sizes', line_color=None,
+                        source=source, name='circles')
         fig.line('locations', 'nominal', source=source, alpha=0.3,
                  line_dash='dashed', color=colors[cam])
         fig.title.text = f'{cam} camera: λ{wave}'
         fig.title.text_color = colors[cam]
+
+        hover = HoverTool(renderers=[s],
+                    tooltips=[('spec', '@locations'), (f'λ{wave}', '@data_val'), ('nominal', '@nominal')],
+                    line_policy='nearest')
 
         # Add a visual indication of the typical range of variations.
         fig.add_layout(
@@ -639,8 +639,10 @@ def plot_spectra_qa_arcs(data, names, calstandards):
                  line_width=0.7, line_color='black'))
 
         # Add a help tool that redirects to the DESI wiki.
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
+        htool = HelpTool(description='See the DESI wiki for details\non calibration QA',
+                         redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures')
+
+        fig.add_tools(hover, htool)
 
         figs.append([fig])
 
@@ -897,14 +899,10 @@ def plot_spectra_qa_flats(data, header, calstandards):
         plotmin = 0.9*np.min(np.minimum(np.delete(lower_err, nodata_spectro), np.delete(integ_flux, nodata_spectro)))
         plotmax = 1.1*np.max(np.maximum(np.delete(upper_err, nodata_spectro), np.delete(integ_flux, nodata_spectro)))
 
-        hover = HoverTool(names=['circles'],
-                    tooltips=[('spec', '@locations'), (f'INTEG_FLUX', '@data_val'), ('nominal', '@nominal')],
-                    line_policy='nearest')
-
         fig = bk.figure(x_range=Range1d(start=-0.1, end=9.1),
                         y_range=Range1d(start=plotmin, end=plotmax),
                         height=200, width=1000,
-                        tools=[hover, 'reset', 'box_zoom', 'pan'])
+                        tools=['reset', 'box_zoom', 'pan'])
 
         fig.xaxis.ticker = [0,1,2,3,4,5,6,7,8,9]
         fig.xaxis.axis_label = 'spectrograph'
@@ -913,13 +911,17 @@ def plot_spectra_qa_flats(data, header, calstandards):
         fig.yaxis.axis_label = 'INTEG_RAW_FLUX'
 
         # Plot measured line areas + nominal values for all spectrographs.
-        fig.circle(x='locations', y='data_val', 
-                   fill_color='colors', size='sizes', line_color=None,
-                   source=source, name='circles')
+        s = fig.scatter(x='locations', y='data_val', 
+                        fill_color='colors', size='sizes', line_color=None,
+                        source=source, name='circles')
         fig.line('locations', 'nominal', source=source, alpha=0.3,
                  line_dash='dashed', color=colors[cam])
         fig.title.text = f'{cam} camera'
         fig.title.text_color = colors[cam]
+
+        hover = HoverTool(renderers=[s],
+                    tooltips=[('spec', '@locations'), (f'INTEG_FLUX', '@data_val'), ('nominal', '@nominal')],
+                    line_policy='nearest')
 
         # Add a visual indication of the typical range of variations.
         fig.add_layout(
@@ -935,8 +937,10 @@ def plot_spectra_qa_flats(data, header, calstandards):
                  line_width=0.7, line_color='black'))
 
         # Add a help tool that redirects to the DESI wiki.
-        fig.add_tools(HelpTool(description='See the DESI wiki for details\non calibration QA',
-                               redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures'))
+        htool = HelpTool(description='See the DESI wiki for details\non calibration QA',
+                         redirect='https://desi.lbl.gov/trac/wiki/DESIOperations/NightWatch/NightWatchDescription#TroubleshootingCals:GoodOKExposures')
+
+        fig.add_tools(hover, htool)
 
         lvfigs.append([fig])
     

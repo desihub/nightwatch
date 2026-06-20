@@ -93,9 +93,9 @@ def get_status(qadata, night):
                 if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                     warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
                     error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper_err']))
-                    if warn_mean: 
+                    if np.any(warn_mean): 
                         status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
-                    if error_mean:
+                    if np.any(error_mean):
                         status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
                 else:
                     continue
@@ -118,9 +118,9 @@ def get_status(qadata, night):
                     if thresholds[key]['lower'] != None and thresholds[key]['upper'] != None:
                         warn_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['lower'])) | (abs(cam_data[data_loc]['MEAN'+metric]) >= abs(thresholds[key]['upper'])) 
                         error_mean = (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['lower'])+abs(thresholds[key]['lower_err']))) | (abs(cam_data[data_loc]['MEAN'+metric]) >= (abs(thresholds[key]['upper'])+abs(thresholds[key]['upper_err'])))
-                        if warn_mean: 
+                        if np.any(warn_mean): 
                             status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.warning
-                        if error_mean:
+                        if np.any(error_mean):
                             status['PER_CAMERA']['MEAN'+metric][status_loc] = Status.error
                     else:
                         continue
