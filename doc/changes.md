@@ -1,8 +1,12 @@
 # Nightwatch change log
 
-## 1.0.1 (unreleased)
+## 1.0.2 (unreleased)
 
-* No changes yet
+* No changes yet.
+
+## 1.0.1 (2026-06-20)
+
+* Fix plotting bug in calibration exposures related to Bokeh 3.8 compatibility ([PR #514](https://github.com/desihub/nightwatch/pull/514)).
 
 ## 1.0.0 (2026-06-20)
 
