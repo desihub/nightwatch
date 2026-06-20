@@ -1,26 +1,37 @@
 # Nightwatch change log
 
-## 0.7.6 (unreleased)
+## 1.0.1 (unreleased)
+
+* No changes yet
+
+## 1.0.0 (2026-06-20)
 
 ### Major Updates
 
+* Add a unit test framework ([PR #510](https://github.com/desihub/nightwatch/pull/510)).
+* Add a `pyproject.toml` file ([PR #508](https://github.com/desihub/nightwatch/pull/508)).
+* API fixes for bokeh 2.x -> 3.x ([PR #507](https://github.com/desihub/nightwatch/pull/507)).
+* Switch to `importlib_resources` for Python 3.12 ([PR #505](https://github.com/desihub/nightwatch/pull/505)).
+* Added status colors to exposure QA in the nightly summary tables ([PR #483](https://github.com/desihub/nightwatch/pull/483)).
+* Upgrade LED references after change to cal station 1 ([PR #466](https://github.com/desihub/nightwatch/pull/464)).
+* Force use of spawn in parallel threads ([PR #464](https://github.com/desihub/nightwatch/pull/464)).
+* Fix broken fibermap assembly due to undefined environment ([PR #463](https://github.com/desihub/nightwatch/pull/463)).
+* Added error handling to wget in DESI_SPECTRO_DARK sync script ([PR #461](https://github.com/desihub/nightwatch/pull/461), [PR #462](https://github.com/desihub/nightwatch/pull/462)).
+
+### Minor Updates
+
+* Switch to DR11 layer in links to [legacysurvey.org]([https://legacysurvey.org/viewer/desi](https://www.legacysurvey.org/viewer-desi)) ([PR #510](https://github.com/desihub/nightwatch/pull/512)).
+* Update the Nightwatch logo ([PR #509](https://github.com/desihub/nightwatch/pull/509)).
+* Catch escape characters such as \d to prevent warnings in Python 3.12 ([PR #506](https://github.com/desihub/nightwatch/pull/506)).
 * Updated read noise thresholds after video board upgrade to B4 and B5 ([PR #500](https://github.com/desihub/nightwatch/pull/500)).
 * Rescale R0 LED standards after CCD replacement ([PR #498](https://github.com/desihub/nightwatch/pull/498)).
 * Reduce lifetime of cached Nightwatch files at KPNO ([PR #496](https://github.com/desihub/nightwatch/pull/496)).
 * Increased LED-02 reference levels after lamp replacement on 30 Oct 2025 ([PR #492](https://github.com/desihub/nightwatch/pull/492)).
 * Increased R7 LED reference levels after spectrograph work ([PR #488](https://github.com/desihub/nightwatch/pull/488)).
 * Reduced spurious warnings by widening warn/err thresholds for cosmic rates in ZEROs ([PR #486](https://github.com/desihub/nightwatch/pull/486), [PR #489](https://github.com/desihub/nightwatch/pull/489)).
-* Added status colors to exposure QA in the nightly summary tables ([PR #483](https://github.com/desihub/nightwatch/pull/483)).
-* Upgrade LED references after change to cal station 1 ([PR #466](https://github.com/desihub/nightwatch/pull/464)).
-* Force use of spawn in parallel threads ([PR #464](https://github.com/desihub/nightwatch/pull/464)).
-* Fix broken fibermap assembly due to undefined environment ([PR #463](https://github.com/desihub/nightwatch/pull/463)).
-* Added error handling to wget in DESI_SPECTRO_DARK sync script ([PR #461](https://github.com/desihub/nightwatch/pull/461), [PR #462](https://github.com/desihub/nightwatch/pull/462)).
-* Updated LED flat fielding temperature correction coefficients ([PR #456](https://github.com/desihub/nightwatch/pull/456)).
-
-### Minor Updates
-
 * Ensure that FVC images are plotted at KPNO ([PR #481](https://github.com/desihub/nightwatch/pull/481)).
 * Fixed string literal insertion error in SQLite3 ([PR #478](https://github.com/desihub/nightwatch/pull/478) and [PR #479](https://github.com/desihub/nightwatch/pull/479)).
+* Updated LED flat fielding temperature correction coefficients ([PR #456](https://github.com/desihub/nightwatch/pull/456)).
 * Cosmetic fixes to charge histograms and documentation links ([PR #450](https://github.com/desihub/nightwatch/pull/450)).
 
 ## 0.6.0 (2024-12-29)
