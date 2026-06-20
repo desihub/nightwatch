@@ -33,9 +33,8 @@ def pick_calib_file(name, night, outdir=None, in_nightwatch=True):
     else:
         calib_dir = get_outdir()
 
-    # Search for the most recent calibration files.
+    # Search for the most recent calibration files (match file names and list in reverse order).
     file_pattern = rf'{name}-.*\.json'
-    calib_files = sorted(glob(os.path.join(calib_dir, file_pattern)), reverse=True)
     calib_files = sorted([x for x in calib_dir.iterdir() if re.match(file_pattern, x.name)])[::-1]
     for filepath in calib_files:
         zero_nightid = int(re.findall(r'\d{8}', os.path.basename(filepath))[0])
