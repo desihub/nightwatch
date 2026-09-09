@@ -30,7 +30,8 @@ def write_image_html(input, output, downsample, night):
     available = []
     preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]
     for file in preproc_files:
-        available += [file.split("-")[1]]
+        if '-' in file:
+            available += [file.split("-")[1]]
 
     current = os.path.basename(input).split("-")[1]
     expid = os.path.basename(input).split("-")[2].split(".")[0]
@@ -74,7 +75,8 @@ def write_preproc_table_html(input_dir, night, expid, downsample, output):
     available = []
     preproc_files = [i for i in os.listdir(input_dir) if re.match(r'preproc.*', i)]
     for file in preproc_files:
-        available += [file.split("-")[1]]
+        if '-' in file:
+            available += [file.split("-")[1]]
 
     preproc_fits = [os.path.join(input_dir, i) for i in preproc_files if i.endswith('.fits')]
     plot_script, plot_div = main(preproc_fits, None, downsample)
