@@ -20,10 +20,9 @@ jobs:
     strategy:
       matrix:
         # Test supported Python versions under Ubuntu
-        include:
-          - os: ubuntu-latest
-            python-version: ['3.12', '3.13', '3.14']
-            bokeh-version: '<4'
+          os: [ubuntu-latest]
+          python-version: ['3.12', '3.13', '3.14']
+          bokeh-version: ['<4']
 
     # The type of runner that the job will run on.
     runs-on: ${{ matrix.os }}
