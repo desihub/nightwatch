@@ -5,7 +5,7 @@ import numpy as np
 
 from glob import glob
 
-import importlib_resources
+import importlib.resources as importlib_resources
 
 
 def get_outdir():

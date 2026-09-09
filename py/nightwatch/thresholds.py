@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import json
 import csv
-import importlib_resources
+import importlib.resources as importlib_resources
 from astropy.table import Table, vstack
 import fitsio
 
