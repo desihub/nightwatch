@@ -38,7 +38,7 @@ def get_all_guide_scatter(data, cam, width=700, height=300, title=None):
             x_error = [tmp[key]['x_error'] for tmp in data['frames'].values()]
             y_error = [tmp[key]['y_error'] for tmp in data['frames'].values()]
             
-            framenumber = range(len(x_error))
+            framenumber = list(range(len(x_error)))
     
             source = ColumnDataSource(data = dict(
                 star = [star]*len(x_error),
@@ -108,7 +108,7 @@ def get_all_stars_hist(data, cam, width=300, height=300, title=None):
             print('no data for GUIDE{cam}_{star}'.format(cam=cam, star=star))
             continue
         
-        framenumber = np.arange(len(x_error))
+        framenumber = list(np.arange(len(x_error)))
     
         xhist, xedges = np.histogram(x_error, density=True, bins=30)
         yhist, yedges = np.histogram(y_error, density=True, bins=30)
@@ -154,16 +154,19 @@ def guide_scatter_combined(data, cams, width=600, height=300, ncols=2):
             fig.yaxis.axis_label = None
             figs.append(fig)
     
-    figs[0].x_range = figs[1].x_range = figs[2].x_range = figs[3].x_range = figs[4].x_range = figs[5].x_range
-    figs[0].y_range = figs[1].y_range = figs[2].y_range = figs[3].y_range = figs[4].y_range = figs[5].y_range
-    
-    xhists[0].x_range = xhists[1].x_range = xhists[2].x_range = xhists[3].x_range = xhists[4].x_range = xhists[5].x_range
-    yhists[0].x_range = yhists[1].x_range = yhists[2].x_range = yhists[3].x_range = yhists[4].x_range = yhists[5].x_range
+    #- Set figure ranges (reference master figure 0)
+    for fig in figs[1:]:
+        fig.x_range = figs[0].x_range
+        fig.y_range = figs[0].y_range
     
     #for fig in figs[1:len(figs)]:
         #fig.legend.visible = False
+
+    #- Turn off x-axis labeling for all figures but the final one.
     for fig in figs[0:-ncols]:
         fig.xaxis.axis_label = None
+
+    #- Adjust figure heights.
     for fig in figs[-ncols:len(figs)]:
         fig.height += 20
         
@@ -171,6 +174,6 @@ def guide_scatter_combined(data, cams, width=600, height=300, ncols=2):
     for idx in range(len(cams)):
         figs_combined.append(figs[idx])
         figs_combined.append(column(xhists[idx], yhists[idx]))
-    
+
     grid = gridplot(figs_combined, ncols=2*ncols)
     return grid
