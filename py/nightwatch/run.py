@@ -641,7 +641,7 @@ def write_tables(indir, outdir, expnights=None):
     import re
     from astropy.table import Table
     from nightwatch.webpages import tables as web_tables
-    import importlib_resources
+    import importlib.resources as importlib_resources
     from shutil import copyfile
     from collections import Counter
 
