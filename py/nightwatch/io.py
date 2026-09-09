@@ -86,7 +86,7 @@ def findfibers(datadir, fibers):
     missing = np.ones(len(fibers), dtype=bool)
     for spectro, filename in framefiles.items():
         fm = fitsio.read(filename, 'FIBERMAP', columns=['FIBER'])
-        ii = np.in1d(fibers, fm['FIBER'])
+        ii = np.isin(fibers, fm['FIBER'])
         if np.any(ii):
             prefix, camera, suffix = os.path.basename(filename).split('-')
             spectro = int(camera[1])
