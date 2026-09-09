@@ -102,7 +102,7 @@ def plot_fibers_focalplane(source, name, cam='',
 
     #- Plot the rest of the fibers
     fibers_measured = source.data['FIBER'][booleans_metric]
-    ii = ~np.in1d(source.data['FIBER'], fibers_measured)
+    ii = ~np.isin(source.data['FIBER'], fibers_measured)
     booleans_empty = [fiber in ii for fiber in range(len(source.data))]
     try:
         #- bokeh 2.x

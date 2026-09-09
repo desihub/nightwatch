@@ -439,7 +439,7 @@ def plot_spectra_input(datadir, expid_num, frame, n, select_string, height=500, 
             wavelength = fitsio.read(framefile, ext='WAVELENGTH')
             flux = fitsio.read(framefile, ext='FLUX')
             spectrofibers = fibergroups[spectro]
-            indexes = np.where(np.in1d(fibermap['FIBER'], spectrofibers))[0]
+            indexes = np.where(np.isin(fibermap['FIBER'], spectrofibers))[0]
             assert len(spectrofibers) == len(indexes)
 
             for i, ifiber in zip(indexes, spectrofibers):
