@@ -1,6 +1,6 @@
 # Nightwatch change log
 
-## 1.1.0 (unreleased)
+## 1.1.0 (2026-09-09)
 
 * Tets updates: add testing under Python 3.13 and 3.14 ([PR #524](https://github.com/desihub/nightwatch/pull/524)).
 * Bokeh 3.10 compability fix: fix incorrect JS callback for guide image slider ([PR #523](https://github.com/desihub/nightwatch/pull/523)).
