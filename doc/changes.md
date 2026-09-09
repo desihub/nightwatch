@@ -1,5 +1,7 @@
 # Nightwatch change log
 
+## 1.1.1 (unreleased)
+
 ## 1.1.0 (2026-09-09)
 
 * Tets updates: add testing under Python 3.13 and 3.14 ([PR #524](https://github.com/desihub/nightwatch/pull/524)).
