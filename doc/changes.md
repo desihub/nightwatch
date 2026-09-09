@@ -1,8 +1,12 @@
 # Nightwatch change log
 
-## 1.0.2 (unreleased)
+## 1.1.0 (unreleased)
 
-* No changes yet.
+* Tets updates: add testing under Python 3.13 and 3.14 ([PR #524](https://github.com/desihub/nightwatch/pull/524)).
+* Bokeh 3.10 compability fix: fix incorrect JS callback for guide image slider ([PR #523](https://github.com/desihub/nightwatch/pull/523)).
+* Bokeh 3.10 compability fix: remove implicit embedding of iterators in `GridPlot` glyph ([PR #522](https://github.com/desihub/nightwatch/pull/522)).
+* Python compatibility fix: replace `importlib_resources` ([PR #521](https://github.com/desihub/nightwatch/pull/521)).
+* NumPy 2 compatibility fix: replace `in1d` with `isin` ([PR #520](https://github.com/desihub/nightwatch/pull/520)).
 
 ## 1.0.1 (2026-06-20)
 
