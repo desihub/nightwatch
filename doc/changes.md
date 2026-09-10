@@ -2,6 +2,7 @@
 
 ## 1.2.0 (unreleased)
 
+* Use ls-dr11 layer in legacysurvey.org URLs ([PR #532](https://github.com/desihub/nightwatch/pull/532)).
 * Python 3.14 update: use Pool with "fork" context ([PR #530](https://github.com/desihub/nightwatch/pull/530)).
 
 ## 1.1.0 (2026-09-09)
