@@ -123,8 +123,8 @@ class QASNR(QA):
             ncpu = get_ncpu(None)
             
             if ncpu > 1:
-                pool = mp.get_context('fork').Pool(ncpu)
-                results = pool.starmap(get_dico, argslist)
+                with mp.get_context('fork').Pool(ncpu) as pool:
+                    results = pool.starmap(get_dico, argslist)
             else:
                 for args in argslist:
                     results.append(get_dico(**args))

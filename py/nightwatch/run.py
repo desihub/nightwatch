@@ -278,14 +278,11 @@ def run_preproc(rawfile, outdir, fibermap=None, ncpu=None, cameras=None):
     ncpu = min(len(arglist), get_ncpu(ncpu))
 
     if ncpu > 1:
-        log.info('Running preproc in parallel on {} cores for {} cameras'.format(
-            ncpu, len(cameras) ))
-        pool = mp.get_context('fork').Pool(ncpu)
-        pool.map(desispec.scripts.preproc.main, arglist)
-        pool.close()
-        pool.join()
+        log.info(f'Running preproc in parallel on {ncpu} cores for {len(cameras)} cameras')
+        with mp.get_context('fork').Pool(ncpu) as pool:
+            pool.map(desispec.scripts.preproc.main, arglist)
     else:
-        log.info('Running preproc serially for {} cameras'.format(len(cameras)))
+        log.info(f'Running preproc serially for {len(cameras)} cameras')
         for args in arglist:
             desispec.scripts.preproc.main(args)
 
@@ -386,14 +383,12 @@ def run_qproc(rawfile, outdir, ncpu=None, cameras=None):
     ncpu = min(len(cmdlist), get_ncpu(ncpu))
 
     if ncpu > 1 and len(cameras)>1 :
-        log.info('Running qproc in parallel on {} cores for {} cameras'.format(ncpu, len(cameras) ))
-        pool = mp.get_context('fork').Pool(ncpu)
-        errs = pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
-        pool.close()
-        pool.join()
+        log.info(f'Running qproc in parallel on {ncpu} cores for {len(cameras)} cameras')
+        with mp.get_context('fork').Pool(ncpu) as pool:
+            errs = pool.starmap(runcmd, zip(cmdlist, loglist, msglist))
     else:
         errs = []
-        log.info('Running qproc serially for {} cameras'.format(len(cameras)))
+        log.info(f'Running qproc serially for {len(cameras)} cameras')
         for cmd, logfile, msg in zip(cmdlist, loglist, msglist):
             err = runcmd(cmd, logfile, msg)
             errs.append(err)
@@ -593,12 +588,8 @@ def make_plots(infile, basedir, preprocdir=None, logdir=None, rawdir=None, camer
         argslist = [(pinput.format(cam, expid), output.format(cam, expid), downsample, night) for cam in cameras]
 
         if ncpu > 1:
-            mp.set_start_method("spawn", force=True)
-            pool = mp.get_context('fork').Pool(ncpu)
-            pool.starmap(web_plotimage.write_image_html, argslist)
-            pool.close()
-            pool.join()
-
+            with mp.get_context('fork').Pool(ncpu) as pool:
+                pool.starmap(web_plotimage.write_image_html, argslist)
         else:
             for args in argslist:
                 web_plotimage.write_image_html(*args)
@@ -1035,11 +1026,8 @@ def write_summaryqa(infile, name_dict, tiles, rawdir, outdir, nights=None, show_
 
     if ncpu > 1:
         print(f'Running surveyqa in parallel on {ncpu} cores for {nights_sub} nights')
-        pool = mp.get_context('fork').Pool(ncpu)
-        pool.starmap(web_nightlyqa.get_nightlyqa_html, argslist)
-        pool.close()
-        pool.join()
-
+        with mp.get_context('fork').Pool(ncpu) as pool:
+            pool.starmap(web_nightlyqa.get_nightlyqa_html, argslist)
     else:
         print(f'Running surveyqa serially for {nights_sub} nights')
         for night in nights_sub:

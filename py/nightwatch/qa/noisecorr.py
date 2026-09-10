@@ -70,10 +70,8 @@ class QANoiseCorr(QA):
         ncpu = get_ncpu(None)
         
         if ncpu > 1:
-            pool = mp.get_context('fork').Pool(ncpu)
-            results = pool.map(get_dico, infiles)
-            pool.close()
-            pool.join()
+            with mp.get_context('fork').Pool(ncpu) as pool:
+                results = pool.map(get_dico, infiles)
 
             #- convert list of lists into flattened list
             results = list(itertools.chain.from_iterable(results))
