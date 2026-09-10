@@ -70,7 +70,7 @@ class QANoiseCorr(QA):
         ncpu = get_ncpu(None)
         
         if ncpu > 1:
-            pool = mp.Pool(ncpu)
+            pool = mp.get_context('fork').Pool(ncpu)
             results = pool.map(get_dico, infiles)
             pool.close()
             pool.join()

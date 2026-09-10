@@ -245,7 +245,7 @@ class TempDirManager():
         #- parallel copying performs better than copying serially
         ncpu = get_ncpu(None)
         if ncpu > 1:
-            pool = mp.Pool(ncpu)
+            pool = mp.get_context('fork').Pool(ncpu)
             pool.starmap(shutil.move, argslist)
             pool.close()
             pool.join()

@@ -71,7 +71,7 @@ class QAAmp(QA):
         ncpu = get_ncpu(None)
         
         if ncpu > 1:
-            pool = mp.Pool(ncpu)
+            pool = mp.get_context('fork').Pool(ncpu)
             results = pool.starmap(get_dico, argslist)
             pool.close()
             pool.join()
