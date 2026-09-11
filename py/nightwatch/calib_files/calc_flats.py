@@ -80,7 +80,7 @@ def calc_flats(datadir, night, expids, prog, warnlevel=0.01, errlevel=0.02):
                 fits = fitsio.FITS(qframe)
                 wave = np.median(fits['WAVELENGTH'][fiberlo:fiberhi, :], axis=0)
                 flux = np.median(fits['FLUX'][fiberlo:fiberhi, :], axis=0)
-                integ_flux[spcam].append(np.trapz(flux, wave))
+                integ_flux[spcam].append(np.trapezoid(flux, wave))
 
         # Compute mean and uncertainty for each line.
         for cam in 'BRZ':
