@@ -1,6 +1,8 @@
 # Nightwatch change log
 
-## 1.2.0 (unreleased)
+## 1.2.1 (unreleased)
+
+## 1.2.0 (2026-09-11)
 
 * NumPy 2.5 fix: rename trapz to trapezoid ([PR #534](https://github.com/desihub/nightwatch/pull/534)).
 * Use ls-dr11 layer in legacysurvey.org URLs ([PR #532](https://github.com/desihub/nightwatch/pull/532)).
