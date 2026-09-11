@@ -2,6 +2,7 @@
 
 ## 1.2.0 (unreleased)
 
+* NumPy 2.5 fix: rename trapz to trapezoid ([PR #534](https://github.com/desihub/nightwatch/pull/534)).
 * Use ls-dr11 layer in legacysurvey.org URLs ([PR #532](https://github.com/desihub/nightwatch/pull/532)).
 * Python 3.14 update: use Pool with "fork" context ([PR #530](https://github.com/desihub/nightwatch/pull/530)).
 
