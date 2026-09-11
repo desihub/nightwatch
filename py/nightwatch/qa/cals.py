@@ -81,7 +81,7 @@ class QACalibArcs(QA):
                         pk = np.argmin(np.abs(wave - arcline))
                         i = np.maximum(pk-npix, 0)
                         j = np.minimum(pk+npix, len(wave)-1)
-                        area = np.trapz(flux[i:j], wave[i:j])
+                        area = np.trapezoid(flux[i:j], wave[i:j])
                         dico[linelabel] = area
                 else:
                     for arcline in wavelengths[cam]:
@@ -151,7 +151,7 @@ class QACalibFlats(QA):
                     fits = fitsio.FITS(qframe)
                     wave = np.median(fits['WAVELENGTH'][fiberlo:fiberhi, :], axis=0)
                     flux = np.median(fits['FLUX'][fiberlo:fiberhi, :], axis=0)
-                    integ_flux = np.trapz(flux, wave)
+                    integ_flux = np.trapezoid(flux, wave)
 
                     dico[f'{cam}_INTEG_FLUX'] = integ_flux
                 else:

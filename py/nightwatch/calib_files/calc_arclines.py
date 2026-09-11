@@ -101,7 +101,7 @@ def calc_arc_lines(datadir, night, expids, prog, wavelengths, warnlevel=0.075, e
                     pk = np.argmin(np.abs(wave - arcline))
                     i = np.maximum(pk-npix, 0)
                     j = np.minimum(pk+npix, len(wave)-1)
-                    area = np.trapz(flux[i:j], wave[i:j])
+                    area = np.trapezoid(flux[i:j], wave[i:j])
 
                     if arcline in lineareas[sp][cam]:
                         lineareas[sp][cam][arcline].append(area)
