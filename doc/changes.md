@@ -2,6 +2,8 @@
 
 ## 1.2.1 (unreleased)
 
+* Update read noise thresholds after KPNO summer work, Aug/Sep 2026 ([PR #537](https://github.com/desihub/nightwatch/pull/537)).
+
 ## 1.2.0 (2026-09-11)
 
 * NumPy 2.5 fix: rename trapz to trapezoid ([PR #534](https://github.com/desihub/nightwatch/pull/534)).
