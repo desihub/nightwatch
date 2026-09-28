@@ -7,7 +7,7 @@ import fitsio
 import json 
 import warnings
 
-def calcnominalnoise(nightwatchdir, nightexpids, outfile):
+def calcnominalnoise(nightwatchdir, nightexpids, outfile, verbose=False):
     """
     Calculate nominal readnoise for each amp given an input set of example exps
 
@@ -25,8 +25,13 @@ def calcnominalnoise(nightwatchdir, nightexpids, outfile):
     for night, expid in nightexpids:
         qadir = os.path.join(nightwatchdir, str(night), '{:08d}'.format(expid))
         qafile = os.path.join(qadir, 'qa-{:08d}.fits'.format(int(expid)))
+        if verbose:
+            print(f'Reading from {qafile}')
         amp = fitsio.read(qafile, "PER_AMP")
         amp.sort(order=["CAM", "SPECTRO", "AMP"]) # https://numpy.org/doc/stable/reference/generated/numpy.recarray.sort.html
+        if verbose:
+            print(len(amp['READNOISE']))
+            print(amp['READNOISE'])
         readnoise.append(amp["READNOISE"])
 
     #- calculate nominal values
@@ -77,14 +82,15 @@ if __name__ == "__main__":
     """
     import argparse
 
-    parser = argparse.ArgumentParser(usage = "{prog} [options]")
-    parser.add_argument("--indir", type=str,  help="base directory with nightwatch processed data")
-    parser.add_argument("--nightexpids", type=str, help="text file containing input night expids to use for readnoise")
-    parser.add_argument("--outfile", type=str,  help="output json threshold file to write designation)")
+    parser = argparse.ArgumentParser(usage = '{prog} [options]')
+    parser.add_argument('-i', '--indir', type=str, help='base directory with nightwatch processed data')
+    parser.add_argument('-n', '--nightexpids', type=str, help='text file containing input night expids to use for readnoise')
+    parser.add_argument('-o', '--outfile', type=str, help='output json threshold file to write designation)')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose logging')
     args = parser.parse_args()
 
     #- convert input nightexpids file to list of (night,expid) tuples
     tmp = np.loadtxt(args.nightexpids, dtype=int, unpack=True)
     nightexpids = [(int(a), int(b)) for a,b in zip(tmp[0], tmp[1])]
 
-    calcnominalnoise(args.indir, nightexpids, args.outfile)
+    calcnominalnoise(args.indir, nightexpids, args.outfile, args.verbose)
