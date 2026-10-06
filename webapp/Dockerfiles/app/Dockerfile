@@ -1,11 +1,13 @@
-FROM python:3.8
+FROM python:3.9
 
 WORKDIR /app
 ENV PYTHONPATH ${PYTHONPATH}:./nightwatch/py
 ENV PYTHONPATH ${PYTHONPATH}:./desimodel/py
 ENV PYTHONPATH ${PYTHONPATH}:./desiutil/py
-ADD . /app
-RUN pip3 install -r requirements.txt
+ADD ./webapp/Dockerfiles/app /app
+COPY ./py/nightwatch /app/nightwatch
+RUN python -m pip install --upgrade pip
+RUN cat requirements.txt  | xargs -n 1 pip install
 EXPOSE 5000
 
 ENTRYPOINT [ "uwsgi" ]
