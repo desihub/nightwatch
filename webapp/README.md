@@ -45,7 +45,7 @@ EXPOSE 5000
 ENTRYPOINT [ "uwsgi" ]
 CMD [ "--ini", "app.ini"]
 ```
-The first line tells Docker which image the new image is based off of- in general, this should be a standardized, well-maintained image, to ensure greatest stability. The next line creates a directory *inside* the container, in which we will mount all of our external files. The `ENV` lines add our desi models to the pythonpath inside the container, and the `ADD` line copies the files in the same directory as the docker file to the container. In this case, that was the requirements.txt file, the app.py code, and the uWSGI config file app.ini. Requirements.txt contains all of the dependencies we need to run the app. These requirements get installed in the next `RUN` line. All the needed files are contained in the /Dockerfiles folder. `EXPOSE` tells the container to expose port 5000, on which the app will listen for requests from the user. The final two lines tell the container how to start up the application, with the entrypoint `uwsgi` and the arguments `"--ini app.ini --pyargv -s ./static -d ./data`. These tell uWSGI to look for the app.ini file for configurations, as well as to pass the `pygarv` arguments into the Flask app.
+The first line tells Docker which image the new image is based off of- in general, this should be a standardized, well-maintained image, to ensure greatest stability. The next line creates a directory *inside* the container, in which we will mount all of our external files. The `ENV` lines add our desi models to the pythonpath inside the container, and the `ADD` line copies the files in the same directory as the docker file to the container. In this case, that was the requirements.txt file, the app.py code, and the uWSGI config file app.ini. Requirements.txt contains all of the dependencies we need to run the app. These requirements get installed in the next `RUN` line. All the needed files are contained in the /Dockerfiles folder. `EXPOSE` tells the container to expose port 5000, on which the app will listen for requests from the user. The final two lines tell the container how to start up the application, with the entrypoint `uwsgi` and the arguments `--ini app.ini --pyargv -i ./static -d ./static`. These tell uWSGI to look for the app.ini file for configurations, as well as to pass the `pyargv` arguments into the Flask app.
 
 #### uWSGI Configuration
 The uWSGI image also contains an app.ini file with uWSGI specific configurations:
@@ -55,7 +55,7 @@ protocol = http
 module = app
 callable = app
 master = true
-pyargv = "webapp -i ./static -d ./data"
+pyargv = "-i ./static -d ./static"
 
 processes = 5
 single-interpreter = true
@@ -64,8 +64,11 @@ http-socket = :5000
 vacuum = true
 
 die-on-term = true
+
+# allow large Cookie headers (e.g. .lbl.gov _ga cookies); default 4096 caused 502
+buffer-size = 32768
 ```
-See the [uWSGI documentation](https://uwsgi-docs.readthedocs.io/en/latest/CustomOptions.html) if you want to learn more about the specific options here. The version of the app.ini file in this repo also contains some more details on these configs.
+See the [uWSGI documentation](https://uwsgi-docs.readthedocs.io/en/latest/CustomOptions.html) if you want to learn more about the specific options here. The above is illustrative; the `webapp/Dockerfiles/app/app.ini` is the version built into the image.
 
 ## Building and Shipping Images to NERSC
 ### Building New Images
